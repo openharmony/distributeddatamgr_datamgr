@@ -130,7 +130,7 @@ void DistributedDBInterfacesNBDelegateLocalBatchTest::TearDown(void)
   * @tc.require: AR000EPAS8
   * @tc.author: changguicai
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateLocalBatchTest, PutLocalBatch001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateLocalBatchTest, PutLocalBatch001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Get singleVer kvStore by GetKvStore.
@@ -175,7 +175,7 @@ HWTEST_F(DistributedDBInterfacesNBDelegateLocalBatchTest, PutLocalBatch001, Test
   * @tc.require: AR000EPAS8
   * @tc.author: changguicai
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateLocalBatchTest, SingleVerPutLocalBatch001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateLocalBatchTest, SingleVerPutLocalBatch001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1.
@@ -217,7 +217,7 @@ HWTEST_F(DistributedDBInterfacesNBDelegateLocalBatchTest, SingleVerPutLocalBatch
   * @tc.require: AR000EPAS8
   * @tc.author: changguicai
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateLocalBatchTest, SingleVerPutLocalBatch002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateLocalBatchTest, SingleVerPutLocalBatch002, TestSize.Level1)
 {
     const KvStoreNbDelegate::Option option = {true, false};
     g_mgr.SetKvStoreConfig(g_config);
@@ -282,7 +282,7 @@ HWTEST_F(DistributedDBInterfacesNBDelegateLocalBatchTest, SingleVerPutLocalBatch
   * @tc.require: AR000EPAS8
   * @tc.author: changguicai
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateLocalBatchTest, SingleVerPutLocalBatch003, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateLocalBatchTest, SingleVerPutLocalBatch003, TestSize.Level1)
 {
     const KvStoreNbDelegate::Option option = {true, false};
     g_mgr.SetKvStoreConfig(g_config);
@@ -356,7 +356,7 @@ static void PreparePutLocalBatch004(vector<Entry> &entrys1, vector<Entry> &entry
   * @tc.require: AR000EPAS8
   * @tc.author: changguicai
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateLocalBatchTest, SingleVerPutLocalBatch004, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateLocalBatchTest, SingleVerPutLocalBatch004, TestSize.Level1)
 {
     /**
      * @tc.steps: step1.
@@ -446,7 +446,7 @@ HWTEST_F(DistributedDBInterfacesNBDelegateLocalBatchTest, SingleVerPutLocalBatch
   * @tc.require: AR000EPAS8
   * @tc.author: changguicai
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateLocalBatchTest, SingleVerDeleteLocalBatch001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateLocalBatchTest, SingleVerDeleteLocalBatch001, TestSize.Level1)
 {
     const KvStoreNbDelegate::Option option = {true, false};
     g_mgr.SetKvStoreConfig(g_config);
@@ -551,7 +551,7 @@ HWTEST_F(DistributedDBInterfacesNBDelegateLocalBatchTest, SingleVerDeleteLocalBa
   * @tc.require: AR000EPAS8
   * @tc.author: changguicai
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateLocalBatchTest, SingleVerDeleteLocalBatch002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateLocalBatchTest, SingleVerDeleteLocalBatch002, TestSize.Level1)
 {
     const KvStoreNbDelegate::Option option = {true, false};
     g_mgr.SetKvStoreConfig(g_config);
@@ -984,7 +984,7 @@ HWTEST_F(DistributedDBInterfacesNBDelegateLocalBatchTest, SingleVerDeleteLocalBa
   * @tc.require: AR000EPAS8
   * @tc.author: changguicai
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateLocalBatchTest, LocalDataBatchNotCheckSchema001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateLocalBatchTest, LocalDataBatchNotCheckSchema001, TestSize.Level1)
 {
     g_mgr.GetKvStore("distributed_LocalDataBatchNotCheckSchema_001", g_strictOpt, g_kvNbDelegateCallback);
     ASSERT_TRUE(g_kvNbDelegatePtr != nullptr);
@@ -1057,7 +1057,7 @@ HWTEST_F(DistributedDBInterfacesNBDelegateLocalBatchTest, LocalDataBatchNotCheck
   * @tc.require: AR000EPAS8
   * @tc.author: changguicai
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateLocalBatchTest, LocalDataBatchNotCheckReadOnly001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateLocalBatchTest, LocalDataBatchNotCheckReadOnly001, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. Open the kv store with valid schema, and close it.

@@ -358,7 +358,7 @@ void DistributedDBStorageEncryptTest::TearDown(void)
   * @tc.require: AR000CQDT6
   * @tc.author: maokeheng
   */
-HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest001, TestSize.Level0)
+HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest001, TestSize.Level1)
 {
     /**
       * @tc.steps:step1. Open a database without being encrypted.
@@ -500,7 +500,7 @@ HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest004, TestSize.Level1)
   * @tc.require: AR000CQDT6
   * @tc.author: maokeheng
   */
-HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest005, TestSize.Level0)
+HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest005, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. Open an encrypted DB with password g_oldPasswd.
@@ -711,7 +711,7 @@ HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest009, TestSize.Level1)
   * @tc.require: AR000CQDT6
   * @tc.author: maokeheng
 */
-HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest010, TestSize.Level0)
+HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest010, TestSize.Level1)
 {
     /**
       * @tc.steps:step1. Open a database without being encrypted.
@@ -745,7 +745,7 @@ HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest010, TestSize.Level0)
   * @tc.require: AR000CQDT6
   * @tc.author: maokeheng
   */
-HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest011, TestSize.Level0)
+HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest011, TestSize.Level1)
 {
     /**
       * @tc.steps:step1. Open a database without being encrypted.
@@ -785,7 +785,7 @@ HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest011, TestSize.Level0)
   * @tc.require: AR000CQDT6
   * @tc.author: maokeheng
   */
-HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest012, TestSize.Level0)
+HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest012, TestSize.Level1)
 {
     /**
       * @tc.steps:step1. Open a database with password g_oldPasswd.
@@ -825,7 +825,7 @@ HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest012, TestSize.Level0)
   * @tc.require: AR000CQDT6
   * @tc.author: maokeheng
   */
-HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest013, TestSize.Level0)
+HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest013, TestSize.Level1)
 {
     /**
       * @tc.steps:step1. Open a database with password g_oldPasswd.
@@ -865,7 +865,7 @@ HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest013, TestSize.Level0)
   * @tc.require: AR000CQDT6
   * @tc.author: maokeheng
   */
-HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest014, TestSize.Level0)
+HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest014, TestSize.Level1)
 {
     /**
       * @tc.steps:step1. Open a database without being encrypted.
@@ -893,7 +893,7 @@ HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest014, TestSize.Level0)
   * @tc.require: AR000CQDT6
   * @tc.author: maokeheng
   */
-HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest015, TestSize.Level0)
+HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest015, TestSize.Level1)
 {
     /**
       * @tc.steps:step1. Open a database without being encrypted.
@@ -927,7 +927,7 @@ HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest015, TestSize.Level0)
   * @tc.require: AR000CQDT6
   * @tc.author: maokeheng
   */
-HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest016, TestSize.Level0)
+HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest016, TestSize.Level1)
 {
     /**
       * @tc.steps:step1. Open a database with password g_oldPasswd.
@@ -961,7 +961,7 @@ HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest016, TestSize.Level0)
   * @tc.require: AR000CQDT6
   * @tc.author: maokeheng
   */
-HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest017, TestSize.Level0)
+HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest017, TestSize.Level1)
 {
     /**
       * @tc.steps:step1. Open a database with password g_oldPasswd.
@@ -995,7 +995,7 @@ HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest017, TestSize.Level0)
   * @tc.require: AR000CQDT6
   * @tc.author: maokeheng
   */
-HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest018, TestSize.Level0)
+HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest018, TestSize.Level1)
 {
     /**
       * @tc.steps:step1. Open a database with password g_oldPasswd.
@@ -1035,7 +1035,7 @@ HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest018, TestSize.Level0)
   * @tc.require: AR000CQDT6
   * @tc.author: maokeheng
 */
-HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest019, TestSize.Level0)
+HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest019, TestSize.Level1)
 {
     /**
       * @tc.steps:step1. Open a database with password g_oldPasswd.
@@ -1075,7 +1075,7 @@ HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest019, TestSize.Level0)
   * @tc.require: AR000CQDT6
   * @tc.author: maokeheng
   */
-HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest020, TestSize.Level0)
+HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest020, TestSize.Level1)
 {
     /**
       * @tc.steps:step1. Open a database with password g_oldPasswd and choose not to save password.
@@ -1112,7 +1112,7 @@ HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest020, TestSize.Level0)
   * @tc.require: AR000CQDT6
   * @tc.author: maokeheng
   */
-HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest021, TestSize.Level0)
+HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest021, TestSize.Level1)
 {
     /**
       * @tc.steps:step1. Open a database with password g_oldPasswd and choose not to save password.
@@ -1149,7 +1149,7 @@ HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest021, TestSize.Level0)
   * @tc.require: AR000CQDT6
   * @tc.author: maokeheng
   */
-HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest022, TestSize.Level0)
+HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest022, TestSize.Level1)
 {
     /**
       * @tc.steps:step1. Open a database with password g_oldPasswd and choose not to save password.
@@ -1186,7 +1186,7 @@ HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest022, TestSize.Level0)
   * @tc.require: AR000CQDT6
   * @tc.author: maokeheng
   */
-HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest023, TestSize.Level0)
+HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest023, TestSize.Level1)
 {
     /**
       * @tc.steps:step1. Open a database with password g_oldPasswd and choose not to save password.
@@ -1223,7 +1223,7 @@ HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest023, TestSize.Level0)
   * @tc.require: AR000CQDT6
   * @tc.author: maokeheng
   */
-HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest024, TestSize.Level0)
+HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest024, TestSize.Level1)
 {
     /**
       * @tc.steps:step1. Open a database with password g_oldPasswd.
@@ -1284,7 +1284,7 @@ HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest024, TestSize.Level0)
  * @tc.require: AR000CQDT6
  * @tc.author: maokeheng
  */
-HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest025, TestSize.Level0)
+HWTEST_F(DistributedDBStorageEncryptTest, EncryptTest025, TestSize.Level1)
 {
     /**
       * @tc.steps:step1. Open a database without password.

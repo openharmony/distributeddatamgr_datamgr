@@ -159,7 +159,7 @@ void DistributedDBSingleVerP2PSyncTest::TearDown(void)
  * @tc.require: AR000CQS3S SR000CQE0B
  * @tc.author: xushaohua
  */
-HWTEST_F(DistributedDBSingleVerP2PSyncTest, NormalSync001, TestSize.Level0)
+HWTEST_F(DistributedDBSingleVerP2PSyncTest, NormalSync001, TestSize.Level1)
 {
     DBStatus status = OK;
     std::vector<std::string> devices;
@@ -204,7 +204,7 @@ HWTEST_F(DistributedDBSingleVerP2PSyncTest, NormalSync001, TestSize.Level0)
  * @tc.require: AR000CCPOM
  * @tc.author: xushaohua
  */
-HWTEST_F(DistributedDBSingleVerP2PSyncTest, NormalSync002, TestSize.Level0)
+HWTEST_F(DistributedDBSingleVerP2PSyncTest, NormalSync002, TestSize.Level1)
 {
     DBStatus status = OK;
     std::vector<std::string> devices;
@@ -257,7 +257,7 @@ HWTEST_F(DistributedDBSingleVerP2PSyncTest, NormalSync002, TestSize.Level0)
  * @tc.require: AR000CQS3S
  * @tc.author: xushaohua
  */
-HWTEST_F(DistributedDBSingleVerP2PSyncTest, NormalSync003, TestSize.Level0)
+HWTEST_F(DistributedDBSingleVerP2PSyncTest, NormalSync003, TestSize.Level1)
 {
     DBStatus status = OK;
     std::vector<std::string> devices;
@@ -310,7 +310,7 @@ HWTEST_F(DistributedDBSingleVerP2PSyncTest, NormalSync003, TestSize.Level0)
  * @tc.require: AR000CCPOM
  * @tc.author: xushaohua
  */
-HWTEST_F(DistributedDBSingleVerP2PSyncTest, NormalSync004, TestSize.Level0)
+HWTEST_F(DistributedDBSingleVerP2PSyncTest, NormalSync004, TestSize.Level1)
 {
     DBStatus status = OK;
     std::vector<std::string> devices;
@@ -493,7 +493,7 @@ HWTEST_F(DistributedDBSingleVerP2PSyncTest, NormalSync006, TestSize.Level2)
  * @tc.require: AR000CCPOM
  * @tc.author: xushaohua
  */
-HWTEST_F(DistributedDBSingleVerP2PSyncTest, NormalSync007, TestSize.Level0)
+HWTEST_F(DistributedDBSingleVerP2PSyncTest, NormalSync007, TestSize.Level1)
 {
     DBStatus status = OK;
     std::vector<std::string> devices;

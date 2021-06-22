@@ -203,7 +203,7 @@ void DistributedDBInterfacesEncryptDatabaseTest::CheckRekeyWithExistedObserver(b
   * @tc.require: AR000CQDT7
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesEncryptDatabaseTest, LocalDatabaseRekeyCheck001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesEncryptDatabaseTest, LocalDatabaseRekeyCheck001, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. Get the local delegate.
@@ -232,7 +232,7 @@ HWTEST_F(DistributedDBInterfacesEncryptDatabaseTest, LocalDatabaseRekeyCheck001,
   * @tc.require: AR000CQDT7
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesEncryptDatabaseTest, LocalDatabaseRekeyCheck002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesEncryptDatabaseTest, LocalDatabaseRekeyCheck002, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. Get the local delegate.
@@ -348,7 +348,7 @@ HWTEST_F(DistributedDBInterfacesEncryptDatabaseTest, MultiVerRekeyCheck003, Test
   * @tc.require: AR000CQDT7
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesEncryptDatabaseTest, SingleVerRekeyCheck001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesEncryptDatabaseTest, SingleVerRekeyCheck001, TestSize.Level1)
 {
     DBStatus status;
     KvStoreNbDelegate *kvStore1 = nullptr;
@@ -400,7 +400,7 @@ HWTEST_F(DistributedDBInterfacesEncryptDatabaseTest, SingleVerRekeyCheck001, Tes
   * @tc.require: AR000CQDT7
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesEncryptDatabaseTest, SingleVerRekeyCheck002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesEncryptDatabaseTest, SingleVerRekeyCheck002, TestSize.Level1)
 {
     DBStatus status;
     KvStoreNbDelegate *kvStore = nullptr;
@@ -455,7 +455,7 @@ static void NotifierCallback(const KvStoreNbConflictData &data)
   * @tc.require: AR000CQDT7
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesEncryptDatabaseTest, SingleVerRekeyCheck003, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesEncryptDatabaseTest, SingleVerRekeyCheck003, TestSize.Level1)
 {
     DBStatus status;
     KvStoreNbDelegate *kvStore = nullptr;

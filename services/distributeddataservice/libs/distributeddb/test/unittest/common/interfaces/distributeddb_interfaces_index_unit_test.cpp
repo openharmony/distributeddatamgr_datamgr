@@ -282,7 +282,7 @@ namespace {
   * @tc.require: AR000DR9K8
   * @tc.author: yiguang
   */
-HWTEST_F(DistributedDBInterfacesIndexUnitTest, CrudIndex001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesIndexUnitTest, CrudIndex001, TestSize.Level1)
 {
     PrepareInfoForCrudIndex001();
     sqlite3 *db = nullptr;
@@ -349,7 +349,7 @@ namespace {
   * @tc.require: AR000DR9K8
   * @tc.author: yiguang
   */
-HWTEST_F(DistributedDBInterfacesIndexUnitTest, CrudIndex002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesIndexUnitTest, CrudIndex002, TestSize.Level1)
 {
     PrepareInfoForCrudIndex002();
     sqlite3 *db = nullptr;
@@ -417,7 +417,7 @@ namespace {
   * @tc.require: AR000DR9K8
   * @tc.author: yiguang
   */
-HWTEST_F(DistributedDBInterfacesIndexUnitTest, CrudIndex003, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesIndexUnitTest, CrudIndex003, TestSize.Level1)
 {
     PrepareInfoForCrudIndex003();
     sqlite3 *db = nullptr;
@@ -496,7 +496,7 @@ namespace {
   * @tc.require: AR000DR9K9
   * @tc.author: yiguang
   */
-HWTEST_F(DistributedDBInterfacesIndexUnitTest, CreateIndex001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesIndexUnitTest, CreateIndex001, TestSize.Level1)
 {
     PrepareInfoForCreateIndex001();
     sqlite3 *db = nullptr;
@@ -566,7 +566,7 @@ namespace {
   * @tc.require: AR000DR9K9
   * @tc.author: yiguang
   */
-HWTEST_F(DistributedDBInterfacesIndexUnitTest, CreateIndex002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesIndexUnitTest, CreateIndex002, TestSize.Level1)
 {
     PrepareInfoForCreateIndex002();
     sqlite3 *db = nullptr;
@@ -615,7 +615,7 @@ namespace {
  * @tc.require: AR000DR9K9
  * @tc.author: yiguang
  */
-HWTEST_F(DistributedDBInterfacesIndexUnitTest, CheckSchemaSkipsize001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesIndexUnitTest, CheckSchemaSkipsize001, TestSize.Level1)
 {
     PrepareInfoForCheckSchemaSkipsize001();
     string storeId = "CheckSchemaSkipsize001";
@@ -656,7 +656,7 @@ HWTEST_F(DistributedDBInterfacesIndexUnitTest, CheckSchemaSkipsize001, TestSize.
  * @tc.require: AR000DR9K9
  * @tc.author: yiguang
  */
-HWTEST_F(DistributedDBInterfacesIndexUnitTest, CheckSchemaSkipsize002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesIndexUnitTest, CheckSchemaSkipsize002, TestSize.Level1)
 {
     PrepareCommonInfo(false);
     string storeId = "CheckSchemaSkipsize002";
@@ -739,7 +739,7 @@ namespace {
  * @tc.require: AR000DR9K9
  * @tc.author: yiguang
  */
-HWTEST_F(DistributedDBInterfacesIndexUnitTest, CheckSchemaSkipsize003, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesIndexUnitTest, CheckSchemaSkipsize003, TestSize.Level1)
 {
     PrepareInfoForCheckSchemaSkipsize003();
     string storeId = "CheckSchemaSkipsize003";
@@ -782,7 +782,7 @@ HWTEST_F(DistributedDBInterfacesIndexUnitTest, CheckSchemaSkipsize003, TestSize.
  * @tc.require: AR000DR9K9
  * @tc.author: yiguang
  */
-HWTEST_F(DistributedDBInterfacesIndexUnitTest, SchemaCompareSkipsize004, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesIndexUnitTest, SchemaCompareSkipsize004, TestSize.Level1)
 {
     PrepareCommonInfo(false);
     string storeId = "SchemaCompareSkipsize004";

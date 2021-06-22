@@ -148,7 +148,7 @@ void DistributedDBInterfacesDataOperationSyncDBTest::TearDown(void)
   * @tc.require: AR000CQDTM AR000CQS3R
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, Put001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, Put001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Put the data(non-empty key and non-empty value) into the database.
@@ -175,7 +175,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, Put001, TestSize.Level0
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, Put002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, Put002, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Put the data(empty key) into the database.
@@ -194,7 +194,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, Put002, TestSize.Level0
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, Put003, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, Put003, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Put the data(empty value) into the database.
@@ -214,7 +214,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, Put003, TestSize.Level0
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, Put004, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, Put004, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. clear the database.
@@ -277,7 +277,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, Put004, TestSize.Level0
   * @tc.require: AR000CQDTM AR000CQS3R
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, Clear001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, Clear001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Put the valid data into the database.
@@ -309,7 +309,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, Clear001, TestSize.Leve
   * @tc.require: AR000CQDTM AR000CQS3R
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, PutBatch001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, PutBatch001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Put the prepared data.
@@ -352,7 +352,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, PutBatch001, TestSize.L
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, PutBatch002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, PutBatch002, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. prepare the batch data.
@@ -394,7 +394,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, PutBatch002, TestSize.L
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, Delete001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, Delete001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Put the prepared data.
@@ -425,7 +425,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, Delete001, TestSize.Lev
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, Delete002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, Delete002, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Clear the database.
@@ -448,7 +448,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, Delete002, TestSize.Lev
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, DeleteBatch001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, DeleteBatch001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Put the batch data into the database.
@@ -491,7 +491,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, DeleteBatch001, TestSiz
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, DeleteBatch002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, DeleteBatch002, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. clear the database.
@@ -517,7 +517,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, DeleteBatch002, TestSiz
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, GetEntries001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, GetEntries001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. insert batch data into the database.
@@ -556,7 +556,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, GetEntries001, TestSize
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, GetEntries002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, GetEntries002, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Get all the data from the empty database.
@@ -581,7 +581,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, GetEntries002, TestSize
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, GetEntries003, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, GetEntries003, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Put batch data into the database.
@@ -643,7 +643,7 @@ static void TestSnapshotCreateAndRelease()
   * @tc.require: AR000BVRNF AR000CQDTI
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, GetSnapshot001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, GetSnapshot001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1.Obtain the snapshot object whose observer is null
@@ -660,7 +660,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, GetSnapshot001, TestSiz
   * @tc.require: AR000BVRNF AR000CQDTI
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, GetSnapshot002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, GetSnapshot002, TestSize.Level1)
 {
     /**
      * @tc.steps: step1.Obtain the snapshot object whose observer is null
@@ -694,7 +694,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, GetSnapshot002, TestSiz
   * @tc.require: AR000BVRNF AR000CQDTI
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, ReleaseSnapshot001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, ReleaseSnapshot001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1.Release the null pointer snapshot through
@@ -712,7 +712,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, ReleaseSnapshot001, Tes
   * @tc.require: AR000BVRNF AR000CQDTI
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, ReleaseSnapshot002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationSyncDBTest, ReleaseSnapshot002, TestSize.Level1)
 {
     TestSnapshotCreateAndRelease();
 }

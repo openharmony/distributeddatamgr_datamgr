@@ -340,7 +340,7 @@ HWTEST_F(DistributedDBInterfacesNBDelegateTest, CombineTest001, TestSize.Level1)
   * @tc.require: AR000CRAKN
   * @tc.author: sunpeng
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateTest, CreateMemoryDb001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateTest, CreateMemoryDb001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Create Memory database by GetKvStore.
@@ -382,7 +382,7 @@ HWTEST_F(DistributedDBInterfacesNBDelegateTest, CreateMemoryDb001, TestSize.Leve
   * @tc.require: AR000CRAKN
   * @tc.author: sunpeng
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateTest, CreateMemoryDb002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateTest, CreateMemoryDb002, TestSize.Level1)
 {
     KvStoreNbDelegate::Option option = {true, true};
     /**
@@ -414,7 +414,7 @@ HWTEST_F(DistributedDBInterfacesNBDelegateTest, CreateMemoryDb002, TestSize.Leve
   * @tc.require: AR000CRAKN
   * @tc.author: sunpeng
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateTest, CreateMemoryDb003, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateTest, CreateMemoryDb003, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Get singleVer kvStore by GetKvStore.
@@ -444,7 +444,7 @@ HWTEST_F(DistributedDBInterfacesNBDelegateTest, CreateMemoryDb003, TestSize.Leve
   * @tc.require: AR000CRAKN
   * @tc.author: sunpeng
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateTest, OperMemoryDbData001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateTest, OperMemoryDbData001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Create Memory database by GetKvStore.
@@ -504,7 +504,7 @@ HWTEST_F(DistributedDBInterfacesNBDelegateTest, OperMemoryDbData001, TestSize.Le
   * @tc.require: AR000CRAKN
   * @tc.author: sunpeng
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateTest, CloseMemoryDb001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateTest, CloseMemoryDb001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Create Memory database by GetKvStore.
@@ -554,7 +554,7 @@ HWTEST_F(DistributedDBInterfacesNBDelegateTest, CloseMemoryDb001, TestSize.Level
   * @tc.require: AR000D08KT
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateTest, ResultSetTest001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateTest, ResultSetTest001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. initialize result set.
@@ -642,7 +642,7 @@ HWTEST_F(DistributedDBInterfacesNBDelegateTest, ResultSetTest001, TestSize.Level
   * @tc.require: AR000CCPOM
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateTest, PutBatchVerify001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateTest, PutBatchVerify001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Get singleVer kvStore by GetKvStore.
@@ -687,7 +687,7 @@ HWTEST_F(DistributedDBInterfacesNBDelegateTest, PutBatchVerify001, TestSize.Leve
   * @tc.require: AR000DPTQ8
   * @tc.author: sunpeng
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateTest, SingleVerPutBatch001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateTest, SingleVerPutBatch001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1.
@@ -729,7 +729,7 @@ HWTEST_F(DistributedDBInterfacesNBDelegateTest, SingleVerPutBatch001, TestSize.L
   * @tc.require: AR000DPTQ8
   * @tc.author: sunpeng
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateTest, SingleVerPutBatch002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateTest, SingleVerPutBatch002, TestSize.Level1)
 {
     const KvStoreNbDelegate::Option option = {true, false};
     g_mgr.SetKvStoreConfig(g_config);
@@ -794,7 +794,7 @@ HWTEST_F(DistributedDBInterfacesNBDelegateTest, SingleVerPutBatch002, TestSize.L
   * @tc.require: AR000DPTQ8
   * @tc.author: sunpeng
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateTest, SingleVerPutBatch003, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateTest, SingleVerPutBatch003, TestSize.Level1)
 {
     const KvStoreNbDelegate::Option option = {true, false};
     g_mgr.SetKvStoreConfig(g_config);
@@ -868,7 +868,7 @@ static void PreparePutBatch004(vector<Entry> &entrys1, vector<Entry> &entrys2, v
   * @tc.require: AR000DPTQ8
   * @tc.author: sunpeng
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateTest, SingleVerPutBatch004, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateTest, SingleVerPutBatch004, TestSize.Level1)
 {
     /**
      * @tc.steps: step1.
@@ -980,7 +980,7 @@ static void CreatEntrys(int recordSize, vector<Key> &keys, vector<Value> &values
   * @tc.require: AR000DPTQ8
   * @tc.author: sunpeng
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateTest, SingleVerDeleteBatch001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateTest, SingleVerDeleteBatch001, TestSize.Level1)
 {
     const KvStoreNbDelegate::Option option = {true, false};
     g_mgr.SetKvStoreConfig(g_config);
@@ -1085,7 +1085,7 @@ HWTEST_F(DistributedDBInterfacesNBDelegateTest, SingleVerDeleteBatch001, TestSiz
   * @tc.require: AR000DPTQ8
   * @tc.author: sunpeng
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateTest, SingleVerDeleteBatch002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateTest, SingleVerDeleteBatch002, TestSize.Level1)
 {
     const KvStoreNbDelegate::Option option = {true, false};
     g_mgr.SetKvStoreConfig(g_config);
@@ -1649,7 +1649,7 @@ static vector<Entry> PreDataForQueryByPreFixKey()
   * @tc.require: AR000EPARK
   * @tc.author: sunpeng
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateTest, QueryPreFixKey002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateTest, QueryPreFixKey002, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. Create non-schma databases
@@ -1699,7 +1699,7 @@ HWTEST_F(DistributedDBInterfacesNBDelegateTest, QueryPreFixKey002, TestSize.Leve
   * @tc.require: AR000EV1G2
   * @tc.author: liuwenkai
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateTest, SingleVerGetSecurityOption001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateTest, SingleVerGetSecurityOption001, TestSize.Level1)
 {
     SecurityOption savedOption;
     std::shared_ptr<IProcessSystemApiAdapter> adapter = std::make_shared<ProcessSystemApiAdapterImpl>();
@@ -1745,7 +1745,7 @@ HWTEST_F(DistributedDBInterfacesNBDelegateTest, SingleVerGetSecurityOption001, T
   * @tc.require: AR000EV1G2
   * @tc.author: liuwenkai
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateTest, SingleVerGetSecurityOption002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateTest, SingleVerGetSecurityOption002, TestSize.Level1)
 {
     SecurityOption savedOption;
     std::shared_ptr<IProcessSystemApiAdapter> adapter = std::make_shared<ProcessSystemApiAdapterImpl>();
@@ -1873,7 +1873,7 @@ void CreateDiffSecOptDb(const std::string &storeId, LockState lockState = UNLOCK
   * @tc.require: AR000EV1G2
   * @tc.author: sunpeng
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateTest, GetKvStoreInDiffOption, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateTest, GetKvStoreInDiffOption, TestSize.Level1)
 {
     sqlite3_init_label_info();
     CreateDiffSecOptDb("distributed_nb_Diff_SecOpt_test");
@@ -1886,7 +1886,7 @@ HWTEST_F(DistributedDBInterfacesNBDelegateTest, GetKvStoreInDiffOption, TestSize
   * @tc.require: AR000EV1G2
   * @tc.author: sunpeng
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateTest, GetKvStoreDbInLockState, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateTest, GetKvStoreDbInLockState, TestSize.Level1)
 {
     std::shared_ptr<IProcessSystemApiAdapter> adapter = std::make_shared<ProcessSystemApiAdapterImpl>();
     ResetSqliteLabel(adapter);
@@ -1900,7 +1900,7 @@ HWTEST_F(DistributedDBInterfacesNBDelegateTest, GetKvStoreDbInLockState, TestSiz
   * @tc.require: AR000EV1G2
   * @tc.author: sunpeng
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateTest, GetKvStoreCreateCacheDb, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateTest, GetKvStoreCreateCacheDb, TestSize.Level1)
 {
     std::shared_ptr<IProcessSystemApiAdapter> adapter = std::make_shared<ProcessSystemApiAdapterImpl>();
     ResetSqliteLabel(adapter);

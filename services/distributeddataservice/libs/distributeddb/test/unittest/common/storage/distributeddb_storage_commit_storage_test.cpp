@@ -333,7 +333,7 @@ void DistributedDBStorageCommitStorageTest::TearDown(void)
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: liujialei
   */
-HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage001, TestSize.Level0)
+HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage001, TestSize.Level1)
 {
     /**
      * @tc.steps:step1/2. Open commit log database
@@ -351,7 +351,7 @@ HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage001, TestSi
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: liujialei
   */
-HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage002, TestSize.Level0)
+HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage002, TestSize.Level1)
 {
     /**
      * @tc.steps:step1/2. Remove commit log database
@@ -403,7 +403,7 @@ HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage002, TestSi
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: liujialei
   */
-HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage003, TestSize.Level0)
+HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage003, TestSize.Level1)
 {
     CommitInfo commitInfo = {g_defaultCommitVer1, g_defaultCommitID1, g_defaultCommitID0, g_defaultCommitID0,
         TIME_STAMP1, true, g_localDevice};
@@ -429,7 +429,7 @@ HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage003, TestSi
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: liujialei
   */
-HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage004, TestSize.Level0)
+HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage004, TestSize.Level1)
 {
     CommitInfo commitInfo = {g_defaultCommitVer1, g_defaultCommitID1, g_defaultCommitID0, g_defaultCommitID0,
         TIME_STAMP1, true, g_localDevice};
@@ -461,7 +461,7 @@ HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage004, TestSi
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: liujialei
   */
-HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage005, TestSize.Level0)
+HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage005, TestSize.Level1)
 {
     CommitInfo commitInfo1 = {g_defaultCommitVer1, g_defaultCommitID1, g_defaultCommitID0, g_defaultCommitID0,
         TIME_STAMP1, true, g_localDevice};
@@ -519,7 +519,7 @@ HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage005, TestSi
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: liujialei
   */
-HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage006, TestSize.Level0)
+HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage006, TestSize.Level1)
 {
     CommitInfo commitInfo = {g_defaultCommitVer1, g_defaultCommitID0, g_defaultCommitID0, g_defaultCommitID0,
         TIME_STAMP1, true, g_localDevice};
@@ -538,7 +538,7 @@ HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage006, TestSi
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: liujialei
   */
-HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage008, TestSize.Level0)
+HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage008, TestSize.Level1)
 {
     CommitInfo commitInfo1 = {g_defaultCommitVer1, g_defaultCommitID1, g_defaultCommitID0, g_defaultCommitID0,
         TIME_STAMP1, true, g_localDevice};
@@ -571,7 +571,7 @@ HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage008, TestSi
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: liujialei
   */
-HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage009, TestSize.Level0)
+HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage009, TestSize.Level1)
 {
     CommitInfo commitInfo1 = {g_defaultCommitVer1, g_defaultCommitID1, g_defaultCommitID0, g_defaultCommitID0,
         TIME_STAMP1, true, g_localDevice};
@@ -604,7 +604,7 @@ HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage009, TestSi
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: liujialei
   */
-HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage010, TestSize.Level0)
+HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage010, TestSize.Level1)
 {
     CommitInfo commitInfo1 = {g_defaultCommitVer1, g_defaultCommitID1, g_defaultCommitID0, g_defaultCommitID0,
         TIME_STAMP1, true, g_localDevice};
@@ -643,7 +643,7 @@ HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage010, TestSi
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: liujialei
   */
-HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage011, TestSize.Level0)
+HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage011, TestSize.Level1)
 {
     CommitInfo commitInfo = {g_defaultCommitVer1, g_defaultCommitID2, g_defaultCommitID1, g_defaultCommitID0,
         TIME_STAMP1, true, g_localDevice};
@@ -668,7 +668,7 @@ HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage011, TestSi
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: liujialei
   */
-HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage012, TestSize.Level0)
+HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage012, TestSize.Level1)
 {
     CommitInfo commitInfo = {g_defaultCommitVer1, g_defaultCommitID2, g_defaultCommitID0, g_defaultCommitID1,
         TIME_STAMP1, true, g_localDevice};
@@ -693,7 +693,7 @@ HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage012, TestSi
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: liujialei
   */
-HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage013, TestSize.Level0)
+HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage013, TestSize.Level1)
 {
     CommitInfo commitInfo1 = {g_defaultCommitVer1, g_defaultCommitID1, g_defaultCommitID0, g_defaultCommitID0,
         TIME_STAMP1, true, g_localDevice};
@@ -738,7 +738,7 @@ HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage013, TestSi
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: liujialei
   */
-HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage014, TestSize.Level0)
+HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage014, TestSize.Level1)
 {
     SetCommitStorageHeader(g_defaultCommitID2, -E_NOT_FOUND);
     TestCommitStorageHeader(g_defaultCommitID0);
@@ -751,7 +751,7 @@ HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage014, TestSi
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: liujialei
   */
-HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage015, TestSize.Level0)
+HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage015, TestSize.Level1)
 {
     PrepareCommitTree();
     int errCode = E_OK;
@@ -766,7 +766,7 @@ HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage015, TestSi
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: liujialei
   */
-HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage016, TestSize.Level0)
+HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage016, TestSize.Level1)
 {
     PrepareCommitTree();
     std::map<DeviceID, IKvDBCommit*> latestCommits;
@@ -797,7 +797,7 @@ HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage016, TestSi
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: liujialei
   */
-HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage017, TestSize.Level0)
+HWTEST_F(DistributedDBStorageCommitStorageTest, MultiVerCommitStorage017, TestSize.Level1)
 {
     PrepareCommitTree();
     map<DeviceID, CommitID> latestCommits;

@@ -207,7 +207,7 @@ void DistributedDBInterfacesNBDelegateSchemaPutTest::TearDown(void)
   * @tc.require: AR000DR9K5
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateSchemaPutTest, PutValueStrictSchemaCheck001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateSchemaPutTest, PutValueStrictSchemaCheck001, TestSize.Level1)
 {
     g_mgr.GetKvStore(g_storeName, g_strictOpt, g_kvNbDelegateCallback);
     ASSERT_TRUE(g_kvStore != nullptr);
@@ -266,7 +266,7 @@ HWTEST_F(DistributedDBInterfacesNBDelegateSchemaPutTest, PutValueCompaSchemaChec
   * @tc.require: AR000DR9K5
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateSchemaPutTest, PutValueReadOnlyCheck001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateSchemaPutTest, PutValueReadOnlyCheck001, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. Open the kv store with valid schema, and close it.
@@ -302,7 +302,7 @@ HWTEST_F(DistributedDBInterfacesNBDelegateSchemaPutTest, PutValueReadOnlyCheck00
   * @tc.require: AR000DR9K5
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBInterfacesNBDelegateSchemaPutTest, QueryDeleted001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBDelegateSchemaPutTest, QueryDeleted001, TestSize.Level1)
 {
     g_mgr.GetKvStore(g_storeName, g_strictOpt, g_kvNbDelegateCallback);
     ASSERT_TRUE(g_kvStore != nullptr);

@@ -243,7 +243,7 @@ HWTEST_F(DistributedDBInterfacesAutoLaunchTest, EnableKvStoreAutoLaunch001, Test
   * @tc.require: AR000DR9KU
   * @tc.author: sunpeng
   */
-HWTEST_F(DistributedDBInterfacesAutoLaunchTest, EnableKvStoreAutoLaunch002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesAutoLaunchTest, EnableKvStoreAutoLaunch002, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Enable the kv store with createIfNecessary is false.
@@ -443,7 +443,7 @@ HWTEST_F(DistributedDBInterfacesAutoLaunchTest, EnableKvStoreAutoLaunch004, Test
   * @tc.require: AR000DR9KU
   * @tc.author: sunpeng
   */
-HWTEST_F(DistributedDBInterfacesAutoLaunchTest, EnableKvStoreAutoLaunch005, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesAutoLaunchTest, EnableKvStoreAutoLaunch005, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Enable the kv store auto launch.

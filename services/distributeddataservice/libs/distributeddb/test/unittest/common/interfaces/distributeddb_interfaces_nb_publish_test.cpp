@@ -123,7 +123,7 @@ void DistributedDBInterfacesNBPublishTest::TearDown(void) {}
   * @tc.require: AR000DPTQ5
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesNBPublishTest, SingleVerPublishKey001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBPublishTest, SingleVerPublishKey001, TestSize.Level1)
 {
     const KvStoreNbDelegate::Option option = {true, false};
     g_mgr.GetKvStore("distributed_nb_publish_SingleVerPublishKey001", option, g_kvNbDelegateCallback);
@@ -518,7 +518,7 @@ HWTEST_F(DistributedDBInterfacesNBPublishTest, SingleVerPublishKey005, TestSize.
   * @tc.require: AR000DPTQ5
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesNBPublishTest, SingleVerPublishKey006, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBPublishTest, SingleVerPublishKey006, TestSize.Level1)
 {
     const KvStoreNbDelegate::Option option = {true, false};
     g_mgr.GetKvStore("distributed_nb_publish_SingleVerPublishKey006", option, g_kvNbDelegateCallback);
@@ -559,7 +559,7 @@ HWTEST_F(DistributedDBInterfacesNBPublishTest, SingleVerPublishKey006, TestSize.
   * @tc.require: AR000DPTQ5
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesNBPublishTest, SingleVerPublishKey007, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBPublishTest, SingleVerPublishKey007, TestSize.Level1)
 {
     const KvStoreNbDelegate::Option option = {true, false};
     g_mgr.GetKvStore("distributed_nb_publish_SingleVerPublishKey007", option, g_kvNbDelegateCallback);
@@ -607,7 +607,7 @@ HWTEST_F(DistributedDBInterfacesNBPublishTest, SingleVerPublishKey007, TestSize.
   * @tc.require: AR000DPTQ5
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesNBPublishTest, SingleVerPublishKey008, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBPublishTest, SingleVerPublishKey008, TestSize.Level1)
 {
     const KvStoreNbDelegate::Option option = {true, false};
     g_mgr.GetKvStore("distributed_nb_publish_SingleVerPublishKey008", option, g_kvNbDelegateCallback);
@@ -655,7 +655,7 @@ HWTEST_F(DistributedDBInterfacesNBPublishTest, SingleVerPublishKey008, TestSize.
   * @tc.require: AR000DPTQ5
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesNBPublishTest, SingleVerPublishKey009, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBPublishTest, SingleVerPublishKey009, TestSize.Level1)
 {
     const KvStoreNbDelegate::Option option = {true, false};
     g_mgr.GetKvStore("distributed_nb_publish_SingleVerPublishKey009", option, g_kvNbDelegateCallback);
@@ -702,7 +702,7 @@ HWTEST_F(DistributedDBInterfacesNBPublishTest, SingleVerPublishKey009, TestSize.
   * @tc.require: AR000DPTQ5
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesNBPublishTest, SingleVerPublishKey010, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBPublishTest, SingleVerPublishKey010, TestSize.Level1)
 {
     const KvStoreNbDelegate::Option option = {true, false};
     g_mgr.GetKvStore("distributed_nb_publish_SingleVerPublishKey010", option, g_kvNbDelegateCallback);
@@ -749,7 +749,7 @@ HWTEST_F(DistributedDBInterfacesNBPublishTest, SingleVerPublishKey010, TestSize.
   * @tc.require: AR000DPTQ5
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesNBPublishTest, SingleVerPublishKey011, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBPublishTest, SingleVerPublishKey011, TestSize.Level1)
 {
     const KvStoreNbDelegate::Option option = {true, false};
     g_mgr.GetKvStore("distributed_nb_publish_SingleVerPublishKey011", option, g_kvNbDelegateCallback);

@@ -338,7 +338,7 @@ HWTEST_F(DistributedDBStorageTransactionDataTest, StorageInsert001, TestSize.Lev
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBStorageTransactionDataTest, StorageInsert002, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionDataTest, StorageInsert002, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Put the data(empty key, non-empty value) into the database.
@@ -357,7 +357,7 @@ HWTEST_F(DistributedDBStorageTransactionDataTest, StorageInsert002, TestSize.Lev
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBStorageTransactionDataTest, StorageInsert003, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionDataTest, StorageInsert003, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Put the data(non-empty key, empty value) into the database.
@@ -383,7 +383,7 @@ HWTEST_F(DistributedDBStorageTransactionDataTest, StorageInsert003, TestSize.Lev
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBStorageTransactionDataTest, StorageUpdate001, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionDataTest, StorageUpdate001, TestSize.Level1)
 {
     IOption option;
     /**
@@ -413,7 +413,7 @@ HWTEST_F(DistributedDBStorageTransactionDataTest, StorageUpdate001, TestSize.Lev
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBStorageTransactionDataTest, StorageUpdate002, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionDataTest, StorageUpdate002, TestSize.Level1)
 {
     IOption option;
     /**
@@ -442,7 +442,7 @@ HWTEST_F(DistributedDBStorageTransactionDataTest, StorageUpdate002, TestSize.Lev
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBStorageTransactionDataTest, StorageDelete001, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionDataTest, StorageDelete001, TestSize.Level1)
 {
     IOption option;
     /**
@@ -469,7 +469,7 @@ HWTEST_F(DistributedDBStorageTransactionDataTest, StorageDelete001, TestSize.Lev
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBStorageTransactionDataTest, StorageDelete002, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionDataTest, StorageDelete002, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Delete one non-existed data.
@@ -493,7 +493,7 @@ HWTEST_F(DistributedDBStorageTransactionDataTest, StorageDelete002, TestSize.Lev
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBStorageTransactionDataTest, StorageDelete003, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionDataTest, StorageDelete003, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Delete the empty-key data.
@@ -510,7 +510,7 @@ HWTEST_F(DistributedDBStorageTransactionDataTest, StorageDelete003, TestSize.Lev
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBStorageTransactionDataTest, StorageClear001, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionDataTest, StorageClear001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. put one data.
@@ -538,7 +538,7 @@ HWTEST_F(DistributedDBStorageTransactionDataTest, StorageClear001, TestSize.Leve
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBStorageTransactionDataTest, StorageInsertBatch001, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionDataTest, StorageInsertBatch001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Put the batch data.
@@ -568,7 +568,7 @@ HWTEST_F(DistributedDBStorageTransactionDataTest, StorageInsertBatch001, TestSiz
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBStorageTransactionDataTest, StorageInsertBatch002, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionDataTest, StorageInsertBatch002, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Put the batch data(partially valid, partially invalid).
@@ -596,7 +596,7 @@ HWTEST_F(DistributedDBStorageTransactionDataTest, StorageInsertBatch002, TestSiz
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBStorageTransactionDataTest, StorageUpdateBatch001, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionDataTest, StorageUpdateBatch001, TestSize.Level1)
 {
     std::vector<Entry> entries1;
     entries1.push_back(KV_ENTRY_1);
@@ -636,7 +636,7 @@ HWTEST_F(DistributedDBStorageTransactionDataTest, StorageUpdateBatch001, TestSiz
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBStorageTransactionDataTest, StorageUpdateBatch002, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionDataTest, StorageUpdateBatch002, TestSize.Level1)
 {
     std::vector<Entry> entrys1;
     entrys1.push_back(KV_ENTRY_1);
@@ -678,7 +678,7 @@ HWTEST_F(DistributedDBStorageTransactionDataTest, StorageUpdateBatch002, TestSiz
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBStorageTransactionDataTest, StorageDeleteBatch001, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionDataTest, StorageDeleteBatch001, TestSize.Level1)
 {
     std::vector<Entry> entries;
     entries.push_back(KV_ENTRY_1);
@@ -714,7 +714,7 @@ HWTEST_F(DistributedDBStorageTransactionDataTest, StorageDeleteBatch001, TestSiz
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBStorageTransactionDataTest, StorageDeleteBatch002, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionDataTest, StorageDeleteBatch002, TestSize.Level1)
 {
     std::vector<Entry> entries;
     entries.push_back(KV_ENTRY_1);
@@ -752,7 +752,7 @@ HWTEST_F(DistributedDBStorageTransactionDataTest, StorageDeleteBatch002, TestSiz
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBStorageTransactionDataTest, StorageDeleteBatch003, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionDataTest, StorageDeleteBatch003, TestSize.Level1)
 {
     std::vector<Entry> entries;
     entries.push_back(KV_ENTRY_1);
@@ -790,7 +790,7 @@ HWTEST_F(DistributedDBStorageTransactionDataTest, StorageDeleteBatch003, TestSiz
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBStorageTransactionDataTest, StorageTransactionCombo001, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionDataTest, StorageTransactionCombo001, TestSize.Level1)
 {
     Entry kvEntry3;
     Entry kvEntry4;
@@ -856,7 +856,7 @@ HWTEST_F(DistributedDBStorageTransactionDataTest, StorageTransactionCombo001, Te
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBStorageTransactionDataTest, TransactionRollback001, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionDataTest, TransactionRollback001, TestSize.Level1)
 {
     std::vector<Entry> entries;
     entries.push_back(KV_ENTRY_1);
@@ -890,7 +890,7 @@ HWTEST_F(DistributedDBStorageTransactionDataTest, TransactionRollback001, TestSi
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBStorageTransactionDataTest, TransactionGetCommitData001, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionDataTest, TransactionGetCommitData001, TestSize.Level1)
 {
     std::vector<Entry> entries;
     entries.push_back(KV_ENTRY_1);
@@ -943,7 +943,7 @@ HWTEST_F(DistributedDBStorageTransactionDataTest, TransactionGetCommitData001, T
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBStorageTransactionDataTest, TransactionSqliteKvEntry001, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionDataTest, TransactionSqliteKvEntry001, TestSize.Level1)
 {
     GenericMultiVerKvEntry entry;
     entry.SetOperFlag(17);
@@ -997,7 +997,7 @@ HWTEST_F(DistributedDBStorageTransactionDataTest, TransactionSqliteKvEntry001, T
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBStorageTransactionDataTest, TransactionPutForeignData001, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionDataTest, TransactionPutForeignData001, TestSize.Level1)
 {
     GenericMultiVerKvEntry entry;
     entry.SetOperFlag(1);
@@ -1047,7 +1047,7 @@ HWTEST_F(DistributedDBStorageTransactionDataTest, TransactionPutForeignData001, 
   * @tc.require: AR000CQE13 AR000CQE14
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBStorageTransactionDataTest, DefaultConflictResolution001, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionDataTest, DefaultConflictResolution001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Put the local data(KEY_1, VALUE_1) into the database.
@@ -1076,7 +1076,7 @@ HWTEST_F(DistributedDBStorageTransactionDataTest, DefaultConflictResolution001, 
   * @tc.require: AR000CQE13 AR000CQE14
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBStorageTransactionDataTest, DefaultConflictResolution002, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionDataTest, DefaultConflictResolution002, TestSize.Level1)
 {
     PutAndCommitEntry(KEY_1, VALUE_1);
     /**

@@ -91,7 +91,7 @@ void DistributedDBInterfacesTransactionOptimizationTest::TearDown(void)
   * @tc.require: AR000EPAS8
   * @tc.author: changguicai
   */
-HWTEST_F(DistributedDBInterfacesTransactionOptimizationTest, SyncAndLocalBatchOperations001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesTransactionOptimizationTest, SyncAndLocalBatchOperations001, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. Get the nb delegate.
@@ -169,7 +169,7 @@ HWTEST_F(DistributedDBInterfacesTransactionOptimizationTest, SyncAndLocalBatchOp
   * @tc.require: AR000EPAS8
   * @tc.author: changguicai
   */
-HWTEST_F(DistributedDBInterfacesTransactionOptimizationTest, SyncAndLocalSingleOperations001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesTransactionOptimizationTest, SyncAndLocalSingleOperations001, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. Get the nb delegate.
@@ -236,7 +236,7 @@ HWTEST_F(DistributedDBInterfacesTransactionOptimizationTest, SyncAndLocalSingleO
   * @tc.require: AR000EPAS8
   * @tc.author: changguicai
   */
-HWTEST_F(DistributedDBInterfacesTransactionOptimizationTest, DeleteInTransaction001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesTransactionOptimizationTest, DeleteInTransaction001, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. Get the nb delegate.
@@ -299,7 +299,7 @@ HWTEST_F(DistributedDBInterfacesTransactionOptimizationTest, DeleteInTransaction
   * @tc.require: AR000EPAS8
   * @tc.author: changguicai
   */
-HWTEST_F(DistributedDBInterfacesTransactionOptimizationTest, DeleteBatchInTransaction001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesTransactionOptimizationTest, DeleteBatchInTransaction001, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. Get the nb delegate.
@@ -373,7 +373,7 @@ HWTEST_F(DistributedDBInterfacesTransactionOptimizationTest, DeleteBatchInTransa
   * @tc.require: AR000EPAS8
   * @tc.author: changguicai
   */
-HWTEST_F(DistributedDBInterfacesTransactionOptimizationTest, SyncAndLocalObserver001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesTransactionOptimizationTest, SyncAndLocalObserver001, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. Get the nb delegate.
@@ -461,7 +461,7 @@ HWTEST_F(DistributedDBInterfacesTransactionOptimizationTest, SyncAndLocalObserve
   * @tc.require: AR000EPAS8
   * @tc.author: changguicai
   */
-HWTEST_F(DistributedDBInterfacesTransactionOptimizationTest, OnlyDeleteInTransaction001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesTransactionOptimizationTest, OnlyDeleteInTransaction001, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. Get the nb delegate.
@@ -556,7 +556,7 @@ HWTEST_F(DistributedDBInterfacesTransactionOptimizationTest, OnlyDeleteInTransac
   * @tc.require: AR000EPAS8
   * @tc.author: changguicai
   */
-HWTEST_F(DistributedDBInterfacesTransactionOptimizationTest, SyncAndLocalObserver002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesTransactionOptimizationTest, SyncAndLocalObserver002, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. Get the nb delegate.
@@ -641,7 +641,7 @@ HWTEST_F(DistributedDBInterfacesTransactionOptimizationTest, SyncAndLocalObserve
   * @tc.require: AR000EPAS8
   * @tc.author: changguicai
   */
-HWTEST_F(DistributedDBInterfacesTransactionOptimizationTest, PutRollback001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesTransactionOptimizationTest, PutRollback001, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. Get the nb delegate.
@@ -724,7 +724,7 @@ HWTEST_F(DistributedDBInterfacesTransactionOptimizationTest, PutRollback001, Tes
   * @tc.require: AR000EPAS8
   * @tc.author: changguicai
   */
-HWTEST_F(DistributedDBInterfacesTransactionOptimizationTest, PutBatchRollback001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesTransactionOptimizationTest, PutBatchRollback001, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. Get the nb delegate.

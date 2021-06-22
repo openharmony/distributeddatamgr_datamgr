@@ -102,7 +102,7 @@ void DistributedDBInterfacesTransactionTest::TearDown(void)
   * @tc.require: AR000BVRNK AR000CQDTO
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesTransactionTest, StartTransaction001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesTransactionTest, StartTransaction001, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. call StartTransaction interface the 1st time.
@@ -122,7 +122,7 @@ HWTEST_F(DistributedDBInterfacesTransactionTest, StartTransaction001, TestSize.L
   * @tc.require: AR000BVRNK AR000CQDTO
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesTransactionTest, StartTransaction002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesTransactionTest, StartTransaction002, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. call StartTransaction interface.
@@ -142,7 +142,7 @@ HWTEST_F(DistributedDBInterfacesTransactionTest, StartTransaction002, TestSize.L
   * @tc.require: AR000BVRNK AR000CQDTO
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesTransactionTest, StartTransaction003, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesTransactionTest, StartTransaction003, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. call StartTransaction interface.
@@ -162,7 +162,7 @@ HWTEST_F(DistributedDBInterfacesTransactionTest, StartTransaction003, TestSize.L
   * @tc.require: AR000BVRNK AR000CQDTO
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesTransactionTest, StartTransaction004, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesTransactionTest, StartTransaction004, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. call StartTransaction interface.
@@ -223,7 +223,7 @@ HWTEST_F(DistributedDBInterfacesTransactionTest, StartTransaction005, TestSize.L
   * @tc.require: AR000CQDTO AR000CQDTP
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesTransactionTest, Commit001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesTransactionTest, Commit001, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. commit Transaction without start it.
@@ -239,7 +239,7 @@ HWTEST_F(DistributedDBInterfacesTransactionTest, Commit001, TestSize.Level0)
   * @tc.require: AR000CQDTO AR000CQDTP
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesTransactionTest, Commit002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesTransactionTest, Commit002, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. call StartTransaction interface.
@@ -263,7 +263,7 @@ HWTEST_F(DistributedDBInterfacesTransactionTest, Commit002, TestSize.Level0)
   * @tc.require: AR000CQDTO AR000CQDTP
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesTransactionTest, Commit003, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesTransactionTest, Commit003, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. call StartTransaction interface.
@@ -291,7 +291,7 @@ HWTEST_F(DistributedDBInterfacesTransactionTest, Commit003, TestSize.Level0)
   * @tc.require: AR000CQDTO AR000CQDTP
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesTransactionTest, Commit004, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesTransactionTest, Commit004, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. put one data.
@@ -323,7 +323,7 @@ HWTEST_F(DistributedDBInterfacesTransactionTest, Commit004, TestSize.Level0)
   * @tc.require: AR000CQDTO AR000CQDTP
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesTransactionTest, Commit005, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesTransactionTest, Commit005, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. call StartTransaction interface.
@@ -351,7 +351,7 @@ HWTEST_F(DistributedDBInterfacesTransactionTest, Commit005, TestSize.Level0)
   * @tc.require: AR000CQDTO
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesTransactionTest, Commit006, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesTransactionTest, Commit006, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. call StartTransaction interface.
@@ -379,7 +379,7 @@ HWTEST_F(DistributedDBInterfacesTransactionTest, Commit006, TestSize.Level0)
   * @tc.require: AR000CQDTO AR000CQDTP
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesTransactionTest, Commit007, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesTransactionTest, Commit007, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. call StartTransaction interface.
@@ -411,7 +411,7 @@ HWTEST_F(DistributedDBInterfacesTransactionTest, Commit007, TestSize.Level0)
   * @tc.require: AR000CQDTO AR000CQDTP
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesTransactionTest, Commit008, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesTransactionTest, Commit008, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. call StartTransaction interface.
@@ -444,7 +444,7 @@ HWTEST_F(DistributedDBInterfacesTransactionTest, Commit008, TestSize.Level0)
  * @tc.require: AR000BVRNM AR000CQDTQ
  * @tc.author: huangnaigu
  */
-HWTEST_F(DistributedDBInterfacesTransactionTest, Rollback001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesTransactionTest, Rollback001, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. Test g_kvDelegatePtr->Rollback
@@ -460,7 +460,7 @@ HWTEST_F(DistributedDBInterfacesTransactionTest, Rollback001, TestSize.Level0)
 * @tc.require: AR000BVRNM AR000CQDTQ
 * @tc.author: huangnaigu
 */
-HWTEST_F(DistributedDBInterfacesTransactionTest, Rollback002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesTransactionTest, Rollback002, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. start a transaction
@@ -484,7 +484,7 @@ HWTEST_F(DistributedDBInterfacesTransactionTest, Rollback002, TestSize.Level0)
  * @tc.require: AR000BVRNM AR000CQDTQ
  * @tc.author: huangnaigu
  */
-HWTEST_F(DistributedDBInterfacesTransactionTest, Rollback003, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesTransactionTest, Rollback003, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. start a transaction
@@ -512,7 +512,7 @@ HWTEST_F(DistributedDBInterfacesTransactionTest, Rollback003, TestSize.Level0)
  * @tc.require: AR000BVRNM AR000CQDTQ
  * @tc.author: huangnaigu
  */
-HWTEST_F(DistributedDBInterfacesTransactionTest, Rollback004, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesTransactionTest, Rollback004, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. Put (k1,v1)
@@ -544,7 +544,7 @@ HWTEST_F(DistributedDBInterfacesTransactionTest, Rollback004, TestSize.Level0)
  * @tc.require: AR000BVRNM AR000CQDTQ
  * @tc.author: huangnaigu
  */
-HWTEST_F(DistributedDBInterfacesTransactionTest, Rollback005, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesTransactionTest, Rollback005, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. Put (k1,v1)
@@ -576,7 +576,7 @@ HWTEST_F(DistributedDBInterfacesTransactionTest, Rollback005, TestSize.Level0)
  * @tc.require: AR000BVRNM AR000CQDTQ
  * @tc.author: huangnaigu
  */
-HWTEST_F(DistributedDBInterfacesTransactionTest, Rollback006, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesTransactionTest, Rollback006, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. PutBatch records: (k1,v1), (k2,v2)
@@ -608,7 +608,7 @@ HWTEST_F(DistributedDBInterfacesTransactionTest, Rollback006, TestSize.Level0)
  * @tc.require: AR000BVRNM AR000CQDTQ
  * @tc.author: huangnaigu
  */
-HWTEST_F(DistributedDBInterfacesTransactionTest, Rollback007, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesTransactionTest, Rollback007, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. PutBatch records: (k1,v1), (k2,v2)
@@ -644,7 +644,7 @@ HWTEST_F(DistributedDBInterfacesTransactionTest, Rollback007, TestSize.Level0)
  * @tc.require: AR000BVRNM AR000CQDTQ
  * @tc.author: huangnaigu
  */
-HWTEST_F(DistributedDBInterfacesTransactionTest, Rollback008, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesTransactionTest, Rollback008, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. PutBatch records: (k1,v1), (k2,v2)

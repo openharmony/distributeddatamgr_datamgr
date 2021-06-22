@@ -129,7 +129,7 @@ void DistributedDBStorageResultAndJsonOptimizeTest::TearDown(void)
   * @tc.require: AR000F3OP0
   * @tc.author: xushaohua
   */
-HWTEST_F(DistributedDBStorageResultAndJsonOptimizeTest, ResultSetOpen001, TestSize.Level0)
+HWTEST_F(DistributedDBStorageResultAndJsonOptimizeTest, ResultSetOpen001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Create a SQLiteSingleVerResultSet.
@@ -169,7 +169,7 @@ HWTEST_F(DistributedDBStorageResultAndJsonOptimizeTest, ResultSetOpen001, TestSi
   * @tc.require: AR000F3OP0
   * @tc.author: xushaohua
   */
-HWTEST_F(DistributedDBStorageResultAndJsonOptimizeTest, ResultSetGetCount001, TestSize.Level0)
+HWTEST_F(DistributedDBStorageResultAndJsonOptimizeTest, ResultSetGetCount001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Create a SQLiteSingleVerResultSet.
@@ -202,7 +202,7 @@ HWTEST_F(DistributedDBStorageResultAndJsonOptimizeTest, ResultSetGetCount001, Te
   * @tc.require: AR000F3OP0
   * @tc.author: xushaohua
   */
-HWTEST_F(DistributedDBStorageResultAndJsonOptimizeTest, ResultSetMoveTo001, TestSize.Level0)
+HWTEST_F(DistributedDBStorageResultAndJsonOptimizeTest, ResultSetMoveTo001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Create a SQLiteSingleVerResultSet.
@@ -277,7 +277,7 @@ HWTEST_F(DistributedDBStorageResultAndJsonOptimizeTest, ResultSetMoveTo001, Test
   * @tc.require: AR000F3OP0
   * @tc.author: xushaohua
   */
-HWTEST_F(DistributedDBStorageResultAndJsonOptimizeTest, ResultSetGetEntry001, TestSize.Level0)
+HWTEST_F(DistributedDBStorageResultAndJsonOptimizeTest, ResultSetGetEntry001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Create a SQLiteSingleVerResultSet.

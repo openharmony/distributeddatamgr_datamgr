@@ -331,7 +331,7 @@ void DistributedDBStorageRegisterObserverTest::TearDown(void)
   * @tc.require: AR000CCPOM
   * @tc.author: liujialei
   */
-HWTEST_F(DistributedDBStorageRegisterObserverTest, RegisterObserver001, TestSize.Level0)
+HWTEST_F(DistributedDBStorageRegisterObserverTest, RegisterObserver001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1/2. Register a null pointer to subscribe to the database.
@@ -591,7 +591,7 @@ HWTEST_F(DistributedDBStorageRegisterObserverTest, RegisterObserver009, TestSize
   * @tc.require: AR000CCPOM
   * @tc.author: liujialei
   */
-HWTEST_F(DistributedDBStorageRegisterObserverTest, RegisterObserver010, TestSize.Level0)
+HWTEST_F(DistributedDBStorageRegisterObserverTest, RegisterObserver010, TestSize.Level1)
 {
     /**
      * @tc.steps: step1/2. Register an observer for the local sync database change
@@ -614,7 +614,7 @@ HWTEST_F(DistributedDBStorageRegisterObserverTest, RegisterObserver010, TestSize
   * @tc.require: AR000CCPOM
   * @tc.author: liujialei
   */
-HWTEST_F(DistributedDBStorageRegisterObserverTest, RegisterObserver011, TestSize.Level0)
+HWTEST_F(DistributedDBStorageRegisterObserverTest, RegisterObserver011, TestSize.Level1)
 {
     /**
      * @tc.steps: step1/2. Register an observer for the remote sync database change
@@ -637,7 +637,7 @@ HWTEST_F(DistributedDBStorageRegisterObserverTest, RegisterObserver011, TestSize
   * @tc.require: AR000CCPOM
   * @tc.author: liujialei
   */
-HWTEST_F(DistributedDBStorageRegisterObserverTest, RegisterObserver012, TestSize.Level0)
+HWTEST_F(DistributedDBStorageRegisterObserverTest, RegisterObserver012, TestSize.Level1)
 {
     /**
      * @tc.steps: step1/2. Register an observer for the local sync database change
@@ -660,7 +660,7 @@ HWTEST_F(DistributedDBStorageRegisterObserverTest, RegisterObserver012, TestSize
   * @tc.require: AR000CCPOM
   * @tc.author: liujialei
   */
-HWTEST_F(DistributedDBStorageRegisterObserverTest, RegisterObserver013, TestSize.Level0)
+HWTEST_F(DistributedDBStorageRegisterObserverTest, RegisterObserver013, TestSize.Level1)
 {
     /**
      * @tc.steps: step1/2. Register an observer for the remote sync database change

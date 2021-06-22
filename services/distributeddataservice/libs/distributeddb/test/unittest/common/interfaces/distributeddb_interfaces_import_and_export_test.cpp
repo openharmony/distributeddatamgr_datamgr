@@ -473,7 +473,7 @@ HWTEST_F(DistributedDBInterfacesImportAndExportTest, ExportParameterCheck002, Te
   * @tc.require: AR000D487A
   * @tc.author: sunpeng
   */
-HWTEST_F(DistributedDBInterfacesImportAndExportTest, NormalImport001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesImportAndExportTest, NormalImport001, TestSize.Level1)
 {
     std::string singleExportFileName = g_exportFileDir + "/NormalImport001.$$";
     std::string singleStoreId = "distributed_Importmulti_001";
@@ -649,7 +649,7 @@ HWTEST_F(DistributedDBInterfacesImportAndExportTest, ExceptionFileImport001, Tes
   * @tc.require: AR000D487A
   * @tc.author: sunpeng
   */
-HWTEST_F(DistributedDBInterfacesImportAndExportTest, ExceptionFileImport002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesImportAndExportTest, ExceptionFileImport002, TestSize.Level1)
 {
     std::string multiExportFileName = g_exportFileDir + "/ExceptionFileImport002.$$";
     std::string multiStoreId = "distributed_ImportExceptionMulti_001";
