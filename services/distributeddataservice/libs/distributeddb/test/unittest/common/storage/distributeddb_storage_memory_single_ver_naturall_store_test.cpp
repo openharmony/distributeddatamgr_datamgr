@@ -84,7 +84,7 @@ void DistributedDBStorageMemorySingleVerNaturalStoreTest::TearDown(void)
   * @tc.require: AR000CRAKO
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, GetSyncData001, TestSize.Level0)
+HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, GetSyncData001, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. Obtain the data within the time stamp range
@@ -102,7 +102,7 @@ HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, GetSyncData001, Te
   * @tc.require: AR000CCPOM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, GetSyncData002, TestSize.Level0)
+HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, GetSyncData002, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. Obtain the data within the time stamp range
@@ -122,7 +122,7 @@ HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, GetSyncData002, Te
   * @tc.require: AR000CCPOM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, GetSyncData003, TestSize.Level0)
+HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, GetSyncData003, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. Obtain the data within the time stamp range
@@ -139,7 +139,7 @@ HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, GetSyncData003, Te
   * @tc.require: AR000CCPOM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, GetSyncData004, TestSize.Level0)
+HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, GetSyncData004, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. Obtain the data within the time stamp range
@@ -163,7 +163,7 @@ HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, GetSyncData004, Te
   * @tc.require: AR000CCPOM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, GetSyncData005, TestSize.Level0)
+HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, GetSyncData005, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. Obtain the data within the time stamp range
@@ -181,7 +181,7 @@ HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, GetSyncData005, Te
   * @tc.require: AR000CCPOM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, GetSyncData006, TestSize.Level0)
+HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, GetSyncData006, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. Use the GetSyncData(A, B) interface of the NaturalStore
@@ -198,7 +198,7 @@ HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, GetSyncData006, Te
   * @tc.require: AR000CCPOM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, PutSyncData001, TestSize.Level0)
+HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, PutSyncData001, TestSize.Level1)
 {
     /**
      * @tc.steps:step1/2. Set Ioption to synchronous data and insert a (key1, value1) data record by put interface.
@@ -245,7 +245,7 @@ HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, PutSyncData001, Te
   * @tc.require: AR000CCPOM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, PutSyncData002, TestSize.Level0)
+HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, PutSyncData002, TestSize.Level1)
 {
     /**
      * @tc.steps:step1/2. Set Ioption to synchronous data and insert a (key1, value1) data record by put interface.
@@ -283,7 +283,7 @@ HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, PutSyncData002, Te
   * @tc.require: AR000CCPOM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, PutSyncData003, TestSize.Level0)
+HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, PutSyncData003, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. Insert a data record (key1,value1 is not null) and (key2, value2 is not null)
@@ -421,7 +421,7 @@ HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, GetMetaData001, Te
   * @tc.require: AR000CCPOM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, GetCurrentMaxTimeStamp001, TestSize.Level0)
+HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, GetCurrentMaxTimeStamp001, TestSize.Level1)
 {
     /**
      * @tc.steps:step1/2. Insert a data record into the synchronization database.
@@ -446,7 +446,7 @@ HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, GetCurrentMaxTimeS
   * @tc.require: AR000CCPOM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, GetCurrentMaxTimeStamp002, TestSize.Level0)
+HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, GetCurrentMaxTimeStamp002, TestSize.Level1)
 {
     /**
      * @tc.steps:step1. Obtains the maximum timestamp in the current database record.
@@ -518,7 +518,7 @@ HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, LocalDatabaseOpera
   * @tc.require: AR000CCPOM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, LocalDatabaseOperate002, TestSize.Level0)
+HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, LocalDatabaseOperate002, TestSize.Level1)
 {
     /**
      * @tc.steps: step1/2. Set Ioption to the local data and insert a record of key1 and value1.
@@ -574,7 +574,7 @@ HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, LocalDatabaseOpera
   * @tc.require: AR000CCPOM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, LocalDatabaseOperate003, TestSize.Level0)
+HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, LocalDatabaseOperate003, TestSize.Level1)
 {
     /**
      * @tc.steps: step1/2. Set Ioption to the local data and insert a record of key1 and value1.
@@ -630,7 +630,7 @@ HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, LocalDatabaseOpera
   * @tc.require: AR000CCPOM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, SyncDatabaseOperate001, TestSize.Level0)
+HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, SyncDatabaseOperate001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1/2. Set Ioption to the local data and insert a record of key1 and value1.
@@ -686,7 +686,7 @@ HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, SyncDatabaseOperat
   * @tc.require: AR000CCPOM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, SyncDatabaseOperate002, TestSize.Level0)
+HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, SyncDatabaseOperate002, TestSize.Level1)
 {
     /**
      * @tc.steps: step1/2. Add a remote synchronization data record. (key1, value1).
@@ -713,7 +713,7 @@ HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, SyncDatabaseOperat
   * @tc.require: AR000CCPOM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, SyncDatabaseOperate003, TestSize.Level0)
+HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, SyncDatabaseOperate003, TestSize.Level1)
 {
     /**
      * @tc.steps: step2. Set Ioption to the local data and delete the data whose key is key1 (empty).
@@ -746,7 +746,7 @@ HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, SyncDatabaseOperat
   * @tc.require: AR000CCPOM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, SyncDatabaseOperate004, TestSize.Level0)
+HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, SyncDatabaseOperate004, TestSize.Level1)
 {
     /**
      * @tc.steps: step2. The Ioption parameter is set to synchronize data to obtain the value data of the key1.
@@ -770,7 +770,7 @@ HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, SyncDatabaseOperat
   * @tc.require: AR000CCPOM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, SyncDatabaseOperate005, TestSize.Level0)
+HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, SyncDatabaseOperate005, TestSize.Level1)
 {
     /**
      * @tc.steps: step2. Set Ioption to the local data and delete the data whose key is key1 (empty).
@@ -836,7 +836,7 @@ HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, SyncDatabaseOperat
   * @tc.require: AR000CIFDA AR000CQS3T
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, ClearRemoteData001, TestSize.Level0)
+HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, ClearRemoteData001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. New data is inserted to the B end of the device. [keyB, valueB].
@@ -866,7 +866,7 @@ HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, ClearRemoteData001
  * @tc.require: AR000CKRTC AR000CQE0D
  * @tc.author: sunpeng
  */
-HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, DeleteUserKeyValue001, TestSize.Level0)
+HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, DeleteUserKeyValue001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. delete K1.
@@ -886,7 +886,7 @@ HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, DeleteUserKeyValue
  * @tc.require: AR000CKRTC AR000CQE0D
  * @tc.author: sunpeng
  */
-HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, DeleteUserKeyValue002, TestSize.Level0)
+HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, DeleteUserKeyValue002, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Delete key1 data via Delete interface.
@@ -914,7 +914,7 @@ HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, DeleteUserKeyValue
  * @tc.require: AR000CKRTC AR000CQE0D
  * @tc.author: sunpeng
  */
-HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, DeleteUserKeyValue003, TestSize.Level0)
+HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, DeleteUserKeyValue003, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Delete data by key1.
@@ -954,7 +954,7 @@ HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, DeleteUserKeyValue
  * @tc.require: AR000CKRTC AR000CQE0D
  * @tc.author: sunpeng
  */
-HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, DeleteUserKeyValue004, TestSize.Level0)
+HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, DeleteUserKeyValue004, TestSize.Level1)
 {
     /**
      * @tc.steps: step1 2 3. Synchronize data to another device B; delete key1 data from device B;
@@ -977,7 +977,7 @@ HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, DeleteUserKeyValue
  * @tc.require: AR000CKRTC AR000CQE0D
  * @tc.author: sunpeng
  */
-HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, DeleteUserKeyValue005, TestSize.Level0)
+HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, DeleteUserKeyValue005, TestSize.Level1)
 {
     /**
      * @tc.steps: step1 2 3. Synchronize data to another device B; delete key1 data from device B;
@@ -1005,7 +1005,7 @@ HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, DeleteUserKeyValue
  * @tc.require: AR000CKRTC AR000CQE0D
  * @tc.author: sunpeng
  */
-HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, DeleteUserKeyValue006, TestSize.Level0)
+HWTEST_F(DistributedDBStorageMemorySingleVerNaturalStoreTest, DeleteUserKeyValue006, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Remote device B sync deletes data key1 and pushes to local.

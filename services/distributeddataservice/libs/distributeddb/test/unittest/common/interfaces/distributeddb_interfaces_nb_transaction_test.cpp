@@ -160,7 +160,7 @@ void DistributedDBInterfacesNBTransactionTest::TearDown(void) {}
   * @tc.require: AR000DPTQ9
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesNBTransactionTest, start001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBTransactionTest, start001, TestSize.Level1)
 {
     const KvStoreNbDelegate::Option option = {true, false};
     g_mgr.GetKvStore("distributed_nb_transaction_start001", option, g_kvNbDelegateCallback);
@@ -192,7 +192,7 @@ HWTEST_F(DistributedDBInterfacesNBTransactionTest, start001, TestSize.Level0)
   * @tc.require: AR000DPTQ9
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesNBTransactionTest, start002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBTransactionTest, start002, TestSize.Level1)
 {
     const KvStoreNbDelegate::Option option = {true, false};
     g_mgr.GetKvStore("distributed_nb_transaction_start002", option, g_kvNbDelegateCallback);
@@ -242,7 +242,7 @@ HWTEST_F(DistributedDBInterfacesNBTransactionTest, start002, TestSize.Level0)
   * @tc.require: AR000DPTQ9
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesNBTransactionTest, start003, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBTransactionTest, start003, TestSize.Level1)
 {
     const KvStoreNbDelegate::Option option = {true, false};
     g_mgr.GetKvStore("distributed_nb_transaction_start003", option, g_kvNbDelegateCallback);
@@ -348,7 +348,7 @@ HWTEST_F(DistributedDBInterfacesNBTransactionTest, start004, TestSize.Level4)
   * @tc.require: AR000DPTQ9
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesNBTransactionTest, commit001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBTransactionTest, commit001, TestSize.Level1)
 {
     const KvStoreNbDelegate::Option option = {true, false};
     g_mgr.GetKvStore("distributed_nb_transaction_commit001", option, g_kvNbDelegateCallback);
@@ -373,7 +373,7 @@ HWTEST_F(DistributedDBInterfacesNBTransactionTest, commit001, TestSize.Level0)
   * @tc.require: AR000DPTQ9
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesNBTransactionTest, commit002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBTransactionTest, commit002, TestSize.Level1)
 {
     const KvStoreNbDelegate::Option option = {true, false};
     g_mgr.GetKvStore("distributed_nb_transaction_commit002", option, g_kvNbDelegateCallback);
@@ -428,7 +428,7 @@ HWTEST_F(DistributedDBInterfacesNBTransactionTest, commit002, TestSize.Level0)
   * @tc.require: AR000DPTQ9
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesNBTransactionTest, commit003, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBTransactionTest, commit003, TestSize.Level1)
 {
     const KvStoreNbDelegate::Option option = {true, false};
     g_mgr.GetKvStore("distributed_nb_transaction_commit003", option, g_kvNbDelegateCallback);
@@ -730,7 +730,7 @@ HWTEST_F(DistributedDBInterfacesNBTransactionTest, commit006, TestSize.Level1)
   * @tc.require: AR000DPTQ9
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesNBTransactionTest, rollback001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBTransactionTest, rollback001, TestSize.Level1)
 {
     const KvStoreNbDelegate::Option option = {true, false};
     g_mgr.GetKvStore("distributed_nb_transaction_rollback001", option, g_kvNbDelegateCallback);
@@ -755,7 +755,7 @@ HWTEST_F(DistributedDBInterfacesNBTransactionTest, rollback001, TestSize.Level0)
   * @tc.require: AR000DPTQ9
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesNBTransactionTest, rollback002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBTransactionTest, rollback002, TestSize.Level1)
 {
     const KvStoreNbDelegate::Option option = {true, false};
     g_mgr.GetKvStore("distributed_nb_transaction_rollback002", option, g_kvNbDelegateCallback);
@@ -790,7 +790,7 @@ HWTEST_F(DistributedDBInterfacesNBTransactionTest, rollback002, TestSize.Level0)
   * @tc.require: AR000DPTQ9
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesNBTransactionTest, rollback003, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBTransactionTest, rollback003, TestSize.Level1)
 {
     const KvStoreNbDelegate::Option option = {true, false};
     g_mgr.GetKvStore("distributed_nb_transaction_rollback003", option, g_kvNbDelegateCallback);
@@ -838,7 +838,7 @@ HWTEST_F(DistributedDBInterfacesNBTransactionTest, rollback003, TestSize.Level0)
   * @tc.require: AR000DPTQ9
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesNBTransactionTest, rollback004, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBTransactionTest, rollback004, TestSize.Level1)
 {
     const KvStoreNbDelegate::Option option = {true, false};
     g_mgr.GetKvStore("distributed_nb_transaction_rollback004", option, g_kvNbDelegateCallback);
@@ -890,7 +890,7 @@ HWTEST_F(DistributedDBInterfacesNBTransactionTest, rollback004, TestSize.Level0)
   * @tc.require: AR000DPTQ9
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesNBTransactionTest, rollback005, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBTransactionTest, rollback005, TestSize.Level1)
 {
     const KvStoreNbDelegate::Option option = {true, false};
     g_mgr.GetKvStore("distributed_nb_transaction_rollback005", option, g_kvNbDelegateCallback);
@@ -938,7 +938,7 @@ HWTEST_F(DistributedDBInterfacesNBTransactionTest, rollback005, TestSize.Level0)
   * @tc.require: AR000DPTQ9
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesNBTransactionTest, rollback006, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBTransactionTest, rollback006, TestSize.Level1)
 {
     const KvStoreNbDelegate::Option option = {true, false};
     g_mgr.GetKvStore("distributed_nb_transaction_rollback006", option, g_kvNbDelegateCallback);
@@ -986,7 +986,7 @@ HWTEST_F(DistributedDBInterfacesNBTransactionTest, rollback006, TestSize.Level0)
   * @tc.require: AR000DPTQ9
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesNBTransactionTest, rollback007, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBTransactionTest, rollback007, TestSize.Level1)
 {
     const KvStoreNbDelegate::Option option = {true, false};
     g_mgr.GetKvStore("distributed_nb_transaction_rollback007", option, g_kvNbDelegateCallback);
@@ -1035,7 +1035,7 @@ HWTEST_F(DistributedDBInterfacesNBTransactionTest, rollback007, TestSize.Level0)
   * @tc.require: AR000DPTQ9
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesNBTransactionTest, rollback008, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesNBTransactionTest, rollback008, TestSize.Level1)
 {
     const KvStoreNbDelegate::Option option = {true, false};
     g_mgr.GetKvStore("distributed_nb_transaction_rollback008", option, g_kvNbDelegateCallback);

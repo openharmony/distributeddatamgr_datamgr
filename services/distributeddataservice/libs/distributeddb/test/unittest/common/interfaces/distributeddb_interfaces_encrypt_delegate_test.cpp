@@ -450,7 +450,7 @@ HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, EncryptedDbSwitch001, TestS
   * @tc.require: AR000CQDT7
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, EncryptedDbSwitch002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, EncryptedDbSwitch002, TestSize.Level1)
 {
     KvStoreNbDelegate::Option option = {true, false, true, CipherType::DEFAULT, g_passwd1};
     g_mgr.GetKvStore(STORE_ID1, option, g_kvNbDelegateCallback);
@@ -485,7 +485,7 @@ HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, EncryptedDbSwitch002, TestS
   * @tc.require: AR000CQDT7
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, EncryptedDbSwitch003, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, EncryptedDbSwitch003, TestSize.Level1)
 {
     KvStoreNbDelegate::Option option = {true, false, true, CipherType::DEFAULT, g_passwd1};
     g_mgr.GetKvStore(STORE_ID1, option, g_kvNbDelegateCallback);
@@ -517,7 +517,7 @@ HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, EncryptedDbSwitch003, TestS
   * @tc.require: AR000CQDT7
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, EncryptedDbSwitch004, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, EncryptedDbSwitch004, TestSize.Level1)
 {
     KvStoreNbDelegate::Option option = {true, false, true, CipherType::DEFAULT, g_passwd1};
     g_mgr.GetKvStore(STORE_ID1, option, g_kvNbDelegateCallback);
@@ -545,7 +545,7 @@ HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, EncryptedDbSwitch004, TestS
   * @tc.require: AR000CQDT7
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, EncryptedDbSwitch008, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, EncryptedDbSwitch008, TestSize.Level1)
 {
 }
 
@@ -593,7 +593,7 @@ HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, EncryptedDbSwitch009, TestS
   * @tc.require: AR000CQDT7
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, EncryptedDbSwitch010, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, EncryptedDbSwitch010, TestSize.Level1)
 {
     /**
      * @tc.steps: step1/step2. Put and get [KEY_1, V1]
@@ -628,7 +628,7 @@ HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, EncryptedDbSwitch010, TestS
   * @tc.require: AR000CQDT7
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, EncryptedDbSwitch011, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, EncryptedDbSwitch011, TestSize.Level1)
 {
     /**
      * @tc.steps: step1/step2. Put and get [KEY_1, V1]
@@ -664,7 +664,7 @@ HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, EncryptedDbSwitch011, TestS
   * @tc.require: AR000CQDT7
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, EncryptedDbSwitch012, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, EncryptedDbSwitch012, TestSize.Level1)
 {
     KvStoreDelegate::Option option = {true, true, true, CipherType::DEFAULT, g_passwd1};
     g_mgr.GetKvStore(STORE_ID2, option, g_kvDelegateCallback);
@@ -713,7 +713,7 @@ HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, EncryptedDbSwitch012, TestS
   * @tc.require: AR000CQDT7
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, EncryptedDbSwitch013, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, EncryptedDbSwitch013, TestSize.Level1)
 {
     KvStoreDelegate::Option option = {true, true, true, CipherType::DEFAULT, g_passwd1};
     g_mgr.GetKvStore(STORE_ID2, option, g_kvDelegateCallback);
@@ -760,7 +760,7 @@ HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, EncryptedDbSwitch013, TestS
   * @tc.require: AR000CQDT7
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, EncryptedDbSwitch014, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, EncryptedDbSwitch014, TestSize.Level1)
 {
     KvStoreDelegate::Option option = {true, true, false, CipherType::DEFAULT, PASSWD_EMPTY};
     g_mgr.GetKvStore(STORE_ID2, option, g_kvDelegateCallback);
@@ -990,7 +990,7 @@ HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, OpenEncryptedDb001, TestSiz
   * @tc.require: AR000CQDT8
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, OpenEncryptedDb002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesEncryptDelegateTest, OpenEncryptedDb002, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. create single version encrypted database

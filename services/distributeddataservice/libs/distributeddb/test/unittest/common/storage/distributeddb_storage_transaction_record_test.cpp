@@ -82,7 +82,7 @@ void DistributedDBStorageTransactionRecordTest::TearDown(void)
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage001, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Get the current version.
@@ -127,7 +127,7 @@ HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage001, TestSize
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage002, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage002, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Get the current version.
@@ -160,7 +160,7 @@ HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage002, TestSize
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage003, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage003, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Get the current version.
@@ -201,7 +201,7 @@ HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage003, TestSize
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage004, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage004, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Get the current version.
@@ -255,7 +255,7 @@ HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage004, TestSize
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage005, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage005, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Get the current version.
@@ -305,7 +305,7 @@ HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage005, TestSize
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage006, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage006, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Get the current version.
@@ -358,7 +358,7 @@ HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage006, TestSize
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage007, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage007, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Get the current version.
@@ -399,7 +399,7 @@ HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage007, TestSize
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage008, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage008, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Get the current version.
@@ -454,7 +454,7 @@ HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage008, TestSize
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage009, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage009, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Get the current version.
@@ -509,7 +509,7 @@ HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage009, TestSize
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage010, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage010, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Generate the random data.
@@ -532,7 +532,7 @@ HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage010, TestSize
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage011, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage011, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Generate the random data.
@@ -564,7 +564,7 @@ HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage011, TestSize
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage012, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage012, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Generate the random data.
@@ -597,7 +597,7 @@ HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage012, TestSize
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage013, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage013, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Generate the random data.
@@ -630,7 +630,7 @@ HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage013, TestSize
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage014, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage014, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Generate the random data.
@@ -666,7 +666,7 @@ HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage014, TestSize
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage015, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage015, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Generate the random data.
@@ -700,7 +700,7 @@ HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage015, TestSize
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage016, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage016, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Generate the random data.
@@ -742,7 +742,7 @@ HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage016, TestSize
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage017, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage017, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Get the random data.
@@ -787,7 +787,7 @@ HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage017, TestSize
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage018, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage018, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Put the batch data into the database(3 entries have the same prefix key,
@@ -829,7 +829,7 @@ HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage018, TestSize
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage019, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage019, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Put the batch data into the database.
@@ -860,7 +860,7 @@ HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage019, TestSize
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage020, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage020, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Put the data.
@@ -896,7 +896,7 @@ HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage020, TestSize
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage021, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage021, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Put the same key, different value for 3 times into the database.
@@ -930,7 +930,7 @@ HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage021, TestSize
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage022, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage022, TestSize.Level1)
 {
     std::vector<Entry> entries;
     Entry entry;
@@ -968,7 +968,7 @@ HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage022, TestSize
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage023, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage023, TestSize.Level1)
 {
     Key key1, key2;
     Value value1, value2;
@@ -1012,7 +1012,7 @@ HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage023, TestSize
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage024, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage024, TestSize.Level1)
 {
     Key key1, key2;
     Value value1, value2;
@@ -1048,7 +1048,7 @@ HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage024, TestSize
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage025, TestSize.Level0)
+HWTEST_F(DistributedDBStorageTransactionRecordTest, MultiverStorage025, TestSize.Level1)
 {
     std::vector<Entry> entries;
     Entry entry;

@@ -142,7 +142,7 @@ void DistributedDBStorageIndexOptimizeTest::TearDown(void)
   * @tc.require: AR000F3OPD
   * @tc.author: xushaohua
   */
-HWTEST_F(DistributedDBStorageIndexOptimizeTest, ParseAndCheckUnionIndex001, TestSize.Level0)
+HWTEST_F(DistributedDBStorageIndexOptimizeTest, ParseAndCheckUnionIndex001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Create a correct shema string include a correct union index.
@@ -218,7 +218,7 @@ HWTEST_F(DistributedDBStorageIndexOptimizeTest, ParseAndCheckUnionIndex001, Test
   * @tc.require: AR000F3OPD
   * @tc.author: xushaohua
   */
-HWTEST_F(DistributedDBStorageIndexOptimizeTest, UnionIndexCreatTest001, TestSize.Level0)
+HWTEST_F(DistributedDBStorageIndexOptimizeTest, UnionIndexCreatTest001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Create a correct shema string include a correct union index.
@@ -245,7 +245,7 @@ HWTEST_F(DistributedDBStorageIndexOptimizeTest, UnionIndexCreatTest001, TestSize
   * @tc.require: AR000F3OPE
   * @tc.author: xushaohua
   */
-HWTEST_F(DistributedDBStorageIndexOptimizeTest, SuggestIndexTest001, TestSize.Level0)
+HWTEST_F(DistributedDBStorageIndexOptimizeTest, SuggestIndexTest001, TestSize.Level1)
 {
     std::string schema;
     GenerateSchemaString(schema, "[\"name\", \"id\"]");
@@ -292,7 +292,7 @@ HWTEST_F(DistributedDBStorageIndexOptimizeTest, SuggestIndexTest001, TestSize.Le
   * @tc.require: AR000F3OPE
   * @tc.author: xushaohua
   */
-HWTEST_F(DistributedDBStorageIndexOptimizeTest, SuggestIndexTest002, TestSize.Level0)
+HWTEST_F(DistributedDBStorageIndexOptimizeTest, SuggestIndexTest002, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Create a schema include index name, id, phone.

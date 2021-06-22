@@ -183,7 +183,7 @@ void DistributedDBInterfacesSchemaDatabaseUpgradeTest::TearDown(void)
   * @tc.require: AR000F3OPD
   * @tc.author: xiaozhenjian
   */
-HWTEST_F(DistributedDBInterfacesSchemaDatabaseUpgradeTest, UpgradeFromKv001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesSchemaDatabaseUpgradeTest, UpgradeFromKv001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Prepare kv database with value match compatible schema(mismatch strict schema) then close
@@ -242,7 +242,7 @@ HWTEST_F(DistributedDBInterfacesSchemaDatabaseUpgradeTest, UpgradeFromKv001, Tes
   * @tc.require: AR000F3OPD
   * @tc.author: xiaozhenjian
   */
-HWTEST_F(DistributedDBInterfacesSchemaDatabaseUpgradeTest, UpgradeFromKv002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesSchemaDatabaseUpgradeTest, UpgradeFromKv002, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Prepare kv database with value mismatch compatible schema then close
@@ -327,7 +327,7 @@ void TestUpgradeFromSchema(const std::string &storeId, const std::vector<std::st
   * @tc.require: AR000F3OPD
   * @tc.author: xiaozhenjian
   */
-HWTEST_F(DistributedDBInterfacesSchemaDatabaseUpgradeTest, UpgradeFromSchema001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesSchemaDatabaseUpgradeTest, UpgradeFromSchema001, TestSize.Level1)
 {
     g_baseSchema = SCHEMA_BASE;
     g_expectError = SCHEMA_VIOLATE_VALUE;
@@ -346,7 +346,7 @@ HWTEST_F(DistributedDBInterfacesSchemaDatabaseUpgradeTest, UpgradeFromSchema001,
   * @tc.require: AR000F3OPD
   * @tc.author: xiaozhenjian
   */
-HWTEST_F(DistributedDBInterfacesSchemaDatabaseUpgradeTest, UpgradeFromSchema002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesSchemaDatabaseUpgradeTest, UpgradeFromSchema002, TestSize.Level1)
 {
     g_baseSchema = SCHEMA_BASE;
     g_expectError = SCHEMA_VIOLATE_VALUE;
@@ -365,7 +365,7 @@ HWTEST_F(DistributedDBInterfacesSchemaDatabaseUpgradeTest, UpgradeFromSchema002,
   * @tc.require: AR000F3OPD
   * @tc.author: xiaozhenjian
   */
-HWTEST_F(DistributedDBInterfacesSchemaDatabaseUpgradeTest, UpgradeFromSchema003, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesSchemaDatabaseUpgradeTest, UpgradeFromSchema003, TestSize.Level1)
 {
     // Compatible schema can increase field, but must not be null without defaut.
     g_baseSchema = SCHEMA_BASE;

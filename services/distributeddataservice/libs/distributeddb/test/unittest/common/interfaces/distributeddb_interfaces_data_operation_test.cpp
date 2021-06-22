@@ -399,7 +399,7 @@ void DistributedDBInterfacesDataOperationTest::TearDown(void)
   * @tc.require: AR000CQDTM AR000CQS3Q
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, Put001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, Put001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Put the data(non-empty key and non-empty value) into the database.
@@ -427,7 +427,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, Put001, TestSize.Level0)
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, Put002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, Put002, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Put the data(empty key) into the database.
@@ -446,7 +446,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, Put002, TestSize.Level0)
   * @tc.require: AR000CQDTM AR000CQS3Q
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, Put003, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, Put003, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Put the data(empty value) into the database.
@@ -466,7 +466,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, Put003, TestSize.Level0)
   * @tc.require: AR000CQDVD AR000CQS3Q
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, Put004, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, Put004, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. clear the database.
@@ -529,7 +529,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, Put004, TestSize.Level0)
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, Clear001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, Clear001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Put the valid data into the database.
@@ -562,7 +562,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, Clear001, TestSize.Level0)
   * @tc.require: AR000BVDFE AR000CQDVC
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, PutBatch001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, PutBatch001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Put the prepared data.
@@ -605,7 +605,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, PutBatch001, TestSize.Level0)
   * @tc.require: AR000BVDFE AR000CQDVC
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, PutBatch002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, PutBatch002, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. prepare the batch data.
@@ -647,7 +647,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, PutBatch002, TestSize.Level0)
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, Delete001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, Delete001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Put the prepared data.
@@ -678,7 +678,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, Delete001, TestSize.Level0)
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, Delete002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, Delete002, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Clear the database.
@@ -701,7 +701,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, Delete002, TestSize.Level0)
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, DeleteBatch001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, DeleteBatch001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Put the batch data into the database.
@@ -744,7 +744,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, DeleteBatch001, TestSize.Leve
   * @tc.require: AR000C6TRV AR000CQDTM
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, DeleteBatch002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, DeleteBatch002, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. clear the database.
@@ -770,7 +770,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, DeleteBatch002, TestSize.Leve
   * @tc.require: AR000C6TUQ AR000CQDV3
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, GetEntries001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, GetEntries001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. insert batch data into the database.
@@ -809,7 +809,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, GetEntries001, TestSize.Level
   * @tc.require: AR000C6TUQ AR000CQDV3
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, GetEntries002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, GetEntries002, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Get all the data from the empty database.
@@ -834,7 +834,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, GetEntries002, TestSize.Level
   * @tc.require: AR000C6TUQ AR000CQDV3
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, GetEntries003, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, GetEntries003, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Put batch data into the database.
@@ -870,7 +870,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, GetEntries003, TestSize.Level
   * @tc.require: AR000BVRNF AR000CQDTI
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, GetSnapshot001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, GetSnapshot001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1.Obtain the snapshot object whose observer is null
@@ -887,7 +887,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, GetSnapshot001, TestSize.Leve
   * @tc.require: AR000BVRNF AR000CQDTI
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, GetSnapshot002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, GetSnapshot002, TestSize.Level1)
 {
     /**
      * @tc.steps: step1.Obtain the snapshot object whose observer is null
@@ -921,7 +921,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, GetSnapshot002, TestSize.Leve
   * @tc.require: AR000BVRNF AR000CQDTI
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, ReleaseSnapshot001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, ReleaseSnapshot001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1.Release the null pointer snapshot through
@@ -939,7 +939,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, ReleaseSnapshot001, TestSize.
   * @tc.require: AR000BVRNF AR000CQDTI
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, ReleaseSnapshot002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, ReleaseSnapshot002, TestSize.Level1)
 {
     TestSnapshotCreateAndRelease();
 }
@@ -951,7 +951,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, ReleaseSnapshot002, TestSize.
   * @tc.require: AR000CQE12
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, SetConflictResolutionPolicySuccessTest001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, SetConflictResolutionPolicySuccessTest001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. get g_kvDelegatePtr pointer
@@ -973,7 +973,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, SetConflictResolutionPolicySu
   * @tc.require: AR000CQE12
   * @tc.author: wumin
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, SetConflictResolutionPolicyFailedTest001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, SetConflictResolutionPolicyFailedTest001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. get g_kvDelegatePtr pointer
@@ -995,7 +995,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, SetConflictResolutionPolicyFa
   * @tc.require: AR000DR9K7
   * @tc.author: weifeng
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, GetEntriesWithQuery001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, GetEntriesWithQuery001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. get a non-schema store, Getentries with query
@@ -1087,7 +1087,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, GetEntriesWithQuery001, TestS
   * @tc.require: AR000DR9K7
   * @tc.author: weifeng
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, GetEntriesWithQuery002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, GetEntriesWithQuery002, TestSize.Level1)
 {
     KvStoreNbDelegate::Option option = {true, false, false};
     option.schema = SCHEMA_STRING;
@@ -1126,7 +1126,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, GetEntriesWithQuery002, TestS
   * @tc.require: AR000DR9K7
   * @tc.author: weifeng
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, GetEntriesWithQuery003, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, GetEntriesWithQuery003, TestSize.Level1)
 {
     KvStoreNbDelegate::Option option = {true, false, false};
     option.schema = SCHEMA_STRING;
@@ -1165,7 +1165,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, GetEntriesWithQuery003, TestS
   * @tc.require: AR000DR9K7
   * @tc.author: weifeng
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, GetEntriesWithQuery004, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, GetEntriesWithQuery004, TestSize.Level1)
 {
     KvStoreNbDelegate::Option option = {true, false, false};
     option.schema = SCHEMA_STRING;
@@ -1214,7 +1214,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, GetEntriesWithQuery004, TestS
   * @tc.require: AR000EPARK
   * @tc.author: sunpeng
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, QueryIsNotNull001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, QueryIsNotNull001, TestSize.Level1)
 {
     KvStoreNbDelegate::Option option = {true, false, false};
     option.schema = SCHEMA_DEFINE2;
@@ -1270,7 +1270,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, QueryIsNotNull001, TestSize.L
   * @tc.require: AR000EPARK
   * @tc.author: sunpeng
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, QueryPreFixKey001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, QueryPreFixKey001, TestSize.Level1)
 {
     KvStoreNbDelegate::Option option = {true, false, false};
     option.schema = SCHEMA_DEFINE2;
@@ -1352,7 +1352,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, QueryPreFixKey001, TestSize.L
   * @tc.require: AR000EPARK
   * @tc.author: sunpeng
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, QueryPreFixKey003, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, QueryPreFixKey003, TestSize.Level1)
 {
     KvStoreNbDelegate::Option option = {true, false, false};
     option.schema = SCHEMA_DEFINE2;
@@ -1414,7 +1414,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, QueryPreFixKey003, TestSize.L
   * @tc.require: AR000EPARK
   * @tc.author: sunpeng
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, QueryPreFixKey004, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, QueryPreFixKey004, TestSize.Level1)
 {
     KvStoreNbDelegate::Option option = {true, false, false};
     option.schema = SCHEMA_DEFINE2;
@@ -1459,7 +1459,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, QueryPreFixKey004, TestSize.L
   * @tc.require: AR000EPARK
   * @tc.author: sunpeng
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, QueryGroup001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, QueryGroup001, TestSize.Level1)
 {
     KvStoreNbDelegate::Option option = {true, false, false};
     option.schema = SCHEMA_DEFINE2;
@@ -1535,7 +1535,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, QueryGroup001, TestSize.Level
   * @tc.require: AR000EPARK
   * @tc.author: sunpeng
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, QueryGroup002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, QueryGroup002, TestSize.Level1)
 {
     KvStoreNbDelegate::Option option = {true, false, false};
     option.schema = SCHEMA_DEFINE2;
@@ -1613,7 +1613,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, QueryGroup002, TestSize.Level
   * @tc.require: AR000EPARK
   * @tc.author: sunpeng
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, QueryGroup003, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, QueryGroup003, TestSize.Level1)
 {
     KvStoreNbDelegate::Option option = {true, false, false};
     option.schema = SCHEMA_DEFINE2;
@@ -1661,7 +1661,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, QueryGroup003, TestSize.Level
   * @tc.require: AR000DR9K7
   * @tc.author: sunpeng
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, multiOrderBy001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, multiOrderBy001, TestSize.Level1)
 {
     KvStoreNbDelegate::Option option = {true, false, false};
     option.schema = SCHEMA_DEFINE2;
@@ -1706,7 +1706,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, multiOrderBy001, TestSize.Lev
   * @tc.require: AR000EPARK
   * @tc.author: sunpeng
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, PreifxAndOrderBy001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, PreifxAndOrderBy001, TestSize.Level1)
 {
     KvStoreNbDelegate::Option option = {true, false, false};
     option.schema = SCHEMA_DEFINE2;
@@ -1756,7 +1756,7 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, PreifxAndOrderBy001, TestSize
   * @tc.require: AR000EPARK
   * @tc.author: sunpeng
   */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, PrefixAndOther001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDataOperationTest, PrefixAndOther001, TestSize.Level1)
 {
     KvStoreNbDelegate::Option option = {true, false, false};
     option.schema = SCHEMA_DEFINE2;

@@ -476,7 +476,7 @@ HWTEST_F(DistributedDBInterfacesDatabaseTest, GetKvStore001, TestSize.Level1)
   * @tc.require: AR000CQDV5 AR000CQS3P
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDatabaseTest, GetKvStore002, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDatabaseTest, GetKvStore002, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Obtain the kvStore through the GetKvStore interface of the delegate manager
@@ -544,7 +544,7 @@ HWTEST_F(DistributedDBInterfacesDatabaseTest, GetKvStore002, TestSize.Level0)
   * @tc.require: AR000EV1G2
   * @tc.author: liuwenkai
   */
-HWTEST_F(DistributedDBInterfacesDatabaseTest, GetKvStore003, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDatabaseTest, GetKvStore003, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Obtain the kvStore through the GetKvStore interface of the delegate manager
@@ -615,7 +615,7 @@ static void NotifierCallback(const KvStoreNbConflictData &data)
   * @tc.require: AR000EV1G2
   * @tc.author: liuwenkai
   */
-HWTEST_F(DistributedDBInterfacesDatabaseTest, GetKvStore004, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDatabaseTest, GetKvStore004, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Obtain the kvStore through the GetKvStore interface of the delegate manager
@@ -676,7 +676,7 @@ HWTEST_F(DistributedDBInterfacesDatabaseTest, GetKvStore004, TestSize.Level0)
   * @tc.require: AR000CQDV6 AR000CQS3P
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDatabaseTest, CloseKvStore001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDatabaseTest, CloseKvStore001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Obtain the kvStore of the non-existed database through the GetKvStore interface of
@@ -722,7 +722,7 @@ HWTEST_F(DistributedDBInterfacesDatabaseTest, CloseKvStore001, TestSize.Level0)
   * @tc.require: AR000C2F0C AR000CQDV7
   * @tc.author: huangnaigu
   */
-HWTEST_F(DistributedDBInterfacesDatabaseTest, DeleteKvStore001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDatabaseTest, DeleteKvStore001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Obtain the kvStore through the GetKvStore interface of
@@ -1322,7 +1322,7 @@ HWTEST_F(DistributedDBInterfacesDatabaseTest, FreqOpenClose001, TestSize.Level2)
   * @tc.require: AR000CQDV7
   * @tc.author: wangbingquan
   */
-HWTEST_F(DistributedDBInterfacesDatabaseTest, CheckKvStoreDir001, TestSize.Level0)
+HWTEST_F(DistributedDBInterfacesDatabaseTest, CheckKvStoreDir001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. open the kv store with the option that createDirByStoreIdOnly is true.
