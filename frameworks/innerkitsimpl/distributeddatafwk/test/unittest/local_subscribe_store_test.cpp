@@ -161,7 +161,7 @@ unsigned long KvStoreObserverUnitTest::GetCallCount() const
 * @tc.require: AR000CQDU9 AR000CQS37
 * @tc.author: liuyuhui
 */
-HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore001, TestSize.Level0)
+HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore001, TestSize.Level1)
 {
     ZLOGI("KvStoreDdmSubscribeKvStore001 begin.");
     EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
@@ -187,7 +187,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore001, TestSize.Level0
 * @tc.require: AR000CQDU9 AR000CQS37
 * @tc.author: liuyuhui
 */
-HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore002, TestSize.Level0)
+HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore002, TestSize.Level1)
 {
     ZLOGI("KvStoreDdmSubscribeKvStore002 begin.");
     EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
@@ -206,7 +206,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore002, TestSize.Level0
 * @tc.require: AR000CQDU9 AR000CQS37
 * @tc.author: liuyuhui
 */
-HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore003, TestSize.Level0)
+HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore003, TestSize.Level1)
 {
     ZLOGI("KvStoreDdmSubscribeKvStore003 begin.");
     EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
@@ -846,7 +846,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore020, TestSize.Level2
 * @tc.require: AR000CIFGM
 * @tc.author: liuyuhui
 */
-HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification001, TestSize.Level0)
+HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification001, TestSize.Level1)
 {
     ZLOGI("KvStoreDdmSubscribeKvStoreNotification001 begin.");
     EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
@@ -2311,7 +2311,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification026, Tes
 * @tc.require: AR000CIFGM
 * @tc.author: liuyuhui
 */
-HWTEST_F(LocalSubscribeStoreTest, ChangeNotificationMarshalling001, TestSize.Level0)
+HWTEST_F(LocalSubscribeStoreTest, ChangeNotificationMarshalling001, TestSize.Level1)
 {
     ZLOGI("ChangeNotificationMarshalling001 begin.");
     Entry insert, update, del;

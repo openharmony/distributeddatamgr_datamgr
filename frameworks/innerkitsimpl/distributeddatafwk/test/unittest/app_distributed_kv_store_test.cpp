@@ -162,7 +162,7 @@ private:
   * @tc.require: AR000CCPOL AR000CQS36
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut001, TestSize.Level0)
+HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut001, TestSize.Level1)
 {
     // cover app_kvstore_put_001, app_kvstore_put_local_001,
     // app_kvstore_get_001, app_kvstore_get_local_001
@@ -202,7 +202,7 @@ HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut001, TestSize.Level0)
   * @tc.require: AR000CCPOL AR000CQS36
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut002, TestSize.Level0)
+HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut002, TestSize.Level1)
 {
     // cover app_kvstore_put_002, app_kvstore_put_local_002
     std::unique_ptr<AppKvStore> appKvStorePtr;
@@ -242,7 +242,7 @@ HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut002, TestSize.Level0)
   * @tc.require: AR000CCPOL AR000CQS36
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut003, TestSize.Level0)
+HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut003, TestSize.Level1)
 {
     // cover app_kvstore_put_003, app_kvstore_put_local_003
     std::unique_ptr<AppKvStore> appKvStorePtr;
@@ -282,7 +282,7 @@ HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut003, TestSize.Level0)
   * @tc.require: AR000CCPOL AR000CQS36
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut004, TestSize.Level0)
+HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut004, TestSize.Level1)
 {
     // cover app_kvstore_put_004, app_kvstore_put_local_004
     std::unique_ptr<AppKvStore> appKvStorePtr;
@@ -319,7 +319,7 @@ HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut004, TestSize.Level0)
   * @tc.require: AR000CCPOL AR000CQS36
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut005, TestSize.Level0)
+HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut005, TestSize.Level1)
 {
     // cover app_kvstore_put_005, app_kvstore_put_local_005
     std::unique_ptr<AppKvStore> appKvStorePtr;
@@ -358,7 +358,7 @@ HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut005, TestSize.Level0)
   * @tc.require: AR000CCPOL AR000CQS36
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut006, TestSize.Level0)
+HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut006, TestSize.Level1)
 {
     // cover app_kvstore_put_006, app_kvstore_put_local_006
     std::unique_ptr<AppKvStore> appKvStorePtr;
@@ -397,7 +397,7 @@ HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut006, TestSize.Level0)
   * @tc.require: AR000CCPOL AR000CQS36
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut007, TestSize.Level0)
+HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut007, TestSize.Level1)
 {
     // cover app_kvstore_put_007, app_kvstore_put_local_007
     std::unique_ptr<AppKvStore> appKvStorePtr;
@@ -442,7 +442,7 @@ HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut007, TestSize.Level0)
   * @tc.require: AR000CCPOL AR000CQS36
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut008, TestSize.Level0)
+HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut008, TestSize.Level1)
 {
     // cover app_kvstore_put_008, app_kvstore_put_local_008
     std::unique_ptr<AppKvStore> appKvStorePtr;
@@ -479,7 +479,7 @@ HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut008, TestSize.Level0)
   * @tc.require: AR000CCPOL AR000CQS36
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut009, TestSize.Level0)
+HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut009, TestSize.Level1)
 {
     // cover app_kvstore_put_009, app_kvstore_put_local_009
     std::unique_ptr<AppKvStore> appKvStorePtr;
@@ -524,7 +524,7 @@ HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut009, TestSize.Level0)
   * @tc.require: AR000CCPOL AR000CQS36
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut010, TestSize.Level0)
+HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut010, TestSize.Level1)
 {
     // cover app_kvstore_put_010, app_kvstore_put_local_010
     std::unique_ptr<AppKvStore> appKvStorePtr;
@@ -555,7 +555,7 @@ HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut010, TestSize.Level0)
   * @tc.require: AR000CCPOL AR000CQS36
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut011, TestSize.Level0)
+HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut011, TestSize.Level1)
 {
     // cover app_kvstore_put_011, app_kvstore_put_local_011
     std::unique_ptr<AppKvStore> appKvStorePtr;
@@ -596,7 +596,7 @@ std::string Generate1025KeyLen()
   * @tc.require: AR000CCPOL AR000CQS36
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut012, TestSize.Level0)
+HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut012, TestSize.Level1)
 {
     // cover app_kvstore_put_012, app_kvstore_put_local_012
     std::unique_ptr<AppKvStore> appKvStorePtr;
@@ -639,7 +639,7 @@ HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut012, TestSize.Level0)
   * @tc.require: AR000CCPOL AR000CQS36
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvStoreTest, app_kvstore_put_013, TestSize.Level0)
+HWTEST_F(AppDistributedKvStoreTest, app_kvstore_put_013, TestSize.Level1)
 {
     // cover app_kvstore_put_013, app_kvstore_put_local_013
     std::unique_ptr<AppKvStore> appKvStorePtr;
@@ -670,7 +670,7 @@ HWTEST_F(AppDistributedKvStoreTest, app_kvstore_put_013, TestSize.Level0)
   * @tc.require: AR000CCPOL AR000CQS36
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut014, TestSize.Level0)
+HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut014, TestSize.Level1)
 {
     // cover app_kvstore_put_014, app_kvstore_put_local_014
     std::unique_ptr<AppKvStore> appKvStorePtr;
@@ -712,7 +712,7 @@ HWTEST_F(AppDistributedKvStoreTest, AppKvstorePut014, TestSize.Level0)
   * @tc.require: AR000CCPOL AR000CQS36
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvStoreTest, AppKvstoreDelete001, TestSize.Level0)
+HWTEST_F(AppDistributedKvStoreTest, AppKvstoreDelete001, TestSize.Level1)
 {
     // cover app_kvstore_delete_001, app_kvstore_delete_local_001
     // app_kvstore_get_002, app_kvstore_get_local_002
@@ -753,7 +753,7 @@ HWTEST_F(AppDistributedKvStoreTest, AppKvstoreDelete001, TestSize.Level0)
   * @tc.require: AR000CCPOL AR000CQS36
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvStoreTest, AppKvstoreDelete002, TestSize.Level0)
+HWTEST_F(AppDistributedKvStoreTest, AppKvstoreDelete002, TestSize.Level1)
 {
     // cover app_kvstore_delete_002, app_kvstore_delete_local_002
     std::unique_ptr<AppKvStore> appKvStorePtr;
@@ -797,7 +797,7 @@ HWTEST_F(AppDistributedKvStoreTest, AppKvstoreDelete002, TestSize.Level0)
   * @tc.require: AR000CCPOL AR000CQS36
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvStoreTest, AppKvstoreDelete003, TestSize.Level0)
+HWTEST_F(AppDistributedKvStoreTest, AppKvstoreDelete003, TestSize.Level1)
 {
     // cover app_kvstore_delete_003, app_kvstore_delete_local_003
     std::unique_ptr<AppKvStore> appKvStorePtr;
@@ -825,7 +825,7 @@ HWTEST_F(AppDistributedKvStoreTest, AppKvstoreDelete003, TestSize.Level0)
   * @tc.require: AR000CCPOL AR000CQS36
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvStoreTest, AppKvstoreGet001, TestSize.Level0)
+HWTEST_F(AppDistributedKvStoreTest, AppKvstoreGet001, TestSize.Level1)
 {
     // cover app_kvstore_get_003, app_kvstore_get_local_003
     std::unique_ptr<AppKvStore> appKvStorePtr;
@@ -856,7 +856,7 @@ HWTEST_F(AppDistributedKvStoreTest, AppKvstoreGet001, TestSize.Level0)
   * @tc.require: AR000CCPOL AR000CQS36
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvStoreTest, AppKvstoreGetEntries001, TestSize.Level0)
+HWTEST_F(AppDistributedKvStoreTest, AppKvstoreGetEntries001, TestSize.Level1)
 {
     // cover app_kvstore_getentries_001, app_kvstore_getentries_local_001
     std::unique_ptr<AppKvStore> appKvStorePtr;
@@ -908,7 +908,7 @@ HWTEST_F(AppDistributedKvStoreTest, AppKvstoreGetEntries001, TestSize.Level0)
   * @tc.require: AR000CCPOL AR000CQS36
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvStoreTest, AppKvstoreGetEntries002, TestSize.Level0)
+HWTEST_F(AppDistributedKvStoreTest, AppKvstoreGetEntries002, TestSize.Level1)
 {
     // cover app_kvstore_getentries_002, app_kvstore_getentries_local_002
     std::unique_ptr<AppKvStore> appKvStorePtr;
@@ -944,7 +944,7 @@ HWTEST_F(AppDistributedKvStoreTest, AppKvstoreGetEntries002, TestSize.Level0)
   * @tc.require: AR000CCPOL AR000CQS36
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvStoreTest, AppKvstoreGetEntries003, TestSize.Level0)
+HWTEST_F(AppDistributedKvStoreTest, AppKvstoreGetEntries003, TestSize.Level1)
 {
     // cover app_kvstore_getentries_003, app_kvstore_getentries_local_003
     std::unique_ptr<AppKvStore> appKvStorePtr;
@@ -990,7 +990,7 @@ HWTEST_F(AppDistributedKvStoreTest, AppKvstoreGetEntries003, TestSize.Level0)
   * @tc.require: AR000CCPOL AR000CQS36
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvStoreTest, AppKvstoreGetEntries004, TestSize.Level0)
+HWTEST_F(AppDistributedKvStoreTest, AppKvstoreGetEntries004, TestSize.Level1)
 {
     // cover app_kvstore_getentries_004, app_kvstore_getentries_local_004
     std::unique_ptr<AppKvStore> appKvStorePtr;
@@ -1036,7 +1036,7 @@ HWTEST_F(AppDistributedKvStoreTest, AppKvstoreGetEntries004, TestSize.Level0)
   * @tc.require: AR000CCPOL AR000CQS36
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvStoreTest, AppKvstoreGetEntries005, TestSize.Level0)
+HWTEST_F(AppDistributedKvStoreTest, AppKvstoreGetEntries005, TestSize.Level1)
 {
     // cover app_kvstore_getentries_005, app_kvstore_getentries_local_005
     std::unique_ptr<AppKvStore> appKvStorePtr;
@@ -1079,7 +1079,7 @@ HWTEST_F(AppDistributedKvStoreTest, AppKvstoreGetEntries005, TestSize.Level0)
   * @tc.require: AR000CCPOL
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvStoreTest, AppKvstoreSubscribeKvStore001, TestSize.Level0)
+HWTEST_F(AppDistributedKvStoreTest, AppKvstoreSubscribeKvStore001, TestSize.Level1)
 {
     // cover app_kvstore_subscribekvstore_001, app_kvstore_subscribekvstore_003,
     // app_kvstore_subscribekvstore_local_001, app_kvstore_subscribekvstore_local_003
@@ -1146,7 +1146,7 @@ HWTEST_F(AppDistributedKvStoreTest, AppKvstoreSubscribeKvStore001, TestSize.Leve
   * @tc.require: AR000CCPOL
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvStoreTest, AppKvstoreSubscribeKvStore002, TestSize.Level0)
+HWTEST_F(AppDistributedKvStoreTest, AppKvstoreSubscribeKvStore002, TestSize.Level1)
 {
     // cover app_kvstore_subscribekvstore_002, app_kvstore_subscribekvstore_local_002
     std::unique_ptr<AppKvStore> appKvStorePtr;
@@ -1506,7 +1506,7 @@ HWTEST_F(AppDistributedKvStoreTest, AppKvstoreSubscribeKvStore006, TestSize.Leve
   * @tc.require: AR000CCPOL
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvStoreTest, AppKvstoreSubscribeKvStore007, TestSize.Level0)
+HWTEST_F(AppDistributedKvStoreTest, AppKvstoreSubscribeKvStore007, TestSize.Level1)
 {
     // cover app_kvstore_subscribekvstore_014, app_kvstore_subscribekvstore_015,
     // app_kvstore_subscribekvstore_local_014, app_kvstore_subscribekvstore_local_015
@@ -1581,7 +1581,7 @@ static void InitResultSetData()
   * @tc.require: AR000D08KT
   * @tc.author: liuyuhui
   */
-HWTEST_F(AppDistributedKvStoreTest, AppKvstoreResultSet001, TestSize.Level0)
+HWTEST_F(AppDistributedKvStoreTest, AppKvstoreResultSet001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. initialize kvstore.
@@ -1623,7 +1623,7 @@ HWTEST_F(AppDistributedKvStoreTest, AppKvstoreResultSet001, TestSize.Level0)
   * @tc.require: AR000D08KT
   * @tc.author: liuyuhui
   */
-HWTEST_F(AppDistributedKvStoreTest, AppKvstoreResultSet002, TestSize.Level0)
+HWTEST_F(AppDistributedKvStoreTest, AppKvstoreResultSet002, TestSize.Level1)
 {
     InitResultSetData();
 

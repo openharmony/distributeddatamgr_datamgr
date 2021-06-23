@@ -49,7 +49,7 @@ void KvStoreThreadPoolTest::TearDown(void)
   * @tc.require: AR000CQS31
   * @tc.author: liqiao
   */
-HWTEST_F(KvStoreThreadPoolTest, TestApplyTask001, TestSize.Level0)
+HWTEST_F(KvStoreThreadPoolTest, TestApplyTask001, TestSize.Level1)
 {
     auto pool = KvStoreThreadPool::GetPool(8, true);
     int var = 0;

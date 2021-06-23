@@ -142,7 +142,7 @@ void AppConflictTest::TearDown(void)
   * @tc.require: AR000CQDUG
   * @tc.author: liuyuhui
   */
-HWTEST_F(AppConflictTest, AppConflict001, TestSize.Level0)
+HWTEST_F(AppConflictTest, AppConflict001, TestSize.Level1)
 {
     ZLOGD("AppConflict001");
     EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
@@ -166,7 +166,7 @@ HWTEST_F(AppConflictTest, AppConflict001, TestSize.Level0)
   * @tc.require: AR000CQDUG
   * @tc.author: liuyuhui
   */
-HWTEST_F(AppConflictTest, AppConflict002, TestSize.Level0)
+HWTEST_F(AppConflictTest, AppConflict002, TestSize.Level1)
 {
     ZLOGD("AppConflict002");
     EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
@@ -197,7 +197,7 @@ HWTEST_F(AppConflictTest, AppConflict002, TestSize.Level0)
   * @tc.require: AR000CQDUG
   * @tc.author: liuyuhui
   */
-HWTEST_F(AppConflictTest, AppConflict003, TestSize.Level0)
+HWTEST_F(AppConflictTest, AppConflict003, TestSize.Level1)
 {
     ZLOGD("app_conflict_003 start");
     EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";

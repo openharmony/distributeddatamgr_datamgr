@@ -91,7 +91,7 @@ void KvStoreSnapshotClientTest::TearDown(void)
 * @tc.require: AR000C6GBG
 * @tc.author: liuyuhui
 */
-HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGet001, TestSize.Level0)
+HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGet001, TestSize.Level1)
 {
     ZLOGI("KvStoreSnapshotDdmGet001 begin.");
     EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
@@ -126,7 +126,7 @@ HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGet001, TestSize.Level0)
 * @tc.require: AR000C6GBG
 * @tc.author: liuyuhui
 */
-HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGet002, TestSize.Level0)
+HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGet002, TestSize.Level1)
 {
     ZLOGI("KvStoreSnapshotDdmGet002 begin.");
     EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
@@ -164,7 +164,7 @@ HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGet002, TestSize.Level0)
 * @tc.require: AR000C6GBG
 * @tc.author: liuyuhui
 */
-HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGet003, TestSize.Level0)
+HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGet003, TestSize.Level1)
 {
     ZLOGI("KvStoreSnapshotDdmGet003 begin.");
     EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
@@ -195,7 +195,7 @@ HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGet003, TestSize.Level0)
 * @tc.require: AR000C6GBG
 * @tc.author: liuyuhui
 */
-HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGetEntries001, TestSize.Level0)
+HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGetEntries001, TestSize.Level1)
 {
     ZLOGI("KvStoreSnapshotDdmGetEntries001 begin.");
     EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
@@ -248,7 +248,7 @@ HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGetEntries001, TestSize.Le
 * @tc.require: AR000C6GBG
 * @tc.author: liuyuhui
 */
-HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGetEntries002, TestSize.Level0)
+HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGetEntries002, TestSize.Level1)
 {
     ZLOGI("KvStoreSnapshotDdmGetEntries002 begin.");
     EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
@@ -301,7 +301,7 @@ HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGetEntries002, TestSize.Le
 * @tc.require: AR000C6GBG
 * @tc.author: liuyuhui
 */
-HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGetEntries003, TestSize.Level0)
+HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGetEntries003, TestSize.Level1)
 {
     ZLOGI("KvStoreSnapshotDdmGetEntries003 begin.");
     EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
@@ -354,7 +354,7 @@ HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGetEntries003, TestSize.Le
 * @tc.require: AR000C6GBG
 * @tc.author: liuyuhui
 */
-HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGetEntries004, TestSize.Level0)
+HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGetEntries004, TestSize.Level1)
 {
     ZLOGI("KvStoreSnapshotDdmGetEntries004 begin.");
     EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
@@ -417,7 +417,7 @@ std::string Generate1025KeyLen()
 * @tc.require: AR000C6GBG
 * @tc.author: liuyuhui
 */
-HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGetEntries005, TestSize.Level0)
+HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGetEntries005, TestSize.Level1)
 {
     ZLOGI("KvStoreSnapshotDdmGetEntries005 begin.");
     EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
@@ -470,7 +470,7 @@ HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGetEntries005, TestSize.Le
 * @tc.require: AR000C6GBG
 * @tc.author: liuyuhui
 */
-HWTEST_F(KvStoreSnapshotClientTest, EntryIpcInterfaceTest001, TestSize.Level0)
+HWTEST_F(KvStoreSnapshotClientTest, EntryIpcInterfaceTest001, TestSize.Level1)
 {
     ZLOGI("EntryIpcInterfaceTest001 begin.");
     Entry entryIn, *entryOut;

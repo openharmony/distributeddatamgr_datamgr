@@ -129,7 +129,7 @@ void DistributedKvDataManagerTest::TearDown(void)
 * @tc.require: SR000CQDU0 AR000BVTDM
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerTest, GetKvStore001, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, GetKvStore001, TestSize.Level1)
 {
     ZLOGI("GetKvStore001 begin.");
     std::unique_ptr<KvStore> notExistKvStorePtr;
@@ -154,7 +154,7 @@ HWTEST_F(DistributedKvDataManagerTest, GetKvStore001, TestSize.Level0)
 * @tc.require: SR000CQDU0 AR000BVTDM
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerTest, GetKvStore002, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, GetKvStore002, TestSize.Level1)
 {
     ZLOGI("GetKvStore002 begin.");
     std::unique_ptr<KvStore> notExistKvStorePtr;
@@ -175,7 +175,7 @@ HWTEST_F(DistributedKvDataManagerTest, GetKvStore002, TestSize.Level0)
 * @tc.require: SR000CQDU0 AR000BVTDM
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerTest, GetKvStore003, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, GetKvStore003, TestSize.Level1)
 {
     ZLOGI("GetKvStore003 begin.");
     std::unique_ptr<KvStore> notExistKvStorePtr;
@@ -193,7 +193,7 @@ HWTEST_F(DistributedKvDataManagerTest, GetKvStore003, TestSize.Level0)
 * @tc.require: SR000CQDU0 AR000BVTDM
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerTest, GetKvStore004, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, GetKvStore004, TestSize.Level1)
 {
     ZLOGI("GetKvStore004 begin.");
     std::unique_ptr<KvStore> notExistKvStorePtr;
@@ -211,7 +211,7 @@ HWTEST_F(DistributedKvDataManagerTest, GetKvStore004, TestSize.Level0)
 * @tc.require: SR000CQDU0 AR000BVTDM
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerTest, GetKvStore005, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, GetKvStore005, TestSize.Level1)
 {
     ZLOGI("GetKvStore005 begin.");
     std::unique_ptr<KvStore> notExistKvStorePtr;
@@ -229,7 +229,7 @@ HWTEST_F(DistributedKvDataManagerTest, GetKvStore005, TestSize.Level0)
 * @tc.require: SR000CQDU0 AR000BVTDM
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerTest, GetKvStore006, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, GetKvStore006, TestSize.Level1)
 {
     ZLOGI("GetKvStore006 begin.");
     std::unique_ptr<KvStore> notExistKvStorePtr;
@@ -247,7 +247,7 @@ HWTEST_F(DistributedKvDataManagerTest, GetKvStore006, TestSize.Level0)
 * @tc.require: SR000CQDU0 AR000BVTDM
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerTest, GetKvStore007, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, GetKvStore007, TestSize.Level1)
 {
     ZLOGI("GetKvStore007 begin.");
     std::unique_ptr<KvStore> notExistKvStorePtr;
@@ -265,7 +265,7 @@ HWTEST_F(DistributedKvDataManagerTest, GetKvStore007, TestSize.Level0)
 * @tc.require: SR000CQDU0 AR000BVTDM
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerTest, GetAllKvStore001, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, GetAllKvStore001, TestSize.Level1)
 {
     ZLOGI("GetAllKvStore001 begin.");
     std::vector<StoreId> idList;
@@ -282,7 +282,7 @@ HWTEST_F(DistributedKvDataManagerTest, GetAllKvStore001, TestSize.Level0)
 * @tc.require: SR000CQDU0 AR000BVTDM
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerTest, GetAllKvStore002, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, GetAllKvStore002, TestSize.Level1)
 {
     ZLOGI("GetAllKvStore002 begin.");
     StoreId id1;
@@ -336,7 +336,7 @@ HWTEST_F(DistributedKvDataManagerTest, GetAllKvStore002, TestSize.Level0)
 * @tc.require: SR000CQDU0 AR000BVTDM
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerTest, CloseKvStore001, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, CloseKvStore001, TestSize.Level1)
 {
     ZLOGI("CloseKvStore001 begin.");
     std::unique_ptr<KvStore> kvStorePtr;
@@ -357,7 +357,7 @@ HWTEST_F(DistributedKvDataManagerTest, CloseKvStore001, TestSize.Level0)
 * @tc.require: SR000CQDU0 AR000BVTDM
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerTest, CloseKvStore002, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, CloseKvStore002, TestSize.Level1)
 {
     ZLOGI("CloseKvStore002 begin.");
     std::unique_ptr<KvStore> kvStorePtr;
@@ -379,7 +379,7 @@ HWTEST_F(DistributedKvDataManagerTest, CloseKvStore002, TestSize.Level0)
 * @tc.require: SR000CQDU0 AR000BVTDM
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerTest, CloseKvStore003, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, CloseKvStore003, TestSize.Level1)
 {
     ZLOGI("CloseKvStore003 begin.");
     Status stat = manager.CloseKvStore(appId, storeIdEmpty);
@@ -393,7 +393,7 @@ HWTEST_F(DistributedKvDataManagerTest, CloseKvStore003, TestSize.Level0)
 * @tc.require: SR000CQDU0 AR000BVTDM
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerTest, CloseKvStore004, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, CloseKvStore004, TestSize.Level1)
 {
     ZLOGI("CloseKvStore004 begin.");
     Status stat = manager.CloseKvStore(appId, storeId65);
@@ -407,7 +407,7 @@ HWTEST_F(DistributedKvDataManagerTest, CloseKvStore004, TestSize.Level0)
 * @tc.require: SR000CQDU0 AR000BVTDM
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerTest, CloseKvStore005, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, CloseKvStore005, TestSize.Level1)
 {
     ZLOGI("CloseKvStore005 begin.");
     Status stat = manager.CloseKvStore(appId, storeId64);
@@ -421,7 +421,7 @@ HWTEST_F(DistributedKvDataManagerTest, CloseKvStore005, TestSize.Level0)
 * @tc.require: SR000CQDU0 AR000CSKRU
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerTest, CloseKvStoreMulti001, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, CloseKvStoreMulti001, TestSize.Level1)
 {
     ZLOGI("CloseKvStoreMulti001 begin.");
     std::unique_ptr<KvStore> notExistKvStorePtr;
@@ -452,7 +452,7 @@ HWTEST_F(DistributedKvDataManagerTest, CloseKvStoreMulti001, TestSize.Level0)
 * @tc.require: SR000CQDU0 AR000CSKRU
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerTest, CloseKvStoreMulti002, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, CloseKvStoreMulti002, TestSize.Level1)
 {
     ZLOGI("CloseKvStoreMulti002 begin.");
     std::unique_ptr<KvStore> notExistKvStorePtr;
@@ -496,7 +496,7 @@ HWTEST_F(DistributedKvDataManagerTest, CloseKvStoreMulti002, TestSize.Level0)
 * @tc.require: SR000CQDU0 AR000CSKRU
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerTest, CloseKvStoreMulti003, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, CloseKvStoreMulti003, TestSize.Level1)
 {
     ZLOGI("CloseKvStoreMulti003 begin.");
     std::unique_ptr<KvStore> notExistKvStorePtr;
@@ -564,7 +564,7 @@ HWTEST_F(DistributedKvDataManagerTest, CloseKvStoreMulti003, TestSize.Level0)
 * @tc.require: SR000CQDU0 AR000BVTDM
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerTest, CloseAllKvStore001, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, CloseAllKvStore001, TestSize.Level1)
 {
     ZLOGI("CloseAllKvStore001 begin.");
     std::unique_ptr<KvStore> kvStorePtr1;
@@ -592,7 +592,7 @@ HWTEST_F(DistributedKvDataManagerTest, CloseAllKvStore001, TestSize.Level0)
 * @tc.require: SR000CQDU0 AR000BVTDM
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerTest, CloseAllKvStore002, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, CloseAllKvStore002, TestSize.Level1)
 {
     ZLOGI("CloseAllKvStore002 begin.");
     std::unique_ptr<KvStore> kvStorePtr1;
@@ -623,7 +623,7 @@ HWTEST_F(DistributedKvDataManagerTest, CloseAllKvStore002, TestSize.Level0)
 * @tc.require: SR000CQDU0 AR000BVTDM
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerTest, DeleteKvStore001, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, DeleteKvStore001, TestSize.Level1)
 {
     ZLOGI("DeleteKvStore001 begin.");
     std::unique_ptr<KvStore> kvStorePtr;
@@ -647,7 +647,7 @@ HWTEST_F(DistributedKvDataManagerTest, DeleteKvStore001, TestSize.Level0)
 * @tc.require: SR000CQDU0 AR000BVTDM
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerTest, DeleteKvStore002, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, DeleteKvStore002, TestSize.Level1)
 {
     ZLOGI("DeleteKvStore002 begin.");
     std::unique_ptr<KvStore> kvStorePtr;
@@ -669,7 +669,7 @@ HWTEST_F(DistributedKvDataManagerTest, DeleteKvStore002, TestSize.Level0)
 * @tc.require: SR000CQDU0 AR000BVTDM
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerTest, DeleteKvStore003, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, DeleteKvStore003, TestSize.Level1)
 {
     ZLOGI("DeleteKvStore003 begin.");
     Status stat = manager.DeleteKvStore(appId, storeId64);
@@ -683,7 +683,7 @@ HWTEST_F(DistributedKvDataManagerTest, DeleteKvStore003, TestSize.Level0)
 * @tc.require: SR000CQDU0 AR000BVTDM
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerTest, DeleteKvStore004, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, DeleteKvStore004, TestSize.Level1)
 {
     ZLOGI("DeleteKvStore004 begin.");
     Status stat = manager.DeleteKvStore(appId, storeIdEmpty);
@@ -698,7 +698,7 @@ HWTEST_F(DistributedKvDataManagerTest, DeleteKvStore004, TestSize.Level0)
 * @tc.require: SR000CQDU0 AR000BVTDM
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerTest, DeleteKvStore005, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, DeleteKvStore005, TestSize.Level1)
 {
     ZLOGI("DeleteKvStore005 begin.");
     Status stat = manager.DeleteKvStore(appId, storeId65);
@@ -712,7 +712,7 @@ HWTEST_F(DistributedKvDataManagerTest, DeleteKvStore005, TestSize.Level0)
 * @tc.require: SR000CQDU0 AR000BVTDM
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerTest, DeleteAllKvStore001, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, DeleteAllKvStore001, TestSize.Level1)
 {
     ZLOGI("DeleteAllKvStore001 begin.");
     std::unique_ptr<KvStore> kvStorePtr1;
@@ -743,7 +743,7 @@ HWTEST_F(DistributedKvDataManagerTest, DeleteAllKvStore001, TestSize.Level0)
 * @tc.require: SR000CQDU0 AR000BVTDM
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerTest, DeleteAllKvStore002, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, DeleteAllKvStore002, TestSize.Level1)
 {
     ZLOGI("DeleteAllKvStore002 begin.");
     std::unique_ptr<KvStore> kvStorePtr1;
@@ -772,7 +772,7 @@ HWTEST_F(DistributedKvDataManagerTest, DeleteAllKvStore002, TestSize.Level0)
 * @tc.require: SR000CQDU0 AR000BVTDM
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerTest, DeleteAllKvStore003, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, DeleteAllKvStore003, TestSize.Level1)
 {
     ZLOGI("DeleteAllKvStore003 begin.");
     Status stat = manager.DeleteAllKvStore(appId);
@@ -786,7 +786,7 @@ HWTEST_F(DistributedKvDataManagerTest, DeleteAllKvStore003, TestSize.Level0)
 * @tc.require: SR000CQDU0 AR000CQDU1
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerTest, RegisterKvStoreServiceDeathRecipient001, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, RegisterKvStoreServiceDeathRecipient001, TestSize.Level1)
 {
     ZLOGI("RegisterKvStoreServiceDeathRecipient001 begin.");
     std::shared_ptr<KvStoreDeathRecipient> kvStoreDeathRecipientPtr = std::make_shared<MyDeathRecipient>();
@@ -801,7 +801,7 @@ HWTEST_F(DistributedKvDataManagerTest, RegisterKvStoreServiceDeathRecipient001, 
 * @tc.require: AR000CQDUS AR000CQDU1
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerTest, UnRegisterKvStoreServiceDeathRecipient001, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, UnRegisterKvStoreServiceDeathRecipient001, TestSize.Level1)
 {
     ZLOGI("UnRegisterKvStoreServiceDeathRecipient001 begin.");
     std::shared_ptr<KvStoreDeathRecipient> kvStoreDeathRecipientPtr = std::make_shared<MyDeathRecipient>();
@@ -825,7 +825,7 @@ public:
 * @tc.require: SR000DOH1R AR000DPSGU
 * @tc.author: hongbo
 */
-HWTEST_F(DistributedKvDataManagerTest, GetDevice001, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerTest, GetDevice001, TestSize.Level1)
 {
     ZLOGI("GetDevice001 begin.");
     DeviceInfo info;

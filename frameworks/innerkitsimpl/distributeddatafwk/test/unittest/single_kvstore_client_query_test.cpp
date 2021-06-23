@@ -70,7 +70,7 @@ void SingleKvStoreClientQueryTest::TearDown(void)
 * @tc.require: AR000DPSF5
 * @tc.author: YangLeda
 */
-HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC001, TestSize.Level0)
+HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC001, TestSize.Level1)
 {
     ZLOGD("TestQueryC001 start");
     DataQuery query;
@@ -90,7 +90,7 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC001, TestSize.Level0)
 * @tc.require: AR000DPSF5
 * @tc.author: YangLeda
 */
-HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC002, TestSize.Level0)
+HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC002, TestSize.Level1)
 {
     ZLOGD("TestQueryC002 start");
     DataQuery query;
@@ -119,7 +119,7 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC002, TestSize.Level0)
 * @tc.require: AR000DPSF5
 * @tc.author: YangLeda
 */
-HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC003, TestSize.Level0)
+HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC003, TestSize.Level1)
 {
     ZLOGD("TestQueryC003 start");
     DataQuery query;
@@ -148,7 +148,7 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC003, TestSize.Level0)
 * @tc.require: AR000DPSF5
 * @tc.author: YangLeda
 */
-HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC004, TestSize.Level0)
+HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC004, TestSize.Level1)
 {
     ZLOGD("TestQueryC004 start");
     DataQuery query;
@@ -174,7 +174,7 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC004, TestSize.Level0)
 * @tc.require: AR000DPSF5
 * @tc.author: YangLeda
 */
-HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC005, TestSize.Level0)
+HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC005, TestSize.Level1)
 {
     ZLOGD("TestQueryC005 start");
     DataQuery query;
@@ -200,7 +200,7 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC005, TestSize.Level0)
 * @tc.require: AR000DPSF5
 * @tc.author: YangLeda
 */
-HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC006, TestSize.Level0)
+HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC006, TestSize.Level1)
 {
     ZLOGD("TestQueryC006 start");
     DataQuery query;
@@ -226,7 +226,7 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC006, TestSize.Level0)
 * @tc.require: AR000DPSF5
 * @tc.author: YangLeda
 */
-HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC007, TestSize.Level0)
+HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC007, TestSize.Level1)
 {
     ZLOGD("TestQueryC007 start");
     DataQuery query;
@@ -252,7 +252,7 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC007, TestSize.Level0)
 * @tc.require: AR000DPSF5
 * @tc.author: YangLeda
 */
-HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC008, TestSize.Level0)
+HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC008, TestSize.Level1)
 {
     ZLOGD("TestQueryC008 start");
     DataQuery query;
@@ -268,7 +268,7 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC008, TestSize.Level0)
 * @tc.require: AR000DPSF5
 * @tc.author: YangLeda
 */
-HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC009, TestSize.Level0)
+HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC009, TestSize.Level1)
 {
     ZLOGD("TestQueryC009 start");
     DataQuery query;
@@ -297,7 +297,7 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC009, TestSize.Level0)
 * @tc.require: AR000DPSF5
 * @tc.author: YangLeda
 */
-HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC010, TestSize.Level0)
+HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC010, TestSize.Level1)
 {
     ZLOGD("TestQueryC010 start");
     DataQuery query;
@@ -326,7 +326,7 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC010, TestSize.Level0)
 * @tc.require: AR000DPSF5
 * @tc.author: YangLeda
 */
-HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC011, TestSize.Level0)
+HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC011, TestSize.Level1)
 {
     ZLOGD("TestQueryC011 start");
     DataQuery query;
@@ -342,7 +342,7 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC011, TestSize.Level0)
 * @tc.require: AR000DPSF5
 * @tc.author: YangLeda
 */
-HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC012, TestSize.Level0)
+HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC012, TestSize.Level1)
 {
     ZLOGD("TestQueryC012 start");
     DataQuery query;
@@ -358,7 +358,7 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC012, TestSize.Level0)
 * @tc.require: AR000DPSF5
 * @tc.author: YangLeda
 */
-HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC013, TestSize.Level0)
+HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC013, TestSize.Level1)
 {
     ZLOGD("TestQueryC013 start");
     DataQuery query;
@@ -376,7 +376,7 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC013, TestSize.Level0)
 * @tc.require: AR000DPSF5
 * @tc.author: YangLeda
 */
-HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC014, TestSize.Level0)
+HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC014, TestSize.Level1)
 {
     ZLOGD("TestQueryC014 start");
     DataQuery query;
@@ -394,7 +394,7 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC014, TestSize.Level0)
 * @tc.require: AR000DPSF5
 * @tc.author: YangLeda
 */
-HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC015, TestSize.Level0)
+HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC015, TestSize.Level1)
 {
     ZLOGD("TestQueryC015 start");
     DataQuery query;
@@ -412,7 +412,7 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC015, TestSize.Level0)
 * @tc.require: AR000DPSF5
 * @tc.author: YangLeda
 */
-HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC016, TestSize.Level0)
+HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC016, TestSize.Level1)
 {
     ZLOGD("TestQueryC016 start");
     DataQuery query;
@@ -428,7 +428,7 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC016, TestSize.Level0)
 * @tc.require: SR000DPCO9
 * @tc.author: YangLeda
 */
-HWTEST_F(SingleKvStoreClientQueryTest, TestSingleKvStoreQueryC001, TestSize.Level0)
+HWTEST_F(SingleKvStoreClientQueryTest, TestSingleKvStoreQueryC001, TestSize.Level1)
 {
     ZLOGD("TestSingleKvStoreQueryC001 start");
 
@@ -503,7 +503,7 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestSingleKvStoreQueryC001, TestSize.Leve
 * @tc.require: SR000DPCO9
 * @tc.author: YangLeda
 */
-HWTEST_F(SingleKvStoreClientQueryTest, TestSingleKvStoreQueryC002, TestSize.Level0)
+HWTEST_F(SingleKvStoreClientQueryTest, TestSingleKvStoreQueryC002, TestSize.Level1)
 {
     ZLOGD("TestSingleKvStoreQueryC002 start");
 
@@ -580,7 +580,7 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestSingleKvStoreQueryC002, TestSize.Leve
 * @tc.require: AR000EPAMV
 * @tc.author: YangLeda
 */
-HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC017, TestSize.Level0)
+HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC017, TestSize.Level1)
 {
     ZLOGD("TestQueryC017 start");
     DataQuery query;
@@ -599,7 +599,7 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC017, TestSize.Level0)
 * @tc.require: AR000F3PBJ
 * @tc.author: liuwenhui
 */
-HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC018, TestSize.Level0)
+HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC018, TestSize.Level1)
 {
     ZLOGD("TestQueryC018 start");
     DataQuery query;
