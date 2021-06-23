@@ -103,7 +103,7 @@ void DistributedKvDataManagerEncryptTest::TearDown(void)
 * @tc.require: SR000D08K4 AR000D08KQ
 * @tc.author: liqiao
 */
-HWTEST_F(DistributedKvDataManagerEncryptTest, kvstore_ddm_createEncryptedStore_001, TestSize.Level0)
+HWTEST_F(DistributedKvDataManagerEncryptTest, kvstore_ddm_createEncryptedStore_001, TestSize.Level1)
 {
     ZLOGI("kvstore_ddm_createEncryptedStore_001 begin.");
     std::unique_ptr<KvStore> kvStorePtr;

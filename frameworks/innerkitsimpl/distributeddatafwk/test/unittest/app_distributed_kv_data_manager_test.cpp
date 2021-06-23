@@ -105,7 +105,7 @@ void AppDistributedKvDataManagerTest::TearDown(void)
   * @tc.require: AR000CCPOJ
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvDataManagerTest, AppManagerGetKvstore001, TestSize.Level0)
+HWTEST_F(AppDistributedKvDataManagerTest, AppManagerGetKvstore001, TestSize.Level1)
 {
     std::unique_ptr<AppKvStore> notExistKvStorePtr;
     Status status;
@@ -134,7 +134,7 @@ HWTEST_F(AppDistributedKvDataManagerTest, AppManagerGetKvstore001, TestSize.Leve
   * @tc.require: AR000CCPOJ
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvDataManagerTest, AppManagerGetKvstore002, TestSize.Level0)
+HWTEST_F(AppDistributedKvDataManagerTest, AppManagerGetKvstore002, TestSize.Level1)
 {
     std::unique_ptr<AppKvStore> notExistKvStorePtr;
     Status status;
@@ -155,7 +155,7 @@ HWTEST_F(AppDistributedKvDataManagerTest, AppManagerGetKvstore002, TestSize.Leve
   * @tc.require: AR000CCPOJ
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvDataManagerTest, AppManagerGetKvstore003, TestSize.Level0)
+HWTEST_F(AppDistributedKvDataManagerTest, AppManagerGetKvstore003, TestSize.Level1)
 {
     std::unique_ptr<AppKvStore> notExistKvStorePtr;
     Status status;
@@ -174,7 +174,7 @@ HWTEST_F(AppDistributedKvDataManagerTest, AppManagerGetKvstore003, TestSize.Leve
   * @tc.require: AR000CCPOJ
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvDataManagerTest, AppManagerGetKvstore004, TestSize.Level0)
+HWTEST_F(AppDistributedKvDataManagerTest, AppManagerGetKvstore004, TestSize.Level1)
 {
     std::unique_ptr<AppKvStore> notExistKvStorePtr;
     Status status;
@@ -193,7 +193,7 @@ HWTEST_F(AppDistributedKvDataManagerTest, AppManagerGetKvstore004, TestSize.Leve
   * @tc.require: AR000CCPOJ
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvDataManagerTest, AppManagerGetKvstore005, TestSize.Level0)
+HWTEST_F(AppDistributedKvDataManagerTest, AppManagerGetKvstore005, TestSize.Level1)
 {
     std::unique_ptr<AppKvStore> notExistKvStorePtr;
     Status status;
@@ -212,7 +212,7 @@ HWTEST_F(AppDistributedKvDataManagerTest, AppManagerGetKvstore005, TestSize.Leve
   * @tc.require: AR000CCPOJ
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvDataManagerTest, AppManagerGetKvstore006, TestSize.Level0)
+HWTEST_F(AppDistributedKvDataManagerTest, AppManagerGetKvstore006, TestSize.Level1)
 {
     std::unique_ptr<AppKvStore> notExistKvStorePtr;
     Status status;
@@ -231,7 +231,7 @@ HWTEST_F(AppDistributedKvDataManagerTest, AppManagerGetKvstore006, TestSize.Leve
   * @tc.require: AR000CCPOJ
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvDataManagerTest, AppManagerGetKvstore007, TestSize.Level0)
+HWTEST_F(AppDistributedKvDataManagerTest, AppManagerGetKvstore007, TestSize.Level1)
 {
     std::unique_ptr<AppKvStore> notExistKvStorePtr;
     Status status;
@@ -249,7 +249,7 @@ HWTEST_F(AppDistributedKvDataManagerTest, AppManagerGetKvstore007, TestSize.Leve
   * @tc.require: AR000CCPOJ
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvDataManagerTest, AppManagerCloseKvstore001, TestSize.Level0)
+HWTEST_F(AppDistributedKvDataManagerTest, AppManagerCloseKvstore001, TestSize.Level1)
 {
     std::unique_ptr<AppKvStore> kvStorePtr;
     Status status;
@@ -270,7 +270,7 @@ HWTEST_F(AppDistributedKvDataManagerTest, AppManagerCloseKvstore001, TestSize.Le
   * @tc.require: AR000CCPOJ
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvDataManagerTest, AppManagerCloseKvstore002, TestSize.Level0)
+HWTEST_F(AppDistributedKvDataManagerTest, AppManagerCloseKvstore002, TestSize.Level1)
 {
     std::unique_ptr<AppKvStore> kvStorePtr;
     Status status;
@@ -292,7 +292,7 @@ HWTEST_F(AppDistributedKvDataManagerTest, AppManagerCloseKvstore002, TestSize.Le
   * @tc.require: AR000CCPOJ
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvDataManagerTest, AppManagerCloseKvstore003, TestSize.Level0)
+HWTEST_F(AppDistributedKvDataManagerTest, AppManagerCloseKvstore003, TestSize.Level1)
 {
     std::unique_ptr<AppKvStore> kvStorePtr = nullptr;
     Status stat = manager->CloseKvStore(nullptr);
@@ -306,7 +306,7 @@ HWTEST_F(AppDistributedKvDataManagerTest, AppManagerCloseKvstore003, TestSize.Le
   * @tc.require: AR000CCPOJ
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvDataManagerTest, AppManagerDeleteKvStore001, TestSize.Level0)
+HWTEST_F(AppDistributedKvDataManagerTest, AppManagerDeleteKvStore001, TestSize.Level1)
 {
     std::unique_ptr<AppKvStore> kvStorePtr;
     Status status;
@@ -330,7 +330,7 @@ HWTEST_F(AppDistributedKvDataManagerTest, AppManagerDeleteKvStore001, TestSize.L
   * @tc.require: AR000CCPOJ
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvDataManagerTest, AppManagerDeleteKvStore002, TestSize.Level0)
+HWTEST_F(AppDistributedKvDataManagerTest, AppManagerDeleteKvStore002, TestSize.Level1)
 {
     std::unique_ptr<AppKvStore> kvStorePtr;
     Status status;
@@ -353,7 +353,7 @@ HWTEST_F(AppDistributedKvDataManagerTest, AppManagerDeleteKvStore002, TestSize.L
   * @tc.require: AR000CCPOJ
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvDataManagerTest, AppManagerDeleteKvStore003, TestSize.Level0)
+HWTEST_F(AppDistributedKvDataManagerTest, AppManagerDeleteKvStore003, TestSize.Level1)
 {
     Status stat = manager->DeleteKvStore(storeId64);
     EXPECT_EQ(stat, Status::ERROR);
@@ -366,7 +366,7 @@ HWTEST_F(AppDistributedKvDataManagerTest, AppManagerDeleteKvStore003, TestSize.L
   * @tc.require: AR000CCPOJ
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvDataManagerTest, AppManagerDeleteKvStore004, TestSize.Level0)
+HWTEST_F(AppDistributedKvDataManagerTest, AppManagerDeleteKvStore004, TestSize.Level1)
 {
     Status stat = manager->DeleteKvStore(storeIdEmpty);
     EXPECT_EQ(stat, Status::INVALID_ARGUMENT);
@@ -380,7 +380,7 @@ HWTEST_F(AppDistributedKvDataManagerTest, AppManagerDeleteKvStore004, TestSize.L
   * @tc.require: AR000CCPOJ
   * @tc.author: liqiao
   */
-HWTEST_F(AppDistributedKvDataManagerTest, AppManagerDeleteKvStore005, TestSize.Level0)
+HWTEST_F(AppDistributedKvDataManagerTest, AppManagerDeleteKvStore005, TestSize.Level1)
 {
     Status stat = manager->DeleteKvStore(storeId65);
     EXPECT_EQ(stat, Status::INVALID_ARGUMENT);
@@ -393,7 +393,7 @@ HWTEST_F(AppDistributedKvDataManagerTest, AppManagerDeleteKvStore005, TestSize.L
   * @tc.require: AR000CQDTD
   * @tc.author: hongbo
   */
-HWTEST_F(AppDistributedKvDataManagerTest, GetKvStoreDiskSize001, TestSize.Level0)
+HWTEST_F(AppDistributedKvDataManagerTest, GetKvStoreDiskSize001, TestSize.Level1)
 {
     uint64_t size;
     Status stat = manager->GetKvStoreDiskSize(storeId65, size);
@@ -418,7 +418,7 @@ void CorruptionObserverImpl::OnCorruption(const std::string &appId, const std::s
   * @tc.require: AR000D487D
   * @tc.author: hongbo
   */
-HWTEST_F(AppDistributedKvDataManagerTest, RegisterKvStoreCorruptionObserver001, TestSize.Level0)
+HWTEST_F(AppDistributedKvDataManagerTest, RegisterKvStoreCorruptionObserver001, TestSize.Level1)
 {
     auto observer = std::make_shared<CorruptionObserverImpl>();
     Status stat = manager->RegisterKvStoreCorruptionObserver(observer);
