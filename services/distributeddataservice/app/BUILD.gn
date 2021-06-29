@@ -55,6 +55,7 @@ config("module_private_config") {
     "src",
     "//third_party/json/single_include",
     "//base/security/permission/interfaces/innerkits/permission_standard/permissionsdk/main/cpp/include",
+    "//base/security/huks/interfaces/innerkits/huks_standard/main/include",
   ]
 
   cflags = [ "-Wno-multichar" ]
@@ -113,6 +114,7 @@ ohos_shared_library("distributeddataservice") {
     "samgr_L2:samgr_proxy",
     "startup_l2:syspara",
     "permission_standard:libpermissionsdk_standard",
+    "huks_standard:libhukssdk",
   ]
 
   subsystem_name = "distributeddatamgr"

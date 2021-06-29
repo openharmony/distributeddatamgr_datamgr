@@ -19,6 +19,8 @@
 #include <nlohmann/json.hpp>
 
 #include "app_device_status_change_listener.h"
+#include "hks_api.h"
+#include "hks_param.h"
 #include "types.h"
 #include "system_ability.h"
 #include "kv_store_delegate.h"
@@ -286,12 +288,17 @@ private:
     static constexpr const char *LOCAL_LABEL = "localLabel";
     static constexpr const char *REMOTE_LABEL = "remoteLabel";
     static constexpr const char *HARMONY_APP = "harmony";
+    static constexpr const char *HKS_BLOB_TYPE_NONCE = "Z5s0Bo571KoqwIi6";
+    static constexpr const char *HKS_BLOB_TYPE_AAD = "distributeddata";
     static constexpr int KEY_SIZE = 32;
     static constexpr int HOURS_PER_YEAR = (24 * 365);
 
     NbDelegate metaDelegate_ {};
     std::string metaDBDirectory_;
     DistributedDB::KvStoreDelegateManager kvStoreDelegateManager_;
+    std::vector<uint8_t> vecRootKeyAlias_ {};
+    std::vector<uint8_t> vecNonce_ {};
+    std::vector<uint8_t> vecAad_ {};
     static std::condition_variable cv_;
     static std::mutex cvMutex_;
     static MetaDeviceChangeListenerImpl listener_;
