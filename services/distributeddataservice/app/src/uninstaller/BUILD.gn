@@ -27,6 +27,7 @@ ohos_static_library("distributeddata_uninstaller_static") {
     "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/app_distributeddata/include",
     "//third_party/json/single_include",
     "//utils/native/base/include",
+    "//base/security/huks/interfaces/innerkits/huks_standard/main/include",
   ]
 
   cflags_cc = [ "-fvisibility=hidden" ]
