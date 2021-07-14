@@ -219,22 +219,3 @@ HWTEST_F(CommunicationProviderImplTest, CommunicationProvider017, TestSize.Level
     delete dataListener17;
     sleep(1); // avoid thread dnet thread died, then will have pthread;
 }
-
-/**
-* @tc.name: CommunicationProvider018
-* @tc.desc: test isPeerAvailable
-* @tc.type: FUNC
-* @tc.require: AR000CCPQ2 AR000CQS3C AR000CQS3D SR000CQS3B AR000CQSAI
-* @tc.author: hongbo
-*/
-HWTEST_F(CommunicationProviderImplTest, CommunicationProvider018, TestSize.Level1)
-{
-    struct PipeInfo appId;
-    appId.pipeId = "appIda";
-    appId.userId = "groupIds";
-    struct DeviceId di;
-    di.deviceId = "mydeviceid0";
-    bool ret = CommunicationProvider::GetInstance().IsSameStartedOnPeer(appId, di);
-    EXPECT_EQ(true, ret);
-    sleep(1); // avoid thread dnet thread died, then will have pthread;
-}
