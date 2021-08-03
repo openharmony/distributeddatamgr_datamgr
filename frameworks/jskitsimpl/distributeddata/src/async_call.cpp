@@ -39,6 +39,7 @@ AsyncCall::AsyncCall(napi_env env, napi_callback_info info, std::shared_ptr<Cont
     }
     context_->ctx = std::move(context);
     NAPI_CALL_RETURN_VOID(env, (*context_->ctx)(env, argc, argv, self));
+    napi_create_reference(env, self, 1, &context_->self);
 }
 
 AsyncCall::~AsyncCall()
@@ -53,6 +54,10 @@ AsyncCall::~AsyncCall()
 napi_value AsyncCall::Call(napi_env env, Context::ExecAction exec)
 {
     if (context_ == nullptr) {
+        return nullptr;
+    }
+    if (context_->ctx == nullptr) {
+        ZLOGD("context_ ctx is null");
         return nullptr;
     }
     ZLOGD("async call exec");
@@ -139,6 +144,7 @@ void AsyncCall::DeleteContext(napi_env env, AsyncContext *context)
 {
     if (env != nullptr) {
         napi_delete_reference(env, context->callback);
+        napi_delete_reference(env, context->self);
         napi_delete_async_work(env, context->work);
     }
     delete context;

@@ -91,6 +91,7 @@ private:
     struct AsyncContext {
         std::shared_ptr<Context> ctx = nullptr;
         napi_ref callback = nullptr;
+        napi_ref self = nullptr;
         napi_deferred defer = nullptr;
         napi_async_work work = nullptr;
     };

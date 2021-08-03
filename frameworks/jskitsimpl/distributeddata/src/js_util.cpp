@@ -39,6 +39,7 @@ DistributedKv::Options JSUtil::Convert2Options(napi_env env, napi_value jsOption
         napi_get_value_bool(env, value, &options.backup);
     }
     value = nullptr;
+    options.autoSync = false;
     napi_get_named_property(env, jsOptions, "autoSync", &value);
     if (value != nullptr) {
         napi_get_value_bool(env, value, &options.autoSync);
