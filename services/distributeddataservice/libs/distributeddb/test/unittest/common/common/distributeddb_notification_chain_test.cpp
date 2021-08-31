@@ -31,8 +31,8 @@ namespace {
     int g_onEventTestNum = 0;
     bool g_onFinalizeCalled = false;
 
-    auto g_onEventFunction = [](void *arg) {
-        g_onEventTestNum = *(reinterpret_cast<int *>(arg));
+    auto g_onEventFunction = [](const void *arg) {
+        g_onEventTestNum = *(reinterpret_cast<const int *>(arg));
         LOGI("g_onEventFunction called.");
     };
 

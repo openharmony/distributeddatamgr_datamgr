@@ -473,33 +473,33 @@ bool DistributedDBNbTestTools::MoveToNextFromBegin(KvStoreResultSet &resultSet,
     for (int position = -1; position < recordCnt; ++position) { // the first pos after getentries is -1.
         bool expectRes = resultSet.MoveToNext();
         if (position < (recordCnt - 1)) {
-            result = result & expectRes;
+            result = result && expectRes;
         } else {
-            result = result & (!expectRes);
+            result = result && (!expectRes);
         }
         if (!result) {
             MST_LOG("resultSet.MoveToNext() doesn't meet expectations!!!");
             break;
         }
         positionGot = position + 1;
-        result = result & (resultSet.GetPosition() == positionGot);
+        result = result && (resultSet.GetPosition() == positionGot);
         if (!result) {
             MST_LOG("resultSet.GetPosition() != positionGot!!!");
             break;
         }
         if (position < (recordCnt - 1)) {
-            result = result & (resultSet.GetEntry(entry) == OK);
+            result = result && (resultSet.GetEntry(entry) == OK);
             if (!result) {
                 MST_LOG("resultSet.GetEntry() != OK");
                 break;
             }
-            result = result & (entry.key == entries[positionGot].key) & (entry.value == entries[positionGot].value);
+            result = result && (entry.key == entries[positionGot].key) && (entry.value == entries[positionGot].value);
             if (!result) {
                 MST_LOG("entry != entries[positionGot]");
                 break;
             }
         } else {
-            result = result & (resultSet.GetEntry(entry) == NOT_FOUND);
+            result = result && (resultSet.GetEntry(entry) == NOT_FOUND);
         }
     }
     return result;
