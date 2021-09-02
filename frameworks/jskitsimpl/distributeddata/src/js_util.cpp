@@ -75,7 +75,7 @@ std::string JSUtil::Convert2String(napi_env env, napi_value jsString)
         return std::string();
     }
     size_t len = 0;
-    status = napi_get_value_string_utf8(env, jsString, buf, maxLen, &len);
+    status = napi_get_value_string_utf8(env, jsString, buf, maxLen + 1, &len);
     if (status != napi_ok) {
         GET_AND_THROW_LAST_ERROR((env));
     }
