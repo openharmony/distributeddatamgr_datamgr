@@ -188,7 +188,7 @@ Status KvStoreResultSetImpl::CloseResultSet(DistributedDB::KvStoreNbDelegate *kv
         return Status::INVALID_ARGUMENT;
     }
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
-    std::shared_lock<std::shared_mutex> lock(this->mutex_);
+    std::unique_lock<std::shared_mutex> lock(this->mutex_);
     DistributedDB::DBStatus status = kvStoreNbDelegate->CloseResultSet(kvStoreResultSet_);
     if (status != DistributedDB::DBStatus::OK) {
         return Status::DB_ERROR;
