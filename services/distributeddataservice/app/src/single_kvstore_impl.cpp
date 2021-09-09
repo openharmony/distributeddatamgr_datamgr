@@ -1448,6 +1448,7 @@ Status SingleKvStoreImpl::SetCapabilityRange(const std::vector<std::string> &loc
 
 Status SingleKvStoreImpl::GetSecurityLevel(SecurityLevel &securityLevel)
 {
+    std::shared_lock<std::shared_mutex> lock(storeNbDelegateMutex_);
     if (kvStoreNbDelegate_ == nullptr) {
         return Status::STORE_NOT_OPEN;
     }
