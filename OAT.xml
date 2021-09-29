@@ -58,8 +58,7 @@ Note:If the text contains special characters, please escape them according to th
     <oatconfig>
         <filefilterlist>
             <filefilter name="binaryFileTypePolicyFilter" desc="Filters for binary file policies" >
-                <filteritem type="filename" name="figures/en-us_image_0000001162536643.png" desc="Binary files that do not involve infringement."/>
-                <filteritem type="filename" name="figures/zh-cn_image_0000001162536643.png" desc="Binary files that do not involve infringement."/>
+                <filteritem type="filepath" name="figures/.*.png" desc="Binary files that do not involve infringement."/>
             </filefilter>
         </filefilterlist>
     </oatconfig>
