@@ -13,11 +13,8 @@
  * limitations under the License.
  */
 #define LOG_TAG "SingleKVStore"
-
 #include "single_kv_store.h"
-
 #include <uv.h>
-
 #include "async_call.h"
 #include "js_util.h"
 #include "log_print.h"
@@ -25,7 +22,7 @@
 
 using namespace OHOS::DistributedKv;
 namespace OHOS::DistributedData {
-napi_ref SingleKVStore::ctor_ = nullptr;
+static __thread napi_ref ctor_ = nullptr;
 std::map<std::string, SingleKVStore::Exec> SingleKVStore::eventHandlers_ = {
     {"dataChange", SingleKVStore::OnDataChange},
     {"syncComplete", SingleKVStore::OnSyncComplete},

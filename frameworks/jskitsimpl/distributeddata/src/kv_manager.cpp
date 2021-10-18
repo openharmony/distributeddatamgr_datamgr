@@ -24,7 +24,7 @@
 
 using namespace OHOS::DistributedKv;
 namespace OHOS::DistributedData {
-napi_ref KVManager::ctor_ = nullptr;
+static __thread napi_ref ctor_ = nullptr;
 napi_value KVManager::CreateKVManager(napi_env env, napi_callback_info info)
 {
     ZLOGD("get kv manager!");
