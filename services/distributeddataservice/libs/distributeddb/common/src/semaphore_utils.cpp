@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "semaphore.h"
+#include "semaphore_utils.h"
 
 #include <functional>
 
@@ -22,39 +22,39 @@ using std::unique_lock;
 using std::mutex;
 using std::condition_variable;
 
-Semaphore::Semaphore(int count)
+SemaphoreUtils::SemaphoreUtils(int count)
     : count_(count)
 {}
 
-Semaphore::~Semaphore()
+SemaphoreUtils::~SemaphoreUtils()
 {}
 
-bool Semaphore::WaitSemaphore(int waitSecond)
+bool SemaphoreUtils::WaitSemaphore(int waitSecond)
 {
     unique_lock<mutex> lock(lockMutex_);
     bool result = cv_.wait_for(lock, std::chrono::seconds(waitSecond),
-        std::bind(&Semaphore::CompareCount, this));
+        std::bind(&SemaphoreUtils::CompareCount, this));
     if (result == true) {
         --count_;
     }
     return result;
 }
 
-void Semaphore::WaitSemaphore()
+void SemaphoreUtils::WaitSemaphore()
 {
     unique_lock<mutex> lock(lockMutex_);
-    cv_.wait(lock, std::bind(&Semaphore::CompareCount, this));
+    cv_.wait(lock, std::bind(&SemaphoreUtils::CompareCount, this));
     --count_;
 }
 
-void Semaphore::SendSemaphore()
+void SemaphoreUtils::SendSemaphore()
 {
     unique_lock<mutex> lock(lockMutex_);
     count_++;
     cv_.notify_one();
 }
 
-bool Semaphore::CompareCount() const
+bool SemaphoreUtils::CompareCount() const
 {
     return count_ > 0;
 }

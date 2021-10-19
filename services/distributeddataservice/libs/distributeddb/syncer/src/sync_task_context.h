@@ -21,7 +21,7 @@
 
 #include "isync_task_context.h"
 #include "sync_target.h"
-#include "semaphore.h"
+#include "semaphore_utils.h"
 #include "sync_operation.h"
 #include "icommunicator.h"
 #include "ikvdb_sync_interface.h"

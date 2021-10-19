@@ -82,7 +82,7 @@ ohos_shared_library("distributeddb") {
     "common/src/runtime_context_impl.cpp",
     "common/src/schema_object.cpp",
     "common/src/schema_utils.cpp",
-    "common/src/semaphore.cpp",
+    "common/src/semaphore_utils.cpp",
     "common/src/task_pool.cpp",
     "common/src/task_pool_impl.cpp",
     "common/src/task_queue.cpp",

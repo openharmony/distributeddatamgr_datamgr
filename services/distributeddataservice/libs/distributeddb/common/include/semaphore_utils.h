@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef SEMAPHORE_H
-#define SEMAPHORE_H
+#ifndef SEMAPHORE_UTILS_H
+#define SEMAPHORE_UTILS_H
 
 #include <cstdio>
 #include <cstdlib>
@@ -23,13 +23,13 @@
 #include "macro_utils.h"
 
 namespace DistributedDB {
-class Semaphore {
+class SemaphoreUtils {
 public:
-    explicit Semaphore(int count);
-    ~Semaphore();
+    explicit SemaphoreUtils(int count);
+    ~SemaphoreUtils();
 
     // Delete the copy and assign constructors
-    DISABLE_COPY_ASSIGN_MOVE(Semaphore);
+    DISABLE_COPY_ASSIGN_MOVE(SemaphoreUtils);
 
     bool WaitSemaphore(int waitSecond);
 
