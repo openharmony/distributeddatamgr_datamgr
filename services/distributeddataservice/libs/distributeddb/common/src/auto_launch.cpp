@@ -24,7 +24,7 @@
 #include "kvdb_manager.h"
 #include "kv_store_changed_data_impl.h"
 #include "sync_able_kvdb_connection.h"
-#include "semaphore.h"
+#include "semaphore_utils.h"
 #include "kv_store_nb_conflict_data_impl.h"
 #include "db_common.h"
 #include "param_check_utils.h"
@@ -561,7 +561,7 @@ void AutoLaunch::GetConnInDoOpenMap(std::map<std::string, AutoLaunchItem> &doOpe
     if (doOpenMap.empty()) {
         return;
     }
-    Semaphore sema(1 - doOpenMap.size());
+    SemaphoreUtils sema(1 - doOpenMap.size());
     for (auto &iter : doOpenMap) {
         int errCode = RuntimeContext::GetInstance()->ScheduleTask([&sema, &iter, this] {
             int errCode;

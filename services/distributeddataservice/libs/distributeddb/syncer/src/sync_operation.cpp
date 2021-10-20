@@ -55,7 +55,7 @@ int SyncOperation::Initialize()
     }
 
     if (isBlockSync_) {
-        semaphore_ = std::make_unique<Semaphore>(0);
+        semaphore_ = std::make_unique<SemaphoreUtils>(0);
     }
 
     return E_OK;

@@ -19,7 +19,7 @@
 #include <map>
 #include <mutex>
 #include <cstdint>
-#include "semaphore.h"
+#include "semaphore_utils.h"
 #include "macro_utils.h"
 #include "parse_result.h"
 #include "combine_status.h"
@@ -68,7 +68,7 @@ private:
 
     TimerId timerId_ = 0; // 0 is invalid timerId
     bool isTimerWork_ = false;
-    Semaphore timerRemovedIndicator_{0};
+    SemaphoreUtils timerRemovedIndicator_{0};
     uint64_t incProgressId_ = 0;
     uint64_t totalSizeByByte_ = 0;
     std::map<uint64_t, std::map<uint32_t, CombineWork>> combineWorkPool_;

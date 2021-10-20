@@ -24,7 +24,7 @@
 
 #include "ikvdb_sync_interface.h"
 #include "ref_object.h"
-#include "semaphore.h"
+#include "semaphore_utils.h"
 #include "notification_chain.h"
 #include "runtime_context.h"
 
@@ -148,7 +148,7 @@ private:
     bool isFinished_;
 
     // Used for block sync
-    std::unique_ptr<Semaphore> semaphore_;
+    std::unique_ptr<SemaphoreUtils> semaphore_;
 };
 } // namespace DistributedDB
 

@@ -21,7 +21,7 @@
 
 #include "sync_state_machine.h"
 #include "sync_target.h"
-#include "semaphore.h"
+#include "semaphore_utils.h"
 #include "message.h"
 #include "single_ver_sync_task_context.h"
 #include "time_sync.h"

@@ -85,7 +85,7 @@ ohos_source_set("src_file") {
     "../common/src/runtime_context_impl.cpp",
     "../common/src/schema_object.cpp",
     "../common/src/schema_utils.cpp",
-    "../common/src/semaphore.cpp",
+    "../common/src/semaphore_utils.cpp",
     "../common/src/task_pool.cpp",
     "../common/src/task_pool_impl.cpp",
     "../common/src/task_queue.cpp",
@@ -439,8 +439,8 @@ ohos_unittest("DistributedDBStorageEncryptTest") {
   ]
   ldflags = [ "-Wl,--exclude-libs,ALL" ]
   deps = [
-    "//third_party/openssl:libcrypto_static",
     "//third_party/googletest:gtest_main",
+    "//third_party/openssl:libcrypto_static",
     "//utils/native/base:utils",
   ]
 }
