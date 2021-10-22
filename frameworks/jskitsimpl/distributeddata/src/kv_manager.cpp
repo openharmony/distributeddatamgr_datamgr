@@ -24,7 +24,7 @@
 
 using namespace OHOS::DistributedKv;
 namespace OHOS::DistributedData {
-napi_ref KVManager::ctor_ = nullptr;
+static __thread napi_ref g_ctor = nullptr;
 napi_value KVManager::CreateKVManager(napi_env env, napi_callback_info info)
 {
     ZLOGD("get kv manager!");
@@ -116,8 +116,8 @@ napi_value KVManager::GetKVStore(napi_env env, napi_callback_info info)
 napi_value KVManager::GetCtor(napi_env env)
 {
     napi_value cons;
-    if (ctor_ != nullptr) {
-        NAPI_CALL(env, napi_get_reference_value(env, ctor_, &cons));
+    if (g_ctor != nullptr) {
+        NAPI_CALL(env, napi_get_reference_value(env, g_ctor, &cons));
         return cons;
     }
 
@@ -126,7 +126,7 @@ napi_value KVManager::GetCtor(napi_env env)
     };
     NAPI_CALL(env, napi_define_class(env, "KVManager", NAPI_AUTO_LENGTH, Initialize, nullptr,
                                      sizeof(clzDes) / sizeof(napi_property_descriptor), clzDes, &cons));
-    NAPI_CALL(env, napi_create_reference(env, cons, 1, &ctor_));
+    NAPI_CALL(env, napi_create_reference(env, cons, 1, &g_ctor));
     return cons;
 }
 

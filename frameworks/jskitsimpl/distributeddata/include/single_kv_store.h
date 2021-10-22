@@ -73,7 +73,6 @@ private:
     static napi_status OnDataChange(napi_env env, size_t argc, napi_value *argv, napi_value self, napi_value *result);
     static napi_status OnSyncComplete(napi_env env, size_t argc, napi_value *argv, napi_value self, napi_value *result);
     static std::map<std::string, Exec> eventHandlers_;
-    static napi_ref ctor_;
 
     std::unique_ptr<DistributedKv::SingleKvStore> kvStore_ = nullptr;
     std::shared_ptr<DistributedKv::KvStoreSyncCallback> syncObserver_ = nullptr;

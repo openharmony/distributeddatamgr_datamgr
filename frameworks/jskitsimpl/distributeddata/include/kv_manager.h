@@ -31,7 +31,6 @@ private:
 
     DistributedKv::DistributedKvDataManager kvDataManager_ {};
     std::string bundleName_ {};
-    static napi_ref ctor_;
 };
 }
 #endif // OHOS_KV_MANAGER_H
