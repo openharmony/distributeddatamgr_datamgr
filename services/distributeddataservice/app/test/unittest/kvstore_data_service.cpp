@@ -181,13 +181,13 @@ Status KvStoreDataService::GetKvStore(const Options &options, const AppId &appId
         }
         it = result.first;
     }
-    Status statusTmp = (it->second).GetKvStore(options, bundleName, storeIdTmp, secretKey,
-        [&](sptr<IKvStoreImpl> store) {
-            if (outdated) {
-                KvStoreMetaManager::GetInstance().ReKey(deviceAccountId, bundleName, storeIdTmp, store);
-            }
-            callback(store);
-        });
+    auto newCallback = [&callback, outdated, deviceAccountId, bundleName, storeIdTmp](sptr<IKvStoreImpl> store) {
+        if (outdated) {
+            KvStoreMetaManager::GetInstance().ReKey(deviceAccountId, bundleName, storeIdTmp, store);
+        }
+        callback(store);
+    };
+    Status statusTmp = (it->second).GetKvStore(options, bundleName, storeIdTmp, secretKey, newCallback);
 
     ZLOGD("get kvstore return status:%d, deviceAccountId:[%s], bundleName:[%s].",
           statusTmp, KvStoreUtils::ToBeAnonymous(deviceAccountId).c_str(),  bundleName.c_str());
@@ -1236,9 +1236,9 @@ void KvStoreDataService::AccountEventChanged(const AccountEventInfo &eventInfo)
             if (it != deviceAccountMap_.end()) {
                 deviceAccountMap_.erase(eventInfo.deviceAccountId);
             }
-            std::string deviceAccountKvStoreDataDir =
-                Constant::Concatenate({Constant::ROOT_PATH_DE, "/", Constant::SERVICE_NAME,
-                                       "/", eventInfo.deviceAccountId});
+            std::initializer_list<std::string> dataDirList = {Constant::ROOT_PATH_DE, "/",
+                Constant::SERVICE_NAME, "/", eventInfo.deviceAccountId};
+            std::string deviceAccountKvStoreDataDir = Constant::Concatenate(dataDirList);
             ForceRemoveDirectory(deviceAccountKvStoreDataDir);
             deviceAccountKvStoreDataDir =
                 Constant::Concatenate({Constant::ROOT_PATH_CE, "/", Constant::SERVICE_NAME,

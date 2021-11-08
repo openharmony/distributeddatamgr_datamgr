@@ -186,13 +186,14 @@ Status KvStoreDataService::GetKvStore(const Options &options, const AppId &appId
         }
         it = result.first;
     }
-    Status statusTmp = (it->second).GetKvStore(options, bundleName, storeIdTmp, secretKey,
-        [&](sptr<IKvStoreImpl> store) {
-            if (outdated) {
-                KvStoreMetaManager::GetInstance().ReKey(deviceAccountId, bundleName, storeIdTmp, store);
-            }
-            callback(store);
-        });
+
+    auto newCallback = [&callback, outdated, deviceAccountId, bundleName, storeIdTmp](sptr<IKvStoreImpl> store) {
+        if (outdated) {
+            KvStoreMetaManager::GetInstance().ReKey(deviceAccountId, bundleName, storeIdTmp, store);
+        }
+        callback(store);
+    };
+    Status statusTmp = (it->second).GetKvStore(options, bundleName, storeIdTmp, secretKey, newCallback);
 
     ZLOGD("get kvstore return status:%d, deviceAccountId:[%s], bundleName:[%s].",
           statusTmp, KvStoreUtils::ToBeAnonymous(deviceAccountId).c_str(),  bundleName.c_str());
@@ -1289,7 +1290,8 @@ Status KvStoreDataService::GetDeviceList(std::vector<DeviceInfo> &deviceInfoList
 {
     auto devices = KvStoreUtils::GetProviderInstance().GetRemoteNodesBasicInfo();
     for (auto const &device : devices) {
-        deviceInfoList.push_back({device.deviceId, device.deviceName, device.deviceType});
+        DeviceInfo deviceInfo = {device.deviceId, device.deviceName, device.deviceType};
+        deviceInfoList.push_back(deviceInfo);
     }
     ZLOGD("strategy is %d.", strategy);
     return Status::SUCCESS;
@@ -1308,7 +1310,7 @@ Status KvStoreDataService::StartWatchDeviceChange(sptr<IDeviceStatusChangeListen
         KvStoreUtils::GetProviderInstance().StartWatchDeviceChange(deviceListener_.get(), {"serviceWatcher"});
     }
     IRemoteObject *objectPtr = observer->AsObject().GetRefPtr();
-    deviceListeners_.insert({objectPtr, observer});
+    deviceListeners_.insert({ objectPtr, observer });
     ZLOGD("strategy is %d.", strategy);
     return Status::SUCCESS;
 }
