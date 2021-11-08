@@ -682,7 +682,7 @@ void KvStoreDataService::GetAllKvStoreId(
     DistributedDB::Key dbKey = KvStoreMetaRow::GetKeyFor(DeviceKvStoreImpl::GetLocalDeviceId() +
         Constant::KEY_SEPARATOR + deviceAccountId + Constant::KEY_SEPARATOR +
         "default" + Constant::KEY_SEPARATOR + bundleName + Constant::KEY_SEPARATOR);
-    DdsTrace trace(std::string(LOG_TAG "Delegate::") + std::string(__FUNCTION__));
+    DdsTrace traceDelegate(std::string(LOG_TAG "Delegate::") + std::string(__FUNCTION__));
     dbStatus = metaKvStoreDelegate->GetEntries(dbKey, dbEntries);
     if (dbStatus != DistributedDB::DBStatus::OK) {
         ZLOGE("GetEntries delegate return error: %d.", static_cast<int>(dbStatus));
