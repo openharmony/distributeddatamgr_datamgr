@@ -198,10 +198,10 @@ public:
         const std::string &storeId, const std::string &key = "");
 
     static std::string GetSecretKeyFile(const std::string &deviceAccountId, const std::string &appId,
-                                        const std::string &storeId);
+                                        const std::string &storeId, int securityLevel);
 
     static std::string GetSecretSingleKeyFile(const std::string &deviceAccountId, const std::string &appId,
-                                              const std::string &storeId);
+                                              const std::string &storeId, int securityLevel);
 
     Status GetSecretKeyFromMeta(const std::vector<uint8_t> &metaSecretKey,
                                 std::vector<uint8_t> &key, bool &outdated);
@@ -268,6 +268,8 @@ private:
     void ConcatWithSharps(const std::vector<std::string> &params, std::string &retVal);
 
     Status GetStategyMeta(const std::string &key, std::map<std::string, std::vector<std::string>> &strategies);
+
+    bool GetSecurityLevelByBundleName(const std::string &bundleName, int &securityLevel);
 
     bool GetKvStoreMetaByType(const std::string &name, const std::string &val, KvStoreMetaData &metaData);
 
