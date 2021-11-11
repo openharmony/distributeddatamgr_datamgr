@@ -250,25 +250,33 @@ Status KvStoreMetaManager::CheckUpdateServiceMeta(const std::vector<uint8_t> &me
     DistributedDB::DBStatus dbStatus;
     DistributedDB::CipherPassword dbPassword;
     const std::string deviceAccountId = AccountDelegate::MAIN_DEVICE_ACCOUNT_ID;
+
+    const std::string userId = AccountDelegate::GetInstance()->GetCurrentHarmonyAccountId();
+    std::initializer_list<std::string> backList = {userId, "_", META_DB_APP_ID, "_", Constant::SERVICE_META_DB_NAME};
+    std::string backupName = Constant::Concatenate(backList);
+    std::initializer_list<std::string> backFullList = {BackupHandler::GetBackupPath(deviceAccountId, pathType), "/",
+        BackupHandler::GetHashedBackupName(backupName)};
+    auto backupFullName = Constant::Concatenate(backFullList);
+
     switch (flag) {
         case UPDATE:
             dbStatus = metaDelegate->Put(dbKey, dbValue);
-            metaDelegate->Export(BackupHandler::GetBackupPath(deviceAccountId, pathType), dbPassword);
+            metaDelegate->Export(backupFullName, dbPassword);
             break;
         case DELETE:
             dbStatus = metaDelegate->Delete(dbKey);
-            metaDelegate->Export(BackupHandler::GetBackupPath(deviceAccountId, pathType), dbPassword);
+            metaDelegate->Export(backupFullName, dbPassword);
             break;
         case CHECK_EXIST:
             dbStatus = metaDelegate->Get(dbKey, dbValue);
             break;
         case UPDATE_LOCAL:
             dbStatus = metaDelegate->PutLocal(dbKey, dbValue);
-            metaDelegate->Export(BackupHandler::GetBackupPath(deviceAccountId, pathType), dbPassword);
+            metaDelegate->Export(backupFullName, dbPassword);
             break;
         case DELETE_LOCAL:
             dbStatus = metaDelegate->DeleteLocal(dbKey);
-            metaDelegate->Export(BackupHandler::GetBackupPath(deviceAccountId, pathType), dbPassword);
+            metaDelegate->Export(backupFullName, dbPassword);
             break;
         case CHECK_EXIST_LOCAL:
             dbStatus = metaDelegate->GetLocal(dbKey, dbValue);
