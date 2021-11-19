@@ -330,12 +330,12 @@ Status KvStoreDataService::GetSecretKey(const Options &options, const GetKvStore
     if (kvParas.funType == KvStoreType::MULTI_VERSION) {
         metaSecretKey = KvStoreMetaManager::GetMetaKey(deviceAccountId, "default", bundleName, storeIdTmp, "KEY");
         secretKeyFile = KvStoreMetaManager::GetSecretKeyFile(
-        deviceAccountId, bundleName, storeIdTmp, options.securityLevel);
+            deviceAccountId, bundleName, storeIdTmp, options.securityLevel);
     } else {
         metaSecretKey = KvStoreMetaManager::GetMetaKey(deviceAccountId, "default", bundleName,
                                                        storeIdTmp, "SINGLE_KEY");
         secretKeyFile = KvStoreMetaManager::GetSecretSingleKeyFile(
-        deviceAccountId, bundleName, storeIdTmp, options.securityLevel);
+            deviceAccountId, bundleName, storeIdTmp, options.securityLevel);
     }
 
     bool outdated = false;
