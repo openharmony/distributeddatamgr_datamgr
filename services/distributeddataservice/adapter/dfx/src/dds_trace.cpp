@@ -85,7 +85,7 @@ void DdsTrace::Finish(const std::string& value)
         return;
     }
     if (switchOption & BYTRACE_ON) {
-        FinishTrace(BYTRACE_LABEL, value);
+        FinishTrace(BYTRACE_LABEL);
     }
     if (switchOption & API_PERFORMANCE_TRACE_ON) {
         delta = TimeUtils::CurrentTimeMicros() - lastTime;
