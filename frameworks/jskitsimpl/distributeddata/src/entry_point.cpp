@@ -20,12 +20,29 @@
 #include "log_print.h"
 using namespace OHOS::DistributedData;
 using namespace OHOS::DistributedKv;
+
+extern const char _binary_distributed_data_js_start[];
+extern const char _binary_distributed_data_js_end[];
+
 static napi_value Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor desc = DECLARE_NAPI_METHOD("createKVManager", KVManager::CreateKVManager);
     napi_status status = napi_define_properties(env, exports, 1, &desc);
     ZLOGI("init distributedData %{public}d", status);
     return exports;
+}
+
+// function name: NAPI_{ModuleName}_GetJSCode
+extern "C" __attribute__((visibility("default"))) void NAPI_data_distributedData_GetJSCode(const char** buf,
+    int* bufLen)
+{
+    if (buf != nullptr) {
+        *buf = _binary_distributed_data_js_start;
+    }
+
+    if (bufLen != nullptr) {
+        *bufLen = _binary_distributed_data_js_end - _binary_distributed_data_js_start;
+    }
 }
 
 static __attribute__((constructor)) void RegisterModule()

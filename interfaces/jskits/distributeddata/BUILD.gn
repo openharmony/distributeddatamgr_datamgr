@@ -14,6 +14,13 @@
 import("//build/ohos.gni")
 import("//build/ohos/ace/ace.gni")
 
+base_output_path = get_label_info(":distributed_data_js", "target_out_dir")
+distributed_data_js_obj_path = base_output_path + "/distributed_data.o"
+gen_js_obj("distributed_data_js") {
+  input = "distributed_data.js"
+  output = distributed_data_js_obj_path
+}
+
 group("build_module") {
   deps = [ ":distributeddata" ]
 }
@@ -45,6 +52,7 @@ ohos_shared_library("distributeddata") {
   ]
 
   deps = [
+    ":distributed_data_js",
     "//foundation/ace/napi:ace_napi",
     "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/distributeddata:distributeddata_inner",
     "//third_party/libuv:uv_static",
