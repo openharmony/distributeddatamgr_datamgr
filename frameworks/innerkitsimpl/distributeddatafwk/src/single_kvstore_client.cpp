@@ -92,7 +92,8 @@ Status SingleKvStoreClient::GetResultSet(const Key &prefixKey, std::shared_ptr<K
     return statusTmp;
 }
 
-Status SingleKvStoreClient::GetResultSetWithQuery(const std::string &query, std::shared_ptr<KvStoreResultSet> &resultSet) const
+Status SingleKvStoreClient::GetResultSetWithQuery(const std::string &query,
+                                                  std::shared_ptr<KvStoreResultSet> &resultSet) const
 {
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
 
@@ -124,7 +125,8 @@ Status SingleKvStoreClient::GetResultSetWithQuery(const std::string &query, std:
     return statusTmp;
 }
 
-Status SingleKvStoreClient::GetResultSetWithQuery(const DataQuery &query, std::shared_ptr<KvStoreResultSet> &resultSet) const
+Status SingleKvStoreClient::GetResultSetWithQuery(const DataQuery &query,
+                                                  std::shared_ptr<KvStoreResultSet> &resultSet) const
 {
     return GetResultSetWithQuery(query.ToString(), resultSet);
 }

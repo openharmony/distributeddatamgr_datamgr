@@ -65,7 +65,8 @@ public:
     //     resultSet: resultSet will be returned in this parameter.
     // Return:
     //     Status of this GetResultSet operation.
-    KVSTORE_API virtual Status GetResultSet(const Key &prefixKey, std::shared_ptr<KvStoreResultSet> &resultSet) const = 0;
+    KVSTORE_API virtual Status GetResultSet(const Key &prefixKey,
+                                            std::shared_ptr<KvStoreResultSet> &resultSet) const = 0;
 
     // Get ResultSet in this store by Query.
     // Parameters:
@@ -73,7 +74,8 @@ public:
     //     resultSet: resultSet will be returned in this parameter.
     // Return:
     //     Status of this GetResultSet operation.
-    KVSTORE_API virtual Status GetResultSetWithQuery(const std::string &query, std::shared_ptr<KvStoreResultSet> &resultSet) const = 0;
+    KVSTORE_API virtual Status GetResultSetWithQuery(const std::string &query,
+                                                     std::shared_ptr<KvStoreResultSet> &resultSet) const = 0;
 
     // Get ResultSet in this store by Query.
     // Parameters:
@@ -81,7 +83,8 @@ public:
     //     resultSet: resultSet will be returned in this parameter.
     // Return:
     //     Status of this GetResultSet operation.
-    KVSTORE_API virtual Status GetResultSetWithQuery(const DataQuery &query, std::shared_ptr<KvStoreResultSet> &resultSet) const = 0;
+    KVSTORE_API virtual Status GetResultSetWithQuery(const DataQuery &query,
+                                                     std::shared_ptr<KvStoreResultSet> &resultSet) const = 0;
 
     // Close the ResultSet returned by GetResultSet.
     // Parameters:

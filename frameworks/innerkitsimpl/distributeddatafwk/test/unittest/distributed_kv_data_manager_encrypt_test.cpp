@@ -118,7 +118,7 @@ HWTEST_F(DistributedKvDataManagerEncryptTest, kvstore_ddm_createEncryptedStore_0
 
     std::shared_ptr<KvStoreSnapshot> snapshot;
     // [create and] open and initialize kvstore snapshot instance.
-    status = kvStorePtr->GetKvStoreSnapshot(nullptr,snapshot);
+    status = kvStorePtr->GetKvStoreSnapshot(nullptr, snapshot);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore GetKvStoreSnapshot data return wrong status";
     ASSERT_NE(nullptr, snapshot) << "snapshot is nullptr";
     // get value from kvstore.

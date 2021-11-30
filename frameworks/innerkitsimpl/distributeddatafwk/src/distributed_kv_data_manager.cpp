@@ -36,7 +36,7 @@ DistributedKvDataManager::~DistributedKvDataManager()
 {}
 
 Status DistributedKvDataManager::GetKvStore(const Options &options, const AppId &appId, const StoreId &storeId,
-                  std::shared_ptr<KvStore> &kvStore)
+                                            std::shared_ptr<KvStore> &kvStore)
 {
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
 

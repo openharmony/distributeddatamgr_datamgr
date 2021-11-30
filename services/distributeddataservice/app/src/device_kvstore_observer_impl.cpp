@@ -45,9 +45,9 @@ void DeviceKvStoreObserverImpl::OnChange(const DistributedDB::KvStoreChangedData
         if (deviceId.empty()) {
             ZLOGE("Did NOT find any valid deviceId");
         }
-        ChangeNotification changeNotification(std::move(inserts), std::move(updates), std::move(deleteds), deviceId, false);
+        ChangeNotification change(std::move(inserts), std::move(updates), std::move(deleteds), deviceId, false);
         if (observerProxy_ != nullptr) {
-            observerProxy_->OnChange(changeNotification, nullptr);
+            observerProxy_->OnChange(change, nullptr);
         }
         return;
     } else {

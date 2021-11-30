@@ -33,7 +33,6 @@
 #include "constant.h"
 #include "common_event_subscriber.h"
 #include "common_event_support.h"
-#include "common_event_define.h"
 #include "common_event_manager.h"
 #include "ohos/aafwk/content/intent.h"
 #include "ohos_account_kits.h"

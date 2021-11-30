@@ -219,14 +219,14 @@ int32_t KvStoreObserverStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
 
                 std::string deviceId = data.ReadString();
                 bool isClear = data.ReadBool();
-                ChangeNotification changeNotification(std::move(insertEntries), std::move(updateEntries), std::move(deleteEntries), deviceId, isClear);
+                ChangeNotification change(std::move(insertEntries), std::move(updateEntries), std::move(deleteEntries), deviceId, isClear);
                 sptr<IRemoteObject> remote = data.ReadRemoteObject();
                 if (remote != nullptr) {
                     sptr<IKvStoreSnapshotImpl> kvStoreSnapshotProxy = iface_cast<IKvStoreSnapshotImpl>(remote);
-                    OnChange(changeNotification, std::move(kvStoreSnapshotProxy));
+                    OnChange(change, std::move(kvStoreSnapshotProxy));
                 } else {
                     ZLOGD("read kvstoreSnapshot is nullptr.");
-                    OnChange(changeNotification, nullptr);
+                    OnChange(change, nullptr);
                 }
             }
             return 0;

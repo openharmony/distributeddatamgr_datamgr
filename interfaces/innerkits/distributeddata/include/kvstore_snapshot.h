@@ -40,7 +40,7 @@ public:
     // nextKey: The first key to start in this search.
     // callback: all entries satisfied perfixKey, status of this call and the first key of the next part of data.
     [[deprecated]]
-    KVSTORE_API virtual Status GetEntries(const Key &prefixKey, Key &nextKey,std::vector<Entry> &entries) = 0;
+    KVSTORE_API virtual Status GetEntries(const Key &prefixKey, Key &nextKey, std::vector<Entry> &entries) = 0;
 
     // Get a list of entries from kvstore by keyPrefix,
     // key length must be less than 1024,

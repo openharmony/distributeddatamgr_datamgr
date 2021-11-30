@@ -40,7 +40,8 @@ struct UserId {
 // app identifier from Bms
 struct AppId {
     std::string appId;
-    inline bool IsValid() const {
+    inline bool IsValid() const
+    {
         if (appId.empty() || appId.size() > MAX_APP_ID_LEN) {
             return false;
         }
@@ -64,7 +65,8 @@ private:
 // and can not be empty and all space.
 struct StoreId {
     std::string storeId;
-    inline bool IsValid() const {
+    inline bool IsValid() const
+    {
         if (storeId.empty() || storeId.size() > MAX_STORE_ID_LEN) {
             return false;
         }

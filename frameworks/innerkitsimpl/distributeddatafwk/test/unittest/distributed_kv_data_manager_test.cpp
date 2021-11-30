@@ -490,7 +490,7 @@ HWTEST_F(DistributedKvDataManagerTest, CloseKvStoreMulti003, TestSize.Level1)
     status = existKvStorePtr2->Put(keyInt, valueInt);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
     std::shared_ptr<KvStoreSnapshot> kvStoreSnapshotPtr;
-    existKvStorePtr2->GetKvStoreSnapshot(nullptr,kvStoreSnapshotPtr);
+    existKvStorePtr2->GetKvStoreSnapshot(nullptr, kvStoreSnapshotPtr);
 
     EXPECT_NE(nullptr, kvStoreSnapshotPtr) << "kvStoreSnapshotPtr is nullptr";
 

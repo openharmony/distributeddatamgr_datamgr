@@ -101,7 +101,7 @@ HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGet001, TestSize.Level1)
 
     std::shared_ptr<KvStoreSnapshot> snapshot;
     // [create and] open and initialize kvstore snapshot instance.
-    status = kvStorePtr->GetKvStoreSnapshot(nullptr, /* (KvStoreObserver ) */snapshot);
+    status = kvStorePtr->GetKvStoreSnapshot(nullptr, snapshot);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore GetKvStoreSnapshot return wrong status";
     EXPECT_NE(nullptr, snapshot) << "kvStoreSnapshotPtr is nullptr";
     // get value from kvstore.
@@ -136,7 +136,7 @@ HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGet002, TestSize.Level1)
 
     std::shared_ptr<KvStoreSnapshot> snapshot;
     // [create and] open and initialize kvstore snapshot instance.
-    status1 = kvStorePtr->GetKvStoreSnapshot(nullptr, /* (KvStoreObserver ) */snapshot);
+    status1 = kvStorePtr->GetKvStoreSnapshot(nullptr, snapshot);
     EXPECT_EQ(Status::SUCCESS, status1) << "KvStore GetKvStoreSnapshot return wrong status";
     EXPECT_NE(nullptr, snapshot) << "kvStoreSnapshotPtr is nullptr";
 
@@ -163,7 +163,7 @@ HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGet003, TestSize.Level1)
     EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
     std::shared_ptr<KvStoreSnapshot> snapshot;
     // [create and] open and initialize kvstore snapshot instance.
-    Status status = kvStorePtr->GetKvStoreSnapshot(nullptr, /* (KvStoreObserver ) */snapshot);
+    Status status = kvStorePtr->GetKvStoreSnapshot(nullptr, snapshot);
     EXPECT_EQ(Status::SUCCESS, status) << "GetKvStoreSnapshot return wrong status";
     EXPECT_NE(nullptr, snapshot) << "kvStoreSnapshotPtr is nullptr";
 
@@ -214,7 +214,7 @@ HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGetEntries001, TestSize.Le
     Status statusTmp = Status::ERROR;
     std::shared_ptr<KvStoreSnapshot> kvStoreSnapshotPtr;
     // [create and] open and initialize kvstore snapshot instance.
-    kvStorePtr->GetKvStoreSnapshot(nullptr, /* (KvStoreObserver ) */kvStoreSnapshotPtr);
+    kvStorePtr->GetKvStoreSnapshot(nullptr, kvStoreSnapshotPtr);
 
     EXPECT_NE(nullptr, kvStoreSnapshotPtr) << "kvStoreSnapshotPtr is nullptr";
     statusTmp = kvStoreSnapshotPtr->GetEntries(keyPrefixStudent, students);
@@ -260,7 +260,7 @@ HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGetEntries002, TestSize.Le
     Status statusTmp = Status::ERROR;
     std::shared_ptr<KvStoreSnapshot> kvStoreSnapshotPtr;
     // [create and] open and initialize kvstore snapshot instance.
-    kvStorePtr->GetKvStoreSnapshot(nullptr, /* (KvStoreObserver ) */kvStoreSnapshotPtr);
+    kvStorePtr->GetKvStoreSnapshot(nullptr, kvStoreSnapshotPtr);
 
     EXPECT_NE(nullptr, kvStoreSnapshotPtr) << "kvStoreSnapshotPtr is nullptr";
     statusTmp = kvStoreSnapshotPtr->GetEntries(keyPrefixStudent, students);
@@ -306,7 +306,7 @@ HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGetEntries003, TestSize.Le
     Status statusTmp = Status::ERROR;
     std::shared_ptr<KvStoreSnapshot> kvStoreSnapshotPtr;
     // [create and] open and initialize kvstore snapshot instance.
-    kvStorePtr->GetKvStoreSnapshot(nullptr, /* (KvStoreObserver ) */kvStoreSnapshotPtr);
+    kvStorePtr->GetKvStoreSnapshot(nullptr, kvStoreSnapshotPtr);
 
     EXPECT_NE(nullptr, kvStoreSnapshotPtr) << "kvStoreSnapshotPtr is nullptr";
     statusTmp = kvStoreSnapshotPtr->GetEntries(keyPrefixStudent, students);
@@ -352,7 +352,7 @@ HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGetEntries004, TestSize.Le
     Status statusTmp = Status::ERROR;
     std::shared_ptr<KvStoreSnapshot> kvStoreSnapshotPtr;
     // [create and] open and initialize kvstore snapshot instance.
-    kvStorePtr->GetKvStoreSnapshot(nullptr, /* (KvStoreObserver ) */kvStoreSnapshotPtr);
+    kvStorePtr->GetKvStoreSnapshot(nullptr, kvStoreSnapshotPtr);
 
     EXPECT_NE(nullptr, kvStoreSnapshotPtr) << "kvStoreSnapshotPtr is nullptr";
     statusTmp = kvStoreSnapshotPtr->GetEntries(keyPrefixStudent, students);
@@ -408,7 +408,7 @@ HWTEST_F(KvStoreSnapshotClientTest, KvStoreSnapshotDdmGetEntries005, TestSize.Le
     Status statusTmp = Status::ERROR;
     std::shared_ptr<KvStoreSnapshot> kvStoreSnapshotPtr;
     // [create and] open and initialize kvstore snapshot instance.
-    kvStorePtr->GetKvStoreSnapshot(nullptr, /* (KvStoreObserver ) */        kvStoreSnapshotPtr);
+    kvStorePtr->GetKvStoreSnapshot(nullptr, kvStoreSnapshotPtr);
 
     EXPECT_NE(nullptr, kvStoreSnapshotPtr) << "kvStoreSnapshotPtr is nullptr";
     statusTmp = kvStoreSnapshotPtr->GetEntries(keyPrefixStudent, students);

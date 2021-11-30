@@ -25,9 +25,7 @@ ChangeNotification::ChangeNotification(std::vector<Entry> &&insertEntries, std::
                                        std::vector<Entry> &&deleteEntries, const std::string &deviceId, bool isClear)
     : insertEntries_(std::move(insertEntries)), updateEntries_(std::move(updateEntries)),
     deleteEntries_(std::move(deleteEntries)), deviceId_(deviceId), isClear_(isClear)
-{
-
-}
+{}
 
 ChangeNotification::~ChangeNotification()
 {}
@@ -153,7 +151,8 @@ ChangeNotification *ChangeNotification::Unmarshalling(Parcel &parcel)
     std::string deviceId = parcel.ReadString();
     bool isClear = parcel.ReadBool();
 
-    return new ChangeNotification(std::move(insertEntries), std::move(updateEntries), std::move(deleteEntries), deviceId, isClear);
+    return new ChangeNotification(std::move(insertEntries), std::move(updateEntries), std::move(deleteEntries),
+        deviceId, isClear);
 }
 }  // namespace DistributedKv
 }  // namespace OHOS

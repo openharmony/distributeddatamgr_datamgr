@@ -42,10 +42,9 @@ StoreId KvStoreClient::GetStoreId() const
     return storeId;
 }
 Status KvStoreClient::GetKvStoreSnapshot(std::shared_ptr<KvStoreObserver> observer,
-                          std::shared_ptr<KvStoreSnapshot> &snapshot) const
+                                         std::shared_ptr<KvStoreSnapshot> &snapshot) const
 {
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
-
 
     snapshot = nullptr;
     if (kvStoreProxy_ == nullptr) {
