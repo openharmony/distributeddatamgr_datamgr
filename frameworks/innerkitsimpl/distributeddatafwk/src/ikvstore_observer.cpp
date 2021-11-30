@@ -219,7 +219,8 @@ int32_t KvStoreObserverStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
 
                 std::string deviceId = data.ReadString();
                 bool isClear = data.ReadBool();
-                ChangeNotification change(std::move(insertEntries), std::move(updateEntries), std::move(deleteEntries), deviceId, isClear);
+                ChangeNotification change(std::move(insertEntries), std::move(updateEntries), std::move(deleteEntries),
+                    deviceId, isClear);
                 sptr<IRemoteObject> remote = data.ReadRemoteObject();
                 if (remote != nullptr) {
                     sptr<IKvStoreSnapshotImpl> kvStoreSnapshotProxy = iface_cast<IKvStoreSnapshotImpl>(remote);

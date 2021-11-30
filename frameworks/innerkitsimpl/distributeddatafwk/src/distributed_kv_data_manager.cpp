@@ -79,7 +79,7 @@ Status DistributedKvDataManager::GetKvStore(const Options &options, const AppId 
 }
 
 Status DistributedKvDataManager::GetSingleKvStore(const Options &options, const AppId &appId, const StoreId &storeId,
-                                                std::shared_ptr<SingleKvStore> &singleKvStore)
+                                                  std::shared_ptr<SingleKvStore> &singleKvStore)
 {
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
 

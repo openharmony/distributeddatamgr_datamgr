@@ -28,7 +28,7 @@ namespace OHOS {
 namespace DistributedKv {
 // This is a public interface. Implementation of this class is in AppKvStoreImpl.
 // This class provides put, delete, search, sync and subscribe functions of a key-value store.
-class SingleKvStore : virtual public KvStore {
+class SingleKvStore : public virtual KvStore {
 public:
     KVSTORE_API SingleKvStore() = default;
 
