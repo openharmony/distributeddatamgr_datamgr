@@ -16,6 +16,7 @@
 #define LOG_TAG "KvStoreAccountObserver"
 
 #include "kvstore_account_observer.h"
+#include "kvstore_data_service.h"
 #include "log_print.h"
 #include <atomic>
 namespace OHOS {

@@ -41,7 +41,7 @@
 using namespace testing::ext;
 using namespace OHOS::DistributedKv;
 using namespace OHOS;
-using namespace Notification;
+using namespace OHOS::EventFwk;
 
 static const int SYSTEM_USER_ID = 1000;
 
@@ -69,33 +69,36 @@ void DistributedDataAccountEventTest::TearDownTestCase()
 
 void DistributedDataAccountEventTest::HarmonyAccountLogin()
 {
-    sptr<AAFwk::Intent> intent = new AAFwk::Intent();
-    intent->SetAction(CommonEventSupport::COMMON_EVENT_HWID_LOGIN);
-    sptr<CommonEventData> event = new CommonEventData(intent);
-    sptr<CommonEventPublishInfo> publishInfo = new CommonEventPublishInfo();
-    auto err = CommonEventManager::GetInstance().PublishCommonEventData(event, publishInfo, nullptr);
+    Want want;
+    want.SetAction(CommonEventSupport::COMMON_EVENT_HWID_LOGIN);
+    CommonEventData commonEventData(want);
+    CommonEventData event(want);
+    CommonEventPublishInfo publishInfo;
+    auto err = CommonEventManager::PublishCommonEvent(event, publishInfo, nullptr);
     EXPECT_EQ(ERR_OK, err);
     sleep(WAIT_TIME_FOR_ACCOUNT_OPERATION);
 }
 
 void DistributedDataAccountEventTest::HarmonyAccountLogout()
 {
-    sptr<AAFwk::Intent> intent = new AAFwk::Intent();
-    intent->SetAction(CommonEventSupport::COMMON_EVENT_HWID_LOGOUT);
-    sptr<CommonEventData> event = new CommonEventData(intent);
-    sptr<CommonEventPublishInfo> publishInfo = new CommonEventPublishInfo();
-    auto err = CommonEventManager::GetInstance().PublishCommonEventData(event, publishInfo, nullptr);
+    Want want;
+    want.SetAction(CommonEventSupport::COMMON_EVENT_HWID_LOGOUT);
+    CommonEventData commonEventData(want);
+    CommonEventData event(want);
+    CommonEventPublishInfo publishInfo;
+    auto err = CommonEventManager::PublishCommonEvent(event, publishInfo, nullptr);
     EXPECT_EQ(ERR_OK, err);
     sleep(WAIT_TIME_FOR_ACCOUNT_OPERATION);
 }
 
 void DistributedDataAccountEventTest::HarmonyAccountDelete()
 {
-    sptr<AAFwk::Intent> intent = new AAFwk::Intent();
-    intent->SetAction(CommonEventSupport::COMMON_EVENT_HWID_TOKEN_INVALID);
-    sptr<CommonEventData> event = new CommonEventData(intent);
-    sptr<CommonEventPublishInfo> publishInfo = new CommonEventPublishInfo();
-    auto err = CommonEventManager::GetInstance().PublishCommonEventData(event, publishInfo, nullptr);
+    Want want;
+    want.SetAction(CommonEventSupport::COMMON_EVENT_HWID_TOKEN_INVALID);
+    CommonEventData commonEventData(want);
+    CommonEventData event(want);
+    CommonEventPublishInfo publishInfo;
+    auto err = CommonEventManager::PublishCommonEvent(event, publishInfo, nullptr);
     EXPECT_EQ(ERR_OK, err);
     sleep(WAIT_TIME_FOR_ACCOUNT_OPERATION);
 }

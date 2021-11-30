@@ -37,7 +37,7 @@ public:
 
     void TearDown();
 
-    static std::unique_ptr<SingleKvStore> singleKvStorePtr;
+    static std::shared_ptr<SingleKvStore> singleKvStorePtr;
     static Status statusGetKvStore;
 };
 
@@ -48,7 +48,7 @@ const std::string VALID_SCHEMA_STRICT_DEFINE = "{\"SCHEMA_VERSION\":\"1.0\","
             "\"name\":\"INTEGER, NOT NULL\""
         "},"
         "\"SCHEMA_INDEXES\":[\"$.name\"]}";
-std::unique_ptr<SingleKvStore> SingleKvStoreClientQueryTest::singleKvStorePtr = nullptr;
+std::shared_ptr<SingleKvStore> SingleKvStoreClientQueryTest::singleKvStorePtr = nullptr;
 Status SingleKvStoreClientQueryTest::statusGetKvStore = Status::ERROR;
 
 void SingleKvStoreClientQueryTest::SetUpTestCase(void)
@@ -438,10 +438,7 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestSingleKvStoreQueryC001, TestSize.Leve
     options.schema = VALID_SCHEMA_STRICT_DEFINE;
     AppId appId = { "SingleKvStoreClientQueryTestAppId1" };
     StoreId storeId = { "SingleKvStoreClientQueryTestStoreId1" };
-    manager.GetSingleKvStore(options, appId, storeId, [&](Status status, std::unique_ptr<SingleKvStore> kvStore) {
-        statusGetKvStore = status;
-        singleKvStorePtr = std::move(kvStore);
-    });
+    statusGetKvStore = manager.GetSingleKvStore(options, appId, storeId, singleKvStorePtr);
     EXPECT_NE(singleKvStorePtr, nullptr) << "kvStorePtr is null.";
     singleKvStorePtr->Put("test_key_1", "{\"name\":1}");
     singleKvStorePtr->Put("test_key_2", "{\"name\":2}");
@@ -458,21 +455,17 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestSingleKvStoreQueryC001, TestSize.Leve
     ASSERT_EQ(status2, Status::SUCCESS);
     EXPECT_TRUE(results2.size() == 2);
 
-    std::unique_ptr<KvStoreResultSet> callback1;
-    singleKvStorePtr->GetResultSetWithQuery(query.ToString(), [&](Status status3, std::unique_ptr<KvStoreResultSet> call) {
-        ASSERT_EQ(status3, Status::SUCCESS);
-        callback1 = std::move(call);
-        EXPECT_TRUE(callback1->GetCount() == 2);
-    });
-    auto closeResultSetStatus = singleKvStorePtr->CloseResultSet(std::move(callback1));
+    std::shared_ptr<KvStoreResultSet> resultSet;
+    Status status3 = singleKvStorePtr->GetResultSetWithQuery(query.ToString(), resultSet);
+    ASSERT_EQ(status3, Status::SUCCESS);
+    EXPECT_TRUE(resultSet->GetCount() == 2);
+    auto closeResultSetStatus = singleKvStorePtr->CloseResultSet(resultSet);
     ASSERT_EQ(closeResultSetStatus, Status::SUCCESS);
-    std::unique_ptr<KvStoreResultSet> callback2;
-    singleKvStorePtr->GetResultSetWithQuery(query, [&](Status status4, std::unique_ptr<KvStoreResultSet> call) {
-        ASSERT_EQ(status4, Status::SUCCESS);
-        callback2 = std::move(call);
-        EXPECT_TRUE(callback2->GetCount() == 2);
-    });
-    closeResultSetStatus = singleKvStorePtr->CloseResultSet(std::move(callback2));
+    Status status4 = singleKvStorePtr->GetResultSetWithQuery(query, resultSet);
+    ASSERT_EQ(status4, Status::SUCCESS);
+    EXPECT_TRUE(resultSet->GetCount() == 2);
+
+    closeResultSetStatus = singleKvStorePtr->CloseResultSet(resultSet);
     ASSERT_EQ(closeResultSetStatus, Status::SUCCESS);
 
     int resultSize1;
@@ -513,10 +506,7 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestSingleKvStoreQueryC002, TestSize.Leve
     options.schema = VALID_SCHEMA_STRICT_DEFINE;
     AppId appId = { "SingleKvStoreClientQueryTestAppId2" };
     StoreId storeId = { "SingleKvStoreClientQueryTestStoreId2" };
-    manager.GetSingleKvStore(options, appId, storeId, [&](Status status, std::unique_ptr<SingleKvStore> kvStore) {
-        statusGetKvStore = status;
-        singleKvStorePtr = std::move(kvStore);
-    });
+    statusGetKvStore = manager.GetSingleKvStore(options, appId, storeId, singleKvStorePtr);
     EXPECT_NE(singleKvStorePtr, nullptr) << "kvStorePtr is null.";
     singleKvStorePtr->Put("test_key_1", "{\"name\":1}");
     singleKvStorePtr->Put("test_key_2", "{\"name\":2}");
@@ -535,21 +525,17 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestSingleKvStoreQueryC002, TestSize.Leve
     ASSERT_EQ(status2, Status::SUCCESS);
     EXPECT_TRUE(results2.size() == 1);
 
-    std::unique_ptr<KvStoreResultSet> callback1;
-    singleKvStorePtr->GetResultSetWithQuery(query.ToString(), [&](Status status3, std::unique_ptr<KvStoreResultSet> call) {
-        ASSERT_EQ(status3, Status::SUCCESS);
-        callback1 = std::move(call);
-        EXPECT_TRUE(callback1->GetCount() == 1);
-    });
-    auto closeResultSetStatus = singleKvStorePtr->CloseResultSet(std::move(callback1));
+    std::shared_ptr<KvStoreResultSet> resultSet;
+    Status status3 = singleKvStorePtr->GetResultSetWithQuery(query.ToString(), resultSet);
+    ASSERT_EQ(status3, Status::SUCCESS);
+    EXPECT_TRUE(resultSet->GetCount() == 1);
+    auto closeResultSetStatus = singleKvStorePtr->CloseResultSet(resultSet);
     ASSERT_EQ(closeResultSetStatus, Status::SUCCESS);
-    std::unique_ptr<KvStoreResultSet> callback2;
-    singleKvStorePtr->GetResultSetWithQuery(query, [&](Status status4, std::unique_ptr<KvStoreResultSet> call) {
-        ASSERT_EQ(status4, Status::SUCCESS);
-        callback2 = std::move(call);
-        EXPECT_TRUE(callback2->GetCount() == 1);
-    });
-    closeResultSetStatus = singleKvStorePtr->CloseResultSet(std::move(callback2));
+    Status status4 = singleKvStorePtr->GetResultSetWithQuery(query, resultSet);
+    ASSERT_EQ(status4, Status::SUCCESS);
+    EXPECT_TRUE(resultSet->GetCount() == 1);
+
+    closeResultSetStatus = singleKvStorePtr->CloseResultSet(resultSet);
     ASSERT_EQ(closeResultSetStatus, Status::SUCCESS);
 
     int resultSize1;
