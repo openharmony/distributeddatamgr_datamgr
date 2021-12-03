@@ -413,7 +413,9 @@ Status SingleKvStoreClient::Control(KvControlCmd cmd, const KvParam &inputParam,
     ZLOGI("begin.");
     if (kvStoreProxy_ != nullptr) {
         sptr<KvParam> kvParam;
-        return kvStoreProxy_->Control(cmd, inputParam, kvParam);
+        Status status = kvStoreProxy_->Control(cmd, inputParam, kvParam);
+        output = *kvParam;
+        return status;
     }
     ZLOGE("singleKvstore proxy is nullptr.");
     return Status::SERVER_UNAVAILABLE;
