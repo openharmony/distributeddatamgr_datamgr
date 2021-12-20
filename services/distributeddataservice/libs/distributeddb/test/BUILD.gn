@@ -258,7 +258,6 @@ template("distributeddb_unittest") {
     configs = [ ":module_private_config" ]
     deps += [
       ":src_file",
-      "//third_party/flatbuffers:flatbuffers_mini",
       "//third_party/googletest:gmock_main",
       "//third_party/googletest:gtest_main",
       "//third_party/sqlite:sqlite",
@@ -606,9 +605,9 @@ group("unittest") {
   deps += [
     ":DistributedDBAbilitySyncTest",
     ":DistributedDBAutoLaunchUnitTest",
-    ":DistributedDBCommunicatorProxyTest",
     ":DistributedDBCommonTest",
     ":DistributedDBCommunicatorDeepTest",
+    ":DistributedDBCommunicatorProxyTest",
     ":DistributedDBCommunicatorSendReceiveTest",
     ":DistributedDBCommunicatorTest",
     ":DistributedDBDeviceIdentifierTest",

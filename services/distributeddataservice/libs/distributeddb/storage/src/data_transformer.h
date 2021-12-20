@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifdef RELATIONAL_STORE
 #ifndef DATA_TRANSFORMER_H
 #define DATA_TRANSFORMER_H
+#ifdef RELATIONAL_STORE
 
 #include <optional>
 #include <vector>
@@ -83,5 +83,5 @@ private:
 };
 }
 
-#endif // DATA_TRANSFORMER_H
 #endif
+#endif // DATA_TRANSFORMER_H

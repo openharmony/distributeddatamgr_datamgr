@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifdef RELATIONAL_STORE
 #ifndef RELATIONAL_VIRTUAL_DEVICE_H
 #define RELATIONAL_VIRTUAL_DEVICE_H
+#ifdef RELATIONAL_STORE
 
 #include "generic_virtual_device.h"
 #include "relational_schema_object.h"
@@ -32,5 +32,5 @@ public:
     int Sync(SyncMode mode, bool wait) override;
 };
 }
-#endif // RELATIONAL_VIRTUAL_DEVICE_H
 #endif
+#endif // RELATIONAL_VIRTUAL_DEVICE_H

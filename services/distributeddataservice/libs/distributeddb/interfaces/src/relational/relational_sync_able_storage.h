@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifdef RELATIONAL_STORE
 #ifndef RELATIONAL_SYNC_ABLE_STORAGE_H
 #define RELATIONAL_SYNC_ABLE_STORAGE_H
+#ifdef RELATIONAL_STORE
 
 #include "relational_db_sync_interface.h"
 #include "sqlite_single_relational_storage_engine.h"
@@ -126,5 +126,5 @@ private:
     mutable std::mutex maxTimeStampMutex_;
 };
 }  // namespace DistributedDB
-#endif // RELATIONAL_SYNC_ABLE_STORAGE_H
 #endif
+#endif // RELATIONAL_SYNC_ABLE_STORAGE_H

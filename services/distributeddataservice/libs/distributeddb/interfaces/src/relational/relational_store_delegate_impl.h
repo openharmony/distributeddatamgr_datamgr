@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifdef RELATIONAL_STORE
 #ifndef RELATIONAL_STORE_DELEGATE_IMPL_H
 #define RELATIONAL_STORE_DELEGATE_IMPL_H
+#ifdef RELATIONAL_STORE
 
 #include "macro_utils.h"
 #include "relational_store_connection.h"
@@ -51,5 +51,5 @@ private:
     std::atomic<bool> releaseFlag_ = false;
 };
 } // namespace DistributedDB
-#endif // RELATIONAL_STORE_DELEGATE_IMPL_H
 #endif
+#endif // RELATIONAL_STORE_DELEGATE_IMPL_H

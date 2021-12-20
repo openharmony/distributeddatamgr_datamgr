@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifdef RELATIONAL_STORE
 #ifndef RELATIONAL_STORE_CONNECTION_H
 #define RELATIONAL_STORE_CONNECTION_H
+#ifdef RELATIONAL_STORE
 
 #include <atomic>
 #include <string>
@@ -65,5 +65,5 @@ protected:
     std::atomic<bool> isExclusive_ = false;
 };
 } // namespace DistributedDB
-#endif // RELATIONAL_STORE_CONNECTION_H
 #endif
+#endif // RELATIONAL_STORE_CONNECTION_H

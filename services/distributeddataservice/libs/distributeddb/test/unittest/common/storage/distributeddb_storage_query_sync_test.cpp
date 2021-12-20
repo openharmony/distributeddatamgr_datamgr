@@ -1136,14 +1136,14 @@ HWTEST_F(DistributedDBStorageQuerySyncTest, RelationalQuerySyncTest001, TestSize
      */
     uint32_t buffLen = obj1.CalculateParcelLen(SOFTWARE_VERSION_CURRENT);
     vector<uint8_t> buffer(buffLen, 0);
-    Parcel writeParcel(buffer.data, buffLen);
+    Parcel writeParcel(buffer.data(), buffLen);
     EXPECT_EQ(obj1.SerializeData(writeParcel, SOFTWARE_VERSION_CURRENT), E_OK);
 
     /**
      * @tc.steps:step3. DeSerialize the data
      * @tc.expected: ok, And the queryId is same
      */
-    Parcel readParcel(buffer.data, buffLen);
+    Parcel readParcel(buffer.data(), buffLen);
     QuerySyncObject queryObj2;
     EXPECT_EQ(QuerySyncObject::DeSerializeData(readParcel, queryObj2), E_OK);
     EXPECT_EQ(obj1.GetIdentify(), queryObj2.GetIdentify());

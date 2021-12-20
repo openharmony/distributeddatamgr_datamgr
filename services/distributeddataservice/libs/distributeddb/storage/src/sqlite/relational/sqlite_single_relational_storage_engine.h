@@ -1,6 +1,3 @@
-//
-// Created by s00464940 on 2021/9/6.
-//
 /*
  * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifdef RELATIONAL_STORE
 #ifndef SQLITE_RELATIONAL_ENGINE_H
 #define SQLITE_RELATIONAL_ENGINE_H
+#ifdef RELATIONAL_STORE
 
 #include "macro_utils.h"
 #include "sqlite_storage_engine.h"
@@ -47,5 +44,5 @@ private:
 };
 } // namespace DistributedDB
 
-#endif // SQLITE_RELATIONAL_ENGINE_H
 #endif
+#endif // SQLITE_RELATIONAL_ENGINE_H

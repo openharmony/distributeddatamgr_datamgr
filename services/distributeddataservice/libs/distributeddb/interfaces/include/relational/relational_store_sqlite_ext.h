@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifdef RELATIONAL_STORE
 #ifndef RELATIONAL_STORE_EXT_H
 #define RELATIONAL_STORE_EXT_H
+#ifdef RELATIONAL_STORE
 
 #define SQLITE3_HW_EXPORT_SYMBOLS
 
@@ -37,5 +37,5 @@ extern const struct sqlite3_api_routines_relational *sqlite3_export_relational_s
 #define sqlite3_open16          sqlite3_export_relational_symbols->open16
 #define sqlite3_open_v2         sqlite3_export_relational_symbols->open_v2
 
-#endif // RELATIONAL_STORE_EXT_H
 #endif
+#endif // RELATIONAL_STORE_EXT_H

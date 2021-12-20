@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifdef RELATIONAL_STORE
 #ifndef SQLITE_RELATIONAL_STORE_H
 #define SQLITE_RELATIONAL_STORE_H
+#ifdef RELATIONAL_STORE
 
 #include <functional>
 #include <memory.h>
@@ -67,5 +67,5 @@ private:
     std::vector<std::function<void(void)>> closeNotifiers_;
 };
 }  // namespace DistributedDB
-#endif // SQLITE_RELATIONAL_STORE_H
 #endif
+#endif // SQLITE_RELATIONAL_STORE_H

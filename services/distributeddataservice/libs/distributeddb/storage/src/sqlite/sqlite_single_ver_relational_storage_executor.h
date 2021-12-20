@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifdef RELATIONAL_STORE
 #ifndef SQLITE_SINGLE_VER_RELATIONAL_STORAGE_EXECUTOR_H
 #define SQLITE_SINGLE_VER_RELATIONAL_STORAGE_EXECUTOR_H
+#ifdef RELATIONAL_STORE
 
 #include "macro_utils.h"
 #include "db_types.h"
@@ -79,5 +79,5 @@ private:
     TableInfo table_;
 };
 } // namespace DistributedDB
-#endif // SQLITE_SINGLE_VER_RELATIONAL_STORAGE_EXECUTOR_H
 #endif
+#endif // SQLITE_SINGLE_VER_RELATIONAL_STORAGE_EXECUTOR_H

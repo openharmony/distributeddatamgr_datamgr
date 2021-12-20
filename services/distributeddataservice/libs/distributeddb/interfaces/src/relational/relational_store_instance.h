@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifdef RELATIONAL_STORE
 #ifndef RELATIONAL_STORE_INSTANCE_H
 #define RELATIONAL_STORE_INSTANCE_H
+#ifdef RELATIONAL_STORE
 
 #include <string>
 #include <mutex>
@@ -50,5 +50,5 @@ private:
 };
 } // namespace DistributedDB
 
-#endif // RELATIONAL_STORE_INSTANCE_H
 #endif
+#endif // RELATIONAL_STORE_INSTANCE_H

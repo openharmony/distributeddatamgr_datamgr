@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifdef RELATIONAL_STORE
 #ifndef VIRTUAL_RELATIONAL_VER_SYNC_DB_INTERFACE_H
 #define VIRTUAL_RELATIONAL_VER_SYNC_DB_INTERFACE_H
+#ifdef RELATIONAL_STORE
 
 #include "data_transformer.h"
 #include "relational_db_sync_interface.h"
@@ -99,5 +99,5 @@ private:
     SecurityOption secOption_;
 };
 }
-#endif // VIRTUAL_RELATIONAL_VER_SYNC_DB_INTERFACE_H
 #endif
+#endif // VIRTUAL_RELATIONAL_VER_SYNC_DB_INTERFACE_H

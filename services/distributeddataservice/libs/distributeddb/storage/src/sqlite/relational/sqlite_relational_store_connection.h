@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifdef RELATIONAL_STORE
 #ifndef SQLITE_RELATIONAL_STORE_CONNECTION_H
 #define SQLITE_RELATIONAL_STORE_CONNECTION_H
+#ifdef RELATIONAL_STORE
 
 #include <atomic>
 #include <string>
@@ -59,5 +59,5 @@ private:
     std::atomic<bool> transactingFlag_;
 };
 } // namespace DistributedDB
-#endif // SQLITE_RELATIONAL_STORE_CONNECTION_H
 #endif
+#endif // SQLITE_RELATIONAL_STORE_CONNECTION_H
