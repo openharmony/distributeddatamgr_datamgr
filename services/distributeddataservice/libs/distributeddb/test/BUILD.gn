@@ -52,6 +52,7 @@ config("module_private_config") {
     "USING_DB_JSON_EXTRACT_AUTOMATICALLY",
     "LOW_LEVEL_MEM_DEV",
     "JSONCPP_USE_BUILDER",
+    "OMIT_FLATBUFFER",
   ]
 }
 
@@ -229,7 +230,6 @@ ohos_source_set("src_file") {
   configs = [ ":module_private_config" ]
 
   deps = [
-    "//third_party/flatbuffers:flatbuffers_mini",
     "//third_party/googletest:gtest_main",
     "//third_party/sqlite:sqlite",
     "//third_party/zlib:libz",

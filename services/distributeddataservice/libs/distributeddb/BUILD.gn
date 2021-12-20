@@ -40,6 +40,7 @@ config("distrdb_config") {
     "USE_SQLITE_SYMBOLS",
     "USING_DB_JSON_EXTRACT_AUTOMATICALLY",
     "JSONCPP_USE_BUILDER",
+    "OMIT_FLATBUFFER",
   ]
 }
 
@@ -218,7 +219,6 @@ ohos_shared_library("distributeddb") {
   public_configs = [ ":distrdb_public_config" ]
 
   deps = [
-    "//third_party/flatbuffers:flatbuffers_mini",
     "//third_party/sqlite:sqlite",
     "//third_party/zlib:libz",
     "//utils/native/base:utils",
