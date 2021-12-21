@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
 #include <fstream>
+#include <gtest/gtest.h>
 
 #include "db_constant.h"
 #include "db_common.h"
@@ -125,6 +125,7 @@ void DistributedDBInterfacesSpaceManagementTest::TearDownTestCase(void)
 
 void DistributedDBInterfacesSpaceManagementTest::SetUp(void)
 {
+    DistributedDBToolsUnitTest::PrintTestCaseInfo();
     g_kvDelegateStatus = INVALID_ARGS;
     g_kvNbDelegatePtr = nullptr;
     g_kvDelegatePtr = nullptr;
