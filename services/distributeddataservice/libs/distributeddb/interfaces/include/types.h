@@ -56,6 +56,8 @@ enum DBStatus {
     SECURITY_OPTION_CHECK_ERROR, // such as remote device's SecurityOption not equal to local
     SCHEMA_VIOLATE_VALUE, // Values already exist in dbFile do not match new schema
     INTERCEPT_DATA_FAIL, // Interceptor push data failed.
+    RELATIONAL_SCHEMA_NOT_FOUND, // the sync table is not a relational table
+    RELATIONAL_SCHEMA_CHANGED, // the schema was changed
 };
 
 struct KvStoreConfig {

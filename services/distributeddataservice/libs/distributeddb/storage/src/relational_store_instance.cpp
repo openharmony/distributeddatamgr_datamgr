@@ -18,8 +18,9 @@
 #include <thread>
 #include <algorithm>
 
-#include "sqlite_relational_store.h"
+#include "db_common.h"
 #include "db_errno.h"
+#include "sqlite_relational_store.h"
 #include "log_print.h"
 
 namespace DistributedDB {
@@ -65,7 +66,6 @@ static IRelationalStore *GetFromCache(const RelationalDBProperties &properties, 
     }
 
     auto *db = iter->second;
-
     if (db == nullptr) {
         LOGE("Store cache is nullptr, there may be a logic error");
         errCode = -E_INTERNAL_ERROR;
@@ -102,7 +102,7 @@ IRelationalStore *RelationalStoreInstance::OpenDatabase(const RelationalDBProper
 {
     auto db = new (std::nothrow) SQLiteRelationalStore();
     if (db == nullptr) {
-        LOGE("Failed to get IKvDB! err:%d", errCode);
+        LOGE("Failed to get relational store! err:%d", errCode);
         return nullptr;
     }
 
@@ -145,8 +145,11 @@ IRelationalStore *RelationalStoreInstance::GetDataBase(const RelationalDBPropert
     return db;
 }
 
-RelationalStoreConnection *RelationalStoreInstance::GetDatabaseConnection(const RelationalDBProperties &properties, int &errCode)
+RelationalStoreConnection *RelationalStoreInstance::GetDatabaseConnection(const RelationalDBProperties &properties,
+    int &errCode)
 {
+    std::string identifier = properties.GetStringProp(KvDBProperties::IDENTIFIER_DATA, "");
+    LOGD("Begin to get [%s] database connection.", STR_MASK(DBCommon::TransferStringToHex(identifier)));
     IRelationalStore *db = GetDataBase(properties, errCode);
     if (db == nullptr) {
         LOGE("Failed to open the db:%d", errCode);
@@ -157,9 +160,8 @@ RelationalStoreConnection *RelationalStoreInstance::GetDatabaseConnection(const 
     if (connection == nullptr) { // not kill db, Other operations like import may be used concurrently
         LOGE("Failed to get the db connect for delegate:%d", errCode);
     }
-    RefObject::DecObjRef(db); // restore the reference increased by the cache.
-    // kvDB = nullptr;
 
+    RefObject::DecObjRef(db); // restore the reference increased by the cache.
     return connection;
 }
 } // namespace DistributedDB

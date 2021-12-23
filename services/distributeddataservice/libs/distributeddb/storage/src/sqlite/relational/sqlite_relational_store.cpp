@@ -15,12 +15,17 @@
 #ifdef RELATIONAL_STORE
 #include "sqlite_relational_store.h"
 
+#include "db_common.h"
 #include "db_errno.h"
 #include "log_print.h"
 #include "db_types.h"
 #include "sqlite_relational_store_connection.h"
 
 namespace DistributedDB {
+namespace {
+    constexpr const char *RELATIONAL_SCHEMA_KEY = "relational_schema";
+}
+
 SQLiteRelationalStore::~SQLiteRelationalStore()
 {
     delete sqliteStorageEngine_;
@@ -39,7 +44,6 @@ RelationalStoreConnection *SQLiteRelationalStore::GetDBConnection(int &errCode)
 {
     std::lock_guard<std::mutex> lock(connectMutex_);
     RelationalStoreConnection* connection = new (std::nothrow) SQLiteRelationalStoreConnection(this);
-
     if (connection == nullptr) {
         errCode = -E_OUT_OF_MEMORY;
         return nullptr;
@@ -68,22 +72,71 @@ int SQLiteRelationalStore::InitStorageEngine(const RelationalDBProperties &kvDBP
     return errCode;
 }
 
+int SQLiteRelationalStore::GetSchemaFromMeta()
+{
+    const Key schemaKey(RELATIONAL_SCHEMA_KEY, RELATIONAL_SCHEMA_KEY + strlen(RELATIONAL_SCHEMA_KEY));
+    Value schemaVal;
+    int errCode = storageEngine_->GetMetaData(schemaKey, schemaVal);
+    if (errCode != E_OK && errCode != -E_NOT_FOUND ) {
+        LOGE("Get relationale schema from meta table failed. %d", errCode);
+        return errCode;
+    } else if (errCode == -E_NOT_FOUND) {
+        LOGW("No relational schema info was found.");
+        return E_OK;
+    }
+
+    std::string schemaStr;
+    DBCommon::VectorToString(schemaVal, schemaStr);
+    RelationalSchemaObject schema;
+    errCode = schema.ParseFromSchemaString(schemaStr);
+    if (errCode != E_OK) {
+        LOGE("Parse schema string from mata table failed.");
+        return errCode;
+    }
+
+    properties_.SetSchema(schema);
+    return E_OK;
+}
+
 int SQLiteRelationalStore::Open(const RelationalDBProperties &properties)
 {
     sqliteStorageEngine_ = new (std::nothrow) SQLiteSingleRelationalStorageEngine();
     if (sqliteStorageEngine_ == nullptr) {
-        LOGE("[RelationalStore] Create storage engine failed");
+        LOGE("[RelationalStore][Open] Create storage engine failed");
         return -E_OUT_OF_MEMORY;
     }
 
-    int errCode = InitStorageEngine(properties);
-    if (errCode != E_OK) {
-        LOGE("[RelationalStore][Open] Init database context fail! errCode = [%d]", errCode);
-        return errCode;
-    }
-    storageEngine_ = new(std::nothrow) RelationalSyncAbleStorage(sqliteStorageEngine_);
-    syncEngine_ = std::make_shared<SyncAbleEngine>(storageEngine_);
-    return E_OK;
+    int errCode = E_OK;
+
+    do {
+        errCode = InitStorageEngine(properties);
+        if (errCode != E_OK) {
+            LOGE("[RelationalStore][Open] Init database context fail! errCode = [%d]", errCode);
+            break;
+        }
+        storageEngine_ = new(std::nothrow) RelationalSyncAbleStorage(sqliteStorageEngine_);
+        if (storageEngine_ == nullptr) {
+            LOGE("[RelationalStore][Open] Create syncable storage failed"); // TODO:
+            errCode = -E_OUT_OF_MEMORY;
+            break;
+        }
+
+        properties_ = properties;
+        errCode = GetSchemaFromMeta();
+        if (errCode != E_OK) {
+            break;
+        }
+
+        // TODO: save log table version into meta data
+
+        // TODO: clean the device table
+
+        syncEngine_ = std::make_shared<SyncAbleEngine>(storageEngine_);
+        return E_OK;
+    } while (false);
+
+    // TODO: release resources.
+    return errCode;
 }
 
 void SQLiteRelationalStore::OnClose(const std::function<void(void)> &notifier)

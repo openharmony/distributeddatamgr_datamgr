@@ -54,6 +54,8 @@ private:
     // 1 store 1 connection
     void DecreaseConnectionCounter();
 
+    int GetSchemaFromMeta();
+
     // use for sync Interactive
     std::shared_ptr<SyncAbleEngine> syncEngine_ = nullptr; // For storage operate sync function
     // use ref obj same as kv
@@ -65,6 +67,8 @@ private:
     std::mutex connectMutex_;
     std::atomic<int> connectionCount_ = 0;
     std::vector<std::function<void(void)>> closeNotifiers_;
+
+    RelationalDBProperties properties_;
 };
 }  // namespace DistributedDB
 #endif

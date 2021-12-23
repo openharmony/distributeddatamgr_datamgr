@@ -67,13 +67,6 @@ int SQLiteSingleRelationalStorageEngine::CreateNewExecutor(bool isWrite, Storage
             break;
         }
 
-        // TODO: Get and parse relational schema from meta table
-
-        // TODO: save log table version into meta data
-
-        // TODO: clean the device table
-
-
         handle = NewSQLiteStorageExecutor(db, isWrite, false);
         if (handle == nullptr) {
             LOGE("[Relational] New SQLiteStorageExecutor[%d] for the pool failed.", isWrite);
