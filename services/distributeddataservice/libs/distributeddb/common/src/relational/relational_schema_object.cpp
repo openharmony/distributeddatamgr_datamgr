@@ -406,7 +406,7 @@ int RelationalSchemaObject::ParseFromSchemaString(const std::string &inSchemaStr
     }
 
     schemaType_ = SchemaType::RELATIVE;
-    schemaString_ = inSchemaString;
+    schemaString_ = schemaObj.ToString();
     isValid_ = true;
     return E_OK;
 }
@@ -421,7 +421,7 @@ const std::map<std::string, TableInfo> &RelationalSchemaObject::GetTables() cons
     return tables_;
 }
 
-const TableInfo &RelationalSchemaObject::GetTable(const std::string& tableName) const
+TableInfo RelationalSchemaObject::GetTable(const std::string& tableName) const
 {
     auto it = tables_.find(tableName);
     if (it != tables_.end()) {
@@ -447,6 +447,7 @@ int GetMemberFromJsonObject(const JsonObject &inJsonObject, const std::string &f
     bool isNecessary, FieldValue &fieldValue)
 {
     if (!inJsonObject.IsFieldPathExist(FieldPath {fieldName})) {
+        LOGW("[RelationalSchema][Parse] Get schema %s not exist. isNeccessary: %d", fieldName.c_str(), isNecessary);
         return isNecessary ? -E_SCHEMA_PARSE_FAIL : -E_NOT_FOUND;
     }
 
@@ -458,11 +459,11 @@ int GetMemberFromJsonObject(const JsonObject &inJsonObject, const std::string &f
     }
 
     if (fieldType != expectType) {
-        LOGE("[RelationalSchema][Parse] Expect %s fieldType %d but : %d.", fieldName.c_str(), expectType, fieldType);
+        LOGE("[RelationalSchema][Parse] Expect %s fieldType %d but: %d.", fieldName.c_str(), expectType, fieldType);
         return -E_SCHEMA_PARSE_FAIL;
     }
 
-    errCode = inJsonObject.GetFieldValueByFieldPath(FieldPath {"NAME"}, fieldValue);
+    errCode = inJsonObject.GetFieldValueByFieldPath(FieldPath {fieldName}, fieldValue);
     if (errCode != E_OK) {
         LOGE("[RelationalSchema][Parse] Get schema %s value failed: %d.", fieldName.c_str(), errCode);
         return -E_SCHEMA_PARSE_FAIL;
@@ -598,8 +599,8 @@ int RelationalSchemaObject::ParseCheckTableDefine(const JsonObject &inJsonObject
     }
 
     for (const auto &field : tableFields) {
-        if (field.second != FieldType::LEAF_FIELD_OBJECT) {
-            LOGE("[RelationalSchema][Parse] Expect schema TABLES DEFINE fieldType OBJECT but : %s.",
+        if (field.second != FieldType::INTERNAL_FIELD_OBJECT) {
+            LOGE("[RelationalSchema][Parse] Expect schema TABLES DEFINE fieldType INTERNAL OBJECT but : %s.",
                 SchemaUtils::FieldTypeString(field.second).c_str());
             return -E_SCHEMA_PARSE_FAIL;
         }

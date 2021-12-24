@@ -138,7 +138,7 @@ public:
 
     const std::map<std::string, TableInfo> &GetTables() const;
 
-    const TableInfo &GetTable(const std::string& tableName) const;
+    TableInfo GetTable(const std::string& tableName) const;
 
 private:
     int CompareAgainstSchemaObject(const std::string &inSchemaString, std::map<std::string, int> &cmpRst) const;

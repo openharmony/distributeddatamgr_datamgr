@@ -734,7 +734,6 @@ int JsonObject::GetObjectArrayByFieldPath(const FieldPath &inPath, std::vector<J
         LOGE("[Json][GetValue] Not Array type.");
         return -E_NOT_PERMIT;
     }
-    outArray.resize(valueNode.size());
     for (Json::ArrayIndex i = 0; i < valueNode.size(); ++i) {
         outArray.emplace_back(JsonObject(valueNode[i]));
     }

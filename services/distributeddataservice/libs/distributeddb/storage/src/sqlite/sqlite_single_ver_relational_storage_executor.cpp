@@ -117,10 +117,10 @@ int SQLiteSingleVerRelationalStorageExecutor::PrepareForSyncDataByTime(TimeStamp
     }
 
     const std::string SELECT_SYNC_DELETED_ENTRIES_SQL =
-        "SELECT * FROM distributeddatamgr_aux_" + table_.GetTableName() +
+        "SELECT * FROM naturalbase_rdb_aux_" + table_.GetTableName() +
         "_log WHERE timestamp >= ? AND timestamp < ? AND (flag&0x03=0x03) ORDER BY timestamp ASC;";
     const std::string SELECT_SYNC_ENTRIES_SQL =
-        "SELECT * FROM distributeddatamgr_aux_" + table_.GetTableName() +
+        "SELECT * FROM naturalbase_rdb_aux_" + table_.GetTableName() +
         "_log WHERE timestamp >= ? AND timestamp < ? AND (flag&0x02=0x02) ORDER BY timestamp ASC;";
 
     const std::string sql = (getDeletedData ? SELECT_SYNC_DELETED_ENTRIES_SQL : SELECT_SYNC_ENTRIES_SQL);
@@ -395,8 +395,7 @@ int SQLiteSingleVerRelationalStorageExecutor::GetDeletedSyncDataByTimestamp(std:
     return CheckCorruptedStatus(errCode);
 }
 
-static const std::string SELECT_META_VALUE_SQL =
-        "SELECT value FROM distributeddatamgr_aux_metadata WHERE key=?;";
+static const std::string SELECT_META_VALUE_SQL = "SELECT value FROM naturalbase_rdb_aux_metadata WHERE key=?;";
 int SQLiteSingleVerRelationalStorageExecutor::GetKvData(const Key &key, Value &value) const
 {
     sqlite3_stmt *statement = nullptr;
@@ -424,7 +423,7 @@ int SQLiteSingleVerRelationalStorageExecutor::GetKvData(const Key &key, Value &v
     return errCode;
 }
 
-static const std::string INSERT_META_SQL = "INSERT OR REPLACE INTO distributeddatamgr_aux_metadata VALUES(?,?);";
+static const std::string INSERT_META_SQL = "INSERT OR REPLACE INTO naturalbase_rdb_aux_metadata VALUES(?,?);";
 int SQLiteSingleVerRelationalStorageExecutor::PutKvData(const Key &key, const Value &value) const
 {
     sqlite3_stmt *statement = nullptr;
@@ -453,7 +452,7 @@ ERROR:
     return errCode;
 }
 
-static const std::string REMOVE_META_VALUE_SQL = "DELETE FROM distributeddatamgr_aux_metadata WHERE key=?;";
+static const std::string REMOVE_META_VALUE_SQL = "DELETE FROM naturalbase_rdb_aux_metadata WHERE key=?;";
 int SQLiteSingleVerRelationalStorageExecutor::DeleteMetaData(const std::vector<Key> &keys) const
 {
     sqlite3_stmt *statement = nullptr;
@@ -480,7 +479,7 @@ int SQLiteSingleVerRelationalStorageExecutor::DeleteMetaData(const std::vector<K
 }
 
 static const std::string REMOVE_META_VALUE_BY_KEY_PREFIX_SQL =
-    "DELETE FROM distributeddatamgr_aux_metadata WHERE key>=? AND key<=?;";
+    "DELETE FROM naturalbase_rdb_aux_metadata WHERE key>=? AND key<=?;";
 int SQLiteSingleVerRelationalStorageExecutor::DeleteMetaDataByPrefixKey(const Key &keyPrefix) const
 {
     sqlite3_stmt *statement = nullptr;
@@ -527,8 +526,7 @@ static int GetAllKeys(sqlite3_stmt *statement, std::vector<Key> &keys)
     return errCode;
 }
 
-
-static const std::string SELECT_ALL_META_KEYS = "SELECT key FROM distributeddatamgr_aux_metadata;";
+static const std::string SELECT_ALL_META_KEYS = "SELECT key FROM naturalbase_rdb_aux_metadata;";
 int SQLiteSingleVerRelationalStorageExecutor::GetAllMetaKeys(std::vector<Key> &keys) const
 {
     sqlite3_stmt *statement = nullptr;
@@ -546,7 +544,7 @@ int SQLiteSingleVerRelationalStorageExecutor::PrepareForSavingLog(const QueryObj
     const std::string &deviceName, sqlite3_stmt *&logStmt) const
 {
     std::string devName = DBCommon::TransferHashString(deviceName);
-    const std::string tableName = "distributeddatamgr_aux_" + object.GetTableName() + "_log";
+    const std::string tableName = "naturalbase_rdb_aux_" + object.GetTableName() + "_log";
     std::string dataFormat = "?, '" + deviceName + "', ?, ?, ?, ?, ?";
 
     std::string sql = "INSERT OR REPLACE INTO " + tableName +
@@ -562,10 +560,10 @@ int SQLiteSingleVerRelationalStorageExecutor::PrepareForSavingLog(const QueryObj
 int SQLiteSingleVerRelationalStorageExecutor::PrepareForSavingData(const QueryObject &object,
     const std::string &deviceName, sqlite3_stmt *&statement) const
 {
-    // distributeddatamgr_aux_userTableName_deviceHash
+    // naturalbase_rdb_aux_userTableName_deviceHash
     // tableName
     std::string devName = DBCommon::TransferHashString(deviceName);
-    const std::string tableName = "distributeddatamgr_aux_" + object.GetTableName() + "_" +
+    const std::string tableName = "naturalbase_rdb_aux_" + object.GetTableName() + "_" +
         DBCommon::TransferStringToHex(devName);
     TableInfo table;
     int errCode = SQLiteUtils::AnalysisSchema(dbHandle_, tableName, table);
@@ -603,7 +601,7 @@ int SQLiteSingleVerRelationalStorageExecutor::SaveSyncLog(sqlite3_stmt *statemen
     Key hashKey;
     (void)DBCommon::CalcValueHash(dataItem.key, hashKey);
     std::string hash = std::string(hashKey.begin(), hashKey.end());
-    std::string sql = "select * from distributeddatamgr_aux_" + table_.GetTableName() + "_log where hash_key = ?;";
+    std::string sql = "select * from naturalbase_rdb_aux_" + table_.GetTableName() + "_log where hash_key = ?;";
     sqlite3_stmt *queryStmt = nullptr;
     int errCode = SQLiteUtils::GetStatement(dbHandle_, sql, queryStmt);
     if (errCode != E_OK) {
@@ -661,7 +659,7 @@ int SQLiteSingleVerRelationalStorageExecutor::SaveSyncLog(sqlite3_stmt *statemen
 int SQLiteSingleVerRelationalStorageExecutor::DeleteSyncDataItem(const DataItem &dataItem)
 {
     std::string devName = DBCommon::TransferHashString(dataItem.dev);
-    const std::string tableName = "distributeddatamgr_aux_" + table_.GetTableName() + "_" +
+    const std::string tableName = "naturalbase_rdb_aux_" + table_.GetTableName() + "_" +
         DBCommon::TransferStringToHex(devName);
     std::string hashKey = std::string(dataItem.hashKey.begin(), dataItem.hashKey.end());
     std::string sql = "DELETE FROM " + tableName + " WHERE calc_hash(" + table_.GetPrimaryKey() + ")=" + hashKey + ";";
@@ -784,7 +782,7 @@ int SQLiteSingleVerRelationalStorageExecutor::SaveSyncItems(const QueryObject &o
 static int GetLogInfoStatement(sqlite3 *dbHandle, const std::string &tableName,
     uint64_t beginTime, uint64_t endTime, sqlite3_stmt *&statement)
 {
-    std::string sql = "select * from distributeddatamgr_aux_" + tableName +
+    std::string sql = "select * from naturalbase_rdb_aux_" + tableName +
         "_log where flag=0x02 AND timestamp>=? AND timestamp<?;";
     int errCode = SQLiteUtils::GetStatement(dbHandle, sql, statement);
     if (errCode != E_OK) {
