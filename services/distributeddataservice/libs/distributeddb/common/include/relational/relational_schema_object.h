@@ -153,6 +153,7 @@ private:
     int ParseCheckTableInfo(const JsonObject &inJsonObject);
     int ParseCheckTableName(const JsonObject &inJsonObject, TableInfo &resultTable);
     int ParseCheckTableDefine(const JsonObject &inJsonObject, TableInfo &resultTable);
+    int ParseCheckTableFieldInfo(const JsonObject &inJsonObject, const FieldPath &path, FieldInfo &table);
     int ParseCheckTableAutoInc(const JsonObject &inJsonObject, TableInfo &resultTable);
     int ParseCheckTableUnique(const JsonObject &inJsonObject, TableInfo &resultTable);
     int ParseCheckTableIndex(const JsonObject &inJsonObject, TableInfo &resultTable);

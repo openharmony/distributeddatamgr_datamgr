@@ -65,6 +65,8 @@ public:
     int GetObjectArrayByFieldPath(const FieldPath &inPath, std::vector<JsonObject> &outArray) const;
     int GetStringArrayByFieldPath(const FieldPath &inPath, std::vector<std::string> &outArray) const;
 
+    int GetObjectByFieldPath(const FieldPath &inPath, JsonObject &outArray) const;
+
     // An empty fieldPath indicate the root, the outSubPath should be empty before call, we will not empty it at first.
     // If inPath is of multiple path, then outSubPath is combination of result of each inPath.
     int GetSubFieldPath(const FieldPath &inPath, std::set<FieldPath> &outSubPath) const;

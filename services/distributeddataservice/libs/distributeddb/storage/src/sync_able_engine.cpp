@@ -26,8 +26,7 @@ SyncAbleEngine::SyncAbleEngine(ISyncInterface *store)
 {}
 
 SyncAbleEngine::~SyncAbleEngine()
-{
-}
+{}
 
 // Start a sync action.
 int SyncAbleEngine::Sync(const ISyncer::SyncParma &parm)

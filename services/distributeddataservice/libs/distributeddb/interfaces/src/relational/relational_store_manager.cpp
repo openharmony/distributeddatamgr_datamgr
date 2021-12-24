@@ -35,7 +35,7 @@ RelationalStoreManager::RelationalStoreManager(const std::string &appId, const s
 void RelationalStoreManager::InitStoreProp(const RelationalStoreDelegate::Option &option, const std::string &storePath,
     const std::string &storeId, RelationalDBProperties &properties)
 {
-    properties.SetBoolProp(RelationalDBProperties::CREATE_IF_NECESSARY, option.createIfNecessary);
+    // properties.SetBoolProp(RelationalDBProperties::CREATE_IF_NECESSARY, option.createIfNecessary);
     properties.SetStringProp(RelationalDBProperties::DATA_DIR, storePath);
     properties.SetStringProp(RelationalDBProperties::APP_ID, appId_);
     properties.SetStringProp(RelationalDBProperties::USER_ID, userId_);
@@ -96,8 +96,6 @@ DB_API DBStatus RelationalStoreManager::OpenStore(const std::string &path, const
         conn->Close();
         return DB_ERROR;
     }
-
-    (void)conn->TriggerAutoSync(); // TODO: no auto sync
     return OK;
 }
 

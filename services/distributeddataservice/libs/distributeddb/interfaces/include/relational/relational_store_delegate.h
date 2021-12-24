@@ -27,7 +27,7 @@ public:
     DB_API virtual ~RelationalStoreDelegate() = default;
 
     struct Option {
-        bool createIfNecessary = true;
+        // split mode
     };
 
     DB_API virtual DBStatus Pragma(PragmaCmd cmd, PragmaData &paramData) = 0;

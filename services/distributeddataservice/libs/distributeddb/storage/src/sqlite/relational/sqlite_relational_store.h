@@ -77,6 +77,9 @@ private:
     std::vector<std::function<void(void)>> closeNotifiers_;
 
     RelationalDBProperties properties_;
+
+    mutable std::mutex initalMutex_;
+    bool isInitialized_ = false;
 };
 }  // namespace DistributedDB
 #endif

@@ -31,7 +31,10 @@ namespace {
 
 SQLiteRelationalStore::~SQLiteRelationalStore()
 {
-    delete sqliteStorageEngine_;
+    if (sqliteStorageEngine_ != nullptr) {
+        delete sqliteStorageEngine_;
+        sqliteStorageEngine_ = nullptr;
+    }
 }
 
 // Called when a new connection created.
@@ -138,6 +141,12 @@ int SQLiteRelationalStore::CleanDistributedDeviceTable()
 
 int SQLiteRelationalStore::Open(const RelationalDBProperties &properties)
 {
+    std::lock_guard<std::mutex> lock(initalMutex_);
+    if (isInitialized_) {
+        LOGD("[RelationalStore][Open] relational db was already inited.");
+        return E_OK;
+    }
+
     sqliteStorageEngine_ = new (std::nothrow) SQLiteSingleRelationalStorageEngine();
     if (sqliteStorageEngine_ == nullptr) {
         LOGE("[RelationalStore][Open] Create storage engine failed");
@@ -145,13 +154,13 @@ int SQLiteRelationalStore::Open(const RelationalDBProperties &properties)
     }
 
     int errCode = E_OK;
-
     do {
         errCode = InitStorageEngine(properties);
         if (errCode != E_OK) {
             LOGE("[RelationalStore][Open] Init database context fail! errCode = [%d]", errCode);
             break;
         }
+
         storageEngine_ = new(std::nothrow) RelationalSyncAbleStorage(sqliteStorageEngine_);
         if (storageEngine_ == nullptr) {
             LOGE("[RelationalStore][Open] Create syncable storage failed"); // TODO:
@@ -176,10 +185,10 @@ int SQLiteRelationalStore::Open(const RelationalDBProperties &properties)
         }
 
         syncEngine_ = std::make_shared<SyncAbleEngine>(storageEngine_);
+        isInitialized_ = true;
         return E_OK;
     } while (false);
 
-    // TODO: release resources.
     ReleaseResources();
     return errCode;
 }
