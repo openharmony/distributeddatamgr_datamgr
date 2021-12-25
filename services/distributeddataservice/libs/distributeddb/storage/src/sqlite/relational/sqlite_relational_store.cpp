@@ -109,6 +109,7 @@ int SQLiteRelationalStore::GetSchemaFromMeta()
         return errCode;
     }
 
+    std::lock_guard<std::mutex> lock(schemaMutex_);
     properties_.SetSchema(schema);
     return E_OK;
 }
@@ -123,6 +124,7 @@ int SQLiteRelationalStore::SaveLogTableVersionToMeta()
 int SQLiteRelationalStore::CleanDistributedDeviceTable()
 {
     // TODO: clean the device table which is no longer in schema
+    std::lock_guard<std::mutex> lock(schemaMutex_);
     RelationalSchemaObject schema = properties_.GetSchema();
     for (const auto &table : schema.GetTables()) {
         std::string tableName = table.first;
@@ -290,10 +292,16 @@ void SQLiteRelationalStore::WakeUpSyncer()
 int SQLiteRelationalStore::CreateDistributedTable(const std::string &tableName)
 {
     int errCode = E_OK;
+    std::lock_guard<std::mutex> lock(schemaMutex_);
     auto schema = properties_.GetSchema();
     if (schema.GetTable(tableName).GetTableName() == tableName) {
         LOGW("distributed table %s was already created.", tableName.c_str());
         return E_OK;
+    }
+
+    if (schema.GetTables().size() >= DBConstant::MAX_DISTRIBUTED_TABLE_COUNT) {
+        LOGW("The number of distributed tables is exceeds limit.");
+        return -E_MAX_LIMITS;
     }
 
     auto *handle = GetHandle(true, errCode);

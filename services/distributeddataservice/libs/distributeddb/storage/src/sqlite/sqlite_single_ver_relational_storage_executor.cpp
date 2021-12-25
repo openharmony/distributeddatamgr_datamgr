@@ -25,11 +25,23 @@ SQLiteSingleVerRelationalStorageExecutor::SQLiteSingleVerRelationalStorageExecut
 int SQLiteSingleVerRelationalStorageExecutor::CreateDistributedTable(const std::string &tableName, TableInfo &table)
 {
     if (dbHandle_ == nullptr) {
-        LOGE("Begin transaction failed, dbHandle is null.");
+        LOGE("[CreateDistributedTable] Begin transaction failed, dbHandle is null.");
         return -E_INVALID_DB;
     }
 
-    int errCode = SQLiteUtils::AnalysisSchema(dbHandle_, tableName, table);
+    int historyDataCnt = 0;
+    int errCode = SQLiteUtils::GetTableCount(dbHandle_, tableName, historyDataCnt);
+    if (errCode != E_OK) {
+        LOGE("[CreateDistributedTable] Get the number of table [%s] rows failed. %d", tableName.c_str(), errCode);
+        return errCode;
+    }
+
+    if (historyDataCnt > 0) { // 0 : create distributed table should on an empty table
+        LOGE("[CreateDistributedTable] Create distributed table should on an empty table.");
+        return -E_NOT_SUPPORT;
+    }
+
+    errCode = SQLiteUtils::AnalysisSchema(dbHandle_, tableName, table);
     if (errCode != E_OK) {
         LOGE("[CreateDistributedTable] analysis table schema failed");
         return errCode;

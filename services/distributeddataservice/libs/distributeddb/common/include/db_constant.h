@@ -111,6 +111,7 @@ public:
     static constexpr size_t MAX_SYNC_BLOCK_SIZE = 31457280; // 30MB
 
     static constexpr int DOUBLE_PRECISION = 15;
+    static constexpr int MAX_DISTRIBUTED_TABLE_COUNT = 32;
 };
 } // namespace DistributedDB
 

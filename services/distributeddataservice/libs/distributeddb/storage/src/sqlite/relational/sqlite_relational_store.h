@@ -80,6 +80,8 @@ private:
 
     mutable std::mutex initalMutex_;
     bool isInitialized_ = false;
+
+    mutable std::mutex schemaMutex_;
 };
 }  // namespace DistributedDB
 #endif

@@ -174,6 +174,8 @@ public:
 
     static int ExpandedSql(sqlite3_stmt *stmt, std::string &basicString);
 
+    static int GetTableCount(sqlite3 *db, const std::string &tableName, int &count);
+
 private:
 
     static int CreateDataBase(const OpenDbProperties &properties, sqlite3 *&dbTemp);

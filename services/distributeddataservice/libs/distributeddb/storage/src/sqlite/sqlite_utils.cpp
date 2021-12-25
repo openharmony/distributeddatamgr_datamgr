@@ -1921,4 +1921,27 @@ int SQLiteUtils::ExpandedSql(sqlite3_stmt *stmt, std::string &basicString)
     sqlite3_free(eSql);
     return E_OK;
 }
+
+int GetTableCount(sqlite3 *db, const std::string &tableName, int &count)
+{
+    if (db == nullptr) {
+        return -E_INVALID_ARGS;
+    }
+
+    std::string cntSql = "SELECT COUNT(*) FROM " + tableName + ";";
+    sqlite3_stmt *stmt = nullptr;
+    int errCode = SQLiteUtils::GetStatement(db, cntSql, stmt);
+    if (errCode != E_OK) {
+        return errCode;
+    }
+
+    errCode = SQLiteUtils::StepWithRetry(stmt, false);
+    if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_ROW)) {
+        count = sqlite3_column_int(stmt, 0);
+        errCode = E_OK;
+    }
+
+    SQLiteUtils::ResetStatement(stmt, true, errCode);
+    return SQLiteUtils::MapSQLiteErrno(errCode);
+}
 } // namespace DistributedDB
