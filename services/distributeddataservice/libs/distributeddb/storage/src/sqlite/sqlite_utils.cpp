@@ -102,7 +102,7 @@ std::string GetTriggerModeString(TriggerModeEnum mode)
 }
 }
 
-int SQLiteUtils::CreateDataBase(const OpenDbProperties &properties, sqlite3 *&dbTemp)
+int SQLiteUtils::CreateDataBase(const OpenDbProperties &properties, sqlite3 *&dbTemp, bool setWal)
 {
     uint64_t flag = SQLITE_OPEN_URI | SQLITE_OPEN_READWRITE;
     if (properties.createIfNecessary) {
@@ -114,7 +114,10 @@ int SQLiteUtils::CreateDataBase(const OpenDbProperties &properties, sqlite3 *&db
         return -E_INVALID_ARGS;
     }
     std::string defaultAttachCipher = DEFAULT_ATTACH_CIPHER + cipherName + ";";
-    std::vector<std::string> sqls {WAL_MODE_SQL, defaultAttachCipher, DEFAULT_ATTACH_KDF_ITER};
+    std::vector<std::string> sqls {defaultAttachCipher, DEFAULT_ATTACH_KDF_ITER};
+    if (setWal) {
+        sqls.push_back(WAL_MODE_SQL);
+    }
 
     std::string fileUrl = DBConstant::SQLITE_URL_PRE + properties.uri;
     int errCode = sqlite3_open_v2(fileUrl.c_str(), &dbTemp, flag, nullptr);
@@ -139,7 +142,7 @@ END:
     return errCode;
 }
 
-int SQLiteUtils::OpenDatabase(const OpenDbProperties &properties, sqlite3 *&db)
+int SQLiteUtils::OpenDatabase(const OpenDbProperties &properties, sqlite3 *&db, bool setWal)
 {
     {
         // Only for register the sqlite3 log callback
@@ -150,7 +153,7 @@ int SQLiteUtils::OpenDatabase(const OpenDbProperties &properties, sqlite3 *&db)
         }
     }
     sqlite3 *dbTemp = nullptr;
-    int errCode = CreateDataBase(properties, dbTemp);
+    int errCode = CreateDataBase(properties, dbTemp, setWal);
     if (errCode != E_OK) {
         goto END;
     }

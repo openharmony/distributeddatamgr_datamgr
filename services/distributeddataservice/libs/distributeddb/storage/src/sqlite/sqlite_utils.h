@@ -69,7 +69,7 @@ struct OpenDbProperties {
 class SQLiteUtils {
 public:
     // Initialize the SQLiteUtils with the given properties.
-    static int OpenDatabase(const OpenDbProperties &properties, sqlite3 *&db);
+    static int OpenDatabase(const OpenDbProperties &properties, sqlite3 *&db, bool setWal = true);
 
     // Check the statement and prepare the new if statement is null
     static int GetStatement(sqlite3 *db, const std::string &sql, sqlite3_stmt *&statement);
@@ -182,7 +182,7 @@ public:
 
 private:
 
-    static int CreateDataBase(const OpenDbProperties &properties, sqlite3 *&dbTemp);
+    static int CreateDataBase(const OpenDbProperties &properties, sqlite3 *&dbTemp, bool setWal);
 
     static int SetBusyTimeout(sqlite3 *db, int timeout);
 

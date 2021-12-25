@@ -833,7 +833,7 @@ int SQLiteSingleVerRelationalStorageExecutor::CheckDBModeForRelational()
     std::string journalMode;
     int errCode = SQLiteUtils::GetJournalMode(dbHandle_, journalMode);
     if (errCode != E_OK || journalMode != "wal") {
-        LOGE("Not support journal mode %s for relational db, expect wal mode, %d", journalMode, errCode);
+        LOGE("Not support journal mode %s for relational db, expect wal mode, %d", journalMode.c_str(), errCode);
         return -E_NOT_SUPPORT;
     }
 
