@@ -112,6 +112,10 @@ public:
 
     static constexpr int DOUBLE_PRECISION = 15;
     static constexpr int MAX_DISTRIBUTED_TABLE_COUNT = 32;
+
+    // For relational
+    static const std::string RELATIONAL_PREFIX;
+    static const std::string TIMESTAMP_ALIAS;
 };
 } // namespace DistributedDB
 

@@ -182,6 +182,7 @@ ohos_shared_library("distributeddb") {
     "storage/src/sqlite/sqlite_single_ver_forward_cursor.cpp",
     "storage/src/sqlite/sqlite_single_ver_natural_store.cpp",
     "storage/src/sqlite/sqlite_single_ver_natural_store_connection.cpp",
+    "storage/src/sqlite/sqlite_single_ver_relational_continue_token.cpp",
     "storage/src/sqlite/sqlite_single_ver_relational_storage_executor.cpp",
     "storage/src/sqlite/sqlite_single_ver_result_set.cpp",
     "storage/src/sqlite/sqlite_single_ver_schema_database_upgrader.cpp",

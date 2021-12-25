@@ -88,9 +88,12 @@ public:
         return tableName_;
     }
 
+    int GetRelationalSyncDataQuerySql(std::string &sql, bool hasSubQuery);
+    int GetRelationalQueryStatement(sqlite3 *dbHandle, uint64_t beginTime, uint64_t endTime, sqlite3_stmt *&statement);
+
 private:
     int ToQuerySql();
-    int ToQuerySyncSql(bool hasSubQuery);
+    int ToQuerySyncSql(bool hasSubQuery, bool useTimeStampAlias = false);
     int ToGetCountSql();
     int ParseQueryExpression(const QueryObjNode &queryNode, std::string &querySql,
         const std::string &accessStr = "", bool placeholder = true);

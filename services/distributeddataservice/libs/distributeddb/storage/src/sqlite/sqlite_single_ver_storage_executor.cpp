@@ -1298,9 +1298,9 @@ int SQLiteSingleVerStorageExecutor::PrepareForNotifyConflictAndObserver(DataItem
         LOGD("[SingleVerExe] Ignore the sync data.");
         if (isSyncMigrating_) {
             ResetForMigrateCacheData();
-            return -E_IGNOR_DATA;
+            return -E_IGNORE_DATA;
         }
-        return ResetSaveSyncStatements(-E_IGNOR_DATA);
+        return ResetSaveSyncStatements(-E_IGNORE_DATA);
     }
 
     notify.dataStatus = JudgeSyncSaveType(dataItem, notify.getData, deviceInfo.deviceName, isHashKeyExisted);
@@ -1343,7 +1343,7 @@ int SQLiteSingleVerStorageExecutor::SaveSyncDataItem(DataItem &dataItem, const D
 
     int errCode = PrepareForNotifyConflictAndObserver(dataItem, deviceInfo, notify);
     if (errCode != E_OK) {
-        if (errCode == -E_IGNOR_DATA) {
+        if (errCode == -E_IGNORE_DATA) {
             errCode = E_OK;
         }
         return errCode;

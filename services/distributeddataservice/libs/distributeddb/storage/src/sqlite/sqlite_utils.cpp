@@ -1305,7 +1305,7 @@ int SQLiteUtils::RegisterGetSysTime(sqlite3 *db)
 int SQLiteUtils::CreateRelationalMetaTable(sqlite3 *db)
 {
     std::string sql =
-        "CREATE TABLE IF NOT EXISTS naturalbase_rdb_aux_metadata(" \
+        "CREATE TABLE IF NOT EXISTS " + DBConstant::RELATIONAL_PREFIX + "metadata(" \
         "key    BLOB PRIMARY KEY NOT NULL," \
         "value  BLOB);";
 
@@ -1320,21 +1320,21 @@ int SQLiteUtils::CreateRelationalMetaTable(sqlite3 *db)
 int SQLiteUtils::CreateRelationalLogTable(sqlite3 *db, const std::string &oriTableName)
 {
     std::string sql =
-        "CREATE TABLE IF NOT EXISTS naturalbase_rdb_aux_" + oriTableName + "_log(" \
+        "CREATE TABLE IF NOT EXISTS " + DBConstant::RELATIONAL_PREFIX + oriTableName + "_log(" \
         "data_key    INT NOT NULL," \
         "device      BLOB," \
         "ori_device  BLOB," \
         "timestamp   INT  NOT NULL," \
         "wtimestamp  INT  NOT NULL," \
         "flag        INT  NOT NULL," \
-        "hash_key    BLOB PRIMARY KEY NOT NULL);";
+        "hash_key    BLOB NOT NULL,"
+        "PRIMARY KEY(device,hash_key));";
 
     int errCode = SQLiteUtils::ExecuteRawSQL(db, sql);
     if (errCode != E_OK) {
         LOGE("[SQLite] execute create table sql failed");
-        return errCode;
     }
-    return E_OK;
+    return errCode;
 }
 
 template<typename ... Args>
@@ -1352,7 +1352,7 @@ int SQLiteUtils::AddRelationalLogTableTrigger(sqlite3 *db, const TableInfo &tabl
         "CREATE TRIGGER IF NOT EXISTS naturalbase_rdb_%s_ON_INSERT AFTER INSERT \n" \
         "ON %s\n" \
         "BEGIN\n"  \
-            "\t INSERT OR REPLACE INTO naturalbase_rdb_aux_%s_log \
+            "\t INSERT OR REPLACE INTO " + DBConstant::RELATIONAL_PREFIX + "%s_log \
             (data_key, device, ori_device, timestamp, wtimestamp, flag, hash_key)" \
             "VALUES (new.rowid, '%s', '%s', get_sys_time(), get_sys_time(), 0x02, calc_hash(new.%s));\n" \
         "END;";
@@ -1363,7 +1363,7 @@ int SQLiteUtils::AddRelationalLogTableTrigger(sqlite3 *db, const TableInfo &tabl
         "CREATE TRIGGER IF NOT EXISTS naturalbase_rdb_%s_ON_UPDATE AFTER UPDATE \n" \
         "ON %s\n" \
         "BEGIN\n"  \
-            "\t UPDATE naturalbase_rdb_aux_%s_log SET timestamp=get_sys_time(), device='%s' \
+            "\t UPDATE " + DBConstant::RELATIONAL_PREFIX + "%s_log SET timestamp=get_sys_time(), device='%s' \
             where hash_key=calc_hash(old.%s) and flag&0x10=0;\n" \
         "END;";
     updateTrigger = string_format(updateTrigger, table.GetTableName().c_str(), table.GetTableName().c_str(),
@@ -1372,7 +1372,7 @@ int SQLiteUtils::AddRelationalLogTableTrigger(sqlite3 *db, const TableInfo &tabl
         "CREATE TRIGGER IF NOT EXISTS naturalbase_rdb_%s_ON_DELETE BEFORE DELETE \n" \
         "ON %s\n" \
         "BEGIN\n"  \
-            "\t UPDATE naturalbase_rdb_aux_%s_log set flag=0x03,timestamp=get_sys_time() \
+            "\t UPDATE " + DBConstant::RELATIONAL_PREFIX + "%s_log set flag=0x03,timestamp=get_sys_time() \
             WHERE hash_key=calc_hash(old.%s);\n" \
         "END;";
     deleteTrigger = string_format(deleteTrigger, table.GetTableName().c_str(),
@@ -1403,9 +1403,8 @@ int SQLiteUtils::CreateSameStuTable(sqlite3 *db, const std::string &oriTableName
     int errCode = SQLiteUtils::ExecuteRawSQL(db, sql);
     if (errCode != E_OK) {
         LOGE("[SQLite] execute create table sql failed");
-        return errCode;
     }
-    return E_OK;
+    return errCode;
 }
 
 int SQLiteUtils::RegisterFunction(sqlite3 *db, const std::string &funcName, int nArg, void *uData, TransactFunc &func)

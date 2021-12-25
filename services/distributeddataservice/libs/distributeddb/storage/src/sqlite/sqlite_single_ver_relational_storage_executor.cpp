@@ -96,7 +96,7 @@ int SQLiteSingleVerRelationalStorageExecutor::Rollback()
     return errCode;
 }
 
-int SQLiteSingleVerRelationalStorageExecutor::SetTableInfo(QueryObject query)
+int SQLiteSingleVerRelationalStorageExecutor::SetTableInfo(const QueryObject &query)
 {
 
     int errCode = SQLiteUtils::AnalysisSchema(dbHandle_, query.GetTableName(), table_);
@@ -104,50 +104,6 @@ int SQLiteSingleVerRelationalStorageExecutor::SetTableInfo(QueryObject query)
         LOGE("[CreateDistributedTable] analysis table schema failed");
     }
     return errCode;
-}
-
-// binding index just for the get sync data sql
-static const int BIND_BEGIN_STAMP_INDEX = 1;
-static const int BIND_END_STAMP_INDEX = 2;
-
-int SQLiteSingleVerRelationalStorageExecutor::PrepareForSyncDataByTime(TimeStamp begin, TimeStamp end,
-    sqlite3_stmt *&statement, bool getDeletedData) const
-{
-    if (dbHandle_ == nullptr) {
-        return -E_INVALID_DB;
-    }
-
-    const std::string SELECT_SYNC_DELETED_ENTRIES_SQL =
-        "SELECT * FROM naturalbase_rdb_aux_" + table_.GetTableName() +
-        "_log WHERE timestamp >= ? AND timestamp < ? AND (flag&0x03=0x03) ORDER BY timestamp ASC;";
-    const std::string SELECT_SYNC_ENTRIES_SQL =
-        "SELECT * FROM naturalbase_rdb_aux_" + table_.GetTableName() +
-        "_log WHERE timestamp >= ? AND timestamp < ? AND (flag&0x02=0x02) ORDER BY timestamp ASC;";
-
-    const std::string sql = (getDeletedData ? SELECT_SYNC_DELETED_ENTRIES_SQL : SELECT_SYNC_ENTRIES_SQL);
-    int errCode = SQLiteUtils::GetStatement(dbHandle_, sql, statement);
-    if (errCode != E_OK) {
-        LOGE("Prepare the sync entries statement error:%d", errCode);
-        return errCode;
-    }
-
-    errCode = SQLiteUtils::BindInt64ToStatement(statement, BIND_BEGIN_STAMP_INDEX, begin);
-    if (errCode != E_OK) {
-        goto ERROR;
-    }
-
-    errCode = SQLiteUtils::BindInt64ToStatement(statement, BIND_END_STAMP_INDEX, end);
-    if (errCode != E_OK) {
-        goto ERROR;
-    }
-
-ERROR:
-    if (errCode != E_OK) {
-        LOGE("Bind the timestamp for getting sync data error:%d", errCode);
-        SQLiteUtils::ResetStatement(statement, true, errCode);
-    }
-
-    return CheckCorruptedStatus(errCode);
 }
 
 static void GetDataValueByType(sqlite3_stmt *statement, DataValue &value, StorageType type, int cid)
@@ -260,7 +216,6 @@ static int GetLogData(sqlite3_stmt *logStatement, LogInfo &logInfo)
         return errCode;
     }
     logInfo.originDev = std::string(oriDev.begin(), oriDev.end());
-
     logInfo.timestamp = static_cast<uint64_t>(sqlite3_column_int64(logStatement, 3));
     logInfo.wTimeStamp = static_cast<uint64_t>(sqlite3_column_int64(logStatement, 4));
     logInfo.flag = static_cast<uint64_t>(sqlite3_column_int64(logStatement, 5));
@@ -276,68 +231,6 @@ static int GetLogData(sqlite3_stmt *logStatement, LogInfo &logInfo)
     return errCode;
 }
 
-static sqlite3_stmt *GetDataStmtByPK(sqlite3 *db, const std::string &tableName, int rowId)
-{
-    std::string sql = "select * from " + tableName + " where rowId=?;";
-    sqlite3_stmt *statement = nullptr;
-    int errCode = SQLiteUtils::GetStatement(db, sql, statement);
-    if (errCode != E_OK) {
-        LOGE("[data by rowid statement] Get statement fail!");
-        return nullptr;
-    }
-
-    errCode = SQLiteUtils::BindInt64ToStatement(statement, 1, rowId);
-    if (errCode != E_OK) {
-        SQLiteUtils::ResetStatement(statement, true, errCode);
-        return nullptr;
-    }
-
-    return statement;
-}
-
-
-int SQLiteSingleVerRelationalStorageExecutor::GetDataItemForSync(sqlite3_stmt *logStatement, DataItem &dataItem) const
-{
-    std::map<std::string, FieldInfo> colInfos = table_.GetFields();
-    RowDataWithLog data;
-
-    int errCode = GetLogData(logStatement, data.logInfo);
-    if (errCode != E_OK) {
-        LOGE("relational data value transfer to kv fail");
-        return errCode;
-    }
-
-    // dataKey is rowid by pk
-    // only get local device data
-    sqlite3_stmt *stmt = GetDataStmtByPK(dbHandle_, table_.GetTableName(), data.logInfo.dataKey);
-
-    errCode = SQLiteUtils::StepWithRetry(stmt, false);
-    if (errCode != SQLiteUtils::MapSQLiteErrno(SQLITE_ROW) && errCode != SQLiteUtils::MapSQLiteErrno(SQLITE_DONE)) {
-        LOGE("[SQLiteSingleVerRelationalStorageExecutor] Step fail errCode:%d", errCode);
-        return errCode;
-    }
-
-    std::vector<FieldInfo> fieldInfos;
-    for (const auto &col: colInfos) {
-        if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_DONE)) {
-            break;
-        }
-        DataValue value;
-        GetDataValueByType(stmt, value, col.second.GetStorageType(), col.second.GetColumnId());
-
-        fieldInfos.push_back(col.second);
-        data.rowData.push_back(value);
-    }
-
-    SQLiteUtils::ResetStatement(stmt, true, errCode);
-
-    errCode = DataTransformer::SerializeDataItem(data, fieldInfos, dataItem);
-    if (errCode != E_OK) {
-        LOGE("relational data value transfer to kv fail");
-    }
-    return errCode;
-}
-
 static size_t GetDataItemSerialSize(DataItem &item, size_t appendLen)
 {
     // timestamp and local flag: 3 * uint64_t, version(uint32_t), key, value, origin dev and the padding size.
@@ -349,54 +242,8 @@ static size_t GetDataItemSerialSize(DataItem &item, size_t appendLen)
     return dataSize;
 }
 
-int SQLiteSingleVerRelationalStorageExecutor::GetSyncDataItems(std::vector<DataItem> &dataItems,
-    sqlite3_stmt *logStatement, size_t appendLength, const DataSizeSpecInfo &dataSizeInfo) const
-{
-    int errCode;
-    size_t dataTotalSize = 0;
-    do {
-        DataItem item;
-        errCode = SQLiteUtils::StepWithRetry(logStatement, isMemDb_);
-        if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_ROW)) {
-            errCode = GetDataItemForSync(logStatement, item);
-        } else {
-            if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_DONE)) {
-                LOGD("Get sync data finished, size of packet:%zu, number of item:%zu", dataTotalSize, dataItems.size());
-                errCode = -E_FINISHED;
-            } else {
-                LOGE("Get sync data error:%d", errCode);
-            }
-            break;
-        }
-
-        // If dataTotalSize value is bigger than blockSize value , reserve the surplus data item.
-        dataTotalSize += GetDataItemSerialSize(item, appendLength);
-        if ((dataTotalSize > dataSizeInfo.blockSize && !dataItems.empty()) ||
-            dataItems.size() >= dataSizeInfo.packetSize) {
-            errCode = -E_UNFINISHED;
-            break;
-        } else {
-            dataItems.push_back(std::move(item));
-        }
-    } while (true);
-    return errCode;
-}
-
-int SQLiteSingleVerRelationalStorageExecutor::GetDeletedSyncDataByTimestamp(std::vector<DataItem> &dataItems,
-    size_t appendLength, TimeStamp begin, TimeStamp end, const DataSizeSpecInfo &dataSizeInfo) const
-{
-    sqlite3_stmt *logStatement = nullptr;
-    int errCode = PrepareForSyncDataByTime(begin, end, logStatement, true);
-    if (errCode != E_OK) {
-        return errCode;
-    }
-
-    errCode = GetSyncDataItems(dataItems, logStatement, appendLength, dataSizeInfo);
-    SQLiteUtils::ResetStatement(logStatement, true, errCode);
-    return CheckCorruptedStatus(errCode);
-}
-
-static const std::string SELECT_META_VALUE_SQL = "SELECT value FROM naturalbase_rdb_aux_metadata WHERE key=?;";
+static const std::string SELECT_META_VALUE_SQL =
+        "SELECT value FROM " + DBConstant::RELATIONAL_PREFIX + "metadata WHERE key=?;";
 int SQLiteSingleVerRelationalStorageExecutor::GetKvData(const Key &key, Value &value) const
 {
     sqlite3_stmt *statement = nullptr;
@@ -424,7 +271,8 @@ int SQLiteSingleVerRelationalStorageExecutor::GetKvData(const Key &key, Value &v
     return errCode;
 }
 
-static const std::string INSERT_META_SQL = "INSERT OR REPLACE INTO naturalbase_rdb_aux_metadata VALUES(?,?);";
+static const std::string INSERT_META_SQL = "INSERT OR REPLACE INTO " + DBConstant::RELATIONAL_PREFIX +
+    "metadata VALUES(?,?);";
 int SQLiteSingleVerRelationalStorageExecutor::PutKvData(const Key &key, const Value &value) const
 {
     sqlite3_stmt *statement = nullptr;
@@ -453,7 +301,8 @@ ERROR:
     return errCode;
 }
 
-static const std::string REMOVE_META_VALUE_SQL = "DELETE FROM naturalbase_rdb_aux_metadata WHERE key=?;";
+static const std::string REMOVE_META_VALUE_SQL = "DELETE FROM " + DBConstant::RELATIONAL_PREFIX +
+    "metadata WHERE key=?;";
 int SQLiteSingleVerRelationalStorageExecutor::DeleteMetaData(const std::vector<Key> &keys) const
 {
     sqlite3_stmt *statement = nullptr;
@@ -480,7 +329,7 @@ int SQLiteSingleVerRelationalStorageExecutor::DeleteMetaData(const std::vector<K
 }
 
 static const std::string REMOVE_META_VALUE_BY_KEY_PREFIX_SQL =
-    "DELETE FROM naturalbase_rdb_aux_metadata WHERE key>=? AND key<=?;";
+    "DELETE FROM " + DBConstant::RELATIONAL_PREFIX + "metadata WHERE key>=? AND key<=?;";
 int SQLiteSingleVerRelationalStorageExecutor::DeleteMetaDataByPrefixKey(const Key &keyPrefix) const
 {
     sqlite3_stmt *statement = nullptr;
@@ -527,7 +376,8 @@ static int GetAllKeys(sqlite3_stmt *statement, std::vector<Key> &keys)
     return errCode;
 }
 
-static const std::string SELECT_ALL_META_KEYS = "SELECT key FROM naturalbase_rdb_aux_metadata;";
+
+static const std::string SELECT_ALL_META_KEYS = "SELECT key FROM " + DBConstant::RELATIONAL_PREFIX + "metadata;";
 int SQLiteSingleVerRelationalStorageExecutor::GetAllMetaKeys(std::vector<Key> &keys) const
 {
     sqlite3_stmt *statement = nullptr;
@@ -545,7 +395,7 @@ int SQLiteSingleVerRelationalStorageExecutor::PrepareForSavingLog(const QueryObj
     const std::string &deviceName, sqlite3_stmt *&logStmt) const
 {
     std::string devName = DBCommon::TransferHashString(deviceName);
-    const std::string tableName = "naturalbase_rdb_aux_" + object.GetTableName() + "_log";
+    const std::string tableName = DBConstant::RELATIONAL_PREFIX + object.GetTableName() + "_log";
     std::string dataFormat = "?, '" + deviceName + "', ?, ?, ?, ?, ?";
 
     std::string sql = "INSERT OR REPLACE INTO " + tableName +
@@ -564,7 +414,7 @@ int SQLiteSingleVerRelationalStorageExecutor::PrepareForSavingData(const QueryOb
     // naturalbase_rdb_aux_userTableName_deviceHash
     // tableName
     std::string devName = DBCommon::TransferHashString(deviceName);
-    const std::string tableName = "naturalbase_rdb_aux_" + object.GetTableName() + "_" +
+    const std::string tableName = DBConstant::RELATIONAL_PREFIX + object.GetTableName() + "_" +
         DBCommon::TransferStringToHex(devName);
     TableInfo table;
     int errCode = SQLiteUtils::AnalysisSchema(dbHandle_, tableName, table);
@@ -602,7 +452,8 @@ int SQLiteSingleVerRelationalStorageExecutor::SaveSyncLog(sqlite3_stmt *statemen
     Key hashKey;
     (void)DBCommon::CalcValueHash(dataItem.key, hashKey);
     std::string hash = std::string(hashKey.begin(), hashKey.end());
-    std::string sql = "select * from naturalbase_rdb_aux_" + table_.GetTableName() + "_log where hash_key = ?;";
+    std::string sql = "select * from " + DBConstant::RELATIONAL_PREFIX + table_.GetTableName() +
+        "_log where hash_key = ?;";
     sqlite3_stmt *queryStmt = nullptr;
     int errCode = SQLiteUtils::GetStatement(dbHandle_, sql, queryStmt);
     if (errCode != E_OK) {
@@ -660,7 +511,7 @@ int SQLiteSingleVerRelationalStorageExecutor::SaveSyncLog(sqlite3_stmt *statemen
 int SQLiteSingleVerRelationalStorageExecutor::DeleteSyncDataItem(const DataItem &dataItem)
 {
     std::string devName = DBCommon::TransferHashString(dataItem.dev);
-    const std::string tableName = "naturalbase_rdb_aux_" + table_.GetTableName() + "_" +
+    const std::string tableName = DBConstant::RELATIONAL_PREFIX + table_.GetTableName() + "_" +
         DBCommon::TransferStringToHex(devName);
     std::string hashKey = std::string(dataItem.hashKey.begin(), dataItem.hashKey.end());
     std::string sql = "DELETE FROM " + tableName + " WHERE calc_hash(" + table_.GetPrimaryKey() + ")=" + hashKey + ";";
@@ -780,40 +631,72 @@ int SQLiteSingleVerRelationalStorageExecutor::SaveSyncItems(const QueryObject &o
     return errCode;
 }
 
-static int GetLogInfoStatement(sqlite3 *dbHandle, const std::string &tableName,
-    uint64_t beginTime, uint64_t endTime, sqlite3_stmt *&statement)
+int SQLiteSingleVerRelationalStorageExecutor::GetDataItemForSync(sqlite3_stmt *stmt, DataItem &dataItem,
+    bool isGettingDeletedData) const
 {
-    std::string sql = "select * from naturalbase_rdb_aux_" + tableName +
-        "_log where flag=0x02 AND timestamp>=? AND timestamp<?;";
-    int errCode = SQLiteUtils::GetStatement(dbHandle, sql, statement);
+    RowDataWithLog data;
+    int errCode = GetLogData(stmt, data.logInfo);
     if (errCode != E_OK) {
-        LOGE("[info statement] Get statement fail!");
-        return -E_INVALID_QUERY_FORMAT;
-    }
-
-    errCode = SQLiteUtils::BindInt64ToStatement(statement, 1, beginTime);
-    if (errCode != E_OK) {
-        SQLiteUtils::ResetStatement(statement, true, errCode);
+        LOGE("relational data value transfer to kv fail");
         return errCode;
     }
 
-    errCode = SQLiteUtils::BindInt64ToStatement(statement, 2, endTime);
+    std::vector<FieldInfo> fieldInfos;
+    if (!isGettingDeletedData) {
+        for (const auto &col: table_.GetFields()) {
+            LOGD("[GetDataItemForSync] field:%s type:%d cid:%d", col.second.GetFieldName().c_str(),
+                col.second.GetStorageType(), col.second.GetColumnId() + 7);
+            DataValue value;
+            GetDataValueByType(stmt, value, col.second.GetStorageType(), col.second.GetColumnId() + 7);
+            fieldInfos.push_back(col.second);
+            data.rowData.push_back(value);
+        }
+    }
+
+    errCode = DataTransformer::SerializeDataItem(data, fieldInfos, dataItem);
     if (errCode != E_OK) {
-        SQLiteUtils::ResetStatement(statement, true, errCode);
-        return errCode;
+        LOGE("relational data value transfer to kv fail");
     }
     return errCode;
 }
 
 int SQLiteSingleVerRelationalStorageExecutor::GetSyncDataByQuery(std::vector<DataItem> &dataItems, size_t appendLength,
-    QueryObject query, const DataSizeSpecInfo &dataSizeInfo, const std::pair<TimeStamp, TimeStamp> &timeRange) const
+    const DataSizeSpecInfo &dataSizeInfo, std::function<int(sqlite3 *, sqlite3_stmt *&, bool &)> getStmt)
 {
-    sqlite3_stmt *logStatement = nullptr;
-    int errCode = GetLogInfoStatement(dbHandle_, query.GetTableName(), timeRange.first, timeRange.second, logStatement);
-    if (errCode == E_OK) {
-        errCode = GetSyncDataItems(dataItems, logStatement, appendLength, dataSizeInfo);
+    sqlite3_stmt *stmt = nullptr;
+    bool isGettingDeletedData = false;
+    int errCode = getStmt(dbHandle_, stmt, isGettingDeletedData);
+    if (errCode != E_OK) {
+        return errCode;
     }
-    SQLiteUtils::ResetStatement(logStatement, true, errCode);
+
+    size_t dataTotalSize = 0;
+    do {
+        DataItem item;
+        errCode = SQLiteUtils::StepWithRetry(stmt, isMemDb_);
+        if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_ROW)) {
+            errCode = GetDataItemForSync(stmt, item, isGettingDeletedData);
+        } else if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_DONE)) {
+            LOGD("Get sync data finished, size of packet:%zu, number of item:%zu", dataTotalSize, dataItems.size());
+            errCode = -E_FINISHED;
+            break;
+        } else {
+            LOGE("Get sync data error:%d", errCode);
+            break;
+        }
+
+        // If dataTotalSize value is bigger than blockSize value , reserve the surplus data item.
+        dataTotalSize += GetDataItemSerialSize(item, appendLength);
+        if ((dataTotalSize > dataSizeInfo.blockSize && !dataItems.empty()) ||
+            dataItems.size() >= dataSizeInfo.packetSize) {
+            errCode = -E_UNFINISHED;
+            break;
+        } else {
+            dataItems.push_back(std::move(item));
+        }
+    } while (true);
+
+    SQLiteUtils::ResetStatement(stmt, true, errCode);
     return errCode;
 }
 

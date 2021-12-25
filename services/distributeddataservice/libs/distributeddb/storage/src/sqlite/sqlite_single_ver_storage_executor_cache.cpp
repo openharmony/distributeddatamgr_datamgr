@@ -760,7 +760,7 @@ int SQLiteSingleVerStorageExecutor::PutIntoConflictAndCommitForMigrateCache(Data
     int errCode = PrepareForNotifyConflictAndObserver(dataItem, deviceInfo, notify);
     if (errCode != E_OK) {
         errCode = (errCode == -E_NOT_FOUND ? E_OK : errCode);
-        if (errCode == -E_IGNOR_DATA) {
+        if (errCode == -E_IGNORE_DATA) {
             notify.dataStatus.isDefeated = true;
             errCode = E_OK;
         }

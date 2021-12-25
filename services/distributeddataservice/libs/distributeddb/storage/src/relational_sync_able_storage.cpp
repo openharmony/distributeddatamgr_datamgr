@@ -196,15 +196,6 @@ const KvDBProperties &RelationalSyncAbleStorage::GetDbProperties() const
     return properties;
 }
 
-static void ReleaseKvEntries(std::vector<SingleVerKvEntry *> &entries)
-{
-    for (auto &itemEntry : entries) {
-        delete itemEntry;
-        itemEntry = nullptr;
-    }
-    entries.clear();
-}
-
 static int GetKvEntriesByDataItems(std::vector<SingleVerKvEntry *> &entries, std::vector<DataItem> &dataItems)
 {
     int errCode = E_OK;
@@ -213,7 +204,7 @@ static int GetKvEntriesByDataItems(std::vector<SingleVerKvEntry *> &entries, std
         if (entry == nullptr) {
             errCode = -E_OUT_OF_MEMORY;
             LOGE("GetKvEntries failed, errCode:%d", errCode);
-            ReleaseKvEntries(entries);
+            SingleVerKvEntry::Release(entries);
             break;
         }
         entry->SetEntryData(std::move(item));
@@ -237,7 +228,7 @@ static constexpr float QUERY_SYNC_THRESHOLD = 0.50;
 static bool CanHoldDeletedData(const std::vector<DataItem> &dataItems, const DataSizeSpecInfo &dataSizeInfo,
      size_t appendLen)
 {
-    bool reachThreshold = false;
+    bool reachThreshold = (dataItems.size() >= dataSizeInfo.packetSize);
     for (size_t i = 0, blockSize = 0; !reachThreshold && i < dataItems.size(); i++) {
         blockSize += GetDataItemSerialSize(dataItems[i], appendLen);
         reachThreshold = (blockSize >= dataSizeInfo.blockSize * QUERY_SYNC_THRESHOLD);
@@ -246,7 +237,7 @@ static bool CanHoldDeletedData(const std::vector<DataItem> &dataItems, const Dat
 }
 
 static void ProcessContinueTokenForQuerySync(const std::vector<DataItem> &dataItems, int &errCode,
-    SQLiteSingleVerContinueToken *&token)
+    SQLiteSingleVerRelationalContinueToken *&token)
 {
     if (errCode != -E_UNFINISHED) { // Error happened or get data finished. Token should be cleared.
         delete token;
@@ -261,18 +252,7 @@ static void ProcessContinueTokenForQuerySync(const std::vector<DataItem> &dataIt
         token = nullptr;
         return;
     }
-
-    TimeStamp nextBeginTime = dataItems.back().timeStamp + 1;
-    if (nextBeginTime > INT64_MAX) {
-        nextBeginTime = INT64_MAX;
-    }
-    bool getDeleteData = ((dataItems.back().flag & DataItem::DELETE_FLAG) != 0);
-    if (getDeleteData) {
-        token->FinishGetQueryData();
-        token->SetDeletedNextBeginTime("", nextBeginTime);
-    } else {
-        token->SetNextBeginTime("", nextBeginTime);
-    }
+    token->SetNextBeginTime(dataItems.back());
 }
 
 /**
@@ -280,7 +260,7 @@ static void ProcessContinueTokenForQuerySync(const std::vector<DataItem> &dataIt
  * If error happened, token will be deleted here.
  */
 int RelationalSyncAbleStorage::GetSyncDataForQuerySync(std::vector<DataItem> &dataItems,
-    SQLiteSingleVerContinueToken *&continueStmtToken, const DataSizeSpecInfo &dataSizeInfo) const
+    SQLiteSingleVerRelationalContinueToken *&continueStmtToken, const DataSizeSpecInfo &dataSizeInfo) const
 {
     if (storageEngine_ == nullptr) {
         return -E_INVALID_DB;
@@ -298,36 +278,18 @@ int RelationalSyncAbleStorage::GetSyncDataForQuerySync(std::vector<DataItem> &da
         goto ERROR;
     }
 
-    // Get query data.
-    if (!continueStmtToken->IsGetQueryDataFinished()) {
-        LOGD("[SingleVerNStore] Get query data between %llu and %llu.", continueStmtToken->GetQueryBeginTime(),
-             continueStmtToken->GetQueryEndTime());
-        errCode = handle->GetSyncDataByQuery(
-            dataItems, Parcel::GetAppendedLen(), continueStmtToken->GetQuery(), dataSizeInfo,
-            // need modify
-            std::make_pair(continueStmtToken->GetQueryBeginTime(), continueStmtToken->GetQueryEndTime()));
-    }
-
-    // Get query data finished.
-    if (errCode == E_OK || errCode == -E_FINISHED) {
-        // Clear query timeRange.
-        continueStmtToken->FinishGetQueryData();
-
-        // Get delete time next.
-        if (!continueStmtToken->IsGetDeletedDataFinished() &&
-            CanHoldDeletedData(dataItems, dataSizeInfo, Parcel::GetAppendedLen())) {
-            LOGD("[SingleVerNStore] Get deleted data between %llu and %llu.", continueStmtToken->GetDeletedBeginTime(),
-                 continueStmtToken->GetDeletedEndTime());
-            errCode = handle->GetDeletedSyncDataByTimestamp(
-                dataItems, Parcel::GetAppendedLen(),
-                // need modify
-                continueStmtToken->GetDeletedBeginTime(), continueStmtToken->GetDeletedEndTime(), dataSizeInfo);
+    do {
+        errCode = handle->GetSyncDataByQuery(dataItems,
+            Parcel::GetAppendedLen(),
+            dataSizeInfo,
+            std::bind(&SQLiteSingleVerRelationalContinueToken::GetStatement, *continueStmtToken,
+                std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+        if (errCode == -E_FINISHED) {
+            continueStmtToken->FinishGetData();
+            errCode = continueStmtToken->IsGetAllDataFinished() ? E_OK : -E_UNFINISHED;
         }
-    }
-
-    if (errCode == -E_FINISHED) {
-        errCode = E_OK;
-    }
+    } while (errCode == -E_UNFINISHED &&
+             CanHoldDeletedData(dataItems, dataSizeInfo, Parcel::GetAppendedLen()));
 
 ERROR:
     if (errCode != -E_UNFINISHED && errCode != E_OK) { // Error happened.
@@ -348,13 +310,24 @@ int RelationalSyncAbleStorage::GetSyncData(QueryObject &query, const SyncTimeRan
         return -E_INVALID_ARGS;
     }
 
-    auto token = new (std::nothrow) SQLiteSingleVerContinueToken(timeRange, query); // release in sync module
+    auto token = new (std::nothrow) SQLiteSingleVerRelationalContinueToken(timeRange, query);
     if (token == nullptr) {
         LOGE("[SingleVerNStore] Allocate continue token failed.");
         return -E_OUT_OF_MEMORY;
     }
 
-    int innerCode;
+    continueStmtToken = static_cast<ContinueToken>(token);
+    return GetSyncDataNext(entries, continueStmtToken, dataSizeInfo);
+}
+
+int RelationalSyncAbleStorage::GetSyncDataNext(std::vector<SingleVerKvEntry *> &entries,
+    ContinueToken &continueStmtToken, const DataSizeSpecInfo &dataSizeInfo) const
+{
+    auto token = static_cast<SQLiteSingleVerRelationalContinueToken *>(continueStmtToken);
+    if (!token->CheckValid()) {
+        return -E_INVALID_ARGS;
+    }
+
     std::vector<DataItem> dataItems;
     int errCode = GetSyncDataForQuerySync(dataItems, token, dataSizeInfo);
     if (errCode != E_OK && errCode != -E_UNFINISHED) { // The code need be sent to outside except new error happened.
@@ -362,7 +335,7 @@ int RelationalSyncAbleStorage::GetSyncData(QueryObject &query, const SyncTimeRan
         return errCode;
     }
 
-    innerCode = GetKvEntriesByDataItems(entries, dataItems);
+    int innerCode = GetKvEntriesByDataItems(entries, dataItems);
     if (innerCode != E_OK) {
         errCode = innerCode;
         delete token;
@@ -370,18 +343,6 @@ int RelationalSyncAbleStorage::GetSyncData(QueryObject &query, const SyncTimeRan
     }
     continueStmtToken = static_cast<ContinueToken>(token);
     return errCode;
-}
-
-int RelationalSyncAbleStorage::GetSyncDataNext(std::vector<SingleVerKvEntry *> &entries,
-    ContinueToken &continueStmtToken, const DataSizeSpecInfo &dataSizeInfo) const
-{
-    return E_OK;
-}
-
-// Release the continue token of getting data.
-void RelationalSyncAbleStorage::ReleaseContinueToken(ContinueToken &continueStmtToken) const
-{
-    return;
 }
 
 int RelationalSyncAbleStorage::PutSyncDataWithQuery(const QueryObject &object,
