@@ -114,6 +114,18 @@ int SQLiteRelationalStore::GetSchemaFromMeta()
     return E_OK;
 }
 
+int SQLiteRelationalStore::SaveSchemaToMeta()
+{
+    const Key schemaKey(RELATIONAL_SCHEMA_KEY, RELATIONAL_SCHEMA_KEY + strlen(RELATIONAL_SCHEMA_KEY));
+    Value schemaVal;
+    DBCommon::StringToVector(properties_.GetSchema().ToSchemaString(), schemaVal);
+    int errCode = storageEngine_->PutMetaData(schemaKey, schemaVal);
+    if (errCode != E_OK) {
+        LOGE("Save relational schema to meta table failed. %d", errCode);
+    }
+    return errCode;
+}
+
 int SQLiteRelationalStore::SaveLogTableVersionToMeta()
 {
     // TODO: save log table version into meta data
@@ -310,17 +322,26 @@ int SQLiteRelationalStore::CreateDistributedTable(const std::string &tableName)
         return errCode;
     }
 
+    errCode = handle->StartTransaction(TransactType::IMMEDIATE);
+    if (errCode != E_OK) {
+        ReleaseHandle(handle);
+        return errCode;
+    }
+
     TableInfo table;
     errCode = handle->CreateDistributedTable(tableName, table);
     if (errCode != E_OK) {
         LOGE("create distributed table failed. %d", errCode);
-    } else {
-        schema.AddRelationalTable(table);
-        properties_.SetSchema(schema);
+        (void)handle->Rollback();
+        ReleaseHandle(handle);
+        return errCode;
     }
+    schema.AddRelationalTable(table);
+    properties_.SetSchema(schema);
+    (void)handle->Commit();
 
     ReleaseHandle(handle);
-    return errCode;
+    return SaveSchemaToMeta();
 }
 }
 #endif

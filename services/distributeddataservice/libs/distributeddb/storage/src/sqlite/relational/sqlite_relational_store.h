@@ -59,6 +59,7 @@ private:
     void DecreaseConnectionCounter();
 
     int GetSchemaFromMeta();
+    int SaveSchemaToMeta();
 
     int SaveLogTableVersionToMeta();
 
