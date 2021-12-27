@@ -20,7 +20,7 @@
 #include <string>
 
 #include "ref_object.h"
-#include "kvdb_properties.h"
+#include "relationaldb_properties.h"
 #include "relational_store_connection.h"
 
 namespace DistributedDB {

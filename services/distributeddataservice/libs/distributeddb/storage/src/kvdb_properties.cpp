@@ -18,15 +18,6 @@
 #include "db_constant.h"
 
 namespace DistributedDB {
-const std::string DBProperties::CREATE_IF_NECESSARY = "createIfNecessary";
-const std::string DBProperties::DATABASE_TYPE = "databaseType";
-const std::string DBProperties::DATA_DIR = "dataDir";
-const std::string DBProperties::USER_ID = "userId";
-const std::string DBProperties::APP_ID = "appId";
-const std::string DBProperties::STORE_ID = "storeId";
-const std::string DBProperties::IDENTIFIER_DATA = "identifier";
-const std::string DBProperties::IDENTIFIER_DIR = "identifierDir";
-
 const std::string KvDBProperties::FILE_NAME = "fileName";
 const std::string KvDBProperties::MEMORY_MODE = "memoryMode";
 const std::string KvDBProperties::ENCRYPTED_MODE = "isEncryptedDb";
@@ -58,51 +49,6 @@ std::string KvDBProperties::GetStoreSubDirectory(int type)
         default:
             return "unknown";
     }
-}
-
-std::string DBProperties::GetStringProp(const std::string &name, const std::string &defaultValue) const
-{
-    auto iter = stringProperties_.find(name);
-    if (iter != stringProperties_.end()) {
-        return iter->second;
-    } else {
-        return defaultValue;
-    }
-}
-
-void DBProperties::SetStringProp(const std::string &name, const std::string &value)
-{
-    stringProperties_[name] = value;
-}
-
-bool DBProperties::GetBoolProp(const std::string &name, bool defaultValue) const
-{
-    auto iter = boolProperties_.find(name);
-    if (iter != boolProperties_.end()) {
-        return iter->second;
-    } else {
-        return defaultValue;
-    }
-}
-
-void DBProperties::SetBoolProp(const std::string &name, bool value)
-{
-    boolProperties_[name] = value;
-}
-
-int DBProperties::GetIntProp(const std::string &name, int defaultValue) const
-{
-    auto iter = intProperties_.find(name);
-    if (iter != intProperties_.end()) {
-        return iter->second;
-    } else {
-        return defaultValue;
-    }
-}
-
-void DBProperties::SetIntProp(const std::string &name, int value)
-{
-    intProperties_[name] = value;
 }
 
 void KvDBProperties::GetPassword(CipherType &type, CipherPassword &password) const
@@ -143,27 +89,6 @@ int KvDBProperties::GetSecFlag() const
 }
 
 const SchemaObject &KvDBProperties::GetSchemaConstRef() const
-{
-    return schema_;
-}
-
-RelationalDBProperties::RelationalDBProperties()
-{}
-
-RelationalDBProperties::~RelationalDBProperties()
-{}
-
-bool RelationalDBProperties::IsSchemaExist() const
-{
-    return schema_.IsSchemaValid();
-}
-
-void RelationalDBProperties::SetSchema(const RelationalSchemaObject &schema)
-{
-    schema_ = schema;
-}
-
-RelationalSchemaObject RelationalDBProperties::GetSchema() const
 {
     return schema_;
 }

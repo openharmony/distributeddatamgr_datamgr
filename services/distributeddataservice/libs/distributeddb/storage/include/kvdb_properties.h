@@ -20,48 +20,10 @@
 #include <string>
 #include <vector>
 
+#include "db_properties.h"
 #include "schema_object.h"
-#include "relational_schema_object.h"
 
 namespace DistributedDB {
-class DBProperties {
-public:
-    DBProperties() = default;
-    virtual ~DBProperties() = default;
-
-    // Get the string property according the name
-    std::string GetStringProp(const std::string &name, const std::string &defaultValue) const;
-
-    // Set the string property for the name
-    void SetStringProp(const std::string &name, const std::string &value);
-
-    // Get the bool property according the name
-    bool GetBoolProp(const std::string &name, bool defaultValue) const;
-
-    // Set the bool property for the name
-    void SetBoolProp(const std::string &name, bool value);
-
-    // Get the bool property according the name
-    int GetIntProp(const std::string &name, int defaultValue) const;
-
-    // Set the integer property for the name
-    void SetIntProp(const std::string &name, int value);
-
-    static const std::string CREATE_IF_NECESSARY;
-    static const std::string DATABASE_TYPE;
-    static const std::string DATA_DIR;
-    static const std::string USER_ID;
-    static const std::string APP_ID;
-    static const std::string STORE_ID;
-    static const std::string IDENTIFIER_DATA;
-    static const std::string IDENTIFIER_DIR;
-
-protected:
-    std::map<std::string, std::string> stringProperties_;
-    std::map<std::string, bool> boolProperties_;
-    std::map<std::string, int> intProperties_;
-};
-
 class KvDBProperties final : public DBProperties {
 public:
     KvDBProperties();
@@ -116,25 +78,6 @@ private:
     CipherType cipherType_;
     CipherPassword password_;
     SchemaObject schema_;
-};
-
-// TODO: move to its own file, or rename this file
-class RelationalDBProperties final : public DBProperties {
-public:
-    RelationalDBProperties();
-    ~RelationalDBProperties() override;
-
-    // is schema exist
-    bool IsSchemaExist() const;
-
-    // set schema
-    void SetSchema(const RelationalSchemaObject &schema);
-
-    // get schema
-    RelationalSchemaObject GetSchema() const;
-
-private:
-    RelationalSchemaObject schema_;
 };
 } // namespace DistributedDB
 

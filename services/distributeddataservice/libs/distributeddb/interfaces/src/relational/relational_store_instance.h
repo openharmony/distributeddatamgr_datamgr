@@ -20,7 +20,7 @@
 #include <mutex>
 
 #include "irelational_store.h"
-#include "kvdb_properties.h"
+#include "relationaldb_properties.h"
 
 namespace DistributedDB {
 class RelationalStoreInstance final {
