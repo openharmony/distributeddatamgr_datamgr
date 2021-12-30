@@ -148,21 +148,8 @@ namespace {
     {
         std::vector<std::string> devices = {DEVICE_B};
         Query query = Query::Select(g_tableName);
-        std::mutex syncLock;
-        std::condition_variable syncCondVar;
         std::map<std::string, std::vector<TableStatus>> statusMap;
-        std::mutex syncMutex;
-        std::condition_variable syncCv;
-        SyncStatusCallback callBack = [&statusMap, &syncCv](
-            const std::map<std::string, std::vector<TableStatus>> &devicesMap) {
-            statusMap = devicesMap;
-            syncCv.notify_one();
-        };
-        DBStatus callStatus = g_kvDelegatePtr->Sync(devices, syncMode, callBack, query, false);
-        std::unique_lock<std::mutex> uniqueLock(syncMutex);
-        syncCv.wait(uniqueLock, [&statusMap]() {
-            return !statusMap.empty();
-        });
+        DBStatus callStatus = g_kvDelegatePtr->Sync(devices, syncMode, query, statusMap);
         EXPECT_EQ(callStatus, OK);
         for (const auto &tablesRes : statusMap) {
             for (const auto &tableStatus : tablesRes.second) {

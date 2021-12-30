@@ -74,24 +74,22 @@ DBStatus RelationalStoreDelegateImpl::CreateDistributedTable(const std::string &
 }
 
 DBStatus RelationalStoreDelegateImpl::Sync(const std::vector<std::string> &devices, SyncMode mode,
-    const Query &query, bool wait, std::map<std::string, std::vector<TableStatus>> &devicesMap)
+    const Query &query, std::map<std::string, std::vector<TableStatus>> &devicesMap)
 {
-    bool syncFinished = false;
-    std::condition_variable cv;
-    SyncStatusCallback onComplete = [&syncFinished, &cv, &devicesMap](
+    SyncStatusCallback onComplete = [&devicesMap](
         const std::map<std::string, std::vector<TableStatus>> &resMap) {
-            syncFinished = true;
             devicesMap = resMap;
-            cv.notify_all(); 
     };
-    DBStatus errCode = ASync(devices, mode, onComplete, query, wait);
-    std::mutex mutex;
-    std::unique_lock lock(mutex);
-    cv.wait(lock, [&syncFinished]{ return syncFinished; });
-    return errCode;
+    return Sync(devices, mode, onComplete, query, true);
 }
 
 DBStatus RelationalStoreDelegateImpl::ASync(const std::vector<std::string> &devices, SyncMode mode,
+    SyncStatusCallback &onComplete, const Query &query)
+{
+    return Sync(devices, mode, onComplete, query, false);
+}
+
+DBStatus RelationalStoreDelegateImpl::Sync(const std::vector<std::string> &devices, SyncMode mode,
     SyncStatusCallback &onComplete, const Query &query, bool wait)
 {
     if (conn_ == nullptr) {
@@ -108,6 +106,7 @@ DBStatus RelationalStoreDelegateImpl::ASync(const std::vector<std::string> &devi
     }
     return OK;
 }
+
 
 DBStatus RelationalStoreDelegateImpl::RemoveDevicesData(const std::string &tableName, const std::string &device)
 {
