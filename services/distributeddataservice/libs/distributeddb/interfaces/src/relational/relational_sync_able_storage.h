@@ -109,7 +109,7 @@ private:
     int SetMaxTimeStamp(TimeStamp timestamp);
 
     // get
-    int GetSyncDataForQuerySync(std::vector<DataItem> &dataItems, SQLiteSingleVerRelationalContinueToken *&continueStmtToken,
+    int GetSyncDataForQuerySync(std::vector<DataItem> &dataItems, SQLiteSingleVerRelationalContinueToken *&token,
         const DataSizeSpecInfo &dataSizeInfo) const;
 
     // put

@@ -256,11 +256,11 @@ static void ProcessContinueTokenForQuerySync(const std::vector<DataItem> &dataIt
 }
 
 /**
- * Caller must ensure that parameter continueStmtToken is valid.
+ * Caller must ensure that parameter token is valid.
  * If error happened, token will be deleted here.
  */
 int RelationalSyncAbleStorage::GetSyncDataForQuerySync(std::vector<DataItem> &dataItems,
-    SQLiteSingleVerRelationalContinueToken *&continueStmtToken, const DataSizeSpecInfo &dataSizeInfo) const
+    SQLiteSingleVerRelationalContinueToken *&token, const DataSizeSpecInfo &dataSizeInfo) const
 {
     if (storageEngine_ == nullptr) {
         return -E_INVALID_DB;
@@ -273,7 +273,7 @@ int RelationalSyncAbleStorage::GetSyncDataForQuerySync(std::vector<DataItem> &da
         goto ERROR;
     }
 
-    errCode = handle->SetTableInfo(continueStmtToken->GetQuery());
+    errCode = handle->SetTableInfo(token->GetQuery());
     if (errCode != E_OK) {
         goto ERROR;
     }
@@ -282,11 +282,11 @@ int RelationalSyncAbleStorage::GetSyncDataForQuerySync(std::vector<DataItem> &da
         errCode = handle->GetSyncDataByQuery(dataItems,
             Parcel::GetAppendedLen(),
             dataSizeInfo,
-            std::bind(&SQLiteSingleVerRelationalContinueToken::GetStatement, *continueStmtToken,
+            std::bind(&SQLiteSingleVerRelationalContinueToken::GetStatement, *token,
                 std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         if (errCode == -E_FINISHED) {
-            continueStmtToken->FinishGetData();
-            errCode = continueStmtToken->IsGetAllDataFinished() ? E_OK : -E_UNFINISHED;
+            token->FinishGetData();
+            errCode = token->IsGetAllDataFinished() ? E_OK : -E_UNFINISHED;
         }
     } while (errCode == -E_UNFINISHED &&
              CanHoldDeletedData(dataItems, dataSizeInfo, Parcel::GetAppendedLen()));
@@ -295,7 +295,7 @@ ERROR:
     if (errCode != -E_UNFINISHED && errCode != E_OK) { // Error happened.
         dataItems.clear();
     }
-    ProcessContinueTokenForQuerySync(dataItems, errCode, continueStmtToken);
+    ProcessContinueTokenForQuerySync(dataItems, errCode, token);
     ReleaseHandle(handle);
     return errCode;
 }

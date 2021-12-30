@@ -123,5 +123,16 @@ enum SingleVerConflictResolvePolicy {
     DEFAULT_LAST_WIN = 0,
     DENY_OTHER_DEV_AMEND_CUR_DEV_DATA = 1,
 };
+
+struct SyncTimeRange {
+    TimeStamp beginTime = 0;
+    TimeStamp deleteBeginTime = 0;
+    TimeStamp endTime = static_cast<TimeStamp>(INT64_MAX);
+    TimeStamp deleteEndTime = static_cast<TimeStamp>(INT64_MAX);
+    bool IsValid() const
+    {
+        return (beginTime <= endTime && deleteBeginTime <= deleteEndTime);
+    }
+};
 } // namespace DistributedDB
 #endif // DISTRIBUTEDDB_TYPES_H

@@ -118,17 +118,18 @@ uint32_t DataTransformer::CalDataValueLength(const DataValue &dataValue)
         return 0u;
     }
     uint32_t length = 0;
-    std::string str;
     switch (dataValue.GetType()) {
         case StorageType::STORAGE_TYPE_BLOB:
             (void)dataValue.GetBlobLength(length);
             length = Parcel::GetEightByteAlign(length);
             length += Parcel::GetUInt32Len(); // record data length
             break;
-        case StorageType::STORAGE_TYPE_TEXT:
+        case StorageType::STORAGE_TYPE_TEXT: {
+            std::string str;
             (void)dataValue.GetText(str);
             length = Parcel::GetStringLen(str);
             break;
+        }
         default:
             break;
     }
@@ -245,7 +246,7 @@ int SerializeBlobValue(const DataValue &dataValue, Parcel &parcel)
 {
     Blob val;
     (void)dataValue.GetBlob(val);
-    const uint32_t &size = val.GetSize();
+    uint32_t size = val.GetSize();
     if (size == 0) {
         return SerializeNullValue(dataValue, parcel);
     }

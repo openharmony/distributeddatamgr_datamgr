@@ -20,7 +20,6 @@
 
 #include "db_types.h"
 #include "query_object.h"
-#include "single_ver_kvdb_sync_interface.h"
 
 namespace DistributedDB {
 class SQLiteSingleVerRelationalContinueToken {
