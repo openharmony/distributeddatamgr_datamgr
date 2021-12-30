@@ -18,6 +18,13 @@
 #include "sqlite_single_ver_relational_storage_executor.h"
 
 namespace DistributedDB {
+RelationalStoreConnection::RelationalStoreConnection() : isExclusive_(false)
+{}
+
+RelationalStoreConnection::RelationalStoreConnection(IRelationalStore *store)
+    : store_(store), isExclusive_(false)
+{}
+
 int RelationalStoreConnection::Pragma(int cmd, void *parameter)
 {
     return E_OK;

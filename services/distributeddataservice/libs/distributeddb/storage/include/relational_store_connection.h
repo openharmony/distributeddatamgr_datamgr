@@ -34,11 +34,10 @@ public:
         const Query &query;
         bool wait = true;
     };
-    RelationalStoreConnection() = default;
-    explicit RelationalStoreConnection(IRelationalStore *store)
-    {
-        store_ = store;
-    };
+
+    RelationalStoreConnection();
+
+    explicit RelationalStoreConnection(IRelationalStore *store);
 
     virtual ~RelationalStoreConnection() = default;
 
@@ -61,7 +60,7 @@ protected:
 
     virtual int Pragma(int cmd, void *parameter);
     IRelationalStore *store_ = nullptr;
-    std::atomic<bool> isExclusive_ = false;
+    std::atomic<bool> isExclusive_;
 };
 } // namespace DistributedDB
 #endif

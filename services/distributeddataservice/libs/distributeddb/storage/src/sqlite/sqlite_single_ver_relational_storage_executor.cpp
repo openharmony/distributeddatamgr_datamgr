@@ -242,10 +242,10 @@ static size_t GetDataItemSerialSize(DataItem &item, size_t appendLen)
     return dataSize;
 }
 
-static const std::string SELECT_META_VALUE_SQL =
-        "SELECT value FROM " + DBConstant::RELATIONAL_PREFIX + "metadata WHERE key=?;";
 int SQLiteSingleVerRelationalStorageExecutor::GetKvData(const Key &key, Value &value) const
 {
+    static const std::string SELECT_META_VALUE_SQL = "SELECT value FROM " + DBConstant::RELATIONAL_PREFIX +
+        "metadata WHERE key=?;";
     sqlite3_stmt *statement = nullptr;
     int errCode = SQLiteUtils::GetStatement(dbHandle_, SELECT_META_VALUE_SQL, statement);
     if (errCode != E_OK) {
@@ -271,10 +271,10 @@ int SQLiteSingleVerRelationalStorageExecutor::GetKvData(const Key &key, Value &v
     return errCode;
 }
 
-static const std::string INSERT_META_SQL = "INSERT OR REPLACE INTO " + DBConstant::RELATIONAL_PREFIX +
-    "metadata VALUES(?,?);";
 int SQLiteSingleVerRelationalStorageExecutor::PutKvData(const Key &key, const Value &value) const
 {
+    static const std::string INSERT_META_SQL = "INSERT OR REPLACE INTO " + DBConstant::RELATIONAL_PREFIX +
+        "metadata VALUES(?,?);";
     sqlite3_stmt *statement = nullptr;
     int errCode = SQLiteUtils::GetStatement(dbHandle_, INSERT_META_SQL, statement);
     if (errCode != E_OK) {
@@ -301,10 +301,10 @@ ERROR:
     return errCode;
 }
 
-static const std::string REMOVE_META_VALUE_SQL = "DELETE FROM " + DBConstant::RELATIONAL_PREFIX +
-    "metadata WHERE key=?;";
 int SQLiteSingleVerRelationalStorageExecutor::DeleteMetaData(const std::vector<Key> &keys) const
 {
+    static const std::string REMOVE_META_VALUE_SQL = "DELETE FROM " + DBConstant::RELATIONAL_PREFIX +
+        "metadata WHERE key=?;";
     sqlite3_stmt *statement = nullptr;
     int errCode = SQLiteUtils::GetStatement(dbHandle_, REMOVE_META_VALUE_SQL, statement);
     if (errCode != E_OK) {
@@ -328,10 +328,10 @@ int SQLiteSingleVerRelationalStorageExecutor::DeleteMetaData(const std::vector<K
     return CheckCorruptedStatus(errCode);
 }
 
-static const std::string REMOVE_META_VALUE_BY_KEY_PREFIX_SQL =
-    "DELETE FROM " + DBConstant::RELATIONAL_PREFIX + "metadata WHERE key>=? AND key<=?;";
 int SQLiteSingleVerRelationalStorageExecutor::DeleteMetaDataByPrefixKey(const Key &keyPrefix) const
 {
+    static const std::string REMOVE_META_VALUE_BY_KEY_PREFIX_SQL = "DELETE FROM " + DBConstant::RELATIONAL_PREFIX +
+        "metadata WHERE key>=? AND key<=?;";
     sqlite3_stmt *statement = nullptr;
     int errCode = SQLiteUtils::GetStatement(dbHandle_, REMOVE_META_VALUE_BY_KEY_PREFIX_SQL, statement);
     if (errCode != E_OK) {
@@ -376,10 +376,9 @@ static int GetAllKeys(sqlite3_stmt *statement, std::vector<Key> &keys)
     return errCode;
 }
 
-
-static const std::string SELECT_ALL_META_KEYS = "SELECT key FROM " + DBConstant::RELATIONAL_PREFIX + "metadata;";
 int SQLiteSingleVerRelationalStorageExecutor::GetAllMetaKeys(std::vector<Key> &keys) const
 {
+    static const std::string SELECT_ALL_META_KEYS = "SELECT key FROM " + DBConstant::RELATIONAL_PREFIX + "metadata;";
     sqlite3_stmt *statement = nullptr;
     int errCode = SQLiteUtils::GetStatement(dbHandle_, SELECT_ALL_META_KEYS, statement);
     if (errCode != E_OK) {
@@ -446,8 +445,8 @@ int SQLiteSingleVerRelationalStorageExecutor::PrepareForSavingData(const QueryOb
     return errCode;
 }
 
-int SQLiteSingleVerRelationalStorageExecutor::SaveSyncLog(sqlite3_stmt *statement,
-    const DataItem &dataItem, TimeStamp &maxTimestamp)
+int SQLiteSingleVerRelationalStorageExecutor::SaveSyncLog(sqlite3_stmt *statement, const DataItem &dataItem,
+    TimeStamp &maxTimestamp)
 {
     Key hashKey;
     (void)DBCommon::CalcValueHash(dataItem.key, hashKey);
