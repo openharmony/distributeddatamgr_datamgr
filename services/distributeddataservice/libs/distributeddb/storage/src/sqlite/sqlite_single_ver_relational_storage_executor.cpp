@@ -29,23 +29,29 @@ int SQLiteSingleVerRelationalStorageExecutor::CreateDistributedTable(const std::
         return -E_INVALID_DB;
     }
 
-    int historyDataCnt = 0;
-    int errCode = SQLiteUtils::GetTableRecordCount(dbHandle_, tableName, historyDataCnt);
+    int errCode = SQLiteUtils::AnalysisSchema(dbHandle_, tableName, table);
     if (errCode != E_OK) {
-        LOGE("[CreateDistributedTable] Get the number of table [%s] rows failed. %d", tableName.c_str(), errCode);
+        LOGE("[CreateDistributedTable] analysis table schema failed. %d", errCode);
         return errCode;
     }
 
-    if (historyDataCnt > 0) { // 0 : create distributed table should on an empty table
+    if (table.GetCreateTableSql().find("WITHOUT ROWID") != std::string::npos) {
+        LOGE("[CreateDistributedTable] Not support create distributed table without rowid.");
+        return -E_NOT_SUPPORT;
+    }
+
+    bool isTableEmpty = false;
+    errCode = SQLiteUtils::CheckTableEmpty(dbHandle_, tableName, isTableEmpty);
+    if (errCode != E_OK) {
+        LOGE("[CreateDistributedTable] Check table [%s] is empty failed. %d", tableName.c_str(), errCode);
+        return errCode;
+    }
+
+    if (!isTableEmpty) { // create distributed table should on an empty table
         LOGE("[CreateDistributedTable] Create distributed table should on an empty table.");
         return -E_NOT_SUPPORT;
     }
 
-    errCode = SQLiteUtils::AnalysisSchema(dbHandle_, tableName, table);
-    if (errCode != E_OK) {
-        LOGE("[CreateDistributedTable] analysis table schema failed");
-        return errCode;
-    }
     // create log table
     errCode = SQLiteUtils::CreateRelationalLogTable(dbHandle_, tableName);
     if (errCode != E_OK) {

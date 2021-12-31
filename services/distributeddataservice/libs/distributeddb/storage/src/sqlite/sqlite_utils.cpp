@@ -1974,13 +1974,13 @@ int SQLiteUtils::ExpandedSql(sqlite3_stmt *stmt, std::string &basicString)
     return E_OK;
 }
 
-int SQLiteUtils::GetTableRecordCount(sqlite3 *db, const std::string &tableName, int &count)
+int SQLiteUtils::CheckTableEmpty(sqlite3 *db, const std::string &tableName, bool &isEmpty)
 {
     if (db == nullptr) {
         return -E_INVALID_ARGS;
     }
 
-    std::string cntSql = "SELECT COUNT(*) FROM " + tableName + ";";
+    std::string cntSql = "SELECT min(rowid) FROM " + tableName + ";";
     sqlite3_stmt *stmt = nullptr;
     int errCode = SQLiteUtils::GetStatement(db, cntSql, stmt);
     if (errCode != E_OK) {
@@ -1989,7 +1989,11 @@ int SQLiteUtils::GetTableRecordCount(sqlite3 *db, const std::string &tableName, 
 
     errCode = SQLiteUtils::StepWithRetry(stmt, false);
     if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_ROW)) {
-        count = sqlite3_column_int(stmt, 0);
+        if (sqlite3_column_type(stmt, 0) == SQLITE_NULL) {
+            isEmpty = true;
+        } else {
+            isEmpty = false;
+        }
         errCode = E_OK;
     }
 
