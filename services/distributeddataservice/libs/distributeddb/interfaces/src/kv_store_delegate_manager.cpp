@@ -578,4 +578,9 @@ DBStatus KvStoreDelegateManager::SetProcessSystemAPIAdapter(const std::shared_pt
 {
     return TransferDBErrno(RuntimeContext::GetInstance()->SetProcessSystemApiAdapter(adapter));
 }
+
+void KvStoreDelegateManager::SetStoreStatusNotifier(const StoreStatusNotifier &notifier)
+{
+    RuntimeContext::GetInstance()->SetStoreStatusNotifier(notifier);
+}
 } // namespace DistributedDB

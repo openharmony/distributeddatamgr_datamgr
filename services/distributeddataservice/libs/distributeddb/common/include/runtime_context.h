@@ -105,6 +105,11 @@ public:
 
     // Notify TIME_CHANGE_EVENT.
     virtual void NotifyTimeStampChanged(TimeOffset offset) const = 0;
+
+    virtual void SetStoreStatusNotifier(const StoreStatusNotifier &notifier) = 0;
+
+    virtual void NotifyDatabaseStatusChange(const std::string &userId, const std::string &appId, const std::string &storeId,
+        const std::string &deviceId, bool onlineStatus) = 0;
 protected:
     RuntimeContext() = default;
     virtual ~RuntimeContext() {}

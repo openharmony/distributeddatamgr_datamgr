@@ -21,6 +21,10 @@ namespace DistributedDB {
 void SingleVerSyncer::RemoteDeviceOffline(const std::string &device)
 {
     LOGI("[SingleVerRelationalSyncer] device offline dev %s", STR_MASK(device));
+    std::string userId = syncInterface_->GetDbProperties().GetStringProp(KvDBProperties::USER_ID, "");
+    std::string appId = syncInterface_->GetDbProperties().GetStringProp(KvDBProperties::APP_ID, "");
+    std::string storeId = syncInterface_->GetDbProperties().GetStringProp(KvDBProperties::STORE_ID, "");
+    RuntimeContext::GetInstance()->NotifyDatabaseStatusChange(userId, appId, storeId, device, false);
     RefObject::IncObjRef(syncEngine_);
     static_cast<SingleVerSyncEngine *>(syncEngine_)->OfflineHandleByDevice(device);
     RefObject::DecObjRef(syncEngine_);

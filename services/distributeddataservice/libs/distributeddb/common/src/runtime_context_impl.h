@@ -97,6 +97,11 @@ public:
     // Notify TIME_CHANGE_EVENT.
     void NotifyTimeStampChanged(TimeOffset offset) const override;
 
+    void SetStoreStatusNotifier(const StoreStatusNotifier &notifier) override;
+
+    void NotifyDatabaseStatusChange(const std::string &userId, const std::string &appId, const std::string &storeId,
+        const std::string &deviceId, bool onlineStatus) override;
+
 private:
     static constexpr int MAX_TP_THREADS = 10;  // max threads of the task pool.
     static constexpr int MIN_TP_THREADS = 1;   // min threads of the task pool.
@@ -142,6 +147,9 @@ private:
     std::shared_ptr<IProcessSystemApiAdapter> systemApiAdapter_;
     mutable std::mutex lockStatusLock_; // Mutex for lockStatusObserver_.
     LockStatusObserver *lockStatusObserver_;
+
+    mutable std::shared_mutex databaseStatusCallbackMutex_{};
+    StoreStatusNotifier databaseStatusNotifyCallback_;
 };
 } // namespace DistributedDB
 

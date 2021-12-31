@@ -102,6 +102,8 @@ public:
 
     DB_API static DBStatus SetProcessSystemAPIAdapter(const std::shared_ptr<IProcessSystemApiAdapter> &adapter);
 
+    DB_API static void SetStoreStatusNotifier(const StoreStatusNotifier &notifier);
+
 private:
 
     // Check if the dataDir is safe arg.
