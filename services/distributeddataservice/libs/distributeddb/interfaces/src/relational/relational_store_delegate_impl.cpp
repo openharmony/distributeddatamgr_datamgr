@@ -107,7 +107,6 @@ DBStatus RelationalStoreDelegateImpl::Sync(const std::vector<std::string> &devic
     return OK;
 }
 
-
 DBStatus RelationalStoreDelegateImpl::RemoveDevicesData(const std::string &tableName, const std::string &device)
 {
     return NOT_SUPPORT;
