@@ -38,7 +38,7 @@ public:
         const Query &query, std::map<std::string, std::vector<TableStatus>> &devicesMap) override;
 
     DBStatus ASync(const std::vector<std::string> &devices, SyncMode mode,
-        SyncStatusCallback &onComplete, const Query &query) override;
+        const Query &query, SyncStatusCallback &onComplete) override;
 
     DBStatus RemoveDeviceData(const std::string &device) override;
 

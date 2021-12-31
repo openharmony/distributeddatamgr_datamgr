@@ -84,7 +84,7 @@ DBStatus RelationalStoreDelegateImpl::Sync(const std::vector<std::string> &devic
 }
 
 DBStatus RelationalStoreDelegateImpl::ASync(const std::vector<std::string> &devices, SyncMode mode,
-    SyncStatusCallback &onComplete, const Query &query)
+    const Query &query, SyncStatusCallback &onComplete)
 {
     return Sync(devices, mode, onComplete, query, false);
 }

@@ -43,7 +43,7 @@ public:
         const Query &query, std::map<std::string, std::vector<TableStatus>> &devicesMap) = 0;
 
     DB_API virtual DBStatus ASync(const std::vector<std::string> &devices, SyncMode mode,
-        SyncStatusCallback &onComplete, const Query &query) = 0;
+        const Query &query, SyncStatusCallback &onComplete) = 0;
 
     DB_API virtual DBStatus RemoveDevicesData(const std::string &tableName, const std::string &device) = 0;
 };
