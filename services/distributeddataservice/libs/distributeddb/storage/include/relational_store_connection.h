@@ -16,10 +16,12 @@
 #define RELATIONAL_STORE_CONNECTION_H
 #ifdef RELATIONAL_STORE
 
+#include "relational_store_delegate.h"
 #include <atomic>
 #include <string>
+
+#include "db_types.h"
 #include "macro_utils.h"
-#include "relational_store_delegate.h"
 #include "ref_object.h"
 
 namespace DistributedDB {
@@ -49,6 +51,7 @@ public:
     virtual int SyncToDevice(SyncInfo &info) = 0;
     virtual std::string GetIdentifier() = 0;
     virtual int CreateDistributedTable(const std::string &tableName) = 0;
+    virtual int RegisterLifeCycleCallback(const DatabaseLifeCycleNotifier &notifier) = 0;
 
 protected:
     // Get the stashed 'KvDB_ pointer' without ref.

@@ -187,5 +187,10 @@ int SQLiteRelationalStoreConnection::SyncToDevice(SyncInfo &info)
     }
     return E_OK;
 }
+
+int SQLiteRelationalStoreConnection::RegisterLifeCycleCallback(const DatabaseLifeCycleNotifier &notifier)
+{
+    return E_OK;
+}
 }
 #endif

@@ -38,6 +38,7 @@ public:
     int SyncToDevice(SyncInfo &info) override;
     std::string GetIdentifier() override;
     int CreateDistributedTable(const std::string &tableName) override;
+    int RegisterLifeCycleCallback(const DatabaseLifeCycleNotifier &notifier) override;
 
 protected:
 
