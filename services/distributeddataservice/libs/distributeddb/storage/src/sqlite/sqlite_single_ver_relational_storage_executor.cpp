@@ -151,54 +151,59 @@ static void GetDataValueByType(sqlite3_stmt *statement, DataValue &value, Storag
     return;
 }
 
-static void BindDataValueByType(sqlite3_stmt *statement,
-    const std::optional<DataValue> &value, StorageType type, int cid)
+static void BindDataValueByType(sqlite3_stmt *statement, const std::optional<DataValue> &data, int cid)
 {
-    if (value == std::nullopt || type == StorageType::STORAGE_TYPE_NULL) {
-        sqlite3_bind_null(statement, cid);
+    if (!data.has_value()) {  // For the column that added after enable distributed.
         return;
     }
 
+    StorageType type = data.value().GetType();
     switch (type) {
         case StorageType::STORAGE_TYPE_BOOL: {
             bool boolData = false;
-            value.value().GetBool(boolData);
+            data.value().GetBool(boolData);
             sqlite3_bind_int(statement, cid, boolData);
             break;
         }
 
         case StorageType::STORAGE_TYPE_INTEGER: {
             int64_t intData = 0;
-            value.value().GetInt64(intData);
+            data.value().GetInt64(intData);
             sqlite3_bind_int64(statement, cid, intData);
             break;
         }
 
         case StorageType::STORAGE_TYPE_REAL: {
             double doubleData = 0;
-            value.value().GetDouble(doubleData);
+            data.value().GetDouble(doubleData);
             sqlite3_bind_double(statement, cid, doubleData);
             break;
         }
 
         case StorageType::STORAGE_TYPE_TEXT: {
             std::string strData;
-            value.value().GetText(strData);
+            data.value().GetText(strData);
             SQLiteUtils::BindTextToStatement(statement, cid, strData);
             break;
         }
 
         case StorageType::STORAGE_TYPE_BLOB: {
             Blob blob;
-            value.value().GetBlob(blob);
+            data.value().GetBlob(blob);
             std::vector<uint8_t> blobData(blob.GetData(), blob.GetData() + blob.GetSize());
             SQLiteUtils::BindBlobToStatement(statement, cid, blobData, true);
             break;
         }
 
+        case StorageType::STORAGE_TYPE_NULL: {
+            sqlite3_bind_null(statement, cid);
+            break;
+        }
+
         default:
-            return;
+            break;
     }
+    return;
 }
 
 static int GetLogData(sqlite3_stmt *logStatement, LogInfo &logInfo)
@@ -555,13 +560,7 @@ int SQLiteSingleVerRelationalStorageExecutor::SaveSyncDataItem(sqlite3_stmt *sta
 
     for (size_t index = 0; index < data.optionalData.size(); index++) {
         const auto &filedData = data.optionalData[index];
-        if (filedData.has_value()) {
-            (void)BindDataValueByType(statement, filedData,
-                filedData.value().GetType(), fieldInfos[index].GetColumnId() + 1);
-        } else {
-            (void)BindDataValueByType(statement, filedData,
-                StorageType::STORAGE_TYPE_NULL, fieldInfos[index].GetColumnId() + 1);
-        }
+        (void)BindDataValueByType(statement, filedData, fieldInfos[index].GetColumnId() + 1);
     }
 
     errCode = SQLiteUtils::StepWithRetry(statement, isMemDb_);

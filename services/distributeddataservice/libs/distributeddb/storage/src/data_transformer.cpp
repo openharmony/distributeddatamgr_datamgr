@@ -302,7 +302,6 @@ int DataTransformer::SerializeValue(Value &value, const RowData &rowData, const 
     uint32_t totalLength = Parcel::GetUInt64Len(); // first record field count
     for (uint32_t i = 0; i < rowData.size(); ++i) {
         const auto &dataValue = rowData[i];
-        const auto &fieldInfo = fieldInfoList[i];
         if (typeFuncMap.find(dataValue.GetType()) == typeFuncMap.end()) {
             return -E_NOT_SUPPORT;
         }
@@ -313,9 +312,7 @@ int DataTransformer::SerializeValue(Value &value, const RowData &rowData, const 
     value.resize(totalLength);
     Parcel parcel(value.data(), value.size());
     (void)parcel.WriteUInt64(rowData.size());
-    int index = 0;
     for (const auto &dataValue : rowData) {
-        const auto &fieldInfo = fieldInfoList[index++];
         StorageType type = dataValue.GetType();
         parcel.WriteUInt32(static_cast<uint32_t>(type));
         int errCode = typeFuncMap[type].serializeFunc(dataValue, parcel);
@@ -363,11 +360,7 @@ int DataTransformer::DeSerializeValue(const Value &value, OptRowData &optionalDa
         if ((uint32_t)index >= valueList.size()) {
             return -E_INTERNAL_ERROR; // should not happen
         }
-        if (valueList[index].GetType() == StorageType::STORAGE_TYPE_NULL) {
-            optionalData.push_back(std::nullopt);
-        } else {
-            optionalData.push_back(valueList[index]);
-        }
+        optionalData.push_back(valueList[index]);
     }
     return E_OK;
 }
