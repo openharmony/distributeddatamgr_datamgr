@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -86,11 +86,11 @@ napi_value JsDeviceKVStore::Get(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<GetContext>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         // number 2 means: required 2 arguments, <deviceId> + <key>
-        ZLOGE_ON_ARGS(ctxt, argc == 2, "invalid arguments!");
+        CHECK_ARGS(ctxt, argc == 2, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], ctxt->deviceId);
-        ZLOGE_ON_STATUS(ctxt, "invalid arg[0], i.e. invalid deviceId!");
+        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid deviceId!");
         ctxt->status = JSUtil::GetValue(env, argv[1], ctxt->key);
-        ZLOGE_ON_STATUS(ctxt, "invalid arg[1], i.e. invalid key!");
+        CHECK_STATUS(ctxt, "invalid arg[1], i.e. invalid key!");
     };
     ctxt->GetCbInfo(env, info, input);
 
@@ -103,11 +103,11 @@ napi_value JsDeviceKVStore::Get(napi_env env, napi_callback_info info)
         ZLOGD("kvStore->Get return %{public}d", status);
         ctxt->value = JSUtil::Blob2VariantValue(value);
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
-        ZLOGE_ON_STATUS(ctxt, "kvStore->Get() failed!");
+        CHECK_STATUS(ctxt, "kvStore->Get() failed!");
     };
     auto output = [env, ctxt](napi_value& result) {
         ctxt->status = JSUtil::SetValue(env, ctxt->value, result);
-        ZLOGE_ON_STATUS(ctxt, "output failed");
+        CHECK_STATUS(ctxt, "output failed");
     };
     return NapiQueue::AsyncWork(env, ctxt, std::string(__FUNCTION__), execute, output);
 }
@@ -129,32 +129,32 @@ struct VariantArgs {
 
 static napi_status GetVariantArgs(napi_env env, size_t argc, napi_value* argv, VariantArgs& va)
 {
-    ZLOGE_RETURN(argc > 0, "invalid arguments!", napi_invalid_arg);
+    CHECK_RETURN(argc > 0, "invalid arguments!", napi_invalid_arg);
     napi_valuetype type = napi_undefined;
     napi_status status = napi_typeof(env, argv[0], &type);
-    ZLOGE_RETURN((type == napi_string) || (type == napi_object), "invalid arg[0], type error!", napi_invalid_arg);
+    CHECK_RETURN((type == napi_string) || (type == napi_object), "invalid arg[0], type error!", napi_invalid_arg);
     if (type == napi_string) {
         // number 2 means: required 2 arguments, <deviceId> <keyPrefix/query>
-        ZLOGE_RETURN(argc == 2, "invalid arguments!", napi_invalid_arg);
+        CHECK_RETURN(argc == 2, "invalid arguments!", napi_invalid_arg);
         status = JSUtil::GetValue(env, argv[0], va.deviceId);
-        ZLOGE_RETURN(!va.deviceId.empty(), "invalid arg[0], i.e. invalid deviceId!", napi_invalid_arg);
+        CHECK_RETURN(!va.deviceId.empty(), "invalid arg[0], i.e. invalid deviceId!", napi_invalid_arg);
 
         status = napi_typeof(env, argv[1], &type);
-        ZLOGE_RETURN((type == napi_string) || (type == napi_object), "invalid arg[1], type error!", napi_invalid_arg);
+        CHECK_RETURN((type == napi_string) || (type == napi_object), "invalid arg[1], type error!", napi_invalid_arg);
         if (type == napi_string) {
             status = JSUtil::GetValue(env, argv[1], va.keyPrefix);
-            ZLOGE_RETURN(!va.keyPrefix.empty(), "invalid arg[1], i.e. invalid keyPrefix!", napi_invalid_arg);
+            CHECK_RETURN(!va.keyPrefix.empty(), "invalid arg[1], i.e. invalid keyPrefix!", napi_invalid_arg);
             va.type = ArgsType::DEVICEID_KEYPREFIX;
         } else if (type == napi_object) {
             status = JSUtil::Unwrap(env, argv[1], (void**)(&va.query), JsQuery::Constructor(env));
-            ZLOGE_RETURN(va.query != nullptr, "invalid arg[1], i.e. invalid query!", napi_invalid_arg);
+            CHECK_RETURN(va.query != nullptr, "invalid arg[1], i.e. invalid query!", napi_invalid_arg);
             va.type = ArgsType::DEVICEID_QUERY;
         }
     } else if (type == napi_object) {
         // number 1 means: required 1 arguments, <query>
-        ZLOGE_RETURN(argc == 1, "invalid arguments!", napi_invalid_arg);
+        CHECK_RETURN(argc == 1, "invalid arguments!", napi_invalid_arg);
         status = JSUtil::Unwrap(env, argv[0], (void**)(&va.query), JsQuery::Constructor(env));
-        ZLOGE_RETURN(va.query != nullptr, "invalid arg[0], i.e. invalid query!", napi_invalid_arg);
+        CHECK_RETURN(va.query != nullptr, "invalid arg[0], i.e. invalid query!", napi_invalid_arg);
         va.type = ArgsType::QUERY;
     }
     return status;
@@ -181,7 +181,7 @@ napi_value JsDeviceKVStore::GetEntries(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<GetEntriesContext>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         ctxt->status = GetVariantArgs(env, argc, argv, ctxt->va);
-        ZLOGE_ON_STATUS(ctxt, "invalid arguments!");
+        CHECK_STATUS(ctxt, "invalid arguments!");
     };
     ctxt->GetCbInfo(env, info, input);
 
@@ -204,11 +204,11 @@ napi_value JsDeviceKVStore::GetEntries(napi_env env, napi_callback_info info)
             ZLOGD("kvStore->GetEntriesWithQuery() return %{public}d", status);
         }
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
-        ZLOGE_ON_STATUS(ctxt, "kvStore->GetEntries() failed!");
+        CHECK_STATUS(ctxt, "kvStore->GetEntries() failed!");
     };
     auto output = [env, ctxt](napi_value& result) {
         ctxt->status = JSUtil::SetValue(env, ctxt->entries, result);
-        ZLOGE_ON_STATUS(ctxt, "output failed!");
+        CHECK_STATUS(ctxt, "output failed!");
     };
     return NapiQueue::AsyncWork(env, ctxt, std::string(__FUNCTION__), execute, output);
 }
@@ -235,10 +235,10 @@ napi_value JsDeviceKVStore::GetResultSet(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<GetResultSetContext>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         ctxt->status = GetVariantArgs(env, argc, argv, ctxt->va);
-        ZLOGE_ON_STATUS(ctxt, "invalid arguments!");
+        CHECK_STATUS(ctxt, "invalid arguments!");
         ctxt->ref = JSUtil::NewWithRef(env, 0, nullptr, (void**)(&ctxt->resultSet),
             JsKVStoreResultSet::Constructor(env));
-        ZLOGE_ON_ARGS(ctxt, ctxt->resultSet != nullptr, "KVStoreResultSet::New failed!");
+        CHECK_ARGS(ctxt, ctxt->resultSet != nullptr, "KVStoreResultSet::New failed!");
     };
     ctxt->GetCbInfo(env, info, input);
 
@@ -262,13 +262,13 @@ napi_value JsDeviceKVStore::GetResultSet(napi_env env, napi_callback_info info)
             ZLOGD("kvStore->GetEntriesWithQuery() return %{public}d", status);
         }
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
-        ZLOGE_ON_STATUS(ctxt, "kvStore->GetResultSet() failed!");
+        CHECK_STATUS(ctxt, "kvStore->GetResultSet() failed!");
         ctxt->resultSet->SetNative(kvResultSet);
     };
     auto output = [env, ctxt](napi_value& result) {
         ctxt->status = napi_get_reference_value(env, ctxt->ref, &result);
         napi_delete_reference(env, ctxt->ref);
-        ZLOGE_ON_STATUS(ctxt, "output KvResultSet failed");
+        CHECK_STATUS(ctxt, "output KvResultSet failed");
     };
     return NapiQueue::AsyncWork(env, ctxt, std::string(__FUNCTION__), execute, output);
 }
@@ -287,13 +287,13 @@ napi_value JsDeviceKVStore::CloseResultSet(napi_env env, napi_callback_info info
     auto ctxt = std::make_shared<CloseResultSetContext>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         // required 1 arguments :: <resultSet>
-        ZLOGE_ON_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
         napi_valuetype type = napi_undefined;
         ctxt->status = napi_typeof(env, argv[0], &type);
-        ZLOGE_ON_ARGS(ctxt, type == napi_object, "invalid arg[0], i.e. invalid resultSet!");
+        CHECK_ARGS(ctxt, type == napi_object, "invalid arg[0], i.e. invalid resultSet!");
         ctxt->status = JSUtil::Unwrap(env, argv[0], (void**)(&ctxt->resultSet),
             JsKVStoreResultSet::Constructor(env));
-        ZLOGE_ON_ARGS(ctxt, ctxt->resultSet != nullptr, "invalid arg[0], i.e. invalid resultSet!");
+        CHECK_ARGS(ctxt, ctxt->resultSet != nullptr, "invalid arg[0], i.e. invalid resultSet!");
     };
     ctxt->GetCbInfo(env, info, input);
 
@@ -302,7 +302,7 @@ napi_value JsDeviceKVStore::CloseResultSet(napi_env env, napi_callback_info info
         Status status = kvStore->CloseResultSet(ctxt->resultSet->GetNative());
         ZLOGD("kvStore->CloseResultSet return %{public}d", status);
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
-        ZLOGE_ON_STATUS(ctxt, "kvStore->CloseResultSet failed!");
+        CHECK_STATUS(ctxt, "kvStore->CloseResultSet failed!");
     };
     return NapiQueue::AsyncWork(env, ctxt, std::string(__FUNCTION__), execute);
 }
@@ -325,9 +325,9 @@ napi_value JsDeviceKVStore::GetResultSize(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<ResultSizeContext>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         ctxt->status = GetVariantArgs(env, argc, argv, ctxt->va);
-        ZLOGE_ON_ARGS(ctxt, (ctxt->va.type == ArgsType::DEVICEID_QUERY) || (ctxt->va.type == ArgsType::QUERY),
+        CHECK_ARGS(ctxt, (ctxt->va.type == ArgsType::DEVICEID_QUERY) || (ctxt->va.type == ArgsType::QUERY),
             "invalid arguments!");
-        ZLOGE_ON_STATUS(ctxt, "invalid arguments!");
+        CHECK_STATUS(ctxt, "invalid arguments!");
     };
 
     ctxt->GetCbInfo(env, info, input);
@@ -340,11 +340,11 @@ napi_value JsDeviceKVStore::GetResultSize(napi_env env, napi_callback_info info)
         Status status = kvStore->GetCountWithQuery(query.ToString(), ctxt->resultSize);
         ZLOGD("kvStore->GetCountWithQuery() return %{public}d", status);
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
-        ZLOGE_ON_STATUS(ctxt, "kvStore->GetCountWithQuery() failed!");
+        CHECK_STATUS(ctxt, "kvStore->GetCountWithQuery() failed!");
     };
     auto output = [env, ctxt](napi_value& result) {
         ctxt->status = JSUtil::SetValue(env, static_cast<int32_t>(ctxt->resultSize), result);
-        ZLOGE_ON_STATUS(ctxt, "output resultSize failed!");
+        CHECK_STATUS(ctxt, "output resultSize failed!");
     };
     return NapiQueue::AsyncWork(env, ctxt, std::string(__FUNCTION__), execute, output);
 }
@@ -363,9 +363,9 @@ napi_value JsDeviceKVStore::RemoveDeviceData(napi_env env, napi_callback_info in
     auto ctxt = std::make_shared<RemoveDeviceContext>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         // required 1 arguments :: <deviceId>
-        ZLOGE_ON_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], ctxt->deviceId);
-        ZLOGE_ON_STATUS(ctxt, "invalid arg[0], i.e. invalid deviceId!");
+        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid deviceId!");
     };
     ctxt->GetCbInfo(env, info, input);
 
@@ -374,7 +374,7 @@ napi_value JsDeviceKVStore::RemoveDeviceData(napi_env env, napi_callback_info in
         Status status = kvStore->RemoveDeviceData(ctxt->deviceId);
         ZLOGD("kvStore->RemoveDeviceData return %{public}d", status);
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
-        ZLOGE_ON_STATUS(ctxt, "kvStore->RemoveDeviceData() failed!");
+        CHECK_STATUS(ctxt, "kvStore->RemoveDeviceData() failed!");
     };
     return NapiQueue::AsyncWork(env, ctxt, std::string(__FUNCTION__), execute);
 }
@@ -392,14 +392,15 @@ napi_value JsDeviceKVStore::Sync(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<SyncContext>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         // required 2 arguments :: <deviceIdList> + <mode>
-        ZLOGE_ON_ARGS(ctxt, argc == 2, "invalid arguments!");
+        CHECK_ARGS(ctxt, argc == 2, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], ctxt->deviceIdList);
-        ZLOGE_ON_STATUS(ctxt, "invalid arg[0], i.e. invalid deviceIdList!");
+        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid deviceIdList!");
         ctxt->status = JSUtil::GetValue(env, argv[1], ctxt->mode);
-        ZLOGE_ON_STATUS(ctxt, "invalid arg[1], i.e. invalid mode!");
-        ZLOGE_ON_ARGS(ctxt, ctxt->mode <= uint32_t(SyncMode::PUSH_PULL), "invalid arg[1], i.e. invalid mode!");
+        CHECK_STATUS(ctxt, "invalid arg[1], i.e. invalid mode!");
+        CHECK_ARGS(ctxt, ctxt->mode <= uint32_t(SyncMode::PUSH_PULL), "invalid arg[1], i.e. invalid mode!");
     };
-    NAPI_CALL(env, ctxt->GetCbInfoSync(env, info, input));
+    ctxt->GetCbInfoSync(env, info, input);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     auto& kvStore = reinterpret_cast<JsDeviceKVStore*>(ctxt->native)->GetNative();
     Status status = kvStore->Sync(ctxt->deviceIdList, static_cast<SyncMode>(ctxt->mode));
@@ -415,12 +416,13 @@ napi_value JsDeviceKVStore::New(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<ContextBase>();
     auto input = [env, ctxt, &storeId](size_t argc, napi_value* argv) {
         // required 2 arguments :: <storeId> <options>
-        ZLOGE_ON_ARGS(ctxt, argc == 2, "invalid arguments!");
+        CHECK_ARGS(ctxt, argc == 2, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], storeId);
-        ZLOGE_ON_STATUS(ctxt, "invalid arg[0], i.e. invalid storeId!");
-        ZLOGE_ON_ARGS(ctxt, !storeId.empty(), "invalid arg[0], i.e. invalid storeId!");
+        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid storeId!");
+        CHECK_ARGS(ctxt, !storeId.empty(), "invalid arg[0], i.e. invalid storeId!");
     };
-    NAPI_CALL(env, ctxt->GetCbInfoSync(env, info, input));
+    ctxt->GetCbInfoSync(env, info, input);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     JsDeviceKVStore* kvStore = new (std::nothrow) JsDeviceKVStore(storeId);
     NAPI_ASSERT(env, kvStore !=nullptr, "no memory for kvStore");
@@ -428,7 +430,7 @@ napi_value JsDeviceKVStore::New(napi_env env, napi_callback_info info)
     auto finalize = [](napi_env env, void* data, void* hint) {
         ZLOGD("deviceKvStore finalize.");
         auto* kvStore = reinterpret_cast<JsDeviceKVStore*>(data);
-        ZLOGE_RETURN_VOID(kvStore != nullptr, "finalize null!");
+        CHECK_RETURN_VOID(kvStore != nullptr, "finalize null!");
         delete kvStore;
     };
     NAPI_CALL(env, napi_wrap(env, ctxt->self, kvStore, finalize, nullptr, nullptr));

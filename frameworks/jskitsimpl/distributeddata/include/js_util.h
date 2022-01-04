@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,6 +22,7 @@
 #include "napi/native_api.h"
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"
+#include "log_print.h"
 
 namespace OHOS::DistributedData {
 using namespace OHOS::DistributedKv;
@@ -135,12 +136,16 @@ public:
     template <typename T>
     static inline napi_status GetNamedProperty(napi_env env, napi_value in, const std::string& prop, T& value)
     {
-        napi_value inner = nullptr;
-        napi_status status = napi_get_named_property(env, in, prop.data(), &inner);
-        if ((status == napi_ok) && (inner != nullptr)) {
-            return GetValue(env, inner, value);
+        bool hasProp = false;
+        napi_status status = napi_has_named_property(env, in, prop.c_str(), &hasProp);
+        if ((status == napi_ok) && hasProp) {
+            napi_value inner = nullptr;
+            status = napi_get_named_property(env, in, prop.c_str(), &inner);
+            if ((status == napi_ok) && (inner != nullptr)) {
+                return GetValue(env, inner, value);
+            }
         }
-        return status;
+        return napi_invalid_arg;
     };
 
     /* napi_define_class  wrapper */

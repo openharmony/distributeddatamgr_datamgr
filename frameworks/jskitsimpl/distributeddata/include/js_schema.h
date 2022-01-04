@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,14 +33,26 @@ private:
     static napi_value ToJson(napi_env env, napi_callback_info info);
     static napi_value GetRootNode(napi_env env, napi_callback_info info);
     static napi_value SetRootNode(napi_env env, napi_callback_info info);
+    static napi_value GetMode(napi_env env, napi_callback_info info);
+    static napi_value SetMode(napi_env env, napi_callback_info info);
+    static napi_value GetSkip(napi_env env, napi_callback_info info);
+    static napi_value SetSkip(napi_env env, napi_callback_info info);
+    static napi_value GetIndexes(napi_env env, napi_callback_info info);
+    static napi_value SetIndexes(napi_env env, napi_callback_info info);
 
     std::string Dump();
 
-    JsFieldNode* rootFieldNode = nullptr;
+    enum {
+        SCHEMA_MODE_SLOPPY,
+        SCHEMA_MODE_STRICT,
+    };
+    JsFieldNode* rootNode = nullptr;
     napi_env env = nullptr;     // manage the root. set/get.
     napi_ref ref = nullptr;     // manage the root. set/get.
-    std::list<std::string> indexes;
-    std::list<std::list<std::string>> compositeIndexes;
+
+    std::vector<std::string> indexes;
+    uint32_t mode = SCHEMA_MODE_SLOPPY;
+    uint32_t skip = 0;
 };
 }
 #endif // OHOS_SCHEMA_H
