@@ -20,11 +20,11 @@
 #include "db_constant.h"
 #include "db_errno.h"
 #include "db_types.h"
-#include "log_print.h"
 #include "distributeddb_data_generate_unit_test.h"
 #include "distributeddb_tools_unit_test.h"
 #include "generic_single_ver_kv_entry.h"
 #include "kvdb_properties.h"
+#include "log_print.h"
 #include "relational_store_delegate.h"
 #include "relational_store_instance.h"
 #include "relational_store_manager.h"
@@ -41,6 +41,7 @@ using namespace std;
 namespace {
 string g_testDir;
 string g_storePath;
+string g_storeID = "dftStoreID";
 const string g_tableName { "data" };
 DistributedDB::RelationalStoreManager g_mgr(APP_ID, USER_ID);
 RelationalStoreDelegate *g_delegate = nullptr;
@@ -56,6 +57,7 @@ void CreateDBAndTable()
     }
 
     const string sql =
+        "PRAGMA journal_mode=WAL;"
         "CREATE TABLE " + g_tableName + "(key INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, value INTEGER);";
     char *zErrMsg = nullptr;
     errCode = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &zErrMsg);
@@ -64,23 +66,6 @@ void CreateDBAndTable()
         sqlite3_free(zErrMsg);
     }
     sqlite3_close(db);
-}
-
-int InitRelationalStore()
-{
-    RelationalStoreDelegate *delegate = nullptr;
-    DBStatus dbStatus = DBStatus::DB_ERROR;
-    g_mgr.OpenStore(g_storePath, RelationalStoreDelegate::Option {},
-        [&delegate, &dbStatus] (DBStatus status, RelationalStoreDelegate *ptr) {
-            delegate = ptr;
-            dbStatus = status;
-        }
-    );
-    if (dbStatus == DBStatus::OK) {
-        g_delegate = delegate;
-        g_delegate->CreateDistributedTable(g_tableName, RelationalStoreDelegate::TableOption());
-    }
-    return dbStatus;
 }
 
 int AddOrUpdateRecord(int64_t key, int64_t value) {
@@ -136,23 +121,22 @@ END:
     return errCode;
 }
 
-void InitStoreProp(const RelationalStoreDelegate::Option &option, const std::string &storePath,
-    const std::string appId, const std::string &userId, DBProperties &properties)
+void InitStoreProp(const std::string &storePath,
+    const std::string appId, const std::string &userId, RelationalDBProperties &properties)
 {
-    properties.SetBoolProp(KvDBProperties::CREATE_IF_NECESSARY, option.createIfNecessary);
-    properties.SetStringProp(KvDBProperties::DATA_DIR, storePath);
-    properties.SetStringProp(KvDBProperties::APP_ID, appId);
-    properties.SetStringProp(KvDBProperties::USER_ID, userId);
-    properties.SetStringProp(KvDBProperties::STORE_ID, storePath);
-    std::string identifier = userId + "-" + appId + "-" + storePath;
+    properties.SetStringProp(RelationalDBProperties::DATA_DIR, storePath);
+    properties.SetStringProp(RelationalDBProperties::APP_ID, appId);
+    properties.SetStringProp(RelationalDBProperties::USER_ID, userId);
+    properties.SetStringProp(RelationalDBProperties::STORE_ID, g_storeID);
+    std::string identifier = userId + "-" + appId + "-" + g_storeID;
     std::string hashIdentifier = DBCommon::TransferHashString(identifier);
-    properties.SetStringProp(KvDBProperties::IDENTIFIER_DATA, hashIdentifier);
+    properties.SetStringProp(RelationalDBProperties::IDENTIFIER_DATA, hashIdentifier);
 }
 
 const RelationalSyncAbleStorage *GetRelationalStore()
 {
-    DBProperties properties;
-    InitStoreProp(RelationalStoreDelegate::Option {}, g_storePath, APP_ID, USER_ID, properties);
+    RelationalDBProperties properties;
+    InitStoreProp(g_storePath, APP_ID, USER_ID, properties);
     int errCode = E_OK;
     auto store = RelationalStoreInstance::GetDataBase(properties, errCode);
     if (store == nullptr) {
@@ -225,7 +209,9 @@ void DistributedDBRelationalGetDataTest::TearDown(void)
  */
 HWTEST_F(DistributedDBRelationalGetDataTest, LogTbl1, TestSize.Level1)
 {
-    ASSERT_EQ(InitRelationalStore(), DBStatus::OK);
+    ASSERT_EQ(g_mgr.OpenStore(g_storePath, g_storeID, RelationalStoreDelegate::Option {}, g_delegate), DBStatus::OK);
+    ASSERT_NE(g_delegate, nullptr);
+    ASSERT_EQ(g_delegate->CreateDistributedTable(g_tableName), DBStatus::OK);
 
     /**
      * @tc.steps: step1. Put data.
@@ -255,7 +241,9 @@ HWTEST_F(DistributedDBRelationalGetDataTest, LogTbl1, TestSize.Level1)
   */
 HWTEST_F(DistributedDBRelationalGetDataTest, GetSyncData1, TestSize.Level1)
 {
-    ASSERT_EQ(InitRelationalStore(), DBStatus::OK);
+    ASSERT_EQ(g_mgr.OpenStore(g_storePath, g_storeID, RelationalStoreDelegate::Option {}, g_delegate), DBStatus::OK);
+    ASSERT_NE(g_delegate, nullptr);
+    ASSERT_EQ(g_delegate->CreateDistributedTable(g_tableName), DBStatus::OK);
 
     /**
      * @tc.steps: step1. Put 500 records.
@@ -298,7 +286,9 @@ HWTEST_F(DistributedDBRelationalGetDataTest, GetSyncData1, TestSize.Level1)
  */
 HWTEST_F(DistributedDBRelationalGetDataTest, GetQuerySyncData1, TestSize.Level1)
 {
-    ASSERT_EQ(InitRelationalStore(), DBStatus::OK);
+    ASSERT_EQ(g_mgr.OpenStore(g_storePath, g_storeID, RelationalStoreDelegate::Option {}, g_delegate), DBStatus::OK);
+    ASSERT_NE(g_delegate, nullptr);
+    ASSERT_EQ(g_delegate->CreateDistributedTable(g_tableName), DBStatus::OK);
 
     /**
      * @tc.steps: step1. Put 100 records.
@@ -337,7 +327,9 @@ HWTEST_F(DistributedDBRelationalGetDataTest, GetQuerySyncData1, TestSize.Level1)
  */
 HWTEST_F(DistributedDBRelationalGetDataTest, GetIncorrectTypeData1, TestSize.Level1)
 {
-    EXPECT_EQ(InitRelationalStore(), DBStatus::OK);
+    ASSERT_EQ(g_mgr.OpenStore(g_storePath, g_storeID, RelationalStoreDelegate::Option {}, g_delegate), DBStatus::OK);
+    ASSERT_NE(g_delegate, nullptr);
+    ASSERT_EQ(g_delegate->CreateDistributedTable(g_tableName), DBStatus::OK);
 
     /**
      * @tc.steps: step1. Create distributed table "dataPlus".
@@ -348,7 +340,7 @@ HWTEST_F(DistributedDBRelationalGetDataTest, GetIncorrectTypeData1, TestSize.Lev
     const string tableName = g_tableName + "Plus";
     string sql = "CREATE TABLE " + tableName + "(key INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, value INTEGER);";
     ASSERT_EQ(sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr), SQLITE_OK);
-    ASSERT_EQ(g_delegate->CreateDistributedTable(tableName, RelationalStoreDelegate::TableOption()), DBStatus::OK);
+    ASSERT_EQ(g_delegate->CreateDistributedTable(tableName), DBStatus::OK);
 
     /**
      * @tc.steps: step2. Put 5 records with different type into "dataPlus" table.
