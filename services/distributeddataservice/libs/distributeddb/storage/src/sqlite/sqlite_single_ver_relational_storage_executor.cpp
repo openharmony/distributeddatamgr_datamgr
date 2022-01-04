@@ -112,8 +112,9 @@ int SQLiteSingleVerRelationalStorageExecutor::SetTableInfo(const QueryObject &qu
     return errCode;
 }
 
-static void GetDataValueByType(sqlite3_stmt *statement, DataValue &value, StorageType type, int cid)
+static int GetDataValueByType(sqlite3_stmt *statement, DataValue &value, StorageType type, int cid)
 {
+    int errCode = E_OK;
     int storageType = sqlite3_column_type(statement, cid);
     switch (storageType) {
         case SQLITE_INTEGER: {
@@ -126,10 +127,16 @@ static void GetDataValueByType(sqlite3_stmt *statement, DataValue &value, Storag
         }
         case SQLITE_BLOB: {
             std::vector<uint8_t> blobValue;
-            (void)SQLiteUtils::GetColumnBlobValue(statement, cid, blobValue);
-            Blob blob;
-            blob.WriteBlob(blobValue.data(), static_cast<uint32_t>(blobValue.size()));
-            value = blob;
+            errCode = SQLiteUtils::GetColumnBlobValue(statement, cid, blobValue);
+            if (errCode != E_OK) {
+                return errCode;
+            }
+            auto blob = new (std::nothrow) Blob;
+            if (blob == nullptr) {
+                return -E_OUT_OF_MEMORY;
+            }
+            blob->WriteBlob(blobValue.data(), static_cast<uint32_t>(blobValue.size()));
+            errCode = value.Set(blob);
             break;
         }
         case SQLITE_NULL: {
@@ -141,6 +148,9 @@ static void GetDataValueByType(sqlite3_stmt *statement, DataValue &value, Storag
                 value.ResetValue();
             } else {
                 value = std::string(colValue);
+                if (value.GetType() == StorageType::STORAGE_TYPE_NULL) {
+                    errCode = -E_OUT_OF_MEMORY;
+                }
             }
             break;
         }
@@ -148,62 +158,63 @@ static void GetDataValueByType(sqlite3_stmt *statement, DataValue &value, Storag
             break;
         }
     }
-    return;
+    return errCode;
 }
 
-static void BindDataValueByType(sqlite3_stmt *statement, const std::optional<DataValue> &data, int cid)
+static int BindDataValueByType(sqlite3_stmt *statement, const std::optional<DataValue> &data, int cid)
 {
     if (!data.has_value()) {  // For the column that added after enable distributed.
-        return;
+        return E_OK;
     }
 
+    int errCode = E_OK;
     StorageType type = data.value().GetType();
     switch (type) {
         case StorageType::STORAGE_TYPE_BOOL: {
             bool boolData = false;
-            data.value().GetBool(boolData);
-            sqlite3_bind_int(statement, cid, boolData);
+            (void)data.value().GetBool(boolData);
+            errCode = SQLiteUtils::MapSQLiteErrno(sqlite3_bind_int(statement, cid, boolData));
             break;
         }
 
         case StorageType::STORAGE_TYPE_INTEGER: {
             int64_t intData = 0;
-            data.value().GetInt64(intData);
-            sqlite3_bind_int64(statement, cid, intData);
+            (void)data.value().GetInt64(intData);
+            errCode = SQLiteUtils::MapSQLiteErrno(sqlite3_bind_int64(statement, cid, intData));
             break;
         }
 
         case StorageType::STORAGE_TYPE_REAL: {
             double doubleData = 0;
-            data.value().GetDouble(doubleData);
-            sqlite3_bind_double(statement, cid, doubleData);
+            (void)data.value().GetDouble(doubleData);
+            errCode = SQLiteUtils::MapSQLiteErrno(sqlite3_bind_double(statement, cid, doubleData));
             break;
         }
 
         case StorageType::STORAGE_TYPE_TEXT: {
             std::string strData;
-            data.value().GetText(strData);
-            SQLiteUtils::BindTextToStatement(statement, cid, strData);
+            (void)data.value().GetText(strData);
+            errCode = SQLiteUtils::BindTextToStatement(statement, cid, strData);
             break;
         }
 
         case StorageType::STORAGE_TYPE_BLOB: {
             Blob blob;
-            data.value().GetBlob(blob);
+            (void)data.value().GetBlob(blob);
             std::vector<uint8_t> blobData(blob.GetData(), blob.GetData() + blob.GetSize());
-            SQLiteUtils::BindBlobToStatement(statement, cid, blobData, true);
+            errCode = SQLiteUtils::BindBlobToStatement(statement, cid, blobData, true);
             break;
         }
 
         case StorageType::STORAGE_TYPE_NULL: {
-            sqlite3_bind_null(statement, cid);
+            errCode = SQLiteUtils::MapSQLiteErrno(sqlite3_bind_null(statement, cid));
             break;
         }
 
         default:
             break;
     }
-    return;
+    return errCode;
 }
 
 static int GetLogData(sqlite3_stmt *logStatement, LogInfo &logInfo)
@@ -560,7 +571,11 @@ int SQLiteSingleVerRelationalStorageExecutor::SaveSyncDataItem(sqlite3_stmt *sta
 
     for (size_t index = 0; index < data.optionalData.size(); index++) {
         const auto &filedData = data.optionalData[index];
-        (void)BindDataValueByType(statement, filedData, fieldInfos[index].GetColumnId() + 1);
+        errCode = BindDataValueByType(statement, filedData, fieldInfos[index].GetColumnId() + 1);
+        if (errCode != E_OK) {
+            LOGE("Bind data failed, errCode:%d, cid:%d.", errCode, fieldInfos[index].GetColumnId() + 1);
+            return errCode;
+        }
     }
 
     errCode = SQLiteUtils::StepWithRetry(statement, isMemDb_);
@@ -647,7 +662,10 @@ int SQLiteSingleVerRelationalStorageExecutor::GetDataItemForSync(sqlite3_stmt *s
             LOGD("[GetDataItemForSync] field:%s type:%d cid:%d", col.second.GetFieldName().c_str(),
                 col.second.GetStorageType(), col.second.GetColumnId() + 7);
             DataValue value;
-            GetDataValueByType(stmt, value, col.second.GetStorageType(), col.second.GetColumnId() + 7);
+            errCode = GetDataValueByType(stmt, value, col.second.GetStorageType(), col.second.GetColumnId() + 7);
+            if (errCode != E_OK) {
+                return errCode;
+            }
             fieldInfos.push_back(col.second);
             data.rowData.push_back(value);
         }

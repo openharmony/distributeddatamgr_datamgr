@@ -33,6 +33,21 @@ Blob::~Blob()
     size_ = 0;
 }
 
+Blob::Blob(Blob &&blob) : ptr_(blob.ptr_), size_(blob.size_)
+{
+    blob.ptr_ = nullptr;
+    blob.size_ = 0;
+}
+
+Blob &Blob::operator=(Blob &&blob)
+{
+    ptr_ = blob.ptr_;
+    size_ = blob.size_;
+    blob.ptr_ = nullptr;
+    blob.size_ = 0;
+    return *this;
+}
+
 const uint8_t *Blob::GetData() const
 {
     return ptr_;
@@ -168,6 +183,19 @@ DataValue &DataValue::operator=(const Blob &blob)
         value_.blobPtr->WriteBlob(blob.GetData(), blob.GetSize());
     }
     return *this;
+}
+
+int DataValue::Set(Blob *&blob)
+{
+    ResetValue();
+    if (blob->GetSize() <= 0) {
+        LOGE("Transfer Blob to DataValue failed.");
+        return -E_INVALID_ARGS;
+    }
+    type_ = StorageType::STORAGE_TYPE_BLOB;
+    value_.blobPtr = blob;
+    blob = nullptr;
+    return E_OK;
 }
 
 DataValue &DataValue::operator=(const std::string &string)

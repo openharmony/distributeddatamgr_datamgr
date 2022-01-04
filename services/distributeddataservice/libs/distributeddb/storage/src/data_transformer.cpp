@@ -310,6 +310,9 @@ int DataTransformer::SerializeValue(Value &value, const RowData &rowData, const 
         totalLength += dataLength;
     }
     value.resize(totalLength);
+    if (value.size() != totalLength) {
+        return -E_OUT_OF_MEMORY;
+    }
     Parcel parcel(value.data(), value.size());
     (void)parcel.WriteUInt64(rowData.size());
     for (const auto &dataValue : rowData) {
@@ -367,10 +370,13 @@ int DataTransformer::DeSerializeValue(const Value &value, OptRowData &optionalDa
 
 int DataTransformer::SerializeHashKey(Key &key, const std::string &hashKey)
 {
-    key.resize(Parcel::GetStringLen(hashKey), 0);
-    Parcel parcel(key.data(), Parcel::GetStringLen(hashKey));
-    int errCode = parcel.WriteString(hashKey);
-    return errCode;
+    uint32_t len = Parcel::GetStringLen(hashKey);
+    key.resize(len, 0);
+    if (key.size() != len) {
+        return -E_OUT_OF_MEMORY;
+    }
+    Parcel parcel(key.data(), len);
+    return parcel.WriteString(hashKey);
 }
 
 int DataTransformer::DeSerializeHashKey(const Key &key, std::string &hashKey)
