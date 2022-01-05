@@ -74,22 +74,6 @@ DBStatus RelationalStoreDelegateImpl::CreateDistributedTable(const std::string &
 }
 
 DBStatus RelationalStoreDelegateImpl::Sync(const std::vector<std::string> &devices, SyncMode mode,
-    const Query &query, std::map<std::string, std::vector<TableStatus>> &devicesMap)
-{
-    SyncStatusCallback onComplete = [&devicesMap](
-        const std::map<std::string, std::vector<TableStatus>> &resMap) {
-            devicesMap = resMap;
-    };
-    return Sync(devices, mode, query, onComplete, true);
-}
-
-DBStatus RelationalStoreDelegateImpl::ASync(const std::vector<std::string> &devices, SyncMode mode,
-    const Query &query, SyncStatusCallback &onComplete)
-{
-    return Sync(devices, mode, query, onComplete, false);
-}
-
-DBStatus RelationalStoreDelegateImpl::Sync(const std::vector<std::string> &devices, SyncMode mode,
     const Query &query, SyncStatusCallback &onComplete, bool wait)
 {
     if (conn_ == nullptr) {

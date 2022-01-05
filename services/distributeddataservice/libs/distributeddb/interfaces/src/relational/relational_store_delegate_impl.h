@@ -37,12 +37,6 @@ public:
     DBStatus Sync(const std::vector<std::string> &devices, SyncMode mode,
         const Query &query, SyncStatusCallback &onComplete, bool wait) override;
 
-    DBStatus Sync(const std::vector<std::string> &devices, SyncMode mode,
-        const Query &query, std::map<std::string, std::vector<TableStatus>> &devicesMap) override;
-
-    DBStatus ASync(const std::vector<std::string> &devices, SyncMode mode,
-        const Query &query, SyncStatusCallback &onComplete) override;
-
     DBStatus RemoveDeviceData(const std::string &device) override;
 
     DBStatus CreateDistributedTable(const std::string &tableName) override;
