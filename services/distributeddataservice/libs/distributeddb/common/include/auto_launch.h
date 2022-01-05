@@ -143,9 +143,9 @@ private:
     static int GetAutoLaunchRelationProperties(const AutoLaunchParam &param,
         const std::shared_ptr<RelationalDBProperties> &propertiesPtr);
 
-    static int OpenOneKvConnection(AutoLaunchItem &autoLaunchItem);
+    static int OpenKvConnection(AutoLaunchItem &autoLaunchItem);
 
-    static int OpenOneRelationalConnection(AutoLaunchItem &autoLaunchItem);
+    static int OpenRelationalConnection(AutoLaunchItem &autoLaunchItem);
 
     int RegisterLifeCycleCallback(AutoLaunchItem &autoLaunchItem, const std::string &identifier,
         bool isExt);

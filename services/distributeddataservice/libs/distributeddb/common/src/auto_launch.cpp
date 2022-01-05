@@ -500,12 +500,12 @@ int AutoLaunch::OpenOneConnection(AutoLaunchItem &autoLaunchItem)
 {
     LOGI("[AutoLaunch] GetOneConnection");
     switch (autoLaunchItem.type) {
-    case DBType::DB_KV:
-        return OpenOneKvConnection(autoLaunchItem);
-    case DBType::DB_RELATION:
-        return OpenOneRelationalConnection(autoLaunchItem);
-    default:
-        return -E_INVALID_ARGS;
+        case DBType::DB_KV:
+            return OpenKvConnection(autoLaunchItem);
+        case DBType::DB_RELATION:
+            return OpenRelationalConnection(autoLaunchItem);
+        default:
+            return -E_INVALID_ARGS;
     }
 }
 
@@ -984,7 +984,7 @@ int AutoLaunch::ExtAutoLaunchRequestCallBack(const std::string &identifier, Auto
     return E_OK;
 }
 
-int AutoLaunch::OpenOneKvConnection(AutoLaunchItem &autoLaunchItem)
+int AutoLaunch::OpenKvConnection(AutoLaunchItem &autoLaunchItem)
 {
     std::shared_ptr<KvDBProperties> properties =
         std::static_pointer_cast<KvDBProperties>(autoLaunchItem.propertiesPtr);
@@ -999,7 +999,7 @@ int AutoLaunch::OpenOneKvConnection(AutoLaunchItem &autoLaunchItem)
     return errCode;
 }
 
-int AutoLaunch::OpenOneRelationalConnection(AutoLaunchItem &autoLaunchItem)
+int AutoLaunch::OpenRelationalConnection(AutoLaunchItem &autoLaunchItem)
 {
     std::shared_ptr<RelationalDBProperties> properties =
         std::static_pointer_cast<RelationalDBProperties>(autoLaunchItem.propertiesPtr);
