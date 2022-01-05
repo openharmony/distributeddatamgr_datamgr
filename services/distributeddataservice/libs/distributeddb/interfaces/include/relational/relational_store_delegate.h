@@ -38,6 +38,9 @@ public:
 
     DB_API virtual DBStatus Sync(const std::vector<std::string> &devices, SyncMode mode,
         SyncStatusCallback &onComplete, bool wait) = 0;
+    
+    DB_API virtual DBStatus Sync(const std::vector<std::string> &devices, SyncMode mode,
+        const Query &query, SyncStatusCallback &onComplete, bool wait);
 
     DB_API virtual DBStatus Sync(const std::vector<std::string> &devices, SyncMode mode,
         const Query &query, std::map<std::string, std::vector<TableStatus>> &devicesMap) = 0;

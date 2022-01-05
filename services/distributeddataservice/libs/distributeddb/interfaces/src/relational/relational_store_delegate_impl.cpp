@@ -80,17 +80,17 @@ DBStatus RelationalStoreDelegateImpl::Sync(const std::vector<std::string> &devic
         const std::map<std::string, std::vector<TableStatus>> &resMap) {
             devicesMap = resMap;
     };
-    return Sync(devices, mode, onComplete, query, true);
+    return Sync(devices, mode, query, onComplete, true);
 }
 
 DBStatus RelationalStoreDelegateImpl::ASync(const std::vector<std::string> &devices, SyncMode mode,
     const Query &query, SyncStatusCallback &onComplete)
 {
-    return Sync(devices, mode, onComplete, query, false);
+    return Sync(devices, mode, query, onComplete, false);
 }
 
 DBStatus RelationalStoreDelegateImpl::Sync(const std::vector<std::string> &devices, SyncMode mode,
-    SyncStatusCallback &onComplete, const Query &query, bool wait)
+    const Query &query, SyncStatusCallback &onComplete, bool wait)
 {
     if (conn_ == nullptr) {
         LOGE("Invalid connection for operation!");

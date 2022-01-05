@@ -35,6 +35,9 @@ public:
         SyncStatusCallback &onComplete, bool wait) override;
 
     DBStatus Sync(const std::vector<std::string> &devices, SyncMode mode,
+        const Query &query, SyncStatusCallback &onComplete, bool wait) override;
+
+    DBStatus Sync(const std::vector<std::string> &devices, SyncMode mode,
         const Query &query, std::map<std::string, std::vector<TableStatus>> &devicesMap) override;
 
     DBStatus ASync(const std::vector<std::string> &devices, SyncMode mode,
@@ -53,9 +56,6 @@ public:
 private:
     static void OnSyncComplete(const std::map<std::string, std::vector<TableStatus>> &devicesMap,
         SyncStatusCallback &onComplete);
-
-    DBStatus Sync(const std::vector<std::string> &devices, SyncMode mode,
-        SyncStatusCallback &onComplete, const Query &query, bool wait);
 
     RelationalStoreConnection *conn_ = nullptr;
     std::string storePath_;
