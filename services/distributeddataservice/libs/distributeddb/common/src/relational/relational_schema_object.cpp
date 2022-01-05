@@ -94,7 +94,6 @@ void FieldInfo::SetColumnId(int cid)
     cid_ = cid;
 }
 
-// return field define string like ("fieldName": "MY INT(21), NOT NULL, DEFAULT 123")
 std::string FieldInfo::ToAttributeString() const
 {
     std::string attrStr = "\"" + fieldName_ + "\": {";
@@ -303,6 +302,7 @@ JsonObject TableInfo::ToJsonObject() const
 std::string TableInfo::ToTableInfoString() const
 {
     std::string attrStr;
+    attrStr += "{";
     attrStr += R"("NAME": ")" + tableName_ + "\",";
     AddFieldDefineString(attrStr);
     attrStr += R"("AUTOINCREMENT": )";
@@ -316,6 +316,7 @@ std::string TableInfo::ToTableInfoString() const
         attrStr += R"("PRIMARY_KEY": ")" + primaryKey_ + "\",";
     }
     AddIndexDefineString(attrStr);
+    attrStr += "}";
     return attrStr;
 }
 
@@ -410,14 +411,45 @@ int RelationalSchemaObject::ParseFromSchemaString(const std::string &inSchemaStr
     return E_OK;
 }
 
+void RelationalSchemaObject::GenerateSchemaString()
+{
+    schemaString_ = {};
+    schemaString_ += "{";
+    schemaString_ += R"("SCHEMA_VERSION":"2.0",)";
+    schemaString_ += R"("SCHEMA_TYPE":"RELATIVE",)";
+    schemaString_ += R"("TABLES":[)";
+    for (const auto &it : tables_) {
+        schemaString_ += it.second.ToTableInfoString() + ",";
+    }
+    schemaString_ += R"(])";
+    schemaString_ += "}";
+}
+
 void RelationalSchemaObject::AddRelationalTable(const TableInfo &tb)
 {
     tables_[tb.GetTableName()] = tb;
+    schemaString_ = {};
+}
+
+
+void RelationalSchemaObject::RemoveRelationalTable(const std::string &tableName)
+{
+    tables_.erase(tableName);
+    schemaString_ = {};
 }
 
 const std::map<std::string, TableInfo> &RelationalSchemaObject::GetTables() const
 {
     return tables_;
+}
+
+std::vector<std::string> RelationalSchemaObject::GettableNames() const
+{
+    std::vector<std::string> tableNames;
+    for (const auto &it : tables_) {
+        tableNames.emplace_back(it.first);
+    }
+    return tableNames;
 }
 
 TableInfo RelationalSchemaObject::GetTable(const std::string &tableName) const
@@ -661,7 +693,7 @@ int RelationalSchemaObject::ParseCheckTableUnique(const JsonObject &inJsonObject
 {
     std::vector<CompositeFields> uniqueArray;
     int errCode = inJsonObject.GetArrayContentOfStringOrStringArray(FieldPath {"UNIQUE"}, uniqueArray);
-    if (errCode != E_OK) {
+    if (errCode != E_OK && errCode != -E_INVALID_PATH) { // UNIQUE is not necessary
         LOGE("[RelationalSchema][Parse] Get unique array failed: %d.", errCode);
         return -E_SCHEMA_PARSE_FAIL;
     }
@@ -683,7 +715,7 @@ int RelationalSchemaObject::ParseCheckTableIndex(const JsonObject &inJsonObject,
 {
     std::map<FieldPath, FieldType> tableFields;
     int errCode = inJsonObject.GetSubFieldPathAndType(FieldPath {"INDEX"}, tableFields);
-    if (errCode != E_OK) {
+    if (errCode != E_OK && errCode != -E_INVALID_PATH) { // INDEX is not necessary
         LOGE("[RelationalSchema][Parse] Get schema TABLES INDEX failed: %d.", errCode);
         return -E_SCHEMA_PARSE_FAIL;
     }

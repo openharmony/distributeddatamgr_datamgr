@@ -981,7 +981,7 @@ int AbilitySync::SetAbilityRequestBodyInfo(AbilitySyncRequestPacket &packet, uin
     SecurityOption option;
     GetPacketSecOption(option);
     std::string schemaStr;
-    uint32_t schemaType;
+    uint32_t schemaType = 0;
     if (IsSingleKvVer()) {
         SchemaObject schemaObj = (static_cast<SingleVerKvDBSyncInterface *>(storageInterface_))->GetSchemaInfo();
         schemaStr = schemaObj.ToSchemaString();
@@ -989,7 +989,6 @@ int AbilitySync::SetAbilityRequestBodyInfo(AbilitySyncRequestPacket &packet, uin
     }
 #ifdef RELATIONAL_STORE
     if (IsSingleRelationalVer()) {
-        // todo demo
         auto schemaObj = (static_cast<RelationalDBSyncInterface *>(storageInterface_))->GetSchemaInfo();
         schemaStr = schemaObj.ToSchemaString();
         schemaType = 0;

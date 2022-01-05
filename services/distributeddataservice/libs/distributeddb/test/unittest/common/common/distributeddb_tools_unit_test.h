@@ -270,6 +270,12 @@ public:
 private:
     std::vector<DatabaseInfo> databaseInfoVect_;
 };
+
+class RelationalTestUtils {
+public:
+    static sqlite3 *CreateDataBase(const std::string &dbUri);
+    static int ExecSql(sqlite3 *db, const std::string &sql);
+};
 } // namespace DistributedDBUnitTest
 
 #endif // DISTRIBUTEDDB_TOOLS_UNIT_TEST_H

@@ -212,7 +212,7 @@ const std::string &QueryExpression::GetTableName()
     return tableName_;
 }
 
-bool QueryExpression::IsTableNameSpacified() const
+bool QueryExpression::IsTableNameSpecified() const
 {
     return isTableNameSpecified_;
 }

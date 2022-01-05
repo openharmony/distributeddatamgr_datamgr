@@ -40,6 +40,9 @@ public:
     int CreateDistributedTable(const std::string &tableName) override;
     int RegisterLifeCycleCallback(const DatabaseLifeCycleNotifier &notifier) override;
 
+    int RemoveDeviceData(const std::string &device) override;
+    int RemoveDeviceData(const std::string &device, const std::string &tableName) override;
+
 protected:
 
     int Pragma(int cmd, void *parameter) override;

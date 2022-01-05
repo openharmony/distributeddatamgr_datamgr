@@ -150,6 +150,26 @@ int SQLiteRelationalStoreConnection::CreateDistributedTable(const std::string &t
     return errCode;
 }
 
+int SQLiteRelationalStoreConnection::RemoveDeviceData(const std::string &device)
+{
+    return RemoveDeviceData(device, {});
+}
+
+int SQLiteRelationalStoreConnection::RemoveDeviceData(const std::string &device, const std::string &tableName)
+{
+    auto *store = GetDB<SQLiteRelationalStore>();
+    if (store == nullptr) {
+        LOGE("[RelationalConnection] store is null, get DB failed!");
+        return -E_INVALID_CONNECTION;
+    }
+
+    int errCode = store->RemoveDeviceData(device, tableName);
+    if (errCode != E_OK) {
+        LOGE("[RelationalConnection] remove device data failed. %d", errCode);
+    }
+    return errCode;
+}
+
 int SQLiteRelationalStoreConnection::Pragma(int cmd, void *parameter) // reserve for interface function fix
 {
     return E_OK;

@@ -96,7 +96,7 @@ DB_API DBStatus RelationalStoreManager::OpenStore(const std::string &path, const
     return OK;
 }
 
-DBStatus RelationalStoreManager::CloseStore(RelationalStoreDelegate *store)
+DBStatus RelationalStoreManager::CloseStore(RelationalStoreDelegate *&store)
 {
     if (store == nullptr) {
         return INVALID_ARGS;
@@ -114,65 +114,12 @@ DBStatus RelationalStoreManager::CloseStore(RelationalStoreDelegate *store)
     return OK;
 }
 
-static int RemoveFile(const std::string &fileName)
+std::string RelationalStoreManager::GetDistributedTableName(const std::string &device, const std::string &tableName)
 {
-    if (!OS::CheckPathExistence(fileName)) {
-        return E_OK;
+    if (device.empty() || tableName.empty()) {
+        return {};
     }
-
-    if (OS::RemoveFile(fileName.c_str()) != E_OK) {
-        LOGE("Remove file failed:%d", errno);
-        return -E_REMOVE_FILE;
-    }
-    return E_OK;
-}
-
-static int RemoveDB(const std::string &path)
-{
-    if (RemoveFile(path) != E_OK) {
-        LOGE("Remove the db file failed:%d", errno);
-        return -E_REMOVE_FILE;
-    }
-
-    std::string dbFile = path + "-wal";
-    if (RemoveFile(dbFile) != E_OK) {
-        LOGE("Remove the wal file failed:%d", errno);
-        return -E_REMOVE_FILE;
-    }
-
-    dbFile = path + "-shm";
-    if (RemoveFile(dbFile) != E_OK) {
-        LOGE("Remove the shm file failed:%d", errno);
-        return -E_REMOVE_FILE;
-    }
-    return E_OK;
-}
-
-DBStatus RelationalStoreManager::DeleteStore(const std::string &path)
-{
-    if (path.empty()) {
-        LOGE("Invalid store info for deleting");
-        return INVALID_ARGS;
-    }
-
-    std::string identifier = userId_ + "-" + appId_ + "-" + path;
-    std::string hashIdentifier = DBCommon::TransferHashString(identifier);
-
-    auto *manager = RelationalStoreInstance::GetInstance();
-    int errCode  = manager->CheckDatabaseFileStatus(hashIdentifier);
-    if (errCode != E_OK) {
-        LOGE("The store is busy!");
-        return BUSY;
-    }
-
-    // RemoveDB
-    errCode = RemoveDB(path);
-    if (errCode == E_OK) {
-        LOGI("Database deleted successfully!");
-        return OK;
-    }
-    LOGE("Delete the kv store error:%d", errCode);
-    return TransferDBErrno(errCode);
+    return DBCommon::GetDistributedTableName(device, tableName);
 }
 
 void RelationalStoreManager::SetAutoLaunchRequestCallback(const AutoLaunchRequestCallback &callback)

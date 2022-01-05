@@ -427,11 +427,8 @@ int SQLiteSingleVerRelationalStorageExecutor::PrepareForSavingLog(const QueryObj
 int SQLiteSingleVerRelationalStorageExecutor::PrepareForSavingData(const QueryObject &object,
     const std::string &deviceName, sqlite3_stmt *&statement) const
 {
-    // naturalbase_rdb_aux_userTableName_deviceHash
-    // tableName
     std::string devName = DBCommon::TransferHashString(deviceName);
-    const std::string tableName = DBConstant::RELATIONAL_PREFIX + object.GetTableName() + "_" +
-        DBCommon::TransferStringToHex(devName);
+    const std::string tableName = DBCommon::GetDistributedTableName(devName, object.GetTableName());
     TableInfo table;
     int errCode = SQLiteUtils::AnalysisSchema(dbHandle_, tableName, table);
     if (errCode == -E_NOT_FOUND) {
@@ -526,8 +523,7 @@ int SQLiteSingleVerRelationalStorageExecutor::SaveSyncLog(sqlite3_stmt *statemen
 int SQLiteSingleVerRelationalStorageExecutor::DeleteSyncDataItem(const DataItem &dataItem)
 {
     std::string devName = DBCommon::TransferHashString(dataItem.dev);
-    const std::string tableName = DBConstant::RELATIONAL_PREFIX + table_.GetTableName() + "_" +
-        DBCommon::TransferStringToHex(devName);
+    const std::string tableName = DBCommon::GetDistributedTableName(devName, table_.GetTableName());
     std::string hashKey = std::string(dataItem.hashKey.begin(), dataItem.hashKey.end());
     std::string sql = "DELETE FROM " + tableName + " WHERE calc_hash(" + table_.GetPrimaryKey() + ")=" + hashKey + ";";
     sqlite3_stmt *stmt = nullptr;
@@ -726,6 +722,106 @@ int SQLiteSingleVerRelationalStorageExecutor::CheckDBModeForRelational()
         return -E_NOT_SUPPORT;
     }
     return E_OK;
+}
+
+int SQLiteSingleVerRelationalStorageExecutor::DeleteDistributedDeviceTable(const std::string &device,
+    const std::string &tableName)
+{
+    if (device.empty() && tableName.empty()) { // device and table name should not both be empty
+        return -E_INVALID_ARGS;
+    }
+    std::string decicePattern = device.empty() ? "%" : DBCommon::TransferHashString(device);
+    std::string tablePattern = tableName.empty() ? "%" : tableName;
+    std::string deviceTableName = DBConstant::RELATIONAL_PREFIX + tablePattern + "_" + decicePattern;
+
+    static const std::string checkSql = "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE " +
+        deviceTableName + ";";
+    sqlite3_stmt *stmt = nullptr;
+    int errCode = SQLiteUtils::GetStatement(dbHandle_, checkSql, stmt);
+    if (errCode != E_OK) {
+        SQLiteUtils::ResetStatement(stmt, true, errCode);
+        return errCode;
+    }
+
+    do {
+        errCode = SQLiteUtils::StepWithRetry(stmt, false);
+        if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_DONE)) {
+            errCode = E_OK;
+            break;
+        } else if (errCode != SQLiteUtils::MapSQLiteErrno(SQLITE_ROW)) {
+            LOGE("Get table name failed. %d", errCode);
+            break;
+        }
+        std::string realTableName;
+        SQLiteUtils::GetColumnTextValue(stmt, 1, realTableName); // 1: table name result column index
+        std::string deleteSql = "DROP TABLE IF EXISTS " + realTableName + ";"; // drop the found table
+        int errCode = SQLiteUtils::ExecuteRawSQL(dbHandle_, deleteSql);
+        if (errCode != E_OK) {
+            LOGE("Delete device data failed. %d", errCode);
+            break;
+        }
+    } while(true);
+
+    SQLiteUtils::ResetStatement(stmt, true, errCode);
+    return CheckCorruptedStatus(errCode);
+}
+
+int SQLiteSingleVerRelationalStorageExecutor::DeleteDistributedLogTable(const std::string &tableName)
+{
+    if (tableName.empty()) {
+        return -E_INVALID_ARGS;
+    }
+    std::string logTableName = DBConstant::RELATIONAL_PREFIX + tableName + "_log";
+    std::string deleteSql = "DROP TABLE IF EXISTS " + logTableName + ";";
+    int errCode = SQLiteUtils::ExecuteRawSQL(dbHandle_, deleteSql);
+    if (errCode != E_OK) {
+        LOGE("Delete distributed log table failed. %d", errCode);
+    }
+    return errCode;
+}
+
+int SQLiteSingleVerRelationalStorageExecutor::CkeckAndCleanDistributedTable(const std::vector<std::string> &tableNames,
+    std::vector<std::string> &missingTables)
+{
+    if (tableNames.empty()) {
+        return E_OK;
+    }
+    static const std::string checkSql = "SELECT name FROM sqlite_master WHERE type='table' AND name='?';";
+    sqlite3_stmt *stmt = nullptr;
+    int errCode = SQLiteUtils::GetStatement(dbHandle_, checkSql, stmt);
+    if (errCode != E_OK) {
+        SQLiteUtils::ResetStatement(stmt, true, errCode);
+        return errCode;
+    }
+    for (const auto &tableName : tableNames) {
+        errCode = SQLiteUtils::BindTextToStatement(stmt, 1, tableName); // 1: tablename bind index
+        if (errCode != E_OK) {
+            LOGE("Bind table name to check distributed table statement failed. %d", errCode);
+            break;
+        }
+
+        errCode = SQLiteUtils::StepWithRetry(stmt, false);
+        if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_DONE)) { // The table in schema was dropped
+            errCode = DeleteDistributedDeviceTable({}, tableName); // Clean the auxiliary tables for the dropped table
+            if (errCode != E_OK) {
+                LOGE("Delete device tables for missing distributed table failed. %d", errCode);
+                break;
+            }
+            errCode = DeleteDistributedLogTable(tableName);
+            if (errCode != E_OK) {
+                LOGE("Delete log tables for missing distributed table failed. %d", errCode);
+                break;
+            }
+            missingTables.emplace_back(tableName);
+        } else if (errCode != SQLiteUtils::MapSQLiteErrno(SQLITE_ROW)) {
+            LOGE("Check distributed table failed. %s", errCode);
+            break;
+        }
+        errCode = E_OK; // Check result ok for distributed table is still exists
+        SQLiteUtils::ResetStatement(stmt, false, errCode);
+    }
+    SQLiteUtils::ResetStatement(stmt, true, errCode);
+    return CheckCorruptedStatus(errCode);
 }
 } // namespace DistributedDB
 #endif

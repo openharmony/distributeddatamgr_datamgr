@@ -52,6 +52,9 @@ public:
     }
 
     int CreateDistributedTable(const std::string &tableName);
+
+    int RemoveDeviceData(const std::string &device, const std::string &tableName);
+
 private:
     void ReleaseResources();
 
@@ -77,12 +80,12 @@ private:
     std::atomic<int> connectionCount_ = 0;
     std::vector<std::function<void(void)>> closeNotifiers_;
 
+    mutable std::mutex schemaMutex_;
     RelationalDBProperties properties_;
 
     mutable std::mutex initalMutex_;
     bool isInitialized_ = false;
 
-    mutable std::mutex schemaMutex_;
 };
 }  // namespace DistributedDB
 #endif

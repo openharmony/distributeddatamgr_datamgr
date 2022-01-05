@@ -60,6 +60,12 @@ public:
 
     int CheckDBModeForRelational();
 
+    int DeleteDistributedDeviceTable(const std::string &device, const std::string &tableName);
+    int DeleteDistributedLogTable(const std::string &tableName);
+
+    int CkeckAndCleanDistributedTable(const std::vector<std::string> &tableNames,
+        std::vector<std::string> &missingTables);
+
 private:
     int PrepareForSyncDataByTime(TimeStamp begin, TimeStamp end,
         sqlite3_stmt *&statement, bool getDeletedData) const;

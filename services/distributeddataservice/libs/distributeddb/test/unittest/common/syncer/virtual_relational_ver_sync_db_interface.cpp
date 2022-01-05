@@ -292,5 +292,16 @@ int VirtualRelationalVerSyncDBInterface::GetAllSyncData(const std::string &table
     data = syncData_[tableName];
     return E_OK;
 }
+
+int VirtualRelationalVerSyncDBInterface::CreateDistributedDeviceTable(const std::string &device,
+    const RelationalSyncStrategy &syncStrategy)
+{
+    return -E_NOT_SUPPORT;
+}
+
+int VirtualRelationalVerSyncDBInterface::RegisterSchemaChangedCallback(const std::function<void()> &onSchemaChanged)
+{
+    return -E_NOT_SUPPORT;
+}
 }
 #endif

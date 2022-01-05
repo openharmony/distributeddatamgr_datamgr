@@ -74,7 +74,7 @@ QueryObject::QueryObject(const Query &query)
     prefixKey_ = queryExpressions.GetPreFixKey();
     suggestIndex_ = queryExpressions.GetSuggestIndex();
     tableName_ = queryExpressions.GetTableName();
-    isTableNameSpecified_ = queryExpressions.IsTableNameSpacified();
+    isTableNameSpecified_ = queryExpressions.IsTableNameSpecified();
 }
 
 QueryObject::QueryObject(const std::list<QueryObjNode> &queryObjNodes, const std::vector<uint8_t> &prefixKey)

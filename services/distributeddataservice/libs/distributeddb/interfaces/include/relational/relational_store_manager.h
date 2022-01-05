@@ -26,6 +26,9 @@
 namespace DistributedDB {
 class RelationalStoreManager final {
 public:
+    // Only calculate the table name with device hash, no guarantee for the table exists
+    DB_API static std::string GetDistributedTableName(const std::string &device, const std::string &tableName);
+
     DB_API RelationalStoreManager(const std::string &appId, const std::string &userId);
     DB_API ~RelationalStoreManager() = default;
 
@@ -37,9 +40,7 @@ public:
     DB_API DBStatus OpenStore(const std::string &path, const std::string &storeId,
         const RelationalStoreDelegate::Option &option, RelationalStoreDelegate *&delegate);
 
-    DB_API DBStatus CloseStore(RelationalStoreDelegate *store);
-
-    DB_API DBStatus DeleteStore(const std::string &path);
+    DB_API DBStatus CloseStore(RelationalStoreDelegate *&store);
 
     DB_API static void SetAutoLaunchRequestCallback(const AutoLaunchRequestCallback &callback);
 

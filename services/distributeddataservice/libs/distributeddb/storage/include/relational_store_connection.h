@@ -53,6 +53,9 @@ public:
     virtual int CreateDistributedTable(const std::string &tableName) = 0;
     virtual int RegisterLifeCycleCallback(const DatabaseLifeCycleNotifier &notifier) = 0;
 
+    virtual int RemoveDeviceData(const std::string &device) = 0;
+    virtual int RemoveDeviceData(const std::string &device, const std::string &tableName) = 0;
+
 protected:
     // Get the stashed 'KvDB_ pointer' without ref.
     template<typename DerivedDBType>

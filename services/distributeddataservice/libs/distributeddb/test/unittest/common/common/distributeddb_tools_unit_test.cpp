@@ -842,4 +842,31 @@ int DistributedDBToolsUnitTest::BuildMessage(const DataSyncMessageInfo &messageI
     message->SetExternalObject(packet);
     return E_OK;
 }
+
+sqlite3 *RelationalTestUtils::CreateDataBase(const std::string &dbUri)
+{
+    sqlite3 *db = nullptr;
+    if (int r = sqlite3_open_v2(dbUri.c_str(), &db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr) != SQLITE_OK) {
+        LOGE("Open database [%s] failed. %d", dbUri.c_str(), r);
+        if (db != nullptr) {
+            (void)sqlite3_close_v2(db);
+            db = nullptr;
+        }
+    }
+    return db;
+}
+
+int RelationalTestUtils::ExecSql(sqlite3 *db, const std::string &sql)
+{
+    if (db == nullptr || sql.empty()) {
+        return -E_INVALID_ARGS;
+    }
+    char *errMsg = nullptr;
+    int errCode = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &errMsg);
+    if (errCode != SQLITE_OK && errMsg != nullptr) {
+        LOGE("Execute sql failed. %d err: %s", errCode, errMsg);
+    }
+    sqlite3_free(errMsg);
+    return errCode;
+}
 } // namespace DistributedDBUnitTest

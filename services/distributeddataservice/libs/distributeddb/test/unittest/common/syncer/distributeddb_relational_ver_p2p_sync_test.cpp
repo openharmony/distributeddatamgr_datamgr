@@ -269,10 +269,6 @@ void DistributedDBRelationalVerP2PSyncTest::TearDown(void)
         LOGD("CloseStore Start");
         ASSERT_EQ(g_mgr.CloseStore(g_kvDelegatePtr), OK);
         g_kvDelegatePtr = nullptr;
-        LOGD("DeleteStore Start");
-        DBStatus status = g_mgr.DeleteStore(g_dbDir);
-        LOGD("delete kv store status %d", status);
-        ASSERT_TRUE(status == OK);
     }
     if (g_deviceB != nullptr) {
         delete g_deviceB;

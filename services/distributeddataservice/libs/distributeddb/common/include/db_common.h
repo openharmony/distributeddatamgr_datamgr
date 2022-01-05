@@ -54,6 +54,8 @@ public:
         const std::string &storeId);
 
     static std::string StringMasking(const std::string &oriStr, size_t remain = 3); // remain 3 unmask
+
+    static std::string GetDistributedTableName(const std::string &device, const std::string &tableName);
 };
 
 // Define short macro substitute for original long expression for convenience of using

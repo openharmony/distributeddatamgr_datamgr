@@ -136,7 +136,11 @@ public:
 
     void AddRelationalTable(const TableInfo& tb);
 
+    void RemoveRelationalTable(const std::string &tableName);
+
     const std::map<std::string, TableInfo> &GetTables() const;
+
+    std::vector<std::string> GettableNames() const;
 
     TableInfo GetTable(const std::string& tableName) const;
 
@@ -158,6 +162,8 @@ private:
     int ParseCheckTableUnique(const JsonObject &inJsonObject, TableInfo &resultTable);
     int ParseCheckTableIndex(const JsonObject &inJsonObject, TableInfo &resultTable);
     int ParseCheckTablePrimaryKey(const JsonObject &inJsonObject, TableInfo &resultTable);
+
+    void GenerateSchemaString();
 
     bool isValid_ = false; // set to true after parse success from string or add at least one relational table
     SchemaType schemaType_ = SchemaType::NONE; // Default NONE

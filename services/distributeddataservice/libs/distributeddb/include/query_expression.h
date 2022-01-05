@@ -114,7 +114,7 @@ public:
 
     void SetTableName(const std::string &tableName);
     const std::string &GetTableName();
-    bool IsTableNameSpacified() const;
+    bool IsTableNameSpecified() const;
 
     std::string GetSuggestIndex() const;
 

@@ -103,6 +103,12 @@ public:
         return E_OK;
     }
 
+    int CreateDistributedDeviceTable(const std::string &device, const RelationalSyncStrategy &syncStrategy) override;
+
+    int RegisterSchemaChangedCallback(const std::function<void()> &callback) override;
+
+    void NotifySchemaChanged();
+
 private:
     SQLiteSingleVerRelationalStorageExecutor *GetHandle(bool isWrite, int &errCode, OperatePerm perm) const;
     void ReleaseHandle(SQLiteSingleVerRelationalStorageExecutor *&handle) const;
@@ -121,6 +127,8 @@ private:
     TimeStamp currentMaxTimeStamp_ = 0;
     KvDBProperties properties;
     mutable std::mutex maxTimeStampMutex_;
+
+    std::function<void()> onSchemaChanged_;
 };
 }  // namespace DistributedDB
 #endif

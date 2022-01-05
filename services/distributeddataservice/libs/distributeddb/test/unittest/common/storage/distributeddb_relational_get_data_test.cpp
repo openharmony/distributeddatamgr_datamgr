@@ -192,7 +192,6 @@ void DistributedDBRelationalGetDataTest::TearDown(void)
 {
     if (g_delegate != nullptr) {
         EXPECT_EQ(g_mgr.CloseStore(g_delegate), DBStatus::OK);
-        EXPECT_EQ(g_mgr.DeleteStore(g_storePath), DBStatus::OK);
         g_delegate = nullptr;
     }
     if (DistributedDBToolsUnitTest::RemoveTestDbFiles(g_testDir) != 0) {

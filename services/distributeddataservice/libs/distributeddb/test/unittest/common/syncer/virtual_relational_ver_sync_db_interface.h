@@ -87,6 +87,10 @@ public:
         return E_OK;
     }
 
+    int CreateDistributedDeviceTable(const std::string &device, const RelationalSyncStrategy &syncStrategy) override;
+
+    int RegisterSchemaChangedCallback(const std::function<void()> &onSchemaChanged) override;
+
 private:
 
     mutable std::map<std::vector<uint8_t>, std::vector<uint8_t>> metadata_;

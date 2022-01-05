@@ -459,5 +459,25 @@ int RelationalSyncAbleStorage::SchemaChanged(int notifyEvent)
 {
     return -E_NOT_SUPPORT;
 }
+
+int RelationalSyncAbleStorage::CreateDistributedDeviceTable(const std::string &device,
+    const RelationalSyncStrategy &syncStrategy)
+{
+    return E_OK;
+}
+
+int RelationalSyncAbleStorage::RegisterSchemaChangedCallback(const std::function<void()> &callback)
+{
+    onSchemaChanged_ = callback;
+    return E_OK;
+}
+
+void RelationalSyncAbleStorage::NotifySchemaChanged()
+{
+    if (onSchemaChanged_) {
+        LOGD("Notify relational schema was changed");
+        onSchemaChanged_();
+    }
+}
 }
 #endif
