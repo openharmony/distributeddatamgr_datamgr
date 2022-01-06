@@ -216,7 +216,7 @@ ohos_source_set("src_file") {
     "../syncer/src/multi_ver_sync_task_context.cpp",
     "../syncer/src/multi_ver_syncer.cpp",
     "../syncer/src/query_sync_water_mark_helper.cpp",
-    "../syncer/src/single_ver_data_message_schedule.cpp"
+    "../syncer/src/single_ver_data_message_schedule.cpp",
     "../syncer/src/single_ver_data_packet.cpp",
     "../syncer/src/single_ver_data_sync.cpp",
     "../syncer/src/single_ver_kv_syncer.cpp",
