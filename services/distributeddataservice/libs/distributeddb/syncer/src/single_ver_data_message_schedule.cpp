@@ -112,7 +112,7 @@ void SingleVerDataMessageSchedule::ClearMsg()
 void SingleVerDataMessageSchedule::UpdateMsgMap()
 {
     std::queue<Message *> msgTmpQueue;
-    {    
+    {
         std::lock_guard<std::mutex> lock(queueLock_);
         while (!msgQueue_.empty()) {
             msgTmpQueue.push(msgQueue_.front());
@@ -205,7 +205,7 @@ Message *SingleVerDataMessageSchedule::GetMsgFromMap(bool &isNeedHandle)
                 LOGI("[DataMsgSchedule] drop msg seqId=%llu,packetId=%llu,label=%s,deviceId=%s", sequenceId,
                     packetId, label_.c_str(), deviceId_.c_str());
                 delete msg;
-                continue; 
+                continue;
             }
             // if packetId == finishedPacketId_ need handle
             // it will happened while watermark/need_abilitySync when last ack is missing

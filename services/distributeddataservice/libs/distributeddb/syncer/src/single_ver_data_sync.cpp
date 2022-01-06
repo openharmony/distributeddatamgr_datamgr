@@ -765,7 +765,7 @@ void SingleVerDataSync::UpdateSendInfo(SyncTimeRange dataTimeRange, SingleVerSyn
     }
     LOGI("[DataSync] mode=%d,start=%llu,end=%llu,deleteStart=%llu,deleteEnd=%llu,seqId=%d,packetId=%llu,window_size=%d,"
         "isAllSend=%d,label=%s,device=%s", mode_, reSendInfo.start, reSendInfo.end, reSendInfo.deleteBeginTime,
-        reSendInfo.deleteEndTime, maxSequenceIdHasSent_, reSendInfo.packetId, windowSize_,isAllDataHasSent_,
+        reSendInfo.deleteEndTime, maxSequenceIdHasSent_, reSendInfo.packetId, windowSize_, isAllDataHasSent_,
         label_.c_str(), STR_MASK(deviceId_));
 }
 

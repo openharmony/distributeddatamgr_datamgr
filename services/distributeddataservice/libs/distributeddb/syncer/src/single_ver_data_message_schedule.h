@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#ifndef SINGLE_VER_DATA_MESSAGE_SCHEDULE_H
+#define SINGLE_VER_DATA_MESSAGE_SCHEDULE_H
 #include <memory>
 #include <map>
 #include <mutex>
@@ -22,8 +24,6 @@
 #include "runtime_context.h"
 #include "single_ver_sync_task_context.h"
 
-#ifndef SINGLE_VER_DATA_MESSAGE_SCHEDULE_H
-#define SINGLE_VER_DATA_MESSAGE_SCHEDULE_H
 namespace DistributedDB {
 class SingleVerDataMessageSchedule {
 public:

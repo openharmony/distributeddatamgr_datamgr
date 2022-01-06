@@ -52,15 +52,15 @@ std::string GetTriggerModeString(TriggerModeEnum mode);
 }
 
 struct OpenDbProperties {
-    std::string uri{};
+    std::string uri {};
     bool createIfNecessary = true;
     bool isMemDb = false;
-    std::vector<std::string> sqls{};
+    std::vector<std::string> sqls {};
     CipherType cipherType = CipherType::AES_256_GCM;
-    CipherPassword passwd{};
-    std::string schema{};
-    std::string subdir{};
-    SecurityOption securityOpt{};
+    CipherPassword passwd {};
+    std::string schema {};
+    std::string subdir {};
+    SecurityOption securityOpt {};
     int conflictReslovePolicy = DEFAULT_LAST_WIN;
     bool createDirByStoreIdOnly = false;
 };

@@ -149,7 +149,7 @@ void RelationalStoreDelegateImpl::OnSyncComplete(const std::map<std::string, std
             DBStatus status = DB_ERROR;
             auto iterator = statusMap.find(tableStatus.status);
             if (iterator != statusMap.end()) {
-                status = iterator->second; 
+                status = iterator->second;
             }
             table.status = status;
             res[device].push_back(table);

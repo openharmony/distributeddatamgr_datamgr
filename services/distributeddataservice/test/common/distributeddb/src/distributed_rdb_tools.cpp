@@ -37,7 +37,8 @@ using namespace DistributedDB;
 using namespace DistributedDBDataGenerator;
 
 namespace {
-    std::string  gtableNameList[33];
+    const int MAX_DISTRIBUTED_TABLE_COUNT = 32;
+    std::string  gtableNameList[MAX_DISTRIBUTED_TABLE_COUNT + 1];
     const char *SQL_CREATE_NORMAL_TABLE = "CREATE TABLE IF NOT EXISTS NORMAL_RDB("  \
         "id    INT    NOT NULL    PRIMARY KEY  AUTO_INCREMENT,"  \
         "name  VARCHAR(100)   NOT NULL   DEFAULT \"rdb\");";
@@ -51,11 +52,11 @@ namespace {
         "identity  INT   NOT NULL, CHECK(identity > 10000) PRIMARY KEY(id, identity)," \
         "FOREGIN key(f_id) references NORMAL_RDB(id));";
 
-    const char *SQL_CREATE_TRIGGER = "CREATE TRIGGER IF NOT EXISTS insertTrigger " \  
+    const char *SQL_CREATE_TRIGGER = "CREATE TRIGGER IF NOT EXISTS insertTrigger " \
         "AFTER INSERT ON CONSTRAINT_RDB " \
-        "FOR EACH ROW " \  
-        "BEGIN " \  
-        "update NORMAL_RDB set name = \"name_001\" " \  
+        "FOR EACH ROW " \
+        "BEGIN " \
+        "update NORMAL_RDB set name = \"name_001\" " \
         "END";
 
     const char *SQL_INSERT_NORMAL_TABLE = "INSERT INTO NORMAL_RDB (id,name)" \
@@ -68,12 +69,12 @@ namespace {
 
     const char *SQL_DROP_TABLE3 = "DROP TABLE RDB_3";
 
-    const char *SQL_DROP_CREATE_TABLE3 = "CREATE TABLE IF NOT EXISTS RDB_3(" \ 
+    const char *SQL_DROP_CREATE_TABLE3 = "CREATE TABLE IF NOT EXISTS RDB_3(" \
         "id    INT    NOT NULL   PRIMARY KEY  AUTO_INCREMENT);";
 
     const char *SQL_DROP_TABLE4 = "DROP TABLE RDB_4";
 
-    const char *SQL_DROP_CREATE_TABLE4  = "CREATE TABLE IF NOT EXISTS RDB_4(" \ 
+    const char *SQL_DROP_CREATE_TABLE4  = "CREATE TABLE IF NOT EXISTS RDB_4(" \
         "id    INT    NOT NULL   PRIMARY KEY  AUTO_INCREMENT, name  CHAR(100));";
 
     const char *SQL_JOURNAL_MODE =  "PRAGMA journal_mode = DELETE;";
@@ -84,12 +85,12 @@ namespace {
         "VALUES (1, \'rdb_005\', \'name_rdb5\');";
 }
 
-DBStatus DistributedRdbTestTools::GetOpenStoreStatus(const RelatetionalStoreManager *&manager, RelatetionalStoreDelegate *&delegate,
-    const RdbParameters &param)
+DBStatus DistributedRdbTools::GetOpenStoreStatus(const RelatetionalStoreManager *&manager,
+    RelatetionalStoreDelegate *&delegate, const RdbParameters &param)
 {
     if (manager == nullptr) {
-      MST_LOG("%s GetRdbStore failed! manager nullptr.", TAG.c_str());
-      return DBStatus::DB_ERROR;
+        MST_LOG("%s GetRdbStore failed! manager nullptr.", TAG.c_str());
+        return DBStatus::DB_ERROR;
     }
     if (delegate != nullptr) {
         delegate = nullptr;
@@ -101,29 +102,29 @@ DBStatus DistributedRdbTestTools::GetOpenStoreStatus(const RelatetionalStoreMana
     retrun status;
 }
 
-DBStatus DistributedRdbTestTools::GetCreateDistributedTableStatus(const RelatetionalStoreDelegate *&delegate, 
+DBStatus DistributedRdbTools::GetCreateDistributedTableStatus(const RelatetionalStoreDelegate *&delegate,
     const std::string &tableName)
 {
     if (delegate == nullptr) {
-      MST_LOG("%s CreateDistributedTable failed! delegate nullptr.", TAG.c_str());
-      return DBStatus::DB_ERROR;
+        MST_LOG("%s CreateDistributedTable failed! delegate nullptr.", TAG.c_str());
+        return DBStatus::DB_ERROR;
     }
     DBStatus status = delegate->CreateDistributedTable(tableName);
     retrun status;
 }
 
-DBStatus DistributedRdbTestTools::CloseStore(const RelatetionalStoreDelegate *&delegate)
+DBStatus DistributedRdbTools::CloseStore(const RelatetionalStoreDelegate *&delegate)
 {
     if (delegate == nullptr) {
-      MST_LOG("%s CloseStore failed! delegate nullptr.", TAG.c_str());
-      return DBStatus::DB_ERROR;
+        MST_LOG("%s CloseStore failed! delegate nullptr.", TAG.c_str());
+        return DBStatus::DB_ERROR;
     }
     DBStatus status = delegate->CloseStore();
     return status;
 }
 
-bool InitSqlite3Store(sqlite3 *&db, const RdbParameters &param)
-{   
+bool DistributedRdbTools::InitSqlite3Store(sqlite3 *&db, const RdbParameters &param)
+{
     const std::string dbName = param.path + param.storeId + ".db";
     DBStributedDB::OS::RemoveFile(dbName);
     int errCode = sqlite3_open(dbName, &db);
@@ -139,59 +140,49 @@ bool InitSqlite3Store(sqlite3 *&db, const RdbParameters &param)
     return true;
 }
 
-bool InitTableDataAndTRIGGER(const sqlite3 *&db) 
+namespace {
+void SqliteExecSql(sqlite3 *db, const char *sql)
+{
+    char *errMsg = nullptr;
+    int errCode = sqlite3_exec(db, sql, nullptr, nullptr, &errMsg);
+    if (errCode != SQLITE_OK && errMsg != nullptr) {
+        MST_LOG("sqlite3_exec sql Failed(%s)", errMsg.c_str());
+        return false;
+    }
+    sqlite3_free(errMsg);
+    errMsg = nullptr;
+}
+}
+
+bool DistributedRdbTools::InitTableDataAndTrigger(const sqlite3 *&db)
 {
     if (db == nullptr) {
-         MST_LOG("openStore Failed");
-         return false;
-    }
-    char *errMsg = nullptr;
-    int errCode1 = sqlite3_exec(db, SQL_CREATE_NORMAL_TABLE, nullptr, nullptr, &errMsg);
-    if (errCode1 != SQLITE_OK && errMsg != nullptr) {
-        MST_LOG("sqlite3_exec SQL_CREATE_NORMAL_TABLE Failed(%s)", errMsg.c_str());
+        MST_LOG("openStore Failed");
         return false;
     }
+    SqliteExecSql(db, SQL_CREATE_NORMAL_TABLE);
+    SqliteExecSql(db, SQL_CREATE_CONSTRAINT_TABLE);
+    SqliteExecSql(db, SQL_CREATE_TRIGGER);
+    SqliteExecSql(db, SQL_INSERT_NORMAL_TABLE);
 
-    int errCode2 = sqlite3_exec(db, SQL_CREATE_CONSTRAINT_TABLE, nullptr, nullptr, &errMsg);
-    if (errCode2 != SQLITE_OK && errMsg != nullptr) {
-        MST_LOG("sqlite3_exec SQL_CREATE_CONSTRAINT_TABLE Failed(%s)", errMsg.c_str());
-        return false;
-    }
-
-    int errCode3 = sqlite3_exec(db, SQL_CREATE_TRIGGER, nullptr, nullptr, &errMsg);
-    if (errCode3 != SQLITE_OK && errMsg != nullptr) {
-        MST_LOG("sqlite3_exec SQL_CREATE_TRIGGER Failed(%s)", errMsg.c_str());
-        return false;
-    }
-
-    int errCode4 = sqlite3_exec(db, SQL_INSERT_NORMAL_TABLE, nullptr, nullptr, &errMsg);
-    if (errCode4 != SQLITE_OK && errMsg != nullptr) {
-        MST_LOG("sqlite3_exec SQL_INSERT_NORMAL_TABLE Failed(%s)", errMsg.c_str());
-        return false;
-    }
-
-    for (int i = 1; i <= 33; i++) {
+    for (int i = 1; i <= MAX_DISTRIBUTED_TABLE_COUNT + 1; i++) {
         std::string str_0 = "RDB_" + i;
         std::string str_1 = "CREATE TABLE IF NOT EXISTS "
         std::string str_2 = "( id    INT    NOT NULL   PRIMARY KEY  AUTO_INCREMENT,"  \
             "name  VARCHAR(100)   NOT NULL, age VARCHAR(100)   NOT NULL);";
-        sprintf(str1,"%s%s",str0,str2);
-            
-        char *errMsg = nullptr;
-        int errCode1 = sqlite3_exec(db, str_1.c_str(), nullptr, nullptr, &errMsg);
-        if (errCode1 != SQLITE_OK && errMsg != nullptr) {
-            MST_LOG("sqlite3_exec PresetTables33 Failed(%s)", errMsg.c_str());
-            return false;
-        }
+        std::string sql = str_1 + str_0 + str_2;
+
+        SqliteExecSql(db, sql.c_str());
         gtableNameList[i-1] = str_0;
     }
     return true;
 }
 
-bool alterTableAttributes(const sqlite3 *&db) {
+bool DistributedRdbTools::AlterTableAttributes(const sqlite3 *&db)
+{
     if (db == nullptr) {
-         MST_LOG("openStore Failed");
-         return false;
+        MST_LOG("openStore Failed");
+        return false;
     }
     char *errMsg = nullptr;
     int errCode = sqlite3_exec(db, SQL_ADD_FIELD_TABLE1, nullptr, nullptr, &errMsg);
@@ -233,11 +224,11 @@ bool alterTableAttributes(const sqlite3 *&db) {
 }
 
 
-bool Sqlite3ExecOpration(const sqlite3 *&db, cont char *&sql_name)
-{   
+bool DistributedRdbTools::Sqlite3ExecOpration(const sqlite3 *&db, cont char *&sql_name)
+{
     if (db == nullptr) {
-         MST_LOG("openStore Failed");
-         return false;
+        MST_LOG("openStore Failed");
+        return false;
     }
     int errCode = sqlite3_exec(db, sql_name, 0, 0, 0);
     if (errCode != SQLITE_OK) {
@@ -247,8 +238,8 @@ bool Sqlite3ExecOpration(const sqlite3 *&db, cont char *&sql_name)
     return true;
 }
 
-void CloseSqlite3Store(sqlite3 *&db)
-{   
+void DistributedRdbTools::CloseSqlite3Store(sqlite3 *&db)
+{
     if (db != nullptr) {
         sqlite3_close(db);
         db = nullptr;

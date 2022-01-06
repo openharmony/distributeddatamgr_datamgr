@@ -38,7 +38,7 @@ RelatetionalStoreDelegate *g_delegate = nullptr;
 
 RelatetionalStoreDelegate *g_delegate1 = nullptr;
 
-class DistributedRelatinalDBExceptionOperationTest : public testing::Test {
+class DistributedRDBExceptionTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
@@ -47,23 +47,23 @@ public:
 private:
 };
 
-void DistributedRelatinalDBExceptionOperationTest::SetUpTestCase(void)
+void DistributedRDBExceptionTest::SetUpTestCase(void)
 {
-    bool init1 = InitSqlite3Store(gdb, g_rdbParameter1);
+    bool init1 = DistributedRdbTools::InitSqlite3Store(gdb, g_rdbParameter1);
     ASSERT_EQ(init1, true);
-    bool init2 = InitTableDataAndTRIGGER(gdb);
+    bool init2 = DistributedRdbTools::InitTableDataAndTrigger(gdb);
     ASSERT_EQ(init2, true);
     g_manager = new (std::nothrow) RelatetionalStoreManager(g_rdbParameter1.appId, g_rdbParameter1.userId);
-    DBStatus status1 = DistributedRdbTestTools::GetOpenStoreStatus(g_manager, g_delegate, g_rdbParameter1);
+    DBStatus status1 = DistributedRdbTools::GetOpenStoreStatus(g_manager, g_delegate, g_rdbParameter1);
     ASSERT_EQ(status1, DBStatus::OK);
 }
 
-void DistributedRelatinalDBExceptionOperationTest::TearDownTestCase(void)
+void DistributedRDBExceptionTest::TearDownTestCase(void)
 {
     CloseSqlite3Store(gdb);
 }
 
-void DistributedRelatinalDBExceptionOperationTest::SetUp(void)
+void DistributedRDBExceptionTest::SetUp(void)
 {
     UnitTest *test = UnitTest::GetInstance();
     ASSERT_NE(test, nullptr);
@@ -73,7 +73,7 @@ void DistributedRelatinalDBExceptionOperationTest::SetUp(void)
     MST_LOG("[SetUp] test case %s is start to run", testCaseName.c_str());
 }
 
-void DistributedRelatinalDBExceptionOperationTest::TearDown(void)
+void DistributedRDBExceptionTest::TearDown(void)
 {
     MST_LOG("TearDownTestCase after case.");
 }
@@ -85,9 +85,9 @@ void DistributedRelatinalDBExceptionOperationTest::TearDown(void)
  * @tc.require: SR000DORPP
  * @tc.author: xuhongkang
  */
-HWTEST_F(DistributedRelatinalDBExceptionOperationTest, dbPathException001, TestSize.Level4)
+HWTEST_F(DistributedRDBExceptionTest, dbPathException001, TestSize.Level4)
 {
-    DBStatus status = DistributedRdbTestTools::GetOpenStoreStatus(g_manager, g_delegate1, g_rdbParameter6);
+    DBStatus status = DistributedRdbTools::GetOpenStoreStatus(g_manager, g_delegate1, g_rdbParameter6);
     ASSERT_EQ(status, DBStatus::INVALID_ARGS);
 }
 
@@ -98,14 +98,14 @@ HWTEST_F(DistributedRelatinalDBExceptionOperationTest, dbPathException001, TestS
  * @tc.require: SR000DORPP
  * @tc.author: xuhongkang
  */
-HWTEST_F(DistributedRelatinalDBExceptionOperationTest, dbPathException002, TestSize.Level4)
+HWTEST_F(DistributedRDBExceptionTest, dbPathException002, TestSize.Level4)
 {
     sqlite3 *db = nullptr;
-    bool init1 = InitSqlite3Store(db, g_rdbParameter7);
+    bool init1 = DistributedRdbTools::InitSqlite3Store(db, g_rdbParameter7);
     ASSERT_EQ(init1, true);
     bool bpermission = DBStributedDB::OS::SetFilePermissions(g_rdbParameter7.path, S_IWUSR | S_IXUSR);
     ASSERT_EQ(bpermission, true);
-    DBStatus status = DistributedRdbTestTools::GetOpenStoreStatus(g_manager, g_delegate1, g_rdbParameter7);
+    DBStatus status = DistributedRdbTools::GetOpenStoreStatus(g_manager, g_delegate1, g_rdbParameter7);
     ASSERT_EQ(status, DBStatus::INVALID_ARGS);
     bpermission = DBStributedDB::OS::SetFilePermissions(g_rdbParameter7.path, S_IWUSR | S_IREAD | S_IXUSR);
     ASSERT_EQ(bpermission, true);
@@ -119,14 +119,14 @@ HWTEST_F(DistributedRelatinalDBExceptionOperationTest, dbPathException002, TestS
  * @tc.require: SR000DORPP
  * @tc.author: xuhongkang
  */
-HWTEST_F(DistributedRelatinalDBExceptionOperationTest, dbPathException003, TestSize.Level4)
+HWTEST_F(DistributedRDBExceptionTest, dbPathException003, TestSize.Level4)
 {
     sqlite3 *db = nullptr;
-    bool init1 = InitSqlite3Store(db, g_rdbParameter8);
+    bool init1 = DistributedRdbTools::InitSqlite3Store(db, g_rdbParameter8);
     ASSERT_EQ(init1, true);
     bool bpermission = DBStributedDB::OS::SetFilePermissions(g_rdbParameter8.path, S_IREAD  | S_IXUSR);
     ASSERT_EQ(bpermission, true);
-    DBStatus status = DistributedRdbTestTools::GetOpenStoreStatus(g_manager, g_delegate1, g_rdbParameter8);
+    DBStatus status = DistributedRdbTools::GetOpenStoreStatus(g_manager, g_delegate1, g_rdbParameter8);
     ASSERT_EQ(status, DBStatus::INVALID_ARGS);
     bpermission = DBStributedDB::OS::SetFilePermissions(g_rdbParameter8.path, S_IWUSR | S_IREAD | S_IXUSR);
     ASSERT_EQ(bpermission, true);
@@ -140,9 +140,9 @@ HWTEST_F(DistributedRelatinalDBExceptionOperationTest, dbPathException003, TestS
  * @tc.require: SR000DORPP
  * @tc.author: xuhongkang
  */
-HWTEST_F(DistributedRelatinalDBExceptionOperationTest, storeIdException001, TestSize.Level4)
+HWTEST_F(DistributedRDBExceptionTest, storeIdException001, TestSize.Level4)
 {
-    DBStatus status = DistributedRdbTestTools::GetOpenStoreStatus(g_manager, g_delegate1, g_rdbParameter2);
+    DBStatus status = DistributedRdbTools::GetOpenStoreStatus(g_manager, g_delegate1, g_rdbParameter2);
     ASSERT_EQ(status, DBStatus::INVALID_ARGS);
 }
 
@@ -153,9 +153,9 @@ HWTEST_F(DistributedRelatinalDBExceptionOperationTest, storeIdException001, Test
  * @tc.require: SR000DORPP
  * @tc.author: xuhongkang
  */
-HWTEST_F(DistributedRelatinalDBExceptionOperationTest, storeIdException002, TestSize.Level4)
+HWTEST_F(DistributedRDBExceptionTest, storeIdException002, TestSize.Level4)
 {
-    DBStatus status = DistributedRdbTestTools::GetOpenStoreStatus(g_manager, g_delegate1, g_rdbParameter5);
+    DBStatus status = DistributedRdbTools::GetOpenStoreStatus(g_manager, g_delegate1, g_rdbParameter5);
     ASSERT_EQ(status, DBStatus::INVALID_ARGS);
 }
 
@@ -166,9 +166,9 @@ HWTEST_F(DistributedRelatinalDBExceptionOperationTest, storeIdException002, Test
  * @tc.require: SR000DORPP
  * @tc.author: xuhongkang
  */
-HWTEST_F(DistributedRelatinalDBExceptionOperationTest, storeIdException003, TestSize.Level4)
+HWTEST_F(DistributedRDBExceptionTest, storeIdException003, TestSize.Level4)
 {
-    DBStatus status = DistributedRdbTestTools::GetOpenStoreStatus(g_manager, g_delegate1, g_rdbParameter3);
+    DBStatus status = DistributedRdbTools::GetOpenStoreStatus(g_manager, g_delegate1, g_rdbParameter3);
     ASSERT_EQ(status, DBStatus::INVALID_ARGS);
 }
 
@@ -179,22 +179,22 @@ HWTEST_F(DistributedRelatinalDBExceptionOperationTest, storeIdException003, Test
  * @tc.require: SR000DORPP
  * @tc.author: xuhongkang
  */
-HWTEST_F(DistributedRelatinalDBExceptionOperationTest, dbModeException001, TestSize.Level4)
+HWTEST_F(DistributedRDBExceptionTest, dbModeException001, TestSize.Level4)
 {
-    sqlite3 *db = nullptr;    
-    bool init1 = InitSqlite3Store(db, g_rdbParameter4);
+    sqlite3 *db = nullptr;
+    bool init1 = DistributedRdbTools::InitSqlite3Store(db, g_rdbParameter4);
     ASSERT_EQ(init1, true);
-    bool res1 = Sqlite3ExecOpration(db, SQL_JOURNAL_MODE);
+    bool res1 = DistributedRdbTools::Sqlite3ExecOpration(db, SQL_JOURNAL_MODE);
     ASSERT_EQ(res1, true);
-    DBStatus status1 = DistributedRdbTestTools::GetOpenStoreStatus(g_manager, g_delegate1, g_rdbParameter4);
+    DBStatus status1 = DistributedRdbTools::GetOpenStoreStatus(g_manager, g_delegate1, g_rdbParameter4);
     ASSERT_EQ(status1, DBStatus::NOT_SUPPORT);
     CloseSqlite3Store(db);
 
-    bool init2 = InitSqlite3Store(db, g_rdbParameter9);
+    bool init2 = DistributedRdbTools::InitSqlite3Store(db, g_rdbParameter9);
     ASSERT_EQ(init2, true);
-    bool res2 = Sqlite3ExecOpration(db, SQL_SYNCHRONOUS_MODE);
+    bool res2 = DistributedRdbTools::Sqlite3ExecOpration(db, SQL_SYNCHRONOUS_MODE);
     ASSERT_EQ(res2, true);
-    DBStatus status2 = DistributedRdbTestTools::GetOpenStoreStatus(g_manager, g_delegate1, g_rdbParameter4);
+    DBStatus status2 = DistributedRdbTools::GetOpenStoreStatus(g_manager, g_delegate1, g_rdbParameter4);
     ASSERT_EQ(status2, DBStatus::NOT_SUPPORT);
     CloseSqlite3Store(db);
 }
@@ -206,9 +206,9 @@ HWTEST_F(DistributedRelatinalDBExceptionOperationTest, dbModeException001, TestS
  * @tc.require: SR000DORPP
  * @tc.author: xuhongkang
  */
-HWTEST_F(DistributedRelatinalDBExceptionOperationTest, tableException001, TestSize.Level4)
+HWTEST_F(DistributedRDBExceptionTest, tableException001, TestSize.Level4)
 {
-    DBStatus status2 = DistributedRdbTestTools::GetCreateDistributedTableStatus(g_delegate, NON_EXISTENT_TABLE);
+    DBStatus status2 = DistributedRdbTools::GetCreateDistributedTableStatus(g_delegate, NON_EXISTENT_TABLE);
     ASSERT_EQ(status2, DBStatus::INVALID_ARGS);
 }
 
@@ -219,9 +219,9 @@ HWTEST_F(DistributedRelatinalDBExceptionOperationTest, tableException001, TestSi
  * @tc.require: SR000DORPP
  * @tc.author: xuhongkang
  */
-HWTEST_F(DistributedRelatinalDBExceptionOperationTest, tableException002, TestSize.Level4)
+HWTEST_F(DistributedRDBExceptionTest, tableException002, TestSize.Level4)
 {
-    DBStatus status2 = DistributedRdbTestTools::GetCreateDistributedTableStatus(g_delegate, KEYWORD_START_TABLE);
+    DBStatus status2 = DistributedRdbTools::GetCreateDistributedTableStatus(g_delegate, KEYWORD_START_TABLE);
     ASSERT_EQ(status2, DBStatus::INVALID_ARGS);
 }
 
@@ -232,9 +232,9 @@ HWTEST_F(DistributedRelatinalDBExceptionOperationTest, tableException002, TestSi
  * @tc.require: SR000DORPP
  * @tc.author: xuhongkang
  */
-HWTEST_F(DistributedRelatinalDBExceptionOperationTest, tableException003, TestSize.Level4)
+HWTEST_F(DistributedRDBExceptionTest, tableException003, TestSize.Level4)
 {
-    DBStatus status2 = DistributedRdbTestTools::GetCreateDistributedTableStatus(g_delegate, NORMAL_TABLE);
+    DBStatus status2 = DistributedRdbTools::GetCreateDistributedTableStatus(g_delegate, NORMAL_TABLE);
     ASSERT_EQ(status2, DBStatus::NOT_SUPPORT);
 }
 
@@ -245,61 +245,60 @@ HWTEST_F(DistributedRelatinalDBExceptionOperationTest, tableException003, TestSi
  * @tc.require: SR000DORPP
  * @tc.author: xuhongkang
  */
-HWTEST_F(DistributedRelatinalDBExceptionOperationTest, tableMulCreate001, TestSize.Level4)
+HWTEST_F(DistributedRDBExceptionTest, tableMulCreate001, TestSize.Level4)
 {
     for (int i = 1; i <= 5; i++) {
-        DBStatus status2 = DistributedRdbTestTools::GetCreateDistributedTableStatus(g_delegate, gtableNameList[0]);
+        DBStatus status2 = DistributedRdbTools::GetCreateDistributedTableStatus(g_delegate, gtableNameList[0]);
         ASSERT_EQ(status2, DBStatus::OK);
     }
 }
 
 /**
  * @tc.name:  mulTableCreate001
- * @tc.desc: dbA createDistributedTable 32 tables, successful 
+ * @tc.desc: dbA createDistributedTable 32 tables, successful
  * then dbA createDistributedTable the 33'th table failed.
  * @tc.type: FUNC
  * @tc.require: SR000DORPP
  * @tc.author: xuhongkang
  */
-HWTEST_F(DistributedRelatinalDBExceptionOperationTest, mulTableCreate001, TestSize.Level4)
+HWTEST_F(DistributedRDBExceptionTest, mulTableCreate001, TestSize.Level4)
 {
     for (auto tableName: gtableNameList) {
-        DBStatus status = DistributedRdbTestTools::GetCreateDistributedTableStatus(g_delegate, tableName);
+        DBStatus status = DistributedRdbTools::GetCreateDistributedTableStatus(g_delegate, tableName);
         if (tableName == gtableNameList[32]) {
             ASSERT_EQ(status, DBStatus::NOT_SUPPORT);
         } else {
-           ASSERT_EQ(status, DBStatus::OK); 
-        }   
+            ASSERT_EQ(status, DBStatus::OK);
+        }
     }
 }
 
 /**
  * @tc.name:  mulTableCreate002
  * @tc.desc: dbA createDistributedTable RDB_1...20 tables, And
- * dbB createDistributedTable RDB_21...32 tables,successful 
+ * dbB createDistributedTable RDB_21...32 tables,successful
  * then dbA createDistributedTable the 33'th table failed.
  * @tc.type: FUNC
  * @tc.require: SR000DORPP
  * @tc.author: xuhongkang
  */
-HWTEST_F(DistributedRelatinalDBExceptionOperationTest, mulTableCreate002, TestSize.Level4)
+HWTEST_F(DistributedRDBExceptionTest, mulTableCreate002, TestSize.Level4)
 {
     RelatetionalStoreDelegate *delegateA = nullptr;
-    RelatetionalStoreDelegate *delegateB = nullptr;  
-    DBStatus status1 = DistributedRdbTestTools::GetOpenStoreStatus(g_manager, delegateA, g_rdbParameter1);
-    ASSERT_EQ(status1, DBStatus::OK);
-    DBStatus status2 = DistributedRdbTestTools::GetOpenStoreStatus(g_manager, delegateB, g_rdbParameter1);
-    ASSERT_EQ(status2, DBStatus::OK);
+    RelatetionalStoreDelegate *delegateB = nullptr;
+    DBStatus status = DistributedRdbTools::GetOpenStoreStatus(g_manager, delegateA, g_rdbParameter1);
+    ASSERT_EQ(status, DBStatus::OK);
+    status = DistributedRdbTools::GetOpenStoreStatus(g_manager, delegateB, g_rdbParameter1);
+    ASSERT_EQ(status, DBStatus::OK);
     for (int index = 0; index < gtableNameList.size(); index++) {
         if (index < 20) {
-            DBStatus status = DistributedRdbTestTools::GetCreateDistributedTableStatus(delegateA, gtableNameList[index]);
-            ASSERT_EQ(status2, DBStatus::OK); 
-        } else if (index >= 20 && index < 32)
-        {
-            DBStatus status = DistributedRdbTestTools::GetCreateDistributedTableStatus(delegateB, gtableNameList[index]);
-            ASSERT_EQ(status2, DBStatus::OK); 
+            status = DistributedRdbTools::GetCreateDistributedTableStatus(delegateA, gtableNameList[index]);
+            ASSERT_EQ(status, DBStatus::OK);
+        } else if (index >= 20 && index < 32) {
+            status = DistributedRdbTools::GetCreateDistributedTableStatus(delegateB, gtableNameList[index]);
+            ASSERT_EQ(status, DBStatus::OK);
         } else {
-            ASSERT_EQ(status2, DBStatus::NOT_SUPPORT);
+            ASSERT_EQ(status, DBStatus::NOT_SUPPORT);
         }
     }
 }
@@ -311,12 +310,12 @@ HWTEST_F(DistributedRelatinalDBExceptionOperationTest, mulTableCreate002, TestSi
  * @tc.require: SR000DORPP
  * @tc.author: xuhongkang
  */
-HWTEST_F(DistributedRelatinalDBExceptionOperationTest, relatinalTable001, TestSize.Level4)
+HWTEST_F(DistributedRDBExceptionTest, relatinalTable001, TestSize.Level4)
 {
-    bool result = alterTableAttributes(gdb);
+    bool result = DistributedRdbTools::AlterTableAttributes(gdb);
     ASSERT_EQ(result, true);
     for (int i = 0; i < 4; i++) {
-        DBStatus status2 = DistributedRdbTestTools::GetCreateDistributedTableStatus(g_delegate, gtableNameList[i]);
+        DBStatus status2 = DistributedRdbTools::GetCreateDistributedTableStatus(g_delegate, gtableNameList[i]);
         ASSERT_EQ(status2, DBStatus::OK);
     }
 }
@@ -328,9 +327,9 @@ HWTEST_F(DistributedRelatinalDBExceptionOperationTest, relatinalTable001, TestSi
  * @tc.require: SR000DORPP
  * @tc.author: xuhongkang
  */
-HWTEST_F(DistributedRelatinalDBExceptionOperationTest, constraintTable001, TestSize.Level4)
+HWTEST_F(DistributedRDBExceptionTest, constraintTable001, TestSize.Level4)
 {
-    DBStatus status2 = DistributedRdbTestTools::GetCreateDistributedTableStatus(g_delegate, CONSTRAINT_TABLE);
+    DBStatus status2 = DistributedRdbTools::GetCreateDistributedTableStatus(g_delegate, CONSTRAINT_TABLE);
     ASSERT_EQ(status2, DBStatus::OK);
 }
 
@@ -341,13 +340,13 @@ HWTEST_F(DistributedRelatinalDBExceptionOperationTest, constraintTable001, TestS
  * @tc.require: SR000DORPP
  * @tc.author: xuhongkang
  */
-HWTEST_F(DistributedRelatinalDBExceptionOperationTest, constraintTable001, TestSize.Level4)
+HWTEST_F(DistributedRDBExceptionTest, constraintTable001, TestSize.Level4)
 {
-    DBStatus status2 = DistributedRdbTestTools::GetCreateDistributedTableStatus(g_delegate, gtableNameList[4]);
+    DBStatus status2 = DistributedRdbTools::GetCreateDistributedTableStatus(g_delegate, gtableNameList[4]);
     ASSERT_EQ(status2, DBStatus::OK);
-    bool res1 = Sqlite3ExecOpration(db, SQL_INSERT_RDB5_TABLE);
+    bool res1 = DistributedRdbTools::Sqlite3ExecOpration(db, SQL_INSERT_RDB5_TABLE);
     ASSERT_EQ(res1, true);
-    DBStatus status2 = DistributedRdbTestTools::GetCreateDistributedTableStatus(g_delegate, gtableNameList[4]);
+    DBStatus status2 = DistributedRdbTools::GetCreateDistributedTableStatus(g_delegate, gtableNameList[4]);
     ASSERT_EQ(status2, DBStatus::OK);
 }
 }

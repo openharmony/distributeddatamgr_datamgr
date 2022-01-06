@@ -385,7 +385,9 @@ distributeddb_unittest("DistributedDBSingleVerP2PSyncTest") {
 }
 
 distributeddb_unittest("DistributedDBSingleVerMsgScheduleTest") {
-  sources = [ "unittest/common/syncer/distributeddb_single_ver_msg_schedule_test.cpp" ]
+  sources = [
+    "unittest/common/syncer/distributeddb_single_ver_msg_schedule_test.cpp",
+  ]
 }
 
 distributeddb_unittest("DistributedDBInterfacesNBDelegateTest") {
@@ -665,11 +667,11 @@ group("unittest") {
     ":DistributedDBParcelTest",
     ":DistributedDBSchemaObjectTest",
     ":DistributedDBSchemalTest",
+    ":DistributedDBSingleVerMsgScheduleTest",
     ":DistributedDBSingleVerP2PQuerySyncTest",
     ":DistributedDBSingleVerP2PSubscribeSyncTest",
     ":DistributedDBSingleVerP2PSyncCheckTest",
     ":DistributedDBSingleVerP2PSyncTest",
-    ":DistributedDBSingleVerMsgScheduleTest",
     ":DistributedDBSingleVersionResultSetTest",
     ":DistributedDBSqliteRegisterTest",
     ":DistributedDBStorageCommitStorageTest",

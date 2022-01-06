@@ -62,13 +62,14 @@ void CreateDBAndTable()
     char *zErrMsg = nullptr;
     errCode = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &zErrMsg);
     if (errCode != SQLITE_OK) {
-        LOGE("sql error:%s",zErrMsg);
+        LOGE("sql error:%s", zErrMsg);
         sqlite3_free(zErrMsg);
     }
     sqlite3_close(db);
 }
 
-int AddOrUpdateRecord(int64_t key, int64_t value) {
+int AddOrUpdateRecord(int64_t key, int64_t value)
+{
     sqlite3 *db = nullptr;
     int errCode = sqlite3_open(g_storePath.c_str(), &db);
     if (errCode == SQLITE_OK) {
@@ -121,8 +122,8 @@ END:
     return errCode;
 }
 
-void InitStoreProp(const std::string &storePath,
-    const std::string appId, const std::string &userId, RelationalDBProperties &properties)
+void InitStoreProp(const std::string &storePath, const std::string &appId, const std::string &userId,
+    RelationalDBProperties &properties)
 {
     properties.SetStringProp(RelationalDBProperties::DATA_DIR, storePath);
     properties.SetStringProp(RelationalDBProperties::APP_ID, appId);

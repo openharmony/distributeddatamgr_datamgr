@@ -38,25 +38,25 @@ struct RdbParameters {
     }
 };
 
-const static std::string TAG = "DistributedRdbTestTools";
+const static std::string TAG = "DistributedRdbTools";
 
-const std::string NORMAL_PATH = "/data/test/";
-const std::string NON_EXISTENT_PATH = "/data/test/nonExistent_rdb/";
-const std::string UNREADABLE_PATH = "/data/test/unreadable_rdb/";
-const std::string UNWRITABLE_PATH = "/data/test/unwritable_rdb/";
+const static std::string NORMAL_PATH = "/data/test/";
+const static std::string NON_EXISTENT_PATH = "/data/test/nonExistent_rdb/";
+const static std::string UNREADABLE_PATH = "/data/test/unreadable_rdb/";
+const static std::string UNWRITABLE_PATH = "/data/test/unwritable_rdb/";
 
-const std::string NULL_STOREID = "";
-const std::string ILLEGAL_STOREID = "rdb_$%#@~%";
-const std::string MODE_STOREID = "rdb_mode";
-const std::string FULL_STOREID = "rdb_full";
-const std::string SUPER_STOREID = "rdb_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
+const static std::string NULL_STOREID = "";
+const static std::string ILLEGAL_STOREID = "rdb_$%#@~%";
+const static std::string MODE_STOREID = "rdb_mode";
+const static std::string FULL_STOREID = "rdb_full";
+const static std::string SUPER_STOREID = "rdb_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
-const std::string NON_EXISTENT_TABLE = "non_table";
-const std::string KEYWORD_START_TABLE = "naturalbase_rdb_a";
+const static std::string NON_EXISTENT_TABLE = "non_table";
+const static std::string KEYWORD_START_TABLE = "naturalbase_rdb_a";
 
-const std::string NORMAL_TABLE = "NORMAL_RDB";
-const std::string CONSTRAINT_TABLE = "CONSTRAINT_RDB";
+const static std::string NORMAL_TABLE = "NORMAL_RDB";
+const static std::string CONSTRAINT_TABLE = "CONSTRAINT_RDB";
 
 const static RdbParameters g_rdbParameter1(NORMAL_PATH, DistributedDBDataGenerator::STORE_ID_1,
     DistributedDBDataGenerator::APP_ID_1, DistributedDBDataGenerator::USER_ID_1);
@@ -78,23 +78,28 @@ const static RdbParameters g_rdbParameter6(NON_EXISTENT_PATH, DistributedDBDataG
 
 const static RdbParameters g_rdbParameter7(UNREADABLE_PATH, DistributedDBDataGenerator::STORE_ID_1,
     DistributedDBDataGenerator::APP_ID_1, DistributedDBDataGenerator::USER_ID_1);
-    
+
 const static RdbParameters g_rdbParameter8(UNWRITABLE_PATH, DistributedDBDataGenerator::STORE_ID_1,
     DistributedDBDataGenerator::APP_ID_1, DistributedDBDataGenerator::USER_ID_1);
 
 const static RdbParameters g_rdbParameter9(NORMAL_PATH, FULL_STOREID,
     DistributedDBDataGenerator::APP_ID_1, DistributedDBDataGenerator::USER_ID_1);
 
-class DistributedRdbTestTools final {
+class DistributedRdbTools final {
 public:
-    DistributedRdbTestTools() {}
-    ~DistributedRdbTestTools() {}
+    DistributedRdbTools() {}
+    ~DistributedRdbTools() {}
     // Relational Database OpenStore And CreateDistributeTable
-    static DistributedDB::DBStatus GetOpenStoreStatus(const RelatetionalStoreManager *&manager, RelatetionalStoreDelegate *&delegate,
-        const RdbParameters &param);
-    static DistributedDB::DBStatus GetCreateDistributedTableStatus(const RelatetionalStoreDelegate *&delegate, 
+    static DistributedDB::DBStatus GetOpenStoreStatus(const RelatetionalStoreManager *&manager,
+        RelatetionalStoreDelegate *&delegate, const RdbParameters &param);
+    static DistributedDB::DBStatus GetCreateDistributedTableStatus(const RelatetionalStoreDelegate *&delegate,
         const std::string &tableName);
     static bool CloseStore(const DistributedDB::RelatetionalStoreDelegate *&delegate);
-private: 
+
+    static bool InitSqlite3Store(sqlite3 *&db, const RdbParameters &param);
+    static bool InitTableDataAndTrigger(const sqlite3 *&db) ;
+    static bool AlterTableAttributes(const sqlite3 *&db);
+    static bool Sqlite3ExecOpration(const sqlite3 *&db, cont char *&sql_name);
+    static void CloseSqlite3Store(sqlite3 *&db);
 }
 #endif // DISTRIBUTED_RDB_MODULE_TEST_TOOLS_H
