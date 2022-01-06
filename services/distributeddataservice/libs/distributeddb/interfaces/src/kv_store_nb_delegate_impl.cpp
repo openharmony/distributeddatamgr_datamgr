@@ -57,6 +57,8 @@ namespace {
         {RESULT_SET_CACHE_MODE, PRAGMA_RESULT_SET_CACHE_MODE},
         {RESULT_SET_CACHE_MAX_SIZE, PRAGMA_RESULT_SET_CACHE_MAX_SIZE},
         {SET_SYNC_RETRY, PRAGMA_SET_SYNC_RETRY},
+        {SET_MAX_LOG_LIMIT, PRAGMA_SET_MAX_LOG_LIMIT},
+        {EXEC_CHECKPOINT, PRAGMA_EXEC_CHECKPOINT},
     };
 
     const std::string INVALID_CONNECTION = "[KvStoreNbDelegate] Invalid connection for operation";

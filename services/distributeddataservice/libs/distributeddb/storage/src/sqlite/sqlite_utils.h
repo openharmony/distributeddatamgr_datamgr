@@ -178,6 +178,8 @@ public:
 
     static int ExpandedSql(sqlite3_stmt *stmt, std::string &basicString);
 
+    static void ExecuteCheckPoint(sqlite3 *db);
+
     static int CheckTableEmpty(sqlite3 *db, const std::string &tableName, bool &isEmpty);
 
 private:

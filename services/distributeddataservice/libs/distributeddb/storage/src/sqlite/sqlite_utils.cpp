@@ -2018,6 +2018,16 @@ int SQLiteUtils::ExpandedSql(sqlite3_stmt *stmt, std::string &basicString)
     return E_OK;
 }
 
+void SQLiteUtils::ExecuteCheckPoint(sqlite3 *db)
+{
+    if (db == nullptr) {
+        return;
+    }
+
+    int chkResult = sqlite3_wal_checkpoint_v2(db, nullptr, SQLITE_CHECKPOINT_TRUNCATE, nullptr, nullptr);
+    LOGI("SQLite checkpoint result:%d", chkResult);
+}
+
 int SQLiteUtils::CheckTableEmpty(sqlite3 *db, const std::string &tableName, bool &isEmpty)
 {
     if (db == nullptr) {

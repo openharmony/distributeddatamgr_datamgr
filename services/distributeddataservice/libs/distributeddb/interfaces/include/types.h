@@ -56,6 +56,7 @@ enum DBStatus {
     SECURITY_OPTION_CHECK_ERROR, // such as remote device's SecurityOption not equal to local
     SCHEMA_VIOLATE_VALUE, // Values already exist in dbFile do not match new schema
     INTERCEPT_DATA_FAIL, // Interceptor push data failed.
+    LOG_OVER_LIMITS, // Log size is over the limits.
     RELATIONAL_SCHEMA_NOT_FOUND, // the sync table is not a relational table
     RELATIONAL_SCHEMA_CHANGED, // the schema was changed
 };
@@ -81,6 +82,8 @@ enum PragmaCmd {
     RESULT_SET_CACHE_MODE, // Accept ResultSetCacheMode Type As PragmaData
     RESULT_SET_CACHE_MAX_SIZE, // Allowed Int Type Range [1,16], Unit MB
     SET_SYNC_RETRY,
+    SET_MAX_LOG_LIMIT,
+    EXEC_CHECKPOINT,
 };
 
 enum ResolutionPolicyType {

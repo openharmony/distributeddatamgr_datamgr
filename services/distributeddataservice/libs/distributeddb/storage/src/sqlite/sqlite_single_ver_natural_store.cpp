@@ -178,7 +178,8 @@ SQLiteSingleVerNaturalStore::SQLiteSingleVerNaturalStore()
       lifeTimerId_(0),
       autoLifeTime_(DEF_LIFE_CYCLE_TIME),
       createDBTime_(0),
-      dataInterceptor_(nullptr)
+      dataInterceptor_(nullptr),
+      maxLogLimit_(DBConstant::MAX_LOG_LIMIT_DEFAULT)
 {}
 
 SQLiteSingleVerNaturalStore::~SQLiteSingleVerNaturalStore()
@@ -945,8 +946,21 @@ int SQLiteSingleVerNaturalStore::RemoveDeviceData(const std::string &deviceName,
     if (!isInSync && !CheckWritePermission()) {
         return -E_NOT_PERMIT;
     }
+    int errCode = E_OK;
+    SQLiteSingleVerStorageExecutor *handle = GetHandle(true, errCode);
+    if (handle == nullptr) {
+        LOGE("[SingleVerNStore] RemoveDeviceData get handle failed:%d", errCode);
+        return errCode;
+    }
+    uint64_t logFileSize = handle->GetLogFileSize();
+    ReleaseHandle(handle);
+    if (logFileSize > GetMaxLogLimit()) {
+        LOGW("[SingleVerNStore] RmDevData log size[%llu] over the limit", logFileSize);
+        return -E_LOG_OVER_LIMITS;
+    }
+
     // Call the syncer module to erase the water mark.
-    int errCode = EraseDeviceWaterMark(deviceName, true);
+    errCode = EraseDeviceWaterMark(deviceName, true);
     if (errCode != E_OK) {
         LOGE("[SingleVerNStore] erase water mark failed:%d", errCode);
         return errCode;
@@ -2219,6 +2233,17 @@ ERR:
 int SQLiteSingleVerNaturalStore::RemoveSubscribe(const std::string &subscribeId)
 {
     return RemoveSubscribe(std::vector<std::string> {subscribeId});
+}
+
+int SQLiteSingleVerNaturalStore::SetMaxLogLimit(uint64_t limit)
+{
+    LOGI("Set the max log size to %llu", limit);
+    maxLogLimit_.store(limit);
+    return E_OK;
+}
+uint64_t SQLiteSingleVerNaturalStore::GetMaxLogLimit() const
+{
+    return maxLogLimit_.load();
 }
 
 int SQLiteSingleVerNaturalStore::RemoveAllSubscribe()

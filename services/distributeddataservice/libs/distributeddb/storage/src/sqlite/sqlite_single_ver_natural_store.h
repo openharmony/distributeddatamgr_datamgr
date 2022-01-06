@@ -183,6 +183,10 @@ public:
 
     int RemoveSubscribe(const std::vector<std::string> &subscribeIds) override;
 
+    int SetMaxLogLimit(uint64_t limit);
+
+    uint64_t GetMaxLogLimit() const;
+
 private:
     int CheckDatabaseRecovery(const KvDBProperties &kvDBProp);
 
@@ -279,6 +283,7 @@ private:
 
     mutable std::shared_mutex dataInterceptorMutex_;
     PushDataInterceptor dataInterceptor_;
+    std::atomic<uint64_t> maxLogLimit_;
 };
 }
 #endif

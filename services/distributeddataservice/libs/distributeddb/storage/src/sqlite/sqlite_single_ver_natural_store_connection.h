@@ -196,6 +196,11 @@ private:
     int CheckReadDataControlled() const;
     bool IsFileAccessControlled() const;
 
+    int PragmaSetMaxLogLimit(uint64_t *limit);
+    int ForceCheckPoint() const;
+
+    bool CheckLogOverLimit(SQLiteSingleVerStorageExecutor *executor) const;
+
     DECLARE_OBJECT_TAG(SQLiteSingleVerNaturalStoreConnection);
 
     // ResultSet Related Info

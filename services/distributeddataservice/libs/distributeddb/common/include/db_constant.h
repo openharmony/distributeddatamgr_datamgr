@@ -113,6 +113,10 @@ public:
     static constexpr int DOUBLE_PRECISION = 15;
     static constexpr int MAX_DISTRIBUTED_TABLE_COUNT = 32;
 
+    static constexpr uint64_t MAX_LOG_LIMIT_HIGH = 0x400000000ULL; // 16GB
+    static constexpr uint64_t MAX_LOG_LIMIT_LOW = 0x400000ULL; // 4MB
+    static constexpr uint64_t MAX_LOG_LIMIT_DEFAULT = 0x40000000ULL; // 1GB
+
     // For relational
     static const std::string RELATIONAL_PREFIX;
     static const std::string TIMESTAMP_ALIAS;

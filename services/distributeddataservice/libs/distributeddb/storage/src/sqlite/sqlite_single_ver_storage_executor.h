@@ -243,6 +243,10 @@ public:
     int GetSyncDataWithQuery(const QueryObject &query, size_t appendLength, const DataSizeSpecInfo &dataSizeInfo,
         const std::pair<TimeStamp, TimeStamp> &timeRange, std::vector<DataItem> &dataItems) const;
 
+    int ForceCheckPoint() const;
+
+    uint64_t GetLogFileSize() const;
+
 private:
     struct SaveRecordStatements {
         sqlite3_stmt *queryStatement = nullptr;
