@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,11 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "single_ver_data_message_schedule.h"
 
+#include "db_common.h"
 #include "log_print.h"
 #include "version.h"
 #include "single_ver_data_sync.h"
-#include "single_ver_data_message_schedule.h"
 
 namespace DistributedDB {
 SingleVerDataMessageSchedule::~SingleVerDataMessageSchedule()
@@ -92,8 +93,8 @@ void SingleVerDataMessageSchedule::ScheduleInfoHandle(bool isNeedHandleStatus, b
                 ClearMsgMapWithNoLock();
                 expectedSequenceId_ = 1;
             } else {
-                LOGI("[DataMsgSchedule] DealMsg seqId=%u finishedPacketId=%llu ok,label=%s,deviceId=%s{private}",
-                    expectedSequenceId_, finishedPacketId_, label_.c_str(), deviceId_.c_str());
+                LOGI("[DataMsgSchedule] DealMsg seqId=%u finishedPacketId=%llu ok,label=%s,dev=%s", expectedSequenceId_,
+                    finishedPacketId_, label_.c_str(), STR_MASK(deviceId_));
                 expectedSequenceId_++;
             }
         }
@@ -142,8 +143,8 @@ void SingleVerDataMessageSchedule::UpdateMsgMapInner(std::queue<Message *> &msgT
         uint32_t sequenceId = msg->GetSequenceId();
         uint64_t packetId = packet->GetPacketId();
         if (prevSessionId_ != 0 && sessionId == prevSessionId_) {
-            LOGD("[DataMsgSchedule] recv prev sessionId msg,drop msg,label=%s,deviceId=%s{private}",
-                label_.c_str(), deviceId_.c_str());
+            LOGD("[DataMsgSchedule] recv prev sessionId msg,drop msg,label=%s,dev=%s", label_.c_str(),
+                STR_MASK(deviceId_));
             delete msg;
             continue;
         }
@@ -157,18 +158,20 @@ void SingleVerDataMessageSchedule::UpdateMsgMapInner(std::queue<Message *> &msgT
         }
         if (messageMap_.count(sequenceId) > 0) {
             const auto *cachePacket = messageMap_[sequenceId]->GetObject<DataRequestPacket>();
-            LOGD("[DataMsgSchedule] msg packetId=%llu,cachePacketId=%llu,label=%s,deviceId=%s", packetId,
-                cachePacket->GetPacketId(), label_.c_str(), deviceId_.c_str());
-            if (packetId != 0 && packetId < cachePacket->GetPacketId()) {
-                delete msg;
-                continue;
+            if (cachePacket != nullptr) {
+                LOGD("[DataMsgSchedule] msg packetId=%llu,cachePacketId=%llu,label=%s,dev=%s", packetId,
+                    cachePacket->GetPacketId(), label_.c_str(), STR_MASK(deviceId_));
+                if (packetId != 0 && packetId < cachePacket->GetPacketId()) {
+                    delete msg;
+                    continue;
+                }
             }
             delete messageMap_[sequenceId];
             messageMap_[sequenceId] = nullptr;
         }
         messageMap_[sequenceId] = msg;
-        LOGD("[DataMsgSchedule] put into msgMap seqId=%llu,packetId=%llu,label=%s,deviceId=%s", sequenceId,
-            packetId, label_.c_str(), deviceId_.c_str());
+        LOGD("[DataMsgSchedule] put into msgMap seqId=%llu,packetId=%llu,label=%s,dev=%s", sequenceId, packetId,
+            label_.c_str(), STR_MASK(deviceId_));
     }
 }
 
@@ -191,7 +194,7 @@ Message *SingleVerDataMessageSchedule::GetMsgFromMap(bool &isNeedHandle)
         if (sequenceId < expectedSequenceId_) {
             uint64_t revisePacketId = finishedPacketId_ - (expectedSequenceId_ - 1 - sequenceId);
             LOGI("[DataMsgSchedule] msg seqId=%llu less than exSeqId=%llu,pacId=%llu,revisePacId=%llu,label=%s,dev=%s",
-                sequenceId, expectedSequenceId_, packetId, revisePacketId, label_.c_str(), deviceId_.c_str());
+                sequenceId, expectedSequenceId_, packetId, revisePacketId, label_.c_str(), STR_MASK(deviceId_));
             if (packetId < revisePacketId) {
                 delete msg;
                 continue;
@@ -202,8 +205,8 @@ Message *SingleVerDataMessageSchedule::GetMsgFromMap(bool &isNeedHandle)
         }
         if (sequenceId == expectedSequenceId_) {
             if (packetId < finishedPacketId_) {
-                LOGI("[DataMsgSchedule] drop msg seqId=%llu,packetId=%llu,label=%s,deviceId=%s", sequenceId,
-                    packetId, label_.c_str(), deviceId_.c_str());
+                LOGI("[DataMsgSchedule] drop msg seqId=%llu,packetId=%llu,label=%s,dev=%s", sequenceId, packetId,
+                    label_.c_str(), STR_MASK(deviceId_));
                 delete msg;
                 continue;
             }

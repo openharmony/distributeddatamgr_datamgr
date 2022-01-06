@@ -160,7 +160,7 @@ void SingleVerKVSyncer::RemoteDataChanged(const std::string &device)
 
 void SingleVerKVSyncer::QueryAutoSync(const InternalSyncParma &param)
 {
-    LOGI("[SingleVerKVSyncer] trigger query sync_type=%u,dev=%s", param.mode, GetSyncDevicesStr(param.devices).c_str());
+    LOGI("[SingleVerKVSyncer] trigger query syncmode=%u,dev=%s", param.mode, GetSyncDevicesStr(param.devices).c_str());
     RefObject::IncObjRef(syncEngine_);
     int retCode = RuntimeContext::GetInstance()->ScheduleTask([this, param] {
         int errCode = Sync(param);

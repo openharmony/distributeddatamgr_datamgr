@@ -830,11 +830,7 @@ int SingleVerDataSync::RequestStart(SingleVerSyncTaskContext *context, int mode)
     SyncEntry syncData;
     // get data
     errCode = GetDataWithPerformanceRecord(context, syncData);
-    // once get data occur E_EKEYREVOKED error, should also send request to remote dev to pull data.
-    if (SyncOperation::TransferSyncMode(mode) == SyncModeType::PUSH_AND_PULL &&
-        context->GetRemoteSoftwareVersion() > SOFTWARE_VERSION_RELEASE_2_0  && errCode == -E_EKEYREVOKED) {
-        errCode = E_OK;
-    }
+    TranslateErrCodeIfNeed(mode, context->GetRemoteSoftwareVersion(), errCode);
 
     if (!IsGetDataSuccessfully(errCode)) {
         LOGE("[DataSync][PushStart] get data failed, errCode=%d", errCode);
@@ -871,6 +867,15 @@ int SingleVerDataSync::RequestStart(SingleVerSyncTaskContext *context, int mode)
         SaveLocalWaterMark(curType, context, tmpDataTime);
     }
     return errCode;
+}
+
+void SingleVerDataSync::TranslateErrCodeIfNeed(int mode, uint32_t version, int &errCode)
+{
+    // once get data occur E_EKEYREVOKED error, should also send request to remote dev to pull data.
+    if (SyncOperation::TransferSyncMode(mode) == SyncModeType::PUSH_AND_PULL && version > SOFTWARE_VERSION_RELEASE_2_0
+        && errCode == -E_EKEYREVOKED) {
+        errCode = E_OK;
+    }
 }
 
 int SingleVerDataSync::PushStart(SingleVerSyncTaskContext *context)

@@ -135,11 +135,11 @@ uint8_t DbAbility::GetAbilityItem(const AbilityItem abilityType) const
                 dbAbility_.size());
             return 0;
         }
-        int skip = 0;
-        // dbAbility_ bit[0..len] : low-->high
+        uint32_t skip = 0;
+        // dbAbility_ bit[0..len] : low-->high, skip range 0..7
         for (uint32_t pos = iter->first; pos < (iter->first + iter->second); pos++, skip++) {
             if (dbAbility_[pos]) {
-                data += dbAbility_[pos] << skip;
+                data += (static_cast<uint8_t>(dbAbility_[pos])) << skip;
             }
         }
     }

@@ -152,6 +152,8 @@ protected:
 
     int RequestStart(SingleVerSyncTaskContext *context, int mode);
 
+    void TranslateErrCodeIfNeed(int mode, uint32_t version, int &errCode);
+
     SyncTimeRange GetSyncDataTimeRange(SyncType syncType, SingleVerSyncTaskContext *context,
         const std::vector<SendDataItem> &inData, UpdateWaterMark &isUpdate);
 
