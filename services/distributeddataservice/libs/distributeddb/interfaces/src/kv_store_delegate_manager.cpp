@@ -86,7 +86,9 @@ namespace {
         properties.SetIntProp(KvDBProperties::DATABASE_TYPE, KvDBProperties::SINGLE_VER_TYPE);
         properties.SetBoolProp(KvDBProperties::MEMORY_MODE, option.isMemoryDb);
         properties.SetBoolProp(KvDBProperties::ENCRYPTED_MODE, option.isEncryptedDb);
-        properties.SetStringProp(KvDBProperties::DATA_DIR, storePath);
+        if (!option.isMemoryDb) { // memory db ignore store path
+            properties.SetStringProp(KvDBProperties::DATA_DIR, storePath);
+        }
         properties.SetBoolProp(KvDBProperties::CREATE_DIR_BY_STORE_ID_ONLY, option.createDirByStoreIdOnly);
         properties.SetSchema(schema);
         properties.SetBoolProp(KvDBProperties::CHECK_INTEGRITY, option.isNeedIntegrityCheck);

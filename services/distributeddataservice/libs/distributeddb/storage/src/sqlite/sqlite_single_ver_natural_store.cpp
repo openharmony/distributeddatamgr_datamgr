@@ -372,6 +372,9 @@ int SQLiteSingleVerNaturalStore::ClearIncompleteDatabase(const KvDBProperties &k
 
 int SQLiteSingleVerNaturalStore::CheckDatabaseRecovery(const KvDBProperties &kvDBProp)
 {
+    if (kvDBProp.GetBoolProp(KvDBProperties::MEMORY_MODE, false)) { // memory status not need recovery
+        return E_OK;
+    }
     std::unique_ptr<SingleVerDatabaseOper> operation = std::make_unique<SingleVerDatabaseOper>(this, nullptr);
     (void)operation->ClearExportedTempFiles(kvDBProp);
     int errCode = operation->RekeyRecover(kvDBProp);

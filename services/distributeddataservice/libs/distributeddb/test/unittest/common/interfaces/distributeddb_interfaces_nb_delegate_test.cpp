@@ -1780,3 +1780,24 @@ HWTEST_F(DistributedDBInterfacesNBDelegateTest, SingleVerGetSecurityOption002, T
     g_kvNbDelegatePtr = nullptr;
     EXPECT_TRUE(g_mgr.DeleteKvStore("SingleVerGetSecurityOption002") == OK);
 }
+
+/**
+  * @tc.name: CreateMemoryDbWithoutPath
+  * @tc.desc: Create memory database without path.
+  * @tc.type: FUNC
+  * @tc.require: AR000CRAKN DTS2022010411580
+  * @tc.author: sunpeng
+  */
+HWTEST_F(DistributedDBInterfacesNBDelegateTest, CreateMemoryDbWithoutPath, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. Create Memory database by GetKvStore without path.
+     * @tc.expected: step1. Create successfully.
+     */
+    KvStoreDelegateManager mgr(APP_ID, USER_ID);
+    const KvStoreNbDelegate::Option option = {true, true};
+    mgr.SetKvStoreConfig(g_config);
+    mgr.GetKvStore("memory_without_path", option, g_kvNbDelegateCallback);
+    ASSERT_TRUE(g_kvNbDelegatePtr != nullptr);
+    EXPECT_TRUE(g_kvDelegateStatus == OK);
+}
