@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -56,11 +56,11 @@ public:
 
 private:
     /* private static members */
-    static napi_status OnDataChange(napi_env env, size_t argc, napi_value* argv, JsKVStore* kvStore);
-    static napi_status OffDataChange(napi_env env, size_t argc, napi_value* argv, JsKVStore* kvStore);
+    static void OnDataChange(napi_env env, size_t argc, napi_value* argv, std::shared_ptr<ContextBase> ctxt);
+    static void OffDataChange(napi_env env, size_t argc, napi_value* argv, std::shared_ptr<ContextBase> ctxt);
 
-    static napi_status OnSyncComplete(napi_env env, size_t argc, napi_value* argv, JsKVStore* kvStore);
-    static napi_status OffSyncComplete(napi_env env, size_t argc, napi_value* argv, JsKVStore* kvStore);
+    static void OnSyncComplete(napi_env env, size_t argc, napi_value* argv, std::shared_ptr<ContextBase> ctxt);
+    static void OffSyncComplete(napi_env env, size_t argc, napi_value* argv, std::shared_ptr<ContextBase> ctxt);
 
     /* private non-static members */
     napi_status Subscribe(uint8_t type, std::shared_ptr<DistributedKv::KvStoreObserver> observer);
@@ -73,7 +73,7 @@ private:
     std::shared_ptr<DistributedKv::SingleKvStore> kvStore_ = nullptr;
     std::string storeId_;
 
-    using Exec = std::function<napi_status(napi_env, size_t, napi_value*, JsKVStore* kvStore)>;
+    using Exec = std::function<void(napi_env, size_t, napi_value*, std::shared_ptr<ContextBase>)>;
     static std::map<std::string, Exec> onEventHandlers_;
     static std::map<std::string, Exec> offEventHandlers_;
 

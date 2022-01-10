@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -34,12 +34,10 @@ struct ContextBase {
     void GetCbInfo(
         napi_env env, napi_callback_info info, NapiCbInfoParser parse = NapiCbInfoParser(), bool sync = false);
 
-    inline napi_status GetCbInfoSync(napi_env env, napi_callback_info info, NapiCbInfoParser parse = NapiCbInfoParser())
+    inline void GetCbInfoSync(napi_env env, napi_callback_info info, NapiCbInfoParser parse = NapiCbInfoParser())
     {
         /* sync = true, means no callback, not AsyncWork. */
         GetCbInfo(env, info, parse, true);
-        NAPI_ASSERT_BASE(env, status == napi_ok, "invalid arguments!", status);
-        return status; // return napi_status for NAPI_CALL().
     }
 
     napi_env env = nullptr;
@@ -63,8 +61,8 @@ private:
     friend class NapiQueue;
 };
 
-/* ZLOGE on condition related to argc/argv,  */
-#define ZLOGE_ON_ARGS(ctxt, condition, message)                        \
+/* check condition related to argc/argv, return and logging. */
+#define CHECK_ARGS(ctxt, condition, message)                        \
     do {                                                               \
         if (!(condition)) {                                            \
             (ctxt)->status = napi_invalid_arg;                         \
@@ -74,7 +72,7 @@ private:
         }                                                              \
     } while (0)
 
-#define ZLOGE_ON_STATUS(ctxt, message)                                 \
+#define CHECK_STATUS(ctxt, message)                                 \
     do {                                                               \
         if ((ctxt)->status != napi_ok) {                               \
             (ctxt)->error = std::string(message);                      \
@@ -83,7 +81,8 @@ private:
         }                                                              \
     } while (0)
 
-#define ZLOGE_RETURN(condition, message, retVal)             \
+/* check condition, return and logging if condition not true. */
+#define CHECK_RETURN(condition, message, retVal)             \
     do {                                                     \
         if (!(condition)) {                                  \
             ZLOGE("test (" #condition ") failed: " message); \
@@ -91,7 +90,7 @@ private:
         }                                                    \
     } while (0)
 
-#define ZLOGE_RETURN_VOID(condition, message)                \
+#define CHECK_RETURN_VOID(condition, message)                \
     do {                                                     \
         if (!(condition)) {                                  \
             ZLOGE("test (" #condition ") failed: " message); \

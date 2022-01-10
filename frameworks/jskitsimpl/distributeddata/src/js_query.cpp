@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -68,7 +68,8 @@ napi_value JsQuery::Constructor(napi_env env)
 napi_value JsQuery::New(napi_env env, napi_callback_info info)
 {
     auto ctxt = std::make_shared<ContextBase>();
-    NAPI_CALL(env, ctxt->GetCbInfoSync(env, info));
+    ctxt->GetCbInfoSync(env, info);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     JsQuery* query = new (std::nothrow) JsQuery();
     NAPI_ASSERT(env, query !=nullptr, "no memory for query");
@@ -76,7 +77,7 @@ napi_value JsQuery::New(napi_env env, napi_callback_info info)
     auto finalize = [](napi_env env, void* data, void* hint) {
         ZLOGD("query finalize.");
         auto* query = reinterpret_cast<JsQuery*>(data);
-        ZLOGE_RETURN_VOID(query != nullptr, "finalize null!");
+        CHECK_RETURN_VOID(query != nullptr, "finalize null!");
         delete query;
     };
     NAPI_CALL(env, napi_wrap(env, ctxt->self, query, finalize, nullptr, nullptr));
@@ -87,7 +88,8 @@ napi_value JsQuery::Reset(napi_env env, napi_callback_info info)
 {
     ZLOGD("Query::Reset()");
     auto ctxt = std::make_shared<ContextBase>();
-    NAPI_CALL(env, ctxt->GetCbInfoSync(env, info));
+    ctxt->GetCbInfoSync(env, info);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     auto& query = reinterpret_cast<JsQuery*>(ctxt->native)->query_;
     query.Reset();
@@ -98,17 +100,17 @@ struct ValueContext : public ContextBase {
     std::string field;
     JSUtil::QueryVariant vv;
 
-    napi_status GetValueSync(napi_env env, napi_callback_info info)
+    void GetValueSync(napi_env env, napi_callback_info info)
     {
         auto input = [this, env](size_t argc, napi_value* argv) {
             // required 2 arguments :: <field> <value>
-            ZLOGE_ON_ARGS(this, argc == 2, "invalid arguments!");
+            CHECK_ARGS(this, argc == 2, "invalid arguments!");
             status = JSUtil::GetValue(env, argv[0], field);
-            ZLOGE_ON_STATUS(this, "invalid arg[0], i.e. invalid field!");
+            CHECK_STATUS(this, "invalid arg[0], i.e. invalid field!");
             status = JSUtil::GetValue(env, argv[1], vv);
-            ZLOGE_ON_STATUS(this, "invalid arg[1], i.e. invalid value!");
+            CHECK_STATUS(this, "invalid arg[1], i.e. invalid value!");
         };
-        return GetCbInfoSync(env, info, input);
+        GetCbInfoSync(env, info, input);
     }
 };
 
@@ -117,7 +119,8 @@ napi_value JsQuery::EqualTo(napi_env env, napi_callback_info info)
 {
     ZLOGD("Query::EqualTo()");
     auto ctxt = std::make_shared<ValueContext>();
-    NAPI_CALL(env, ctxt->GetValueSync(env, info));
+    ctxt->GetValueSync(env, info);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     auto& query = reinterpret_cast<JsQuery*>(ctxt->native)->query_;
     auto strValue = std::get_if<std::string>(&ctxt->vv);
@@ -141,7 +144,8 @@ napi_value JsQuery::NotEqualTo(napi_env env, napi_callback_info info)
 {
     ZLOGD("Query::NotEqualTo()");
     auto ctxt = std::make_shared<ValueContext>();
-    NAPI_CALL(env, ctxt->GetValueSync(env, info));
+    ctxt->GetValueSync(env, info);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     auto& query = reinterpret_cast<JsQuery*>(ctxt->native)->query_;
     auto strValue = std::get_if<std::string>(&ctxt->vv);
@@ -165,7 +169,8 @@ napi_value JsQuery::GreaterThan(napi_env env, napi_callback_info info)
 {
     ZLOGD("Query::GreaterThan()");
     auto ctxt = std::make_shared<ValueContext>();
-    NAPI_CALL(env, ctxt->GetValueSync(env, info));
+    ctxt->GetValueSync(env, info);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     auto& query = reinterpret_cast<JsQuery*>(ctxt->native)->query_;
     auto strValue = std::get_if<std::string>(&ctxt->vv);
@@ -189,7 +194,8 @@ napi_value JsQuery::LessThan(napi_env env, napi_callback_info info)
 {
     ZLOGD("Query::LessThan()");
     auto ctxt = std::make_shared<ValueContext>();
-    NAPI_CALL(env, ctxt->GetValueSync(env, info));
+    ctxt->GetValueSync(env, info);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     auto& query = reinterpret_cast<JsQuery*>(ctxt->native)->query_;
     auto strValue = std::get_if<std::string>(&ctxt->vv);
@@ -213,7 +219,8 @@ napi_value JsQuery::GreaterThanOrEqualTo(napi_env env, napi_callback_info info)
 {
     ZLOGD("Query::GreaterThanOrEqualTo()");
     auto ctxt = std::make_shared<ValueContext>();
-    NAPI_CALL(env, ctxt->GetValueSync(env, info));
+    ctxt->GetValueSync(env, info);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     auto& query = reinterpret_cast<JsQuery*>(ctxt->native)->query_;
     auto strValue = std::get_if<std::string>(&ctxt->vv);
@@ -237,7 +244,8 @@ napi_value JsQuery::LessThanOrEqualTo(napi_env env, napi_callback_info info)
 {
     ZLOGD("Query::LessThanOrEqualTo()");
     auto ctxt = std::make_shared<ValueContext>();
-    NAPI_CALL(env, ctxt->GetValueSync(env, info));
+    ctxt->GetValueSync(env, info);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     auto& query = reinterpret_cast<JsQuery*>(ctxt->native)->query_;
     auto strValue = std::get_if<std::string>(&ctxt->vv);
@@ -263,11 +271,12 @@ napi_value JsQuery::IsNull(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<ContextBase>();
     auto input = [env, ctxt, &field](size_t argc, napi_value* argv) {
         // required 1 arguments :: <field>
-        ZLOGE_ON_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], field);
-        ZLOGE_ON_STATUS(ctxt, "invalid arg[0], i.e. invalid field!");
+        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid field!");
     };
-    NAPI_CALL(env, ctxt->GetCbInfoSync(env, info, input));
+    ctxt->GetCbInfoSync(env, info, input);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     auto& query = reinterpret_cast<JsQuery*>(ctxt->native)->query_;
     query.IsNull(field);
@@ -292,13 +301,13 @@ struct NumbersContext : public ContextBase {
     std::vector<double> doubleList;
     NumberType innerType = NumberType::NUMBER_INVALID;
 
-    napi_status GetNumberSync(napi_env env, napi_callback_info info)
+    void GetNumberSync(napi_env env, napi_callback_info info)
     {
         auto input = [this, env](size_t argc, napi_value* argv) {
             // required 2 arguments :: <field> <value-list>
-            ZLOGE_ON_ARGS(this, argc == 2, "invalid arguments!");
+            CHECK_ARGS(this, argc == 2, "invalid arguments!");
             status = JSUtil::GetValue(env, argv[0], field);
-            ZLOGE_ON_STATUS(this, "invalid arg[0], i.e. invalid field!");
+            CHECK_STATUS(this, "invalid arg[0], i.e. invalid field!");
 
             bool isTypedArray = false;
             status = napi_is_typedarray(env, argv[1], &isTypedArray);
@@ -310,7 +319,7 @@ struct NumbersContext : public ContextBase {
                 size_t offset = 0;
                 void* data = nullptr;
                 status = napi_get_typedarray_info(env, argv[1], &type, &length, &data, &buffer, &offset);
-                ZLOGE_ON_STATUS(this, "invalid arg[1], i.e. invalid number array!");
+                CHECK_STATUS(this, "invalid arg[1], i.e. invalid number array!");
                 if (type < napi_uint32_array) {
                     status = JSUtil::GetValue(env, argv[1], intList);
                     innerType = NumberType::NUMBER_INT;
@@ -324,21 +333,22 @@ struct NumbersContext : public ContextBase {
             } else {
                 bool isArray = false;
                 status = napi_is_array(env, argv[1], &isArray);
-                ZLOGE_ON_ARGS(this, isArray, "invalid arg[1], i.e. invalid number array!");
+                CHECK_ARGS(this, isArray, "invalid arg[1], i.e. invalid number array!");
                 ZLOGD("arg[1] %{public}s a Array, treat as array of double.", isTypedArray ? "is" : "is not");
                 status = JSUtil::GetValue(env, argv[1], doubleList);
-                ZLOGE_ON_STATUS(this, "invalid arg[1], i.e. invalid number array!");
+                CHECK_STATUS(this, "invalid arg[1], i.e. invalid number array!");
                 innerType = NumberType::NUMBER_DOUBLE;
             };
         };
-        return GetCbInfoSync(env, info, input);
+        GetCbInfoSync(env, info, input);
     }
 };
 
 napi_value JsQuery::InNumber(napi_env env, napi_callback_info info)
 {
     auto ctxt = std::make_shared<NumbersContext>();
-    NAPI_CALL(env, ctxt->GetNumberSync(env, info));
+    ctxt->GetNumberSync(env, info);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     auto& query = reinterpret_cast<JsQuery*>(ctxt->native)->query_;
     if (ctxt->innerType == NumberType::NUMBER_INT) {
@@ -360,13 +370,14 @@ napi_value JsQuery::InString(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<StringsContext>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         // required 2 arguments :: <field> <valueList>
-        ZLOGE_ON_ARGS(ctxt, argc == 2, "invalid arguments!");
+        CHECK_ARGS(ctxt, argc == 2, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], ctxt->field);
-        ZLOGE_ON_STATUS(ctxt, "invalid arg[0], i.e. invalid field!");
+        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid field!");
         ctxt->status = JSUtil::GetValue(env, argv[1], ctxt->valueList);
-        ZLOGE_ON_STATUS(ctxt, "invalid arg[0], i.e. invalid valueList!");
+        CHECK_STATUS(ctxt, "invalid arg[1], i.e. invalid valueList!");
     };
-    NAPI_CALL(env, ctxt->GetCbInfoSync(env, info, input));
+    ctxt->GetCbInfoSync(env, info, input);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     auto& query = reinterpret_cast<JsQuery*>(ctxt->native)->query_;
     query.InString(ctxt->field, ctxt->valueList);
@@ -376,7 +387,8 @@ napi_value JsQuery::InString(napi_env env, napi_callback_info info)
 napi_value JsQuery::NotInNumber(napi_env env, napi_callback_info info)
 {
     auto ctxt = std::make_shared<NumbersContext>();
-    NAPI_CALL(env, ctxt->GetNumberSync(env, info));
+    ctxt->GetNumberSync(env, info);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     auto& query = reinterpret_cast<JsQuery*>(ctxt->native)->query_;
     if (ctxt->innerType == NumberType::NUMBER_INT) {
@@ -399,13 +411,14 @@ napi_value JsQuery::NotInString(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<StringsContext>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         // required 2 arguments :: <field> <valueList>
-        ZLOGE_ON_ARGS(ctxt, argc == 2, "invalid arguments!");
+        CHECK_ARGS(ctxt, argc == 2, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], ctxt->field);
-        ZLOGE_ON_STATUS(ctxt, "invalid arg[0], i.e. invalid field!");
+        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid field!");
         ctxt->status = JSUtil::GetValue(env, argv[1], ctxt->valueList);
-        ZLOGE_ON_STATUS(ctxt, "invalid arg[1], i.e. invalid valueList!");
+        CHECK_STATUS(ctxt, "invalid arg[1], i.e. invalid valueList!");
     };
-    NAPI_CALL(env, ctxt->GetCbInfoSync(env, info, input));
+    ctxt->GetCbInfoSync(env, info, input);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     auto& query = reinterpret_cast<JsQuery*>(ctxt->native)->query_;
     query.NotInString(ctxt->field, ctxt->valueList);
@@ -422,13 +435,14 @@ napi_value JsQuery::Like(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<LikeContext>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         // required 2 arguments :: <field> <value>
-        ZLOGE_ON_ARGS(ctxt, argc == 2, "invalid arguments!");
+        CHECK_ARGS(ctxt, argc == 2, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], ctxt->field);
-        ZLOGE_ON_STATUS(ctxt, "invalid arg[0], i.e. invalid field!");
+        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid field!");
         ctxt->status = JSUtil::GetValue(env, argv[1], ctxt->value);
-        ZLOGE_ON_STATUS(ctxt, "invalid arg[1], i.e. invalid value!");
+        CHECK_STATUS(ctxt, "invalid arg[1], i.e. invalid value!");
     };
-    NAPI_CALL(env, ctxt->GetCbInfoSync(env, info, input));
+    ctxt->GetCbInfoSync(env, info, input);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     auto& query = reinterpret_cast<JsQuery*>(ctxt->native)->query_;
     query.Like(ctxt->field, ctxt->value);
@@ -445,13 +459,14 @@ napi_value JsQuery::Unlike(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<UnlikeContext>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         // required 2 arguments :: <field> <value>
-        ZLOGE_ON_ARGS(ctxt, argc == 2, "invalid arguments!");
+        CHECK_ARGS(ctxt, argc == 2, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], ctxt->field);
-        ZLOGE_ON_STATUS(ctxt, "invalid arg[0], i.e. invalid field!");
+        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid field!");
         ctxt->status = JSUtil::GetValue(env, argv[1], ctxt->value);
-        ZLOGE_ON_STATUS(ctxt, "invalid arg[1], i.e. invalid value!");
+        CHECK_STATUS(ctxt, "invalid arg[1], i.e. invalid value!");
     };
-    NAPI_CALL(env, ctxt->GetCbInfoSync(env, info, input));
+    ctxt->GetCbInfoSync(env, info, input);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     auto& query = reinterpret_cast<JsQuery*>(ctxt->native)->query_;
     query.Unlike(ctxt->field, ctxt->value);
@@ -462,7 +477,8 @@ napi_value JsQuery::And(napi_env env, napi_callback_info info)
 {
     ZLOGD("Query::And()");
     auto ctxt = std::make_shared<ContextBase>();
-    NAPI_CALL(env, ctxt->GetCbInfoSync(env, info));
+    ctxt->GetCbInfoSync(env, info);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     auto& query = reinterpret_cast<JsQuery*>(ctxt->native)->query_;
     query.And();
@@ -473,7 +489,8 @@ napi_value JsQuery::Or(napi_env env, napi_callback_info info)
 {
     ZLOGD("Query::Or()");
     auto ctxt = std::make_shared<ContextBase>();
-    NAPI_CALL(env, ctxt->GetCbInfoSync(env, info));
+    ctxt->GetCbInfoSync(env, info);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     auto& query = reinterpret_cast<JsQuery*>(ctxt->native)->query_;
     query.Or();
@@ -487,11 +504,12 @@ napi_value JsQuery::OrderByAsc(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<ContextBase>();
     auto input = [env, ctxt, &field](size_t argc, napi_value* argv) {
         // required 1 arguments :: <field>
-        ZLOGE_ON_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], field);
-        ZLOGE_ON_STATUS(ctxt, "invalid arg[0], i.e. invalid field!");
+        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid field!");
     };
-    NAPI_CALL(env, ctxt->GetCbInfoSync(env, info, input));
+    ctxt->GetCbInfoSync(env, info, input);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     auto& query = reinterpret_cast<JsQuery*>(ctxt->native)->query_;
     query.OrderByAsc(field);
@@ -505,11 +523,12 @@ napi_value JsQuery::OrderByDesc(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<ContextBase>();
     auto input = [env, ctxt, &field](size_t argc, napi_value* argv) {
         // required 1 arguments :: <field>
-        ZLOGE_ON_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], field);
-        ZLOGE_ON_STATUS(ctxt, "invalid arg[0], i.e. invalid field!");
+        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid field!");
     };
-    NAPI_CALL(env, ctxt->GetCbInfoSync(env, info, input));
+    ctxt->GetCbInfoSync(env, info, input);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     auto& query = reinterpret_cast<JsQuery*>(ctxt->native)->query_;
     query.OrderByDesc(field);
@@ -525,13 +544,14 @@ napi_value JsQuery::Limit(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<LimitContext>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         // required 2 arguments :: <number> <offset>
-        ZLOGE_ON_ARGS(ctxt, argc == 2, "invalid arguments!");
+        CHECK_ARGS(ctxt, argc == 2, "invalid arguments!");
         ctxt->status = napi_get_value_int32(env, argv[0], &ctxt->number);
-        ZLOGE_ON_STATUS(ctxt, "invalid arg[0], i.e. invalid number!");
+        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid number!");
         ctxt->status = napi_get_value_int32(env, argv[1], &ctxt->offset);
-        ZLOGE_ON_STATUS(ctxt, "invalid arg[1], i.e. invalid offset!");
+        CHECK_STATUS(ctxt, "invalid arg[1], i.e. invalid offset!");
     };
-    NAPI_CALL(env, ctxt->GetCbInfoSync(env, info, input));
+    ctxt->GetCbInfoSync(env, info, input);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
     auto& query = reinterpret_cast<JsQuery*>(ctxt->native)->query_;
     query.Limit(ctxt->number, ctxt->offset);
     return ctxt->self;
@@ -544,11 +564,12 @@ napi_value JsQuery::IsNotNull(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<ContextBase>();
     auto input = [env, ctxt, &field](size_t argc, napi_value* argv) {
         // required 1 arguments :: <field>
-        ZLOGE_ON_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], field);
-        ZLOGE_ON_STATUS(ctxt, "invalid arg[0], i.e. invalid field!");
+        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid field!");
     };
-    NAPI_CALL(env, ctxt->GetCbInfoSync(env, info, input));
+    ctxt->GetCbInfoSync(env, info, input);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     auto& query = reinterpret_cast<JsQuery*>(ctxt->native)->query_;
     query.IsNotNull(field);
@@ -559,7 +580,8 @@ napi_value JsQuery::BeginGroup(napi_env env, napi_callback_info info)
 {
     ZLOGD("Query::BeginGroup()");
     auto ctxt = std::make_shared<ContextBase>();
-    NAPI_CALL(env, ctxt->GetCbInfoSync(env, info));
+    ctxt->GetCbInfoSync(env, info);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
     auto& query = reinterpret_cast<JsQuery*>(ctxt->native)->query_;
     query.BeginGroup();
     return ctxt->self;
@@ -569,7 +591,8 @@ napi_value JsQuery::EndGroup(napi_env env, napi_callback_info info)
 {
     ZLOGD("Query::EndGroup()");
     auto ctxt = std::make_shared<ContextBase>();
-    NAPI_CALL(env, ctxt->GetCbInfoSync(env, info));
+    ctxt->GetCbInfoSync(env, info);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     auto& query = reinterpret_cast<JsQuery*>(ctxt->native)->query_;
     query.EndGroup();
@@ -582,11 +605,12 @@ napi_value JsQuery::PrefixKey(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<ContextBase>();
     auto input = [env, ctxt, &prefix](size_t argc, napi_value* argv) {
         // required 1 arguments :: <prefix>
-        ZLOGE_ON_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], prefix);
-        ZLOGE_ON_STATUS(ctxt, "invalid arg[0], i.e. invalid prefix!");
+        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid prefix!");
     };
-    NAPI_CALL(env, ctxt->GetCbInfoSync(env, info, input));
+    ctxt->GetCbInfoSync(env, info, input);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     auto& query = reinterpret_cast<JsQuery*>(ctxt->native)->query_;
     query.KeyPrefix(prefix);
@@ -599,11 +623,12 @@ napi_value JsQuery::SetSuggestIndex(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<ContextBase>();
     auto input = [env, ctxt, &suggestIndex](size_t argc, napi_value* argv) {
         // required 1 arguments :: <suggestIndex>
-        ZLOGE_ON_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], suggestIndex);
-        ZLOGE_ON_STATUS(ctxt, "invalid arg[0], i.e. invalid suggestIndex!");
+        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid suggestIndex!");
     };
-    NAPI_CALL(env, ctxt->GetCbInfoSync(env, info, input));
+    ctxt->GetCbInfoSync(env, info, input);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     auto& query = reinterpret_cast<JsQuery*>(ctxt->native)->query_;
     query.SetSuggestIndex(suggestIndex);
@@ -616,11 +641,12 @@ napi_value JsQuery::DeviceId(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<ContextBase>();
     auto input = [env, ctxt, &deviceId](size_t argc, napi_value* argv) {
         // required 1 arguments :: <deviceId>
-        ZLOGE_ON_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], deviceId);
-        ZLOGE_ON_STATUS(ctxt, "invalid arg[0], i.e. invalid deviceId!");
+        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid deviceId!");
     };
-    NAPI_CALL(env, ctxt->GetCbInfoSync(env, info, input));
+    ctxt->GetCbInfoSync(env, info, input);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     auto& query = reinterpret_cast<JsQuery*>(ctxt->native)->query_;
     query.DeviceId(deviceId);
@@ -631,7 +657,8 @@ napi_value JsQuery::DeviceId(napi_env env, napi_callback_info info)
 napi_value JsQuery::GetSqlLike(napi_env env, napi_callback_info info)
 {
     auto ctxt = std::make_shared<ContextBase>();
-    NAPI_CALL(env, ctxt->GetCbInfoSync(env, info));
+    ctxt->GetCbInfoSync(env, info);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     auto& query = reinterpret_cast<JsQuery*>(ctxt->native)->query_;
     JSUtil::SetValue(env, query.ToString(), ctxt->output);

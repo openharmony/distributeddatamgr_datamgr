@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,8 +26,10 @@ using json = nlohmann::json;
 
 namespace OHOS::DistributedData {
 static std::string FIELDNAME = "FIELDNAME";
+static std::string VALUETYPE = "VALUETYPE";
 static std::string DEFAULTVALUE = "DEFAULTVALUE";
 static std::string ISWITHDEFAULTVALUE = "ISWITHDEFAULTVALUE";
+static std::string ISNULLABLE = "ISNULLABLE";
 static std::string CHILDREN = "CHILDREN";
 
 JsFieldNode::JsFieldNode(const std::string& fName)
@@ -35,12 +37,37 @@ JsFieldNode::JsFieldNode(const std::string& fName)
 {
 }
 
+std::string JsFieldNode::GetFieldName()
+{
+    return fieldName;
+}
+
+json JsFieldNode::GetValueForJson()
+{
+    if (!fields.empty()) {
+        /* example:
+        { "field_root": {
+            "field_child1": "LONG, NOT NULL, DEFAULT 88",
+            "field_child2": "LONG, NOT NULL, DEFAULT 88" } } */
+        json jsFields;
+        for (auto fld : fields) {
+            jsFields[fld->fieldName] = fld->GetValueForJson();
+        }
+        return jsFields;
+    }
+
+    /* example: { "field_name": "LONG, NOT NULL, DEFAULT 88" } */
+    return ValueTypeToString(valueType) + "," + (isNullable ? "NULL" : "NOT NULL");
+}
+
 napi_value JsFieldNode::Constructor(napi_env env)
 {
     const napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("appendChild", JsFieldNode::AppendChild),
         DECLARE_NAPI_FUNCTION("toJson", JsFieldNode::ToJson),
-        DECLARE_NAPI_GETTER_SETTER("defaultValue", JsFieldNode::GetDefaultValue, JsFieldNode::SetDefaultValue)
+        DECLARE_NAPI_GETTER_SETTER("default", JsFieldNode::GetDefaultValue, JsFieldNode::SetDefaultValue),
+        DECLARE_NAPI_GETTER_SETTER("nullable", JsFieldNode::GetNullable, JsFieldNode::SetNullable),
+        DECLARE_NAPI_GETTER_SETTER("type", JsFieldNode::GetValueType, JsFieldNode::SetValueType)
     };
     size_t count = sizeof(properties) / sizeof(properties[0]);
     return JSUtil::DefineClass(env, "FieldNode", properties, count, JsFieldNode::New);
@@ -53,20 +80,21 @@ napi_value JsFieldNode::New(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<ContextBase>();
     auto input = [env, ctxt, &fieldName](size_t argc, napi_value* argv) {
         // required 1 arguments :: <fieldName>
-        ZLOGE_ON_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], fieldName);
-        ZLOGE_ON_STATUS(ctxt, "invalid arg[0], i.e. invalid fieldName!");
-        ZLOGE_ON_ARGS(ctxt, !fieldName.empty(), "invalid arg[0], i.e. invalid fieldName!");
+        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid fieldName!");
+        CHECK_ARGS(ctxt, !fieldName.empty(), "invalid arg[0], i.e. invalid fieldName!");
     };
-    NAPI_CALL(env, ctxt->GetCbInfoSync(env, info, input));
+    ctxt->GetCbInfoSync(env, info, input);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     JsFieldNode* fieldNode = new (std::nothrow) JsFieldNode(fieldName);
-    NAPI_ASSERT(env, fieldNode !=nullptr, "no memory for fieldNode");
+    NAPI_ASSERT(env, fieldNode != nullptr, "no memory for fieldNode");
 
     auto finalize = [](napi_env env, void* data, void* hint) {
         ZLOGD("fieldNode finalize.");
         auto* field = reinterpret_cast<JsFieldNode*>(data);
-        ZLOGE_RETURN_VOID(field != nullptr, "finalize null!");
+        CHECK_RETURN_VOID(field != nullptr, "finalize null!");
         delete field;
     };
     NAPI_CALL(env, napi_wrap(env, ctxt->self, fieldNode, finalize, nullptr, nullptr));
@@ -75,17 +103,18 @@ napi_value JsFieldNode::New(napi_env env, napi_callback_info info)
 
 napi_value JsFieldNode::AppendChild(napi_env env, napi_callback_info info)
 {
-    ZLOGD("FieldNode::New");
+    ZLOGD("FieldNode::AppendChild");
     JsFieldNode* child = nullptr;
     auto ctxt = std::make_shared<ContextBase>();
     auto input = [env, ctxt, &child](size_t argc, napi_value* argv) {
         // required 1 arguments :: <child>
-        ZLOGE_ON_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
         ctxt->status = JSUtil::Unwrap(env, argv[0], (void**)(&child), JsFieldNode::Constructor(env));
-        ZLOGE_ON_STATUS(ctxt, "napi_unwrap to FieldNode failed");
-        ZLOGE_ON_ARGS(ctxt, child != nullptr, "invalid arg[0], i.e. invalid FieldNode!");
+        CHECK_STATUS(ctxt, "napi_unwrap to FieldNode failed");
+        CHECK_ARGS(ctxt, child != nullptr, "invalid arg[0], i.e. invalid FieldNode!");
     };
-    NAPI_CALL(env, ctxt->GetCbInfoSync(env, info, input));
+    ctxt->GetCbInfoSync(env, info, input);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     auto fieldNode = reinterpret_cast<JsFieldNode*>(ctxt->native);
     fieldNode->fields.push_back(child);
@@ -93,45 +122,163 @@ napi_value JsFieldNode::AppendChild(napi_env env, napi_callback_info info)
     napi_get_boolean(env, true, &ctxt->output);
     return ctxt->output;
 }
+
 napi_value JsFieldNode::ToJson(napi_env env, napi_callback_info info)
 {
-    ZLOGD("FieldNode::New");
+    ZLOGD("FieldNode::ToJson");
     auto ctxt = std::make_shared<ContextBase>();
-    NAPI_CALL(env, ctxt->GetCbInfoSync(env, info));
+    ctxt->GetCbInfoSync(env, info);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     auto fieldNode = reinterpret_cast<JsFieldNode*>(ctxt->native);
     std::string js = fieldNode->Dump();
     JSUtil::SetValue(env, js, ctxt->output);
     return ctxt->output;
 }
+
 napi_value JsFieldNode::GetDefaultValue(napi_env env, napi_callback_info info)
 {
-    ZLOGD("FieldNode::New");
+    ZLOGD("FieldNode::GetDefaultValue");
     auto ctxt = std::make_shared<ContextBase>();
-    NAPI_CALL(env, ctxt->GetCbInfoSync(env, info));
+    ctxt->GetCbInfoSync(env, info);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     auto fieldNode = reinterpret_cast<JsFieldNode*>(ctxt->native);
     JSUtil::SetValue(env, fieldNode->defaultValue, ctxt->output);
     return ctxt->output;
 }
+
 napi_value JsFieldNode::SetDefaultValue(napi_env env, napi_callback_info info)
 {
-    ZLOGD("FieldNode::New");
+    ZLOGD("FieldNode::SetDefaultValue");
     auto ctxt = std::make_shared<ContextBase>();
     JSUtil::KvStoreVariant vv;
     auto input = [env, ctxt, &vv](size_t argc, napi_value* argv) {
         // required 1 arguments :: <defaultValue>
-        ZLOGE_ON_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], vv);
-        ZLOGE_ON_STATUS(ctxt, "invalid arg[0], i.e. invalid defaultValue!");
+        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid defaultValue!");
     };
-    NAPI_CALL(env, ctxt->GetCbInfoSync(env, info, input));
+    ctxt->GetCbInfoSync(env, info, input);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
 
     auto fieldNode = reinterpret_cast<JsFieldNode*>(ctxt->native);
     fieldNode->defaultValue = vv;
     return nullptr;
 }
 
+napi_value JsFieldNode::GetNullable(napi_env env, napi_callback_info info)
+{
+    ZLOGD("FieldNode::GetNullable");
+    auto ctxt = std::make_shared<ContextBase>();
+    ctxt->GetCbInfoSync(env, info);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
+
+    auto fieldNode = reinterpret_cast<JsFieldNode*>(ctxt->native);
+    JSUtil::SetValue(env, fieldNode->isNullable, ctxt->output);
+    return ctxt->output;
+}
+
+napi_value JsFieldNode::SetNullable(napi_env env, napi_callback_info info)
+{
+    ZLOGD("FieldNode::SetNullable");
+    auto ctxt = std::make_shared<ContextBase>();
+    bool isNullable = false;
+    auto input = [env, ctxt, &isNullable](size_t argc, napi_value* argv) {
+        // required 1 arguments :: <isNullable>
+        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
+        ctxt->status = JSUtil::GetValue(env, argv[0], isNullable);
+        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid isNullable!");
+    };
+    ctxt->GetCbInfoSync(env, info, input);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
+
+    auto fieldNode = reinterpret_cast<JsFieldNode*>(ctxt->native);
+    fieldNode->isNullable = isNullable;
+    return nullptr;
+}
+
+napi_value JsFieldNode::GetValueType(napi_env env, napi_callback_info info)
+{
+    ZLOGD("FieldNode::New");
+    auto ctxt = std::make_shared<ContextBase>();
+    ctxt->GetCbInfoSync(env, info);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
+
+    auto fieldNode = reinterpret_cast<JsFieldNode*>(ctxt->native);
+    JSUtil::SetValue(env, fieldNode->valueType, ctxt->output);
+    return ctxt->output;
+}
+
+napi_value JsFieldNode::SetValueType(napi_env env, napi_callback_info info)
+{
+    ZLOGD("FieldNode::New");
+    auto ctxt = std::make_shared<ContextBase>();
+    uint32_t type = 0;
+    auto input = [env, ctxt, &type](size_t argc, napi_value* argv) {
+        // required 1 arguments :: <valueType>
+        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
+        ctxt->status = JSUtil::GetValue(env, argv[0], type);
+        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid valueType!");
+        CHECK_ARGS(ctxt, (JSUtil::STRING <= type) && (type <= JSUtil::DOUBLE),
+            "invalid arg[0], i.e. invalid valueType!");
+    };
+    ctxt->GetCbInfoSync(env, info, input);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
+
+    auto fieldNode = reinterpret_cast<JsFieldNode*>(ctxt->native);
+    fieldNode->valueType = type;
+    return nullptr;
+}
+
+std::string JsFieldNode::ValueToString(JSUtil::KvStoreVariant value)
+{
+    auto strValue = std::get_if<std::string>(&value);
+    if (strValue != nullptr) {
+        return (*strValue);
+    }
+    auto intValue = std::get_if<int32_t>(&value);
+    if (intValue != nullptr) {
+        return std::to_string(*intValue);
+    }
+    auto fltValue = std::get_if<float>(&value);
+    if (fltValue != nullptr) {
+        return std::to_string(*fltValue);
+    }
+    auto boolValue = std::get_if<bool>(&value);
+    if (boolValue != nullptr) {
+        return std::to_string(*boolValue);
+    }
+    auto dblValue = std::get_if<double>(&value);
+    if (dblValue != nullptr) {
+        return std::to_string(*dblValue);
+    }
+    ZLOGE("ValueType is INVALID");
+    return std::string();
+}
+
+std::string JsFieldNode::ValueTypeToString(uint32_t type)
+{
+    // DistributedDB::FieldType
+    switch (type) {
+        case JSUtil::STRING:
+            return std::string("STRING");
+        case JSUtil::INTEGER:
+            return std::string("INTEGER");
+        case JSUtil::FLOAT:
+            return std::string("FLOAT");
+        case JSUtil::BYTE_ARRAY:
+            return std::string("BYTE_ARRAY");
+        case JSUtil::BOOLEAN:
+            return std::string("BOOLEAN");
+        case JSUtil::DOUBLE:
+            return std::string("DOUBLE");
+        default:
+            ZLOGE("ValueType is INVALID");
+            break;
+    }
+    return std::string();
+}
 std::string JsFieldNode::Dump()
 {
     json jsFields;
@@ -139,35 +286,12 @@ std::string JsFieldNode::Dump()
         jsFields.push_back(fld->Dump());
     }
 
-    auto defaultValueStr = [this]() -> std::string {
-        auto strValue = std::get_if<std::string>(&defaultValue);
-        if (strValue != nullptr) {
-            return (*strValue);
-        }
-        auto intValue = std::get_if<int32_t>(&defaultValue);
-        if (intValue != nullptr) {
-            return std::to_string(*intValue);
-        }
-        auto fltValue = std::get_if<float>(&defaultValue);
-        if (fltValue != nullptr) {
-            return std::to_string(*fltValue);
-        }
-        auto boolValue = std::get_if<bool>(&defaultValue);
-        if (boolValue != nullptr) {
-            return std::to_string(*boolValue);
-        }
-        auto dblValue = std::get_if<double>(&defaultValue);
-        if (dblValue != nullptr) {
-            return std::to_string(*dblValue);
-        }
-        ZLOGE("ValueType is INVALID");
-        return std::string();
-    };
-
     json jsNode = {
         { FIELDNAME, fieldName },
-        { DEFAULTVALUE, defaultValueStr() },
+        { VALUETYPE, ValueTypeToString(valueType) },
+        { DEFAULTVALUE, ValueToString(defaultValue) },
         { ISWITHDEFAULTVALUE, isWithDefaultValue },
+        { ISNULLABLE, isNullable },
         { CHILDREN, jsFields.dump() }
     };
     return jsNode.dump();

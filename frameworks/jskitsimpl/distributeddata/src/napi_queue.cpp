@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -39,12 +39,12 @@ void ContextBase::GetCbInfo(napi_env envi, napi_callback_info info, NapiCbInfoPa
     size_t argc = ARGC_MAX;
     napi_value argv[ARGC_MAX] = { nullptr };
     status = napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
-    ZLOGE_ON_STATUS(this, "napi_get_cb_info failed!");
-    ZLOGE_ON_ARGS(this, argc <= ARGC_MAX, "too many arguments!");
-    ZLOGE_ON_ARGS(this, self != nullptr, "no JavaScript this argument!");
+    CHECK_STATUS(this, "napi_get_cb_info failed!");
+    CHECK_ARGS(this, argc <= ARGC_MAX, "too many arguments!");
+    CHECK_ARGS(this, self != nullptr, "no JavaScript this argument!");
     napi_create_reference(env, self, 1, &selfRef);
     status = napi_unwrap(env, self, &native);
-    ZLOGE_ON_STATUS(this, "self unwrap failed!");
+    CHECK_STATUS(this, "self unwrap failed!");
 
     if (!sync && (argc > 0)) {
         // get the last arguments :: <callback>
@@ -53,7 +53,7 @@ void ContextBase::GetCbInfo(napi_env envi, napi_callback_info info, NapiCbInfoPa
         napi_status tyst = napi_typeof(env, argv[index], &type);
         if ((tyst == napi_ok) && (type == napi_function)) {
             status = napi_create_reference(env, argv[index], 1, &callbackRef);
-            ZLOGE_ON_STATUS(this, "ref callback failed!");
+            CHECK_STATUS(this, "ref callback failed!");
             argc = index;
             ZLOGD("async callback, no promise");
         } else {
@@ -64,7 +64,7 @@ void ContextBase::GetCbInfo(napi_env envi, napi_callback_info info, NapiCbInfoPa
     if (parse) {
         parse(argc, argv);
     } else {
-        ZLOGE_ON_ARGS(this, argc == 0, "required no arguments!");
+        CHECK_ARGS(this, argc == 0, "required no arguments!");
     }
 }
 
@@ -88,21 +88,21 @@ napi_value NapiQueue::AsyncWork(napi_env env, std::shared_ptr<ContextBase> ctxt,
     napi_create_async_work(
         ctxt->env, nullptr, resource,
         [](napi_env env, void* data) {
+            CHECK_RETURN_VOID(data != nullptr, "napi_async_execute_callback nullptr");
             auto ctxt = reinterpret_cast<ContextBase*>(data);
             ZLOGD("napi_async_execute_callback ctxt->status=%{public}d", ctxt->status);
             if (ctxt->execute && ctxt->status == napi_ok) {
-                ZLOGD("call ctxt->execute");
                 ctxt->execute();
             }
         },
         [](napi_env env, napi_status status, void* data) {
+            CHECK_RETURN_VOID(data != nullptr, "napi_async_complete_callback nullptr");
             auto ctxt = reinterpret_cast<ContextBase*>(data);
             ZLOGD("napi_async_complete_callback status=%{public}d, ctxt->status=%{public}d", status, ctxt->status);
             if ((status != napi_ok) && (ctxt->status == napi_ok)) {
                 ctxt->status = status;
             }
             if ((ctxt->complete) && (status == napi_ok) && (ctxt->status == napi_ok)) {
-                ZLOGD("call ctxt->complete");
                 ctxt->complete(ctxt->output);
             }
             GenerateOutput(ctxt);
@@ -115,7 +115,6 @@ napi_value NapiQueue::AsyncWork(napi_env env, std::shared_ptr<ContextBase> ctxt,
 
 void NapiQueue::GenerateOutput(ContextBase* ctxt)
 {
-    ZLOGD("in");
     napi_value result[RESULT_ALL] = { nullptr };
     if (ctxt->status == napi_ok) {
         napi_get_undefined(ctxt->env, &result[RESULT_ERROR]);
@@ -145,6 +144,5 @@ void NapiQueue::GenerateOutput(ContextBase* ctxt)
         napi_call_function(ctxt->env, nullptr, callback, RESULT_ALL, result, &callbackResult);
     }
     ctxt->hold.reset(); // release ctxt.
-    ZLOGD("out");
 }
 } // namespace OHOS::DistributedData
