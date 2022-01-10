@@ -171,11 +171,13 @@ int SQLiteRelationalStore::CleanDistributedDeviceTable()
     errCode = handle->CkeckAndCleanDistributedTable(schema.GettableNames(), missingTables);
     if (errCode == E_OK) {
         errCode = handle->Commit();
-        // Remove non-existent tables from the schema
-        for (const auto &tableName : missingTables) {
-            schema.RemoveRelationalTable(tableName);
+        if (errCode == E_OK) {
+            // Remove non-existent tables from the schema
+            for (const auto &tableName : missingTables) {
+                schema.RemoveRelationalTable(tableName);
+            }
+            properties_.SetSchema(schema);
         }
-        properties_.SetSchema(schema);
     } else {
         LOGE("Check distributed table failed. %d", errCode);
         (void)handle->Rollback();

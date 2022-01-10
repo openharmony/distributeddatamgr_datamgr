@@ -314,6 +314,7 @@ std::string DBCommon::StringMasking(const std::string &oriStr, size_t remain)
 
 std::string DBCommon::GetDistributedTableName(const std::string &device, const std::string &tableName)
 {
-    return DBConstant::RELATIONAL_PREFIX + tableName + "_" + DBCommon::TransferHashString(device);
+    std::string deviceHashHex = DBCommon::TransferStringToHex(DBCommon::TransferHashString(device));
+    return DBConstant::RELATIONAL_PREFIX + tableName + "_" + deviceHashHex;
 }
 } // namespace DistributedDB

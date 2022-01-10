@@ -96,7 +96,7 @@ DB_API DBStatus RelationalStoreManager::OpenStore(const std::string &path, const
     return OK;
 }
 
-DBStatus RelationalStoreManager::CloseStore(RelationalStoreDelegate *&store)
+DBStatus RelationalStoreManager::CloseStore(RelationalStoreDelegate *store)
 {
     if (store == nullptr) {
         return INVALID_ARGS;

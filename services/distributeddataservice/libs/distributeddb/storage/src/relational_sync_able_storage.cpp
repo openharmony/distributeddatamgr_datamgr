@@ -468,12 +468,14 @@ int RelationalSyncAbleStorage::CreateDistributedDeviceTable(const std::string &d
 
 int RelationalSyncAbleStorage::RegisterSchemaChangedCallback(const std::function<void()> &callback)
 {
+    std::lock_guard lock(onSchemaChangedMutex_);
     onSchemaChanged_ = callback;
     return E_OK;
 }
 
 void RelationalSyncAbleStorage::NotifySchemaChanged()
 {
+    std::lock_guard lock(onSchemaChangedMutex_);
     if (onSchemaChanged_) {
         LOGD("Notify relational schema was changed");
         onSchemaChanged_();

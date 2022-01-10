@@ -33,14 +33,15 @@ namespace {
     DistributedDB::RelationalStoreManager g_mgr(APP_ID, USER_ID);
 
     const std::string NORMAL_CREATE_TABLE_SQL = "CREATE TABLE IF NOT EXISTS sync_data(" \
-        "key         BLOB NOT NULL," \
+        "key         BLOB NOT NULL UNIQUE," \
         "value       BLOB," \
         "timestamp   INT  NOT NULL," \
         "flag        INT  NOT NULL," \
         "device      BLOB," \
         "ori_device  BLOB," \
         "hash_key    BLOB PRIMARY KEY NOT NULL," \
-        "w_timestamp INT);" \
+        "w_timestamp INT," \
+        "UNIQUE(device, ori_device));" \
         "CREATE INDEX key_index ON sync_data (key, flag);";
 }
 
@@ -110,7 +111,6 @@ HWTEST_F(DistributedInterfacesRelationalTest, RelationalStoreTest001, TestSize.L
 
     status = g_mgr.CloseStore(delegate);
     EXPECT_EQ(status, OK);
-    ASSERT_EQ(delegate, nullptr);
 
     /**
      * @tc.steps:step3. drop sync_data table
@@ -131,7 +131,6 @@ HWTEST_F(DistributedInterfacesRelationalTest, RelationalStoreTest001, TestSize.L
     ASSERT_NE(delegate, nullptr);
     status = g_mgr.CloseStore(delegate);
     EXPECT_EQ(status, OK);
-    ASSERT_EQ(delegate, nullptr);
 }
 
 /**
@@ -264,7 +263,6 @@ HWTEST_F(DistributedInterfacesRelationalTest, RelationalStoreTest004, TestSize.L
      */
     status = g_mgr.CloseStore(delegate);
     EXPECT_EQ(status, OK);
-    ASSERT_EQ(delegate, nullptr);
 }
 
 /**
@@ -307,5 +305,4 @@ HWTEST_F(DistributedInterfacesRelationalTest, RelationalStoreTest005, TestSize.L
      */
     status = g_mgr.CloseStore(delegate);
     EXPECT_EQ(status, OK);
-    ASSERT_EQ(delegate, nullptr);
 }

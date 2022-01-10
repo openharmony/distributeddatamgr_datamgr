@@ -98,8 +98,9 @@ std::string FieldInfo::ToAttributeString() const
 {
     std::string attrStr = "\"" + fieldName_ + "\": {";
     attrStr += "\"TYPE\":\"" + dataType_ + "\",";
-    attrStr += "\"NOT_NULL\":" + std::string(isNotNull_ ? "true" : "false") + ",";
+    attrStr += "\"NOT_NULL\":" + std::string(isNotNull_ ? "true" : "false");
     if (hasDefaultValue_) {
+        attrStr += ",";
         attrStr += "\"DEFAULT\":\"" + defaultValue_ + "\"";
     }
     attrStr += "}";
@@ -219,14 +220,14 @@ void TableInfo::AddUniqueDefineString(std::string &attrStr) const
     }
     attrStr += R"("UNIQUE": [)";
     for (auto itUniqueDefine = uniqueDefines_.begin(); itUniqueDefine != uniqueDefines_.end(); ++itUniqueDefine) {
-        attrStr += "\"";
+        attrStr += "[\"";
         for (auto itField = (*itUniqueDefine).begin(); itField != (*itUniqueDefine).end(); ++itField) {
             attrStr += *itField;
             if (itField != (*itUniqueDefine).end() - 1) {
-                attrStr += ", ";
+                attrStr += "\",\"";
             }
         }
-        attrStr += "\"";
+        attrStr += "\"]";
         if (itUniqueDefine != uniqueDefines_.end() - 1) {
             attrStr += ",";
         }
@@ -241,14 +242,14 @@ void TableInfo::AddIndexDefineString(std::string &attrStr) const
     }
     attrStr += R"("INDEX": {)";
     for (auto itIndexDefine = indexDefines_.begin(); itIndexDefine != indexDefines_.end(); ++itIndexDefine) {
-        attrStr += "\"" + (*itIndexDefine).first + "\": \"";
+        attrStr += "\"" + (*itIndexDefine).first + "\": [\"";
         for (auto itField = itIndexDefine->second.begin(); itField != itIndexDefine->second.end(); ++itField) {
             attrStr += *itField;
             if (itField != itIndexDefine->second.end() - 1) {
-                attrStr += ",";
+                attrStr += "\",\"";
             }
         }
-        attrStr += "\"";
+        attrStr += "\"]";
         if (itIndexDefine != std::prev(indexDefines_.end(), 1)) {
             attrStr += ",";
         }
@@ -418,8 +419,11 @@ void RelationalSchemaObject::GenerateSchemaString()
     schemaString_ += R"("SCHEMA_VERSION":"2.0",)";
     schemaString_ += R"("SCHEMA_TYPE":"RELATIVE",)";
     schemaString_ += R"("TABLES":[)";
-    for (const auto &it : tables_) {
-        schemaString_ += it.second.ToTableInfoString() + ",";
+    for (auto it = tables_.begin(); it != tables_.end(); it++) {
+        if (it != tables_.begin()) {
+            schemaString_ += ",";
+        }
+        schemaString_ += it->second.ToTableInfoString();
     }
     schemaString_ += R"(])";
     schemaString_ += "}";
@@ -428,14 +432,14 @@ void RelationalSchemaObject::GenerateSchemaString()
 void RelationalSchemaObject::AddRelationalTable(const TableInfo &tb)
 {
     tables_[tb.GetTableName()] = tb;
-    schemaString_ = {};
+    GenerateSchemaString();
 }
 
 
 void RelationalSchemaObject::RemoveRelationalTable(const std::string &tableName)
 {
     tables_.erase(tableName);
-    schemaString_ = {};
+    GenerateSchemaString();
 }
 
 const std::map<std::string, TableInfo> &RelationalSchemaObject::GetTables() const
@@ -691,9 +695,12 @@ int RelationalSchemaObject::ParseCheckTableAutoInc(const JsonObject &inJsonObjec
 
 int RelationalSchemaObject::ParseCheckTableUnique(const JsonObject &inJsonObject, TableInfo &resultTable)
 {
+    if (!inJsonObject.IsFieldPathExist(FieldPath {"UNIQUE"})) { // UNIQUE is not necessary
+        return E_OK;
+    }
     std::vector<CompositeFields> uniqueArray;
     int errCode = inJsonObject.GetArrayContentOfStringOrStringArray(FieldPath {"UNIQUE"}, uniqueArray);
-    if (errCode != E_OK && errCode != -E_INVALID_PATH) { // UNIQUE is not necessary
+    if (errCode != E_OK) {
         LOGE("[RelationalSchema][Parse] Get unique array failed: %d.", errCode);
         return -E_SCHEMA_PARSE_FAIL;
     }
@@ -713,9 +720,12 @@ int RelationalSchemaObject::ParseCheckTablePrimaryKey(const JsonObject &inJsonOb
 
 int RelationalSchemaObject::ParseCheckTableIndex(const JsonObject &inJsonObject, TableInfo &resultTable)
 {
+    if (!inJsonObject.IsFieldPathExist(FieldPath {"INDEX"})) { // INDEX is not necessary
+        return E_OK;
+    }
     std::map<FieldPath, FieldType> tableFields;
     int errCode = inJsonObject.GetSubFieldPathAndType(FieldPath {"INDEX"}, tableFields);
-    if (errCode != E_OK && errCode != -E_INVALID_PATH) { // INDEX is not necessary
+    if (errCode != E_OK) {
         LOGE("[RelationalSchema][Parse] Get schema TABLES INDEX failed: %d.", errCode);
         return -E_SCHEMA_PARSE_FAIL;
     }

@@ -40,7 +40,7 @@ public:
     DB_API DBStatus OpenStore(const std::string &path, const std::string &storeId,
         const RelationalStoreDelegate::Option &option, RelationalStoreDelegate *&delegate);
 
-    DB_API DBStatus CloseStore(RelationalStoreDelegate *&store);
+    DB_API DBStatus CloseStore(RelationalStoreDelegate *store);
 
     DB_API static void SetAutoLaunchRequestCallback(const AutoLaunchRequestCallback &callback);
 

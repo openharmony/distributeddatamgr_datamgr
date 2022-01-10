@@ -129,6 +129,7 @@ private:
     mutable std::mutex maxTimeStampMutex_;
 
     std::function<void()> onSchemaChanged_;
+    mutable std::mutex onSchemaChangedMutex_;
 };
 }  // namespace DistributedDB
 #endif
