@@ -232,7 +232,7 @@ int SQLiteRelationalStore::Open(const RelationalDBProperties &properties)
             break;
         }
 
-        errCode = CleanDistributedDeviceTable();
+        errCode = CleanDistributedDeviceTable(); // TODO: remove water mark
         if (errCode != E_OK) {
             break;
         }
@@ -415,7 +415,7 @@ int SQLiteRelationalStore::RemoveDeviceData(const std::string &device, const std
         (void)handle->Rollback();
     } else {
         (void)handle->Commit();
-        errCode = syncEngine_->EraseDeviceWaterMark(device, true);
+        errCode = syncEngine_->EraseDeviceWaterMark(device, true); // TODO: need table name
         if (errCode != E_OK) {
             LOGE("Erase device water mark failed. %d", errCode);
         }

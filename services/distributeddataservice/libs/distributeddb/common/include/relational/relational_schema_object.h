@@ -45,6 +45,8 @@ public:
 
     // return field define string like ("fieldName": "MY INT(21), NOT NULL, DEFAULT 123")
     std::string ToAttributeString() const;
+
+    int CompareWithField(const FieldInfo &inField) const;
 private:
     std::string fieldName_;
     std::string dataType_; // Type may be null
@@ -78,10 +80,17 @@ public:
     void AddTrigger(const std::string &triggerName);
     std::string ToTableInfoString() const;
     void SetDevId(const std::string &devId);
+
+    int CompareWithTable(const TableInfo &inTableInfo) const;
+
 private:
     void AddFieldDefineString(std::string &attrStr) const;
     void AddUniqueDefineString(std::string &attrStr) const;
     void AddIndexDefineString(std::string &attrStr) const;
+
+    int CompareWithTableFields(const std::map<std::string, FieldInfo> &inTableFields) const;
+    int CompareWithTableIndex(const std::map<std::string, CompositeFields> &inTableIndex) const;
+
     std::string tableName_;
     std::string devId_;
     bool autoInc_ = false; // only 'INTEGER PRIMARY KEY' could be defined as 'AUTOINCREMENT'
@@ -121,6 +130,7 @@ public:
 
     static RelationalSyncOpinion MakeLocalSyncOpinion(const RelationalSchemaObject &localSchema,
         const std::string &remoteSchemaStr, uint8_t remoteSchemaType);
+
     // The remoteOpinion.checkOnReceive is ignored
     static RelationalSyncStrategy ConcludeSyncStrategy(const RelationalSyncOpinion &localOpinion,
         const RelationalSyncOpinion &remoteOpinion);

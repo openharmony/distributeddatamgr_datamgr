@@ -466,6 +466,7 @@ std::string SchemaUtils::SchemaTypeString(SchemaType inType)
         {SchemaType::NONE, "NONE"},
         {SchemaType::JSON, "JSON-SCHEMA"},
         {SchemaType::FLATBUFFER, "FLATBUFFER-SCHEMA"},
+        {SchemaType::RELATIVE, "RELATIVE"},
         {SchemaType::UNRECOGNIZED, "UNRECOGNIZED"},
     };
     return schemaTypeMapString[inType];

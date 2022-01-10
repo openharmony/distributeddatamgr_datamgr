@@ -75,7 +75,7 @@ private:
     int StartLifeCycleTimer(const DatabaseLifeCycleNotifier &notifier) const;
     void HeartBeat() const;
     int ResetLifeCycleTimer() const;
-    
+
     // use for sync Interactive
     std::unique_ptr<SyncAbleEngine> syncEngine_ = nullptr; // For storage operate sync function
     // use ref obj same as kv
@@ -94,7 +94,6 @@ private:
     mutable std::mutex initalMutex_;
     bool isInitialized_ = false;
 
-    mutable std::mutex schemaMutex_;
     //lifeCycle
     mutable std::mutex lifeCycleMutex_;
     mutable DatabaseLifeCycleNotifier lifeCycleNotifier_;

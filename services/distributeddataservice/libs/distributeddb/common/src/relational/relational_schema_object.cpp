@@ -107,6 +107,18 @@ std::string FieldInfo::ToAttributeString() const
     return attrStr;
 }
 
+int FieldInfo::CompareWithField(const FieldInfo &inField) const
+{
+    if (fieldName_ != inField.GetFieldName() || dataType_ != inField.GetDataType() ||
+        isNotNull_ != inField.IsNotNull()) {
+        return false;
+    }
+    if (hasDefaultValue_ && inField.HasDefaultValue()) {
+        return defaultValue_ == inField.GetDefaultValue();
+    }
+    return hasDefaultValue_ == inField.HasDefaultValue();
+}
+
 const std::string &TableInfo::GetTableName() const
 {
     return tableName_;
@@ -267,6 +279,72 @@ void TableInfo::SetDevId(const std::string &devId)
     devId_ = devId;
 }
 
+int TableInfo::CompareWithTable(const TableInfo &inTableInfo) const
+{
+    if (tableName_ != inTableInfo.GetTableName()) {
+        LOGW("[Relational][Compare] Table name is not same");
+        return -E_RELATIONAL_TABLE_INCOMPATIBLE;
+    }
+
+    if (primaryKey_ != inTableInfo.GetPrimaryKey()) {
+        LOGW("[Relational][Compare] Table primary key is not same");
+        return -E_RELATIONAL_TABLE_INCOMPATIBLE;
+    }
+
+    int fieldCompareResult = CompareWithTableFields(inTableInfo.GetFields());
+    if (fieldCompareResult == -E_RELATIONAL_TABLE_INCOMPATIBLE) {
+        LOGW("[Relational][Compare] Compare table fields with in table, %d", fieldCompareResult);
+        return -E_RELATIONAL_TABLE_INCOMPATIBLE;
+    }
+
+    int indexCompareResult = CompareWithTableIndex(inTableInfo.GetIndexDefine());
+    return (fieldCompareResult == -E_RELATIONAL_TABLE_EQUAL) ? indexCompareResult : fieldCompareResult;
+}
+
+int TableInfo::CompareWithTableFields(const std::map<std::string, FieldInfo> &inTableFields) const
+{
+    auto itLocal = fields_.begin();
+    auto itInTable = inTableFields.begin();
+
+    while (itLocal != fields_.end() && itInTable != inTableFields.end()) {
+        if (itLocal->first == itInTable->first) { // Same field
+            if (!itLocal->second.CompareWithField(itInTable->second)) { // Compare field
+                LOGW("[Relational][Compare] Table field is incompatible"); // not compatible
+                return -E_RELATIONAL_TABLE_INCOMPATIBLE;
+            }
+            itLocal++; // Compare next field
+        } else { // Assume local table fields is a subset of in table
+            if (itInTable->second.IsNotNull() && !itInTable->second.HasDefaultValue()) { // Upgrade field not compatible
+                LOGW("[Relational][Compare] Table upgrade field should allowed to be empty or have default value.");
+                return -E_RELATIONAL_TABLE_INCOMPATIBLE;
+            }
+        }
+        itInTable++; // Next in table field
+    }
+
+    if (itLocal != fields_.end()) {
+        LOGW("[Relational][Compare] Table field is missing");
+        return -E_RELATIONAL_TABLE_INCOMPATIBLE;
+    }
+
+    return (itInTable == inTableFields.end()) ? -E_RELATIONAL_TABLE_EQUAL : -E_RELATIONAL_TABLE_COMPATIBLE_UPGRADE;
+}
+
+int TableInfo::CompareWithTableIndex(const std::map<std::string, CompositeFields> &inTableIndex) const
+{
+    auto itLocal = indexDefines_.begin();
+    auto itInTable = inTableIndex.begin();
+    while (itLocal != indexDefines_.end() && itInTable != inTableIndex.end()) {
+        if (itLocal != itInTable) {
+            return -E_RELATIONAL_TABLE_COMPATIBLE;
+        }
+        itLocal++;
+        itInTable++;
+    }
+    return (itLocal == indexDefines_.end() && itInTable == inTableIndex.end()) ? -E_RELATIONAL_TABLE_EQUAL :
+        -E_RELATIONAL_TABLE_COMPATIBLE;
+}
+
 namespace {
     std::string VectorJoin(const CompositeFields &fields, char con)
     {
@@ -321,19 +399,73 @@ std::string TableInfo::ToTableInfoString() const
     return attrStr;
 }
 
+namespace {
+    const std::string MAGIC = "relational_opinion";
+}
+
 uint32_t RelationalSyncOpinion::CalculateParcelLen(uint32_t softWareVersion) const
 {
-    return E_OK;
+    uint64_t len = Parcel::GetStringLen(MAGIC);
+    len += Parcel::GetUInt32Len();
+    len += Parcel::GetUInt32Len();
+    len = Parcel::GetEightByteAlign(len);
+    for (const auto &it : opinions_) {
+        len += Parcel::GetStringLen(it.first);
+        len += Parcel::GetUInt32Len();
+        len += Parcel::GetUInt32Len();
+        len = Parcel::GetEightByteAlign(len);
+    }
+    if (len > UINT32_MAX) {
+        return 0;
+    }
+    return static_cast<uint32_t>(len);
 }
 
 int RelationalSyncOpinion::SerializeData(Parcel &parcel, uint32_t softWareVersion) const
 {
-    return E_OK;
+    (void)parcel.WriteString(MAGIC);
+    (void)parcel.WriteUInt32(softWareVersion);
+    (void)parcel.WriteUInt32(static_cast<uint32_t>(opinions_.size()));
+    (void)parcel.EightByteAlign();
+    for (const auto &it : opinions_) {
+        (void)parcel.WriteString(it.first);
+        (void)parcel.WriteUInt32(it.second.permitSync);
+        (void)parcel.WriteUInt32(it.second.requirePeerConvert);
+        (void)parcel.EightByteAlign();
+    }
+    return parcel.IsError() ? -E_INVALID_ARGS : E_OK;
 }
 
 int RelationalSyncOpinion::DeserializeData(Parcel &parcel, RelationalSyncOpinion &opinion)
 {
-    return E_OK;
+    if (!parcel.IsContinueRead()) {
+        return E_OK;
+    }
+    std::string magicStr;
+    (void)parcel.ReadString(magicStr);
+    if (magicStr != MAGIC) {
+        LOGE("Decerialize sync opinion failed while read MAGIC string [%s]", magicStr.c_str());
+        return -E_INVALID_ARGS;
+    }
+    uint32_t softWareVersion;
+    (void)parcel.ReadUInt32(softWareVersion);
+    uint32_t opinionSize;
+    (void)parcel.ReadUInt32(opinionSize);
+    (void)parcel.EightByteAlign();
+    for (uint32_t i = 0; i < opinionSize; i++) {
+        std::string tableName;
+        SyncOpinion tableOpinion;
+        (void)parcel.ReadString(tableName);
+        uint32_t permitSync;
+        (void)parcel.ReadUInt32(permitSync);
+        tableOpinion.permitSync = static_cast<bool>(permitSync);
+        uint32_t requirePeerConvert;
+        (void)parcel.ReadUInt32(requirePeerConvert);
+        tableOpinion.requirePeerConvert = static_cast<bool>(requirePeerConvert);
+        (void)parcel.EightByteAlign();
+        opinion.AddSyncOpinion(tableName, tableOpinion);
+    }
+    return parcel.IsError() ? -E_INVALID_ARGS : E_OK;
 }
 
 SyncOpinion RelationalSyncOpinion::GetTableOpinion(const std::string &tableName) const
@@ -372,13 +504,91 @@ void RelationalSyncStrategy::AddSyncStrategy(const std::string &tableName, const
 RelationalSyncOpinion RelationalSchemaObject::MakeLocalSyncOpinion(const RelationalSchemaObject &localSchema,
     const std::string &remoteSchemaStr, uint8_t remoteSchemaType)
 {
-    return RelationalSyncOpinion();
+    SchemaType localType = localSchema.GetSchemaType();
+    SchemaType remoteType = ReadSchemaType(remoteSchemaType);
+
+    if (remoteType == SchemaType::UNRECOGNIZED) {
+        LOGW("[RelationalSchema][opinion] Remote schema type %d is unrecognized.", remoteSchemaType);
+        return {};
+    }
+
+    if (remoteType != SchemaType::RELATIVE) {
+        LOGW("[RelationalSchema][opinion] Not support sync with schema type: local-type=[%d] remote-type=[%d]",
+            SchemaUtils::SchemaTypeString(localType).c_str(), SchemaUtils::SchemaTypeString(remoteType).c_str());
+        return {};
+    }
+
+    if (!localSchema.IsSchemaValid()) {
+        LOGW("[RelationalSchema][opinion] Local schema is not valid");
+        return {};
+    }
+
+    RelationalSchemaObject remoteSchema;
+    int errCode = remoteSchema.ParseFromSchemaString(remoteSchemaStr);
+    if (errCode != E_OK) {
+        LOGW("[RelationalSchema][opinion] Parse remote schema failed %d, remote schema type %s", errCode,
+            SchemaUtils::SchemaTypeString(remoteType).c_str());
+        return {};
+    }
+
+    RelationalSyncOpinion opinion;
+    for (const auto &it : localSchema.GetTables()) {
+        if (remoteSchema.GetTable(it.first).GetTableName() != it.first) {
+            LOGW("[RelationalSchema][opinion] Table was missing in remote schema");
+            continue;
+        }
+        // remote table is compatible(equal or upgrade) based on local table, permit sync and don't need check
+        errCode = it.second.CompareWithTable(remoteSchema.GetTable(it.first));
+        if (errCode != -E_RELATIONAL_TABLE_INCOMPATIBLE) {
+            opinion.AddSyncOpinion(it.first, {true, false, false});
+            continue;
+        }
+        // local table is compatible upgrade based on remote table, permit sync and need check
+        errCode = remoteSchema.GetTable(it.first).CompareWithTable(it.second);
+        if (errCode != -E_RELATIONAL_TABLE_INCOMPATIBLE) {
+            opinion.AddSyncOpinion(it.first, {true, false, true});
+            continue;
+        }
+        // local table is incompatible with remote table mutually, don't permit sync and need check
+        LOGW("[RelationalSchema][opinion] Local table is incompartible with remote table mutually.");
+        opinion.AddSyncOpinion(it.first, {false, true, true});
+    }
+
+    return opinion;
 }
 
 RelationalSyncStrategy RelationalSchemaObject::ConcludeSyncStrategy(const RelationalSyncOpinion &localOpinion,
     const RelationalSyncOpinion &remoteOpinion)
 {
-    return RelationalSyncStrategy();
+    RelationalSyncStrategy syncStrategy;
+    for (const auto &itLocal : localOpinion.GetOpinions()) {
+        if (remoteOpinion.GetOpinions().find(itLocal.first) == remoteOpinion.GetOpinions().end()) {
+            LOGW("[RelationalSchema][Strategy] Table opinion is not found from remote.");
+            continue;
+        }
+
+        SyncStrategy strategy;
+        SyncOpinion localTableOpinion = itLocal.second;
+        SyncOpinion remoteTableOpinion = remoteOpinion.GetTableOpinion(itLocal.first);
+
+        strategy.permitSync = (localTableOpinion.permitSync || remoteTableOpinion.permitSync);
+
+        bool convertConflict = (localTableOpinion.requirePeerConvert && remoteTableOpinion.requirePeerConvert);
+        if (convertConflict) {
+            // Should not both need peer convert
+            strategy.permitSync = false;
+        }
+        // No peer convert required means local side has convert capability, convert locally takes precedence
+        strategy.convertOnSend = (!localTableOpinion.requirePeerConvert);
+        strategy.convertOnReceive = remoteTableOpinion.requirePeerConvert;
+
+        strategy.checkOnReceive = localTableOpinion.checkOnReceive;
+        LOGI("[RelationalSchema][Strategy] PermitSync=%d, SendConvert=%d, ReceiveConvert=%d, ReceiveCheck=%d.",
+            strategy.permitSync, strategy.convertOnSend, strategy.convertOnReceive, strategy.checkOnReceive);
+        syncStrategy.AddSyncStrategy(itLocal.first, strategy);
+    }
+
+    return syncStrategy;
 }
 
 bool RelationalSchemaObject::IsSchemaValid() const
@@ -757,6 +967,7 @@ int RelationalSchemaObject::ParseCheckTableIndex(const JsonObject &inJsonObject,
         }
         resultTable.AddIndexDefine(field.first[1], indexDefine); // 1 : second element in path
     }
+    tables_[resultTable.GetTableName()] = resultTable;
     return E_OK;
 }
 }

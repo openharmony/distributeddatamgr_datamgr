@@ -80,16 +80,6 @@ std::string SchemaObject::GenerateExtractSQL(SchemaType inSchemaType, const Fiel
     return resultSql;
 }
 
-namespace {
-inline SchemaType ReadSchemaType(uint8_t inType)
-{
-    if (inType >= static_cast<uint8_t>(SchemaType::UNRECOGNIZED)) {
-        return SchemaType::UNRECOGNIZED;
-    }
-    return static_cast<SchemaType>(inType);
-}
-}
-
 // Some principle in current version describe below. (Relative-type will be introduced in future but not involved now)
 // 1.   PermitSync: Be false may because schemaType-unrecognized, schemaType-different, schema-unparsable,
 //      schemaVersion-unrecognized, schema-incompatible, and so on.
