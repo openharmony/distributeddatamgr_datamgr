@@ -1959,7 +1959,7 @@ HWTEST_F(DistributedDBInterfacesNBDelegateTest, MaxLogCheckPoint001, TestSize.Le
   * @tc.name: CreateMemoryDbWithoutPath
   * @tc.desc: Create memory database without path.
   * @tc.type: FUNC
-  * @tc.require: AR000CRAKN DTS2022010411580
+  * @tc.require: AR000CRAKN
   * @tc.author: sunpeng
   */
 HWTEST_F(DistributedDBInterfacesNBDelegateTest, CreateMemoryDbWithoutPath, TestSize.Level1)
@@ -1970,8 +1970,8 @@ HWTEST_F(DistributedDBInterfacesNBDelegateTest, CreateMemoryDbWithoutPath, TestS
      */
     KvStoreDelegateManager mgr(APP_ID, USER_ID);
     const KvStoreNbDelegate::Option option = {true, true};
-    mgr.SetKvStoreConfig(g_config);
     mgr.GetKvStore("memory_without_path", option, g_kvNbDelegateCallback);
     ASSERT_TRUE(g_kvNbDelegatePtr != nullptr);
     EXPECT_TRUE(g_kvDelegateStatus == OK);
+    EXPECT_EQ(g_mgr.CloseKvStore(g_kvNbDelegatePtr), OK);
 }
