@@ -39,12 +39,15 @@ Blob::Blob(Blob &&blob) : ptr_(blob.ptr_), size_(blob.size_)
     blob.size_ = 0;
 }
 
-Blob &Blob::operator=(Blob &&blob)
+Blob &Blob::operator=(Blob &&blob) noexcept
 {
-    ptr_ = blob.ptr_;
-    size_ = blob.size_;
-    blob.ptr_ = nullptr;
-    blob.size_ = 0;
+    if (this != &blob) {
+        delete[] ptr_;
+        ptr_ = blob.ptr_;
+        size_ = blob.size_;
+        blob.ptr_ = nullptr;
+        blob.size_ = 0;
+    }
     return *this;
 }
 
@@ -60,7 +63,13 @@ uint32_t Blob::GetSize() const
 
 int Blob::WriteBlob(const uint8_t *ptrArray, const uint32_t &size)
 {
-    if (size == 0) return E_OK;
+    if (ptrArray == nullptr || size == 0) {
+        return E_OK;
+    }
+
+    delete[] ptr_;
+    ptr_ = nullptr;
+
     ptr_ = new (std::nothrow) uint8_t[size];
     if (ptr_ == nullptr) {
         return -E_OUT_OF_MEMORY;
@@ -131,6 +140,10 @@ DataValue &DataValue::operator=(const DataValue &dataValue)
 
 DataValue &DataValue::operator=(DataValue &&dataValue) noexcept
 {
+    if (this == &dataValue) {
+        return *this;
+    }
+    ResetValue();
     this->type_ = dataValue.type_;
     this->value_ = dataValue.value_;
     switch (type_) {
@@ -206,7 +219,7 @@ DataValue &DataValue::operator=(const std::string &string)
         return *this;
     }
     type_ = StorageType::STORAGE_TYPE_TEXT;
-    value_.blobPtr->WriteBlob(reinterpret_cast<const uint8_t*>(string.c_str()), string.size());
+    value_.blobPtr->WriteBlob(reinterpret_cast<const uint8_t *>(string.c_str()), string.size());
     return *this;
 }
 
@@ -240,7 +253,7 @@ bool DataValue::operator==(const DataValue &dataValue) const
 
 bool DataValue::operator!=(const DataValue &dataValue) const
 {
-    return !(*this==dataValue);
+    return !(*this == dataValue);
 }
 
 int DataValue::GetBool(bool &outVal) const
@@ -275,6 +288,8 @@ int DataValue::GetBlob(Blob *&outVal) const
     if (type_ != StorageType::STORAGE_TYPE_BLOB && type_ != StorageType::STORAGE_TYPE_TEXT) {
         return -E_NOT_SUPPORT;
     }
+    delete outVal;
+    outVal = nullptr;
     outVal = new (std::nothrow) Blob();
     if (outVal == nullptr) {
         return -E_OUT_OF_MEMORY;

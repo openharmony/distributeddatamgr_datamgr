@@ -39,7 +39,7 @@ public:
 
     Blob(Blob &&);
     Blob(const Blob &) = delete;
-    Blob &operator=(Blob &&);
+    Blob &operator=(Blob &&) noexcept;
     Blob &operator=(const Blob &) = delete;
 
     const uint8_t* GetData() const;

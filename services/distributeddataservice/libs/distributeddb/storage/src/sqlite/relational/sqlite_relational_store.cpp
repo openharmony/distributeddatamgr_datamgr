@@ -31,10 +31,8 @@ namespace {
 
 SQLiteRelationalStore::~SQLiteRelationalStore()
 {
-    if (sqliteStorageEngine_ != nullptr) {
-        delete sqliteStorageEngine_;
-        sqliteStorageEngine_ = nullptr;
-    }
+    delete sqliteStorageEngine_;
+    sqliteStorageEngine_ = nullptr;
 }
 
 // Called when a new connection created.

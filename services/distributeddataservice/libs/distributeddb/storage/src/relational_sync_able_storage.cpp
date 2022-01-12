@@ -25,7 +25,7 @@ namespace DistributedDB {
 } while (0)
 
 namespace {
-static constexpr float QUERY_SYNC_THRESHOLD = 0.50;
+constexpr float QUERY_SYNC_THRESHOLD = 0.50;
 }
 
 RelationalSyncAbleStorage::RelationalSyncAbleStorage(StorageEngine *engine)

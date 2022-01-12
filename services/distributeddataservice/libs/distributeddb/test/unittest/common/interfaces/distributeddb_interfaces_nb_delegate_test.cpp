@@ -1856,7 +1856,7 @@ HWTEST_F(DistributedDBInterfacesNBDelegateTest, MaxLogLimit002, TestSize.Level2)
     Key key;
     Value value;
     DistributedDBToolsUnitTest::GetRandomKeyValue(key, 30); // for 30B random key
-    DistributedDBToolsUnitTest::GetRandomKeyValue(value, 3 * 1024 * 1024);// 3M value
+    DistributedDBToolsUnitTest::GetRandomKeyValue(value, 3 * 1024 * 1024); // 3M value
     EXPECT_EQ(g_kvNbDelegatePtr->Put(key, value), OK);
     DistributedDBToolsUnitTest::GetRandomKeyValue(key, 40); // for 40B random key
     EXPECT_EQ(g_kvNbDelegatePtr->Put(key, value), OK);
@@ -1881,7 +1881,7 @@ HWTEST_F(DistributedDBInterfacesNBDelegateTest, MaxLogLimit002, TestSize.Level2)
     PragmaData pragLimit = static_cast<PragmaData>(&logSize);
     EXPECT_EQ(g_kvNbDelegatePtr->Pragma(SET_MAX_LOG_LIMIT, pragLimit), OK);
     DistributedDBToolsUnitTest::GetRandomKeyValue(key, 10); // for 10B random key(different size)
-    DistributedDBToolsUnitTest::GetRandomKeyValue(value, 3 * 1024 * 1024);// 3MB
+    DistributedDBToolsUnitTest::GetRandomKeyValue(value, 3 * 1024 * 1024); // 3MB
     EXPECT_EQ(g_kvNbDelegatePtr->Put(key, value), OK);
     DistributedDBToolsUnitTest::GetRandomKeyValue(key, 15); // for 15B random key(different size)
     EXPECT_EQ(g_kvNbDelegatePtr->Put(key, value), OK);
@@ -1935,7 +1935,7 @@ HWTEST_F(DistributedDBInterfacesNBDelegateTest, MaxLogCheckPoint001, TestSize.Le
     Key key;
     Value value;
     DistributedDBToolsUnitTest::GetRandomKeyValue(key, 30); // for 30B random key(different size)
-    DistributedDBToolsUnitTest::GetRandomKeyValue(value, 1 * 1024 * 1024); // 1M 
+    DistributedDBToolsUnitTest::GetRandomKeyValue(value, 1 * 1024 * 1024); // 1M
     EXPECT_EQ(g_kvNbDelegatePtr->Put(key, value), OK);
     EXPECT_EQ(g_kvNbDelegatePtr->Delete(key), OK);
 

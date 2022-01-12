@@ -120,8 +120,8 @@ public:
 
     static RelationalSyncOpinion MakeLocalSyncOpinion(const RelationalSchemaObject &localSchema,
         const std::string &remoteSchema, uint8_t remoteSchemaType);
-    // The remoteOpinion.checkOnReceive is ignored
 
+    // The remoteOpinion.checkOnReceive is ignored
     static RelationalSyncStrategy ConcludeSyncStrategy(const RelationalSyncOpinion &localOpinion,
         const RelationalSyncOpinion &remoteOpinion);
 

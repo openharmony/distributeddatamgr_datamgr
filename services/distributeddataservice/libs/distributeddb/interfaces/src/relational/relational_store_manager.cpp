@@ -29,10 +29,9 @@
 #include "platform_specific.h"
 
 namespace DistributedDB {
-RelationalStoreManager::RelationalStoreManager(const std::string &appId, const std::string &userId)
-    : appId_(appId),
-      userId_(userId)
-{}
+namespace {
+const int GET_CONNECT_RETRY = 3;
+const int RETRY_GET_CONN_INTER = 30;
 
 void InitStoreProp(const std::string &storePath, const std::string &appId, const std::string &userId,
     const std::string &storeId, RelationalDBProperties &properties)
@@ -40,9 +39,12 @@ void InitStoreProp(const std::string &storePath, const std::string &appId, const
     properties.SetStringProp(RelationalDBProperties::DATA_DIR, storePath);
     properties.SetIdentifier(userId, appId, storeId);
 }
+}
 
-static const int GET_CONNECT_RETRY = 3;
-static const int RETRY_GET_CONN_INTER = 30;
+RelationalStoreManager::RelationalStoreManager(const std::string &appId, const std::string &userId)
+    : appId_(appId),
+      userId_(userId)
+{}
 
 static RelationalStoreConnection *GetOneConnectionWithRetry(const RelationalDBProperties &properties, int &errCode)
 {

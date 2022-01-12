@@ -2163,5 +2163,4 @@ uint64_t SQLiteSingleVerStorageExecutor::GetLogFileSize() const
     LOGI("The log file size is %llu", fileSize);
     return fileSize;
 }
-
 } // namespace DistributedDB

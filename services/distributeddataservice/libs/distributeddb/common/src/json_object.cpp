@@ -519,7 +519,7 @@ int JsonObject::MoveToPath(const FieldPath &inPath, Json::Value *&exact, Json::V
 
 int JsonObject::InsertField(const FieldPath &inPath, const JsonObject &inValue, bool isAppend)
 {
-    if (inPath.empty() || inPath.size() > maxNestDepth_|| !inValue.IsValid()) {
+    if (inPath.empty() || inPath.size() > maxNestDepth_ || !inValue.IsValid()) {
         return -E_INVALID_ARGS;
     }
     if (!isValid_) {
