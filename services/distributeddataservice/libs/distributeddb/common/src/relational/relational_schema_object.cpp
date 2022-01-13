@@ -655,6 +655,7 @@ void RelationalSchemaObject::GenerateSchemaString()
 void RelationalSchemaObject::AddRelationalTable(const TableInfo &tb)
 {
     tables_[tb.GetTableName()] = tb;
+    isValid_ = true;
     GenerateSchemaString();
 }
 

@@ -16,10 +16,11 @@
 #define RELATIONAL_SCHEMA_OBJECT_H
 #ifdef RELATIONAL_STORE
 #include <map>
-#include "parcel.h"
-#include "schema.h"
 #include "data_value.h"
 #include "json_object.h"
+#include "parcel.h"
+#include "schema.h"
+#include "schema_utils.h"
 
 namespace DistributedDB {
 using CompositeFields = std::vector<FieldName>;
@@ -176,9 +177,9 @@ private:
     void GenerateSchemaString();
 
     bool isValid_ = false; // set to true after parse success from string or add at least one relational table
-    SchemaType schemaType_ = SchemaType::NONE; // Default NONE
+    SchemaType schemaType_ = SchemaType::RELATIVE; // Default RELATIVE
     std::string schemaString_; // The minified and valid schemaString
-    std::string schemaVersion_;
+    std::string schemaVersion_ = SCHEMA_SUPPORT_VERSION_V2;
     std::map<std::string, TableInfo> tables_;
 };
 } // namespace DistributedDB
