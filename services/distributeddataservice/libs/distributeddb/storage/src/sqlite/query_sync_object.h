@@ -30,6 +30,7 @@ struct ObjContext {
     std::vector<uint8_t> prefixKey{};
     std::string suggestIndex{};
     std::list<QueryObjNode> queryObjNodes{};
+    std::vector<Key> keys{};
 };
 
 class QuerySyncObject : public QueryObject {

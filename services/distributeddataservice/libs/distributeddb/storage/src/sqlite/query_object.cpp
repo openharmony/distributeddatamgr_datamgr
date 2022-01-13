@@ -36,6 +36,7 @@ QueryObject::QueryObject()
       hasOrderBy_(false),
       hasLimit_(false),
       hasPrefixKey_(false),
+      hasInKeys_(false),
       orderByCounts_(0)
 {
 }
@@ -54,6 +55,8 @@ void QueryObject::GetAttrFromQueryObjNodes()
             hasOrderBy_ = true;
         } else if (symbolType == PREFIXKEY_SYMBOL) {
             hasPrefixKey_ = true;
+        } else if (symbolType == IN_KEYS_SYMBOL) {
+            hasInKeys_ = true;
         }
     }
 }
@@ -65,6 +68,7 @@ QueryObject::QueryObject(const Query &query)
       hasOrderBy_(false),
       hasLimit_(false),
       hasPrefixKey_(false),
+      hasInKeys_(false),
       orderByCounts_(0)
 {
     QueryExpression queryExpressions = GetQueryInfo::GetQueryExpression(query);
@@ -75,6 +79,7 @@ QueryObject::QueryObject(const Query &query)
     suggestIndex_ = queryExpressions.GetSuggestIndex();
     tableName_ = queryExpressions.GetTableName();
     isTableNameSpecified_ = queryExpressions.IsTableNameSpecified();
+    keys_ = queryExpressions.GetKeys();
 }
 
 QueryObject::QueryObject(const std::list<QueryObjNode> &queryObjNodes, const std::vector<uint8_t> &prefixKey)
@@ -87,6 +92,7 @@ QueryObject::QueryObject(const std::list<QueryObjNode> &queryObjNodes, const std
       hasOrderBy_(false),
       hasLimit_(false),
       hasPrefixKey_(false),
+      hasInKeys_(false);
       orderByCounts_(0)
 {
     GetAttrFromQueryObjNodes();
@@ -117,7 +123,7 @@ SqliteQueryHelper QueryObject::GetQueryHelper(int &errCode)
     if (errCode != E_OK) {
         return SqliteQueryHelper(QueryObjInfo{});
     }
-    QueryObjInfo info {schema_, queryObjNodes_, prefixKey_, suggestIndex_,
+    QueryObjInfo info {schema_, queryObjNodes_, prefixKey_, suggestIndex_, keys_,
         orderByCounts_, isValid_, hasOrderBy_, hasLimit_, hasPrefixKey_, tableName_};
     return SqliteQueryHelper {info}; // compiler RVO by default, and RVO is generally required after C++17
 }
@@ -168,6 +174,7 @@ void QueryObject::ClearNodesFlag()
     hasOrderBy_ = false;
     hasLimit_ = false;
     hasPrefixKey_ = false;
+    hasInKeys_ = false;
     orderByCounts_ = 0;
 }
 
@@ -232,6 +239,16 @@ int QueryObject::ParseNode(const std::list<QueryObjNode>::iterator &iter)
         }
     } else if (symbolType == SUGGEST_INDEX_SYMBOL) {
         return CheckSuggestIndexFormat(iter);
+    } else if (symbolType == IN_KEYS_SYMBOL) {
+        if (hasInKeys_) {
+            LOGE("Only filter by keys in once!!");
+            return -E_INVALID_ARGS;
+        }
+
+        if (keys_.size() > DBConstant::MAX_BATCH_SIZE) {
+            return -E_MAX_LIMITS;
+        }
+        hasInKeys_ = true;
     }
     return E_OK;
 }
@@ -241,7 +258,7 @@ int QueryObject::CheckLinkerBefore(const std::list<QueryObjNode>::iterator &iter
     auto preIter = std::prev(iter, 1);
     SymbolType symbolType = SqliteQueryHelper::GetSymbolType(preIter->operFlag);
     if (symbolType != COMPARE_SYMBOL && symbolType != RELATIONAL_SYMBOL && symbolType != LOGIC_SYMBOL &&
-        symbolType != RANGE_SYMBOL && symbolType != PREFIXKEY_SYMBOL) {
+        symbolType != RANGE_SYMBOL && symbolType != PREFIXKEY_SYMBOL && symbolType != IN_KEYS_SYMBOL) {
         LOGE("Must be a comparison operation before the connective! operFlag = %s", VNAME(preIter->operFlag));
         return -E_INVALID_QUERY_FORMAT;
     }
@@ -352,7 +369,8 @@ int QueryObject::CheckLimitFormat(const std::list<QueryObjNode>::iterator &iter)
 bool QueryObject::IsQueryOnlyByKey() const
 {
     return std::none_of(queryObjNodes_.begin(), queryObjNodes_.end(), [&](const QueryObjNode &node) {
-        return node.operFlag != QueryObjType::LIMIT && node.operFlag != QueryObjType::QUERY_BY_KEY_PREFIX;
+        return node.operFlag != QueryObjType::LIMIT && node.operFlag != QueryObjType::QUERY_BY_KEY_PREFIX &&
+               node.operFlag != QueryObjType::IN_KEYS;
     });
 }
 

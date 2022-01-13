@@ -123,6 +123,7 @@ SqliteQueryHelper::SqliteQueryHelper(const QueryObjInfo &info)
       prefixKey_(info.prefixKey_),
       suggestIndex_(info.suggestIndex_),
       tableName_(info.tableName_),
+      keys_(info.keys_),
       orderByCounts_(info.orderByCounts_),
       isValid_(info.isValid_),
       transformed_(false),
@@ -147,7 +148,7 @@ bool SqliteQueryHelper::FilterSymbolToAddBracketLink(std::string &querySql, bool
             querySql += isNeedLink ? " AND (" : " (";
             isNeedEndBracket = true;
             break;
-        } else if (symbolType == LOGIC_SYMBOL || symbolType == PREFIXKEY_SYMBOL) {
+        } else if (symbolType == LOGIC_SYMBOL || symbolType == PREFIXKEY_SYMBOL || symbolType == IN_KEYS_SYMBOL) {
             continue;
         } else {
             break;
@@ -277,6 +278,7 @@ int SqliteQueryHelper::GetQuerySql(std::string &sql, bool onlyRowid)
     const std::string &querySqlForUse = (onlyRowid ? PRE_QUERY_ROWID_SQL : PRE_QUERY_KV_SQL);
     sql = AssembleSqlForSuggestIndex(querySqlForUse, FILTER_NATIVE_DATA_SQL);
     sql = !hasPrefixKey_ ? sql : (sql + " AND (key>=? AND key<=?) ");
+    sql = keys_.empty() ? sql : (sql + "AND " + MapKeysInToSql(keys_.size()));
     if (transformed_) {
         LOGD("This query object has been parsed.");
         sql += querySql_;
@@ -300,6 +302,7 @@ int SqliteQueryHelper::GetSyncDataCheckSql(std::string &sql)
     }
     sql = PRE_QUERY_ITEM_SQL + tableName_ + " WHERE hash_key=? AND (flag&0x01=0) ";
     sql += hasPrefixKey_ ? " AND (key>=? AND key<=?) " : "";
+    sql = keys_.empty() ? sql : (sql + "AND " + MapKeysInToSql(keys_.size()));
     if (!transformed_) {
         errCode = ToQuerySql();
         if (errCode != E_OK) {
@@ -354,6 +357,7 @@ int SqliteQueryHelper::GetCountQuerySql(std::string &sql)
     }
     sql = AssembleSqlForSuggestIndex(PRE_GET_COUNT_SQL, FILTER_NATIVE_DATA_SQL);
     sql = !hasPrefixKey_ ? sql : (sql + " AND (key>=? AND key<=?) ");
+    sql = keys_.empty() ? sql : (sql + "AND " + MapKeysInToSql(keys_.size()));
     sql += countSql_;
     return E_OK;
 }
@@ -375,6 +379,11 @@ int SqliteQueryHelper::GetQuerySqlStatement(sqlite3 *dbHandle, const std::string
             return errCode;
         }
         index = 3; // begin from 3rd args
+    }
+
+    errCode = BindKeysToStmt(keys_, statement, index);
+    if (errCode != E_OK) {
+        return errCode;
     }
 
     for (const QueryObjNode &objNode : queryObjNodes_) {
@@ -412,6 +421,11 @@ int SqliteQueryHelper::GetQuerySqlStatement(sqlite3 *dbHandle, bool onlyRowid, s
         index = 3; // begin from 3rd args
     }
 
+    errCode = BindKeysToStmt(keys_, statement, index);
+    if (errCode != E_OK) {
+        return errCode;
+    }
+
     for (const QueryObjNode &objNode : queryObjNodes_) {
         errCode = BindFieldValue(statement, objNode, index);
         if (errCode != E_OK) {
@@ -447,6 +461,11 @@ int SqliteQueryHelper::GetCountSqlStatement(sqlite3 *dbHandle, sqlite3_stmt *&co
         index = 3; // begin from 3rd args
     }
 
+    errCode = BindKeysToStmt(keys_, countStmt, index);
+    if (errCode != E_OK) {
+        return errCode;
+    }
+
     for (const QueryObjNode &objNode : queryObjNodes_) {
         if (GetSymbolType(objNode.operFlag) == SPECIAL_SYMBOL) {
             continue;
@@ -474,6 +493,7 @@ int SqliteQueryHelper::GetSyncDataQuerySql(std::string &sql, bool hasSubQuery)
 
     sql = AssembleSqlForSuggestIndex(PRE_QUERY_ITEM_SQL + tableName_ + " ", FILTER_REMOTE_QUERY);
     sql = !hasPrefixKey_ ? sql : (sql + " AND (key>=? AND key<=?) ");
+    sql = keys_.empty() ? sql : (sql + "AND " + MapKeysInToSql(keys_.size()));
     sql = hasSubQuery ? sql : (sql + " AND (timestamp>=? AND timestamp<?) ");
 
     querySql_.clear(); // clear local query sql format
@@ -553,6 +573,11 @@ int SqliteQueryHelper::GetQuerySyncStatement(sqlite3 *dbHandle, uint64_t beginTi
             return errCode;
         }
         index = 3; // begin with 3 next if prefix key exists.
+    }
+
+    errCode = BindKeysToStmt(keys_, statement, index);
+    if (errCode != E_OK) {
+        return errCode;
     }
 
     if (hasSubQuery) {
@@ -916,5 +941,34 @@ int SqliteQueryHelper::GetRelationalQueryStatement(sqlite3 *dbHandle, uint64_t b
         errCode = BindObjNodes(statement, index);
     }
     return errCode;
+}
+
+std::string SqliteQueryHelper::MapKeysInToSql(size_t keysNum) const
+{
+    std::string resultSql = "key IN (";
+    for (size_t i = 0; i < keysNum; i++) {
+        if (i != 0) {
+            resultSql += ", ";
+        }
+        resultSql += "? ";
+    }
+    resultSql += ") ";
+    return resultSql;
+}
+
+int SqliteQueryHelper::BindKeysToStmt(std::set<Key> &keys, sqlite3_stmt *&statement, int &index) const
+{
+    if (!keys_.empty()) {
+        int errCode = E_OK;
+        for (const auto &key : keys) {
+            errCode = SQLiteUtils::BindBlobToStatement(statement, index, key);
+            if (errCode != E_OK) {
+                LOGE("[Query] Get statement when bind keys failed, errCode = %d", errCode);
+                return errCode;
+            }
+            index++;
+        }
+    }
+    return E_OK;
 }
 }

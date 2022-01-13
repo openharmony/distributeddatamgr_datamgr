@@ -64,6 +64,7 @@ protected:
     std::vector<uint8_t> prefixKey_;
     std::string tableName_ = "sync_data";
     std::string suggestIndex_;
+    std::set<Key> keys_;
 
     bool isValid_ = true;
 
@@ -88,6 +89,7 @@ private:
     bool hasOrderBy_;
     bool hasLimit_;
     bool hasPrefixKey_;
+    bool hasInKeys_;
     int orderByCounts_;
 };
 }
