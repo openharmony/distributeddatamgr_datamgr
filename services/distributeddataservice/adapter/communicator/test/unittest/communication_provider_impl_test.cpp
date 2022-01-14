@@ -37,8 +37,7 @@ class AppDataChangeListenerImpl : public AppDataChangeListener {
                    const struct PipeInfo &id) const override;
 };
 void AppDataChangeListenerImpl::OnMessage(const OHOS::AppDistributedKv::DeviceInfo &info,
-    const uint8_t *ptr, const int size,
-                                          const struct PipeInfo &id) const
+    const uint8_t *ptr, const int size, const struct PipeInfo &id) const
 {
     ZLOGI("data  %{public}s  %s", info.deviceName.c_str(), ptr);
 }
