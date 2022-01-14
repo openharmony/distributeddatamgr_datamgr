@@ -32,7 +32,7 @@ int SingleVerRelationalSyncer::Sync(const SyncParma &param)
 
 int SingleVerRelationalSyncer::PrepareSync(const SyncParma &param, uint32_t syncId)
 {
-    const auto &syncInterface = static_cast<RelationalDBSyncInterface*>(syncInterface_);
+    const auto &syncInterface = static_cast<RelationalDBSyncInterface *>(syncInterface_);
     std::vector<QuerySyncObject> tablesQuery;
     if (param.isQuerySync) {
         tablesQuery.push_back(param.syncQuery);
@@ -101,7 +101,7 @@ void SingleVerRelationalSyncer::DoOnSubSyncComplete(const uint32_t subSyncId, co
 void SingleVerRelationalSyncer::DoRollBack(std::set<uint32_t> &subSyncIdSet)
 {
     for (const auto &removeId : subSyncIdSet) {
-        int retCode = RemoveSyncOperation((int)removeId);
+        int retCode = RemoveSyncOperation(static_cast<int>(removeId));
         if (retCode != E_OK) {
             LOGW("[SingleVerRelationalSyncer] RemoveSyncOperation failed errCode:%d, syncId:%d", retCode, removeId);
         }

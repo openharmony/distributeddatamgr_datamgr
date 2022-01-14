@@ -399,8 +399,13 @@ int ObjectData::GetString(const std::string &fieldName, std::string &outValue) c
     if (errCode != E_OK) {
         return errCode;
     }
+    if (blob.GetSize() == 0) {
+        return errCode;
+    }
     outValue.resize(blob.GetSize());
-    outValue.assign(blob.GetData(), blob.GetData() + blob.GetSize());
+    if (blob.GetData() != nullptr) {
+        outValue.assign(blob.GetData(), blob.GetData() + blob.GetSize());
+    }
     return errCode;
 }
 

@@ -91,7 +91,7 @@ namespace {
     {
         sqlite3_stmt *stmt = nullptr;
         EXPECT_EQ(PrepareInsert(db, stmt), SQLITE_OK);
-        for (int i = 0; i < (int)rowData.size(); ++i) {
+        for (int i = 0; i < static_cast<int>(rowData.size()); ++i) {
             const auto &item = rowData[i];
             const int index = i + 1;
             int errCode;
@@ -192,7 +192,7 @@ namespace {
         g_deviceB->GetAllSyncData(g_tableName, targetData);
 
         for (auto &item : targetData) {
-            for (int j = 0; j < (int)item.rowData.size(); ++j) {
+            for (int j = 0; j < static_cast<int>(item.rowData.size()); ++j) {
                 LOGD("index %d actual_val[%s] except_val[%s]",
                     j, item.rowData[j].ToString().c_str(), rowData[j].ToString().c_str());
                 EXPECT_TRUE(item.rowData[j] == rowData[j]);

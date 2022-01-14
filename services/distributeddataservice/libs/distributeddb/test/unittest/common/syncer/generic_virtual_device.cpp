@@ -25,7 +25,9 @@ GenericVirtualDevice::GenericVirtualDevice(std::string deviceId)
       metadata_(nullptr),
       deviceId_(std::move(deviceId)),
       remoteDeviceId_("real_device"),
-      context_(nullptr)
+      context_(nullptr),
+      onRemoteDataChanged_(nullptr),
+      subManager_(nullptr)
 {
 }
 

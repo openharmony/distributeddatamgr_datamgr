@@ -615,8 +615,7 @@ int SingleVerSyncStateMachine::AbilitySyncRecv(const Message *inMsg)
 int SingleVerSyncStateMachine::HandleDataRequestRecv(const Message *inMsg)
 {
     TimeOffset offset = 0;
-    uint32_t timeout = TIME_SYNC_WAIT_TIME;
-    timeout = communicator_->GetTimeout(context_->GetDeviceId());
+    uint32_t timeout = communicator_->GetTimeout(context_->GetDeviceId());
     // If message is data sync request, we should check timeoffset.
     int errCode = timeSync_->GetTimeOffset(offset, timeout);
     if (errCode != E_OK) {

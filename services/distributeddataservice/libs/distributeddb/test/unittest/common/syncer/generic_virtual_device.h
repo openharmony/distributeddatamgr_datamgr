@@ -25,7 +25,6 @@
 #include "virtual_communicator_aggregator.h"
 
 namespace DistributedDB {
-class VirtualCommunicatorAggregator;
 
 class GenericVirtualDevice {
 public:
