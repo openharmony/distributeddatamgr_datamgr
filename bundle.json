@@ -1,7 +1,7 @@
 {
     "name": "@ohos/distributeddatamgr_datamgr",
     "version": "1.0.0",
-    "description": "Provide the ability of data synchronization between devices",
+    "description": "Distributed data manager that provides the capability to store data in the databases of different devices",
     "homePage": "https://gitee.com/openharmony",
     "license": "Apache V2",
     "repository": "https://gitee.com/openharmony/distributeddatamgr_datamgr",
@@ -12,10 +12,6 @@
     "scripts": {},
     "tags": [
         "foundation"
-    ],
-    "keywords": [
-        "distributeddatamgr",
-        "datamgr"
     ],
     "envs": [],
     "dirs": [],
