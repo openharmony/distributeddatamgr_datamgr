@@ -278,7 +278,7 @@ int SqliteQueryHelper::GetQuerySql(std::string &sql, bool onlyRowid)
     const std::string &querySqlForUse = (onlyRowid ? PRE_QUERY_ROWID_SQL : PRE_QUERY_KV_SQL);
     sql = AssembleSqlForSuggestIndex(querySqlForUse, FILTER_NATIVE_DATA_SQL);
     sql = !hasPrefixKey_ ? sql : (sql + " AND (key>=? AND key<=?) ");
-    sql = keys_.empty() ? sql : (sql + "AND " + MapKeysInToSql(keys_.size()));
+    sql = keys_.empty() ? sql : (sql + " AND " + MapKeysInToSql(keys_.size()));
     if (transformed_) {
         LOGD("This query object has been parsed.");
         sql += querySql_;
@@ -302,7 +302,7 @@ int SqliteQueryHelper::GetSyncDataCheckSql(std::string &sql)
     }
     sql = PRE_QUERY_ITEM_SQL + tableName_ + " WHERE hash_key=? AND (flag&0x01=0) ";
     sql += hasPrefixKey_ ? " AND (key>=? AND key<=?) " : "";
-    sql = keys_.empty() ? sql : (sql + "AND " + MapKeysInToSql(keys_.size()));
+    sql = keys_.empty() ? sql : (sql + " AND " + MapKeysInToSql(keys_.size()));
     if (!transformed_) {
         errCode = ToQuerySql();
         if (errCode != E_OK) {
@@ -357,7 +357,7 @@ int SqliteQueryHelper::GetCountQuerySql(std::string &sql)
     }
     sql = AssembleSqlForSuggestIndex(PRE_GET_COUNT_SQL, FILTER_NATIVE_DATA_SQL);
     sql = !hasPrefixKey_ ? sql : (sql + " AND (key>=? AND key<=?) ");
-    sql = keys_.empty() ? sql : (sql + "AND " + MapKeysInToSql(keys_.size()));
+    sql = keys_.empty() ? sql : (sql + " AND " + MapKeysInToSql(keys_.size()));
     sql += countSql_;
     return E_OK;
 }
@@ -383,6 +383,7 @@ int SqliteQueryHelper::GetQuerySqlStatement(sqlite3 *dbHandle, const std::string
 
     errCode = BindKeysToStmt(keys_, statement, index);
     if (errCode != E_OK) {
+        SQLiteUtils::ResetStatement(statement, true, errCode);
         return errCode;
     }
 
@@ -493,7 +494,7 @@ int SqliteQueryHelper::GetSyncDataQuerySql(std::string &sql, bool hasSubQuery)
 
     sql = AssembleSqlForSuggestIndex(PRE_QUERY_ITEM_SQL + tableName_ + " ", FILTER_REMOTE_QUERY);
     sql = !hasPrefixKey_ ? sql : (sql + " AND (key>=? AND key<=?) ");
-    sql = keys_.empty() ? sql : (sql + "AND " + MapKeysInToSql(keys_.size()));
+    sql = keys_.empty() ? sql : (sql + " AND " + MapKeysInToSql(keys_.size()));
     sql = hasSubQuery ? sql : (sql + " AND (timestamp>=? AND timestamp<?) ");
 
     querySql_.clear(); // clear local query sql format
@@ -577,6 +578,7 @@ int SqliteQueryHelper::GetQuerySyncStatement(sqlite3 *dbHandle, uint64_t beginTi
 
     errCode = BindKeysToStmt(keys_, statement, index);
     if (errCode != E_OK) {
+        SQLiteUtils::ResetStatement(statement, true, errCode);
         return errCode;
     }
 
@@ -792,6 +794,19 @@ std::string SqliteQueryHelper::CheckAndFormatSuggestIndex() const
     return SchemaUtils::FieldPathString(indexName);
 }
 
+std::string SqliteQueryHelper::MapKeysInSubCondition(const std::string &accessStr) const
+{
+    std::string resultStr = "hex(" + accessStr + "key) IN (";
+    for (auto iter = keys_.begin(); iter != keys_.end(); iter++) {
+        if (iter != keys_.begin()) {
+            resultStr += ", ";
+        }
+        resultStr += "'" + DBCommon::VectorToHexString(*iter) + "' ";
+    }
+    resultStr += ")";
+    return resultStr;
+}
+
 int SqliteQueryHelper::GetSubscribeCondition(const std::string &accessStr, std::string &conditionStr)
 {
     if (queryObjNodes_.empty()) {
@@ -802,7 +817,15 @@ int SqliteQueryHelper::GetSubscribeCondition(const std::string &accessStr, std::
     if (hasPrefixKey_) {
         conditionStr += "(hex(" + accessStr + "key) LIKE '" + DBCommon::VectorToHexString(prefixKey_) + "%')";
     }
-    bool isNeedEndBracket = FilterSymbolToAddBracketLink(conditionStr, hasPrefixKey_);
+
+    if (!keys_.empty()) {
+        if (hasPrefixKey_) {
+            conditionStr += " AND ";
+        }
+        conditionStr += "(" + MapKeysInSubCondition(accessStr) + ")";
+    }
+
+    bool isNeedEndBracket = FilterSymbolToAddBracketLink(conditionStr, hasPrefixKey_ || !keys_.empty());
     int errCode = E_OK;
     for (const QueryObjNode &objNode : queryObjNodes_) {
         SymbolType symbolType = GetSymbolType(objNode.operFlag);

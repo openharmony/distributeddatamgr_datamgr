@@ -24,6 +24,7 @@
 namespace DistributedDB {
 const uint32_t QUERY_SYNC_OBJECT_VERSION_0 = 0; // for kvDB
 const uint32_t QUERY_SYNC_OBJECT_VERSION_1 = 1; // for relational DB, which need specify tableName
+const uint32_t QUERY_SYNC_OBJECT_VERSION_CURRENT = QUERY_SYNC_OBJECT_VERSION_1; // always point the last.
 
 struct ObjContext {
     uint32_t version = QUERY_SYNC_OBJECT_VERSION_0; // serialized struct version
@@ -36,7 +37,8 @@ struct ObjContext {
 class QuerySyncObject : public QueryObject {
 public:
     QuerySyncObject();
-    QuerySyncObject(const std::list<QueryObjNode> &queryObjNodes, const std::vector<uint8_t> &prefixKey);
+    QuerySyncObject(const std::list<QueryObjNode> &queryObjNodes, const std::vector<uint8_t> &prefixKey,
+        const std::set<Key> &keys);
     explicit QuerySyncObject(const Query &query);
     ~QuerySyncObject() override;
 

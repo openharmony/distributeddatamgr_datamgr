@@ -1127,7 +1127,7 @@ HWTEST_F(DistributedDBStorageQuerySyncTest, RelationalQuerySyncTest001, TestSize
      * @tc.steps:step1. Create a query object with table name is specified
      * @tc.expected: ok
      */
-    Query query1 = Query::Select("Relatonal_table").EqualTo("field1", "abc");
+    Query query1 = Query::Select("Relational_table").EqualTo("field1", "abc");
     QuerySyncObject obj1(query1);
 
     /**
@@ -1158,15 +1158,52 @@ HWTEST_F(DistributedDBStorageQuerySyncTest, RelationalQuerySyncTest001, TestSize
   */
 HWTEST_F(DistributedDBStorageQuerySyncTest, RelationalQuerySyncTest002, TestSize.Level1)
 {
-    Query query1 = Query::Select("Relatonal_table1").EqualTo("field1", "abc");
+    Query query1 = Query::Select("Relational_table1").EqualTo("field1", "abc");
     QuerySyncObject obj1(query1);
 
-    Query query2 = Query::Select("Relatonal_table2").EqualTo("field1", "abc");
+    Query query2 = Query::Select("Relational_table2").EqualTo("field1", "abc");
     QuerySyncObject obj2(query2);
 
     /**
      * @tc.steps:step1. check object identity
      * @tc.expected: identity should be different.
+     */
+    EXPECT_NE(obj1.GetIdentify(), obj2.GetIdentify());
+}
+
+/**
+ * @tc.name: SerializeAndDeserializeForVer1
+ * @tc.desc: Test querySyncObject serialization and deserialization.
+ * @tc.type: FUNC
+ * @tc.require: AR000GOHO7
+ * @tc.author: lidongwei
+ */
+HWTEST_F(DistributedDBStorageQuerySyncTest, SerializeAndDeserializeForVer1, TestSize.Level1)
+{
+    Query qeury1 = Query::Select("table1").EqualTo("field1", "abc").InKeys({KEY_1, KEY_2, KEY_3});
+    QuerySyncObject obj1(qeury1);
+
+    /**
+     * @tc.steps:step1. Serialize obj1.
+     * @tc.expected: Serialize successfully.
+     */
+    auto len = obj1.CalculateParcelLen(SOFTWARE_VERSION_CURRENT);
+    std::vector<uint8_t> buffer(len);
+    Parcel parcel1(buffer.data(), buffer.size());
+    obj1.SerializeData(parcel1, SOFTWARE_VERSION_CURRENT);
+    ASSERT_EQ(parcel1.IsError(), false);
+
+    /**
+     * @tc.steps:step2. Deserialize obj1.
+     * @tc.expected: Deserialize successfully.
+     */
+    QuerySyncObject obj2;
+    Parcel parcel2(buffer.data(), buffer.size());
+    ASSERT_EQ(parcel2.IsError(), false);
+
+    /**
+     * @tc.steps:step3. check object identity
+     * @tc.expected: identity should be the same.
      */
     EXPECT_NE(obj1.GetIdentify(), obj2.GetIdentify());
 }

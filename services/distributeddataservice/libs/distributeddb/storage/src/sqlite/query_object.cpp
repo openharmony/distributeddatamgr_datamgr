@@ -82,9 +82,11 @@ QueryObject::QueryObject(const Query &query)
     keys_ = queryExpressions.GetKeys();
 }
 
-QueryObject::QueryObject(const std::list<QueryObjNode> &queryObjNodes, const std::vector<uint8_t> &prefixKey)
+QueryObject::QueryObject(const std::list<QueryObjNode> &queryObjNodes, const std::vector<uint8_t> &prefixKey,
+    const std::set<Key> &keys)
     : queryObjNodes_(queryObjNodes),
       prefixKey_(prefixKey),
+      keys_(keys),
       isValid_(true),
       initialized_(false),
       limit_(INVALID_LIMIT),
@@ -92,7 +94,7 @@ QueryObject::QueryObject(const std::list<QueryObjNode> &queryObjNodes, const std
       hasOrderBy_(false),
       hasLimit_(false),
       hasPrefixKey_(false),
-      hasInKeys_(false);
+      hasInKeys_(false),
       orderByCounts_(0)
 {
     GetAttrFromQueryObjNodes();
@@ -244,11 +246,11 @@ int QueryObject::ParseNode(const std::list<QueryObjNode>::iterator &iter)
             LOGE("Only filter by keys in once!!");
             return -E_INVALID_ARGS;
         }
-
-        if (keys_.size() > DBConstant::MAX_BATCH_SIZE) {
-            return -E_MAX_LIMITS;
-        }
         hasInKeys_ = true;
+        int errCode = CheckInKeys();
+        if (errCode != E_OK) {
+            return errCode;
+        }
     }
     return E_OK;
 }
@@ -382,6 +384,25 @@ bool QueryObject::HasOrderBy() const
 bool QueryObject::Empty() const
 {
     return queryObjNodes_.empty();
+}
+
+int QueryObject::CheckInKeys() const
+{
+    if (!hasInKeys_) {
+        return E_OK;
+    }
+    if (keys_.empty()) {
+        return -E_INVALID_ARGS;
+    }
+    if (keys_.size() > DBConstant::MAX_BATCH_SIZE) {
+        return -E_MAX_LIMITS;
+    }
+    for (const auto &key : keys_) {
+        if (key.empty() || key.size() > DBConstant::MAX_KEY_SIZE) {
+            return -E_INVALID_ARGS;
+        }
+    }
+    return E_OK;
 }
 }
 

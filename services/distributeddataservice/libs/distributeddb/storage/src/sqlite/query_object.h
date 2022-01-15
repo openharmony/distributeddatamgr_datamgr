@@ -26,7 +26,8 @@ public:
     QueryObject();
     explicit QueryObject(const Query &query);
     // for query sync
-    QueryObject(const std::list<QueryObjNode> &queryObjNodes, const std::vector<uint8_t> &prefixKey);
+    QueryObject(const std::list<QueryObjNode> &queryObjNodes, const std::vector<uint8_t> &prefixKey,
+        const std::set<Key> &keys);
     virtual ~QueryObject();
     int Init();
     SqliteQueryHelper GetQueryHelper(int &errCode);
@@ -82,6 +83,7 @@ private:
     int CheckLinkerBefore(const std::list<QueryObjNode>::iterator &iter) const;
     void ClearNodesFlag();
     void GetAttrFromQueryObjNodes();
+    int CheckInKeys() const;
 
     SchemaObject schema_; // used to check and parse schema filed
     int limit_;

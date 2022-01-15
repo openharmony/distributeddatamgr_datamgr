@@ -1805,9 +1805,9 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, InKeys001, TestSize.Level1)
     EXPECT_EQ(g_kvDelegateStatusForQuery, OK);
 
     Key key = {'1'};
-    DBStatus status = g_kvDelegateCallbackForQuery->Put(key, VALUE_1);
+    DBStatus status = g_kvNbDelegatePtrForQuery->Put(key, VALUE_1);
     ASSERT_EQ(status, OK);
-    const int dataSize = 10;
+    const int dataSize = 10; // 10 data for test
     std::set<Key> keys;
     for (uint8_t i = 0; i < dataSize; i++) {
         key.push_back(i);
@@ -1838,10 +1838,9 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, InKeys001, TestSize.Level1)
     g_kvNbDelegatePtrForQuery->CloseResultSet(resultSet);
 
     /**
-     * @tc.steps: step3. Call GetEntries With Query, set all keys at Inkeys.
+     * @tc.steps: step3. Call GetEntries With Query, set one other key at Inkeys.
      * @tc.expected: step3. Returns KvStoreResultSet, the count is 0,
      */
-    g_kvNbDelegatePtrForQuery->GetEntries()
     g_kvNbDelegatePtrForQuery->GetEntries(Query::Select().InKeys({KEY_7}), resultSet);
     ASSERT_NE(resultSet, nullptr);
     ASSERT_EQ(resultSet->GetCount(), 0);
@@ -1851,12 +1850,12 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, InKeys001, TestSize.Level1)
 }
 
 /**
-  * @tc.name: InKeysLimit001
-  * @tc.desc: InKeys query limit verification
-  * @tc.type: FUNC
-  * @tc.require: AR000EPARK
-  * @tc.author: xushaohua
-  */
+ * @tc.name: InKeysLimit001
+ * @tc.desc: InKeys query limit verification
+ * @tc.type: FUNC
+ * @tc.require: AR000EPARK
+ * @tc.author: xushaohua
+ */
 HWTEST_F(DistributedDBInterfacesDataOperationTest, InKeysLimit001, TestSize.Level1)
 {
     /**
@@ -1882,6 +1881,23 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, InKeysLimit001, TestSize.Leve
      */
     KvStoreResultSet *resultSet = nullptr;
     DBStatus status = g_kvNbDelegatePtrForQuery->GetEntries(Query::Select().InKeys(keys), resultSet);
+    EXPECT_EQ(status, OVER_MAX_LIMITS);
+    EXPECT_EQ(resultSet, nullptr);
+
+    /**
+     * @tc.steps: step4. Call GetEntries With Query, set keys empty.
+     * @tc.expected: step4. Returns INVALID_ARGS, the resultSet is nullptr,
+     */
+    status = g_kvNbDelegatePtrForQuery->GetEntries(Query::Select().InKeys({}), resultSet);
+    EXPECT_EQ(status, INVALID_ARGS);
+    EXPECT_EQ(resultSet, nullptr);
+
+    /**
+     * @tc.steps: step4. Call GetEntries With Query, set a invalid key.
+     * @tc.expected: step4. Returns INVALID_ARGS, the resultSet is nullptr,
+     */
+    status = g_kvNbDelegatePtrForQuery->GetEntries(Query::Select().InKeys({{}}), resultSet);
+    EXPECT_EQ(status, INVALID_ARGS);
     EXPECT_EQ(resultSet, nullptr);
 
     EXPECT_EQ(g_mgr.CloseKvStore(g_kvNbDelegatePtrForQuery), OK);
@@ -1889,20 +1905,20 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, InKeysLimit001, TestSize.Leve
 }
 
 /**
-  * @tc.name: InKeysAndOthers001
-  * @tc.desc: Combination of InKeys query and logical filtering
-  * @tc.type: FUNC
-  * @tc.require: AR000EPARK
-  * @tc.author: xushaohua
-  */
-HWTEST_F(DistributedDBInterfacesDataOperationTest, InKeysAndOthers001, TestSize.Level1)
+ * @tc.name: InKeysAndOther001
+ * @tc.desc: Combination of InKeys query and logical filtering
+ * @tc.type: FUNC
+ * @tc.require: AR000EPARK
+ * @tc.author: xushaohua
+ */
+HWTEST_F(DistributedDBInterfacesDataOperationTest, InKeysAndOther001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Create a database And Preset Data
      */
     KvStoreNbDelegate::Option option = {true, false, false};
     option.schema = SCHEMA_DEFINE2;
-    g_mgr.GetKvStore("InKeysAndOthers001", option, g_kvNbDelegateCallbackForQuery);
+    g_mgr.GetKvStore("InKeysAndOther001", option, g_kvNbDelegateCallbackForQuery);
     ASSERT_NE(g_kvNbDelegatePtrForQuery, nullptr);
     EXPECT_EQ(g_kvDelegateStatusForQuery, OK);
 
@@ -1924,26 +1940,26 @@ HWTEST_F(DistributedDBInterfacesDataOperationTest, InKeysAndOthers001, TestSize.
      * @tc.expected: step3. Returns OK
      */
     query1 = Query::Select().InKeys(keys).EqualTo("$.field_name1", 1);
-    int errCode = g_kvNbDelegatePtrForQuery->GetEntries(query1, entriesRes);
+    errCode = g_kvNbDelegatePtrForQuery->GetEntries(query1, entriesRes);
     EXPECT_EQ(errCode, OK);
 
     /**
-     * @tc.steps: step4. Call GetEntries With Query, use EqualTo and InKeys and EqualTo, all valid
+     * @tc.steps: step4. Call GetEntries With Query, use EqualTo, InKeys and EqualTo, all valid
      * @tc.expected: step4. Returns OK
      */
     query1 = Query::Select().EqualTo("$.field_name1", 1).InKeys(keys).And().EqualTo("$.field_name2", 2);
-    int errCode = g_kvNbDelegatePtrForQuery->GetEntries(query1, entriesRes);
+    errCode = g_kvNbDelegatePtrForQuery->GetEntries(query1, entriesRes);
     EXPECT_EQ(errCode, OK);
 
     /**
-     * @tc.steps: step4. Call GetEntries With Query, use EqualTo and InKeys and EqualTo, all valid
-     * @tc.expected: step4. Returns OK
+     * @tc.steps: step4. Call GetEntries With Query, use EqualTo, InKeys and EqualTo, has invalid
+     * @tc.expected: step4. Returns NOT_FOUND
      */
     query1 = Query::Select().EqualTo("$.field_name1", 1).InKeys(keys).And().EqualTo("$.field_name1", 2);
-    int errCode = g_kvNbDelegatePtrForQuery->GetEntries(query1, entriesRes);
+    errCode = g_kvNbDelegatePtrForQuery->GetEntries(query1, entriesRes);
     EXPECT_EQ(errCode, NOT_FOUND);
 
     EXPECT_EQ(g_mgr.CloseKvStore(g_kvNbDelegatePtrForQuery), OK);
-    EXPECT_EQ(g_mgr.DeleteKvStore("InKeysAndOthers001"), OK);
+    EXPECT_EQ(g_mgr.DeleteKvStore("InKeysAndOther001"), OK);
 }
 #endif

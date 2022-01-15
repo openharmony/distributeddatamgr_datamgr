@@ -118,6 +118,8 @@ private:
     std::string MapKeysInToSql(size_t keysNum) const;
     int BindKeysToStmt(std::set<Key> &keys, sqlite3_stmt *&countStmt, int &index) const;
 
+    std::string MapKeysInSubCondition(const std::string &accessStr) const;  // For InKeys.
+
     SchemaObject schema_;
     std::list<QueryObjNode> queryObjNodes_;
     std::vector<uint8_t> prefixKey_;
