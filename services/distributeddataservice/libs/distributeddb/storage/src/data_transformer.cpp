@@ -120,16 +120,11 @@ uint32_t DataTransformer::CalDataValueLength(const DataValue &dataValue)
     uint32_t length = 0;
     switch (dataValue.GetType()) {
         case StorageType::STORAGE_TYPE_BLOB:
+        case StorageType::STORAGE_TYPE_TEXT:
             (void)dataValue.GetBlobLength(length);
             length = Parcel::GetEightByteAlign(length);
             length += Parcel::GetUInt32Len(); // record data length
             break;
-        case StorageType::STORAGE_TYPE_TEXT: {
-            std::string str;
-            (void)dataValue.GetText(str);
-            length = Parcel::GetStringLen(str);
-            break;
-        }
         default:
             break;
     }
@@ -224,24 +219,6 @@ int DeSerializeDoubleValue(DataValue &dataValue, Parcel &parcel)
     return E_OK;
 }
 
-int SerializeTextValue(const DataValue &dataValue, Parcel &parcel)
-{
-    std::string val;
-    (void)dataValue.GetText(val);
-    return parcel.WriteString(val);
-}
-
-int DeSerializeTextValue(DataValue &dataValue, Parcel &parcel)
-{
-    std::string val;
-    (void)parcel.ReadString(val);
-    if (parcel.IsError()) {
-        return -E_PARSE_FAIL;
-    }
-    dataValue = val;
-    return E_OK;
-}
-
 int SerializeBlobValue(const DataValue &dataValue, Parcel &parcel)
 {
     Blob val;
@@ -257,12 +234,12 @@ int SerializeBlobValue(const DataValue &dataValue, Parcel &parcel)
     return parcel.WriteBlob(reinterpret_cast<const char *>(val.GetData()), size);
 }
 
-int DeSerializeBlobValue(DataValue &dataValue, Parcel &parcel)
+int DeSerializeBlobByType(DataValue &dataValue, Parcel &parcel, StorageType type)
 {
-    Blob val;
     uint32_t blobLength = 0;
     (void)parcel.ReadUInt32(blobLength);
     if (blobLength == 0) {
+        dataValue.ResetValue();
         return E_OK;
     }
     char array[blobLength];
@@ -270,11 +247,32 @@ int DeSerializeBlobValue(DataValue &dataValue, Parcel &parcel)
     if (parcel.IsError()) {
         return -E_PARSE_FAIL;
     }
-    int errCode = val.WriteBlob(reinterpret_cast<const uint8_t *>(array), blobLength);
-    if (errCode == E_OK) {
-        dataValue = val;
+    int errCode = -E_NOT_SUPPORT;
+    if (type == StorageType::STORAGE_TYPE_TEXT) {
+        errCode = dataValue.SetText(reinterpret_cast<const uint8_t *>(array), blobLength);
+    } else if (type == StorageType::STORAGE_TYPE_BLOB) {
+        Blob val;
+        errCode = val.WriteBlob(reinterpret_cast<const uint8_t *>(array), blobLength);
+        if (errCode == E_OK) {
+            errCode = dataValue.SetBlob(val);
+        }
     }
     return errCode;
+}
+
+int DeSerializeBlobValue(DataValue &dataValue, Parcel &parcel)
+{
+    return DeSerializeBlobByType(dataValue, parcel, StorageType::STORAGE_TYPE_BLOB);
+}
+
+int SerializeTextValue(const DataValue &dataValue, Parcel &parcel)
+{
+    return SerializeBlobValue(dataValue, parcel);
+}
+
+int DeSerializeTextValue(DataValue &dataValue, Parcel &parcel)
+{
+    return DeSerializeBlobByType(dataValue, parcel, StorageType::STORAGE_TYPE_TEXT);
 }
 
 struct FunctionEntry {

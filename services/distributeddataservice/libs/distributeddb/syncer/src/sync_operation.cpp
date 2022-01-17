@@ -270,7 +270,6 @@ std::string SyncOperation::GetQueryId() const
     return query_.GetIdentify();
 }
 
-
 const std::map<int, DBStatus> &SyncOperation::DBStatusTransMap()
 {
     static const std::map<int, DBStatus> transMap = {

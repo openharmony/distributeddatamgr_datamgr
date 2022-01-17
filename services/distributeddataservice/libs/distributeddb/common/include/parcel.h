@@ -40,6 +40,8 @@ public:
     uint32_t ReadBool(bool &data);
     int WriteInt(int data);
     uint32_t ReadInt(int &val);
+    int WriteUInt8(uint8_t data);
+    uint32_t ReadUInt8(uint8_t &val);
     int WriteDouble(double data);
     uint32_t ReadDouble(double &val);
     int WriteInt64(int64_t data);
@@ -140,6 +142,7 @@ public:
     void EightByteAlign(); // Avoid reading a single data type across 8 bytes
     static uint32_t GetBoolLen();
     static uint32_t GetIntLen();
+    static uint32_t GetUInt8Len();
     static uint32_t GetUInt32Len();
     static uint32_t GetUInt64Len();
     static uint32_t GetInt64Len();

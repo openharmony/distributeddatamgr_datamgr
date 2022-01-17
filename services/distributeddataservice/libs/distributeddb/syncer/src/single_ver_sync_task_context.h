@@ -23,6 +23,7 @@
 
 #include "db_ability.h"
 #include "query_sync_object.h"
+#include "schema.h"
 #include "single_ver_kvdb_sync_interface.h"
 #include "single_ver_sync_target.h"
 #include "subscribe_manager.h"
@@ -136,14 +137,19 @@ public:
 
     void SaveLastPushTaskExecStatus(int finalStatus) override;
     void ResetLastPushTaskStatus() override;
+
+    virtual std::string GetQuerySyncId() const = 0;
+    virtual std::string GetDeleteSyncId() const = 0;
 protected:
     ~SingleVerSyncTaskContext() override;
     void CopyTargetData(const ISyncTarget *target, const TaskParam &taskParam) override;
 
+    // For querySync
+    QuerySyncObject query_;
+    bool isQuerySync_ = false;
 private:
     int GetCorrectedSendWaterMarkForCurrentTask(uint64_t &waterMark) const;
 
-private:
     constexpr static int64_t REDUNDACE_WATER_MARK = 1 * 1000LL * 1000LL * 10LL; // 1s
 
     DECLARE_OBJECT_TAG(SingleVerSyncTaskContext);
@@ -161,10 +167,6 @@ private:
 
     // is receive waterMark err, peerWaterMark bigger than remote localWaterMark
     bool isReceiveWaterMarkErr_ = false;
-
-    // For querySync
-    QuerySyncObject query_;
-    bool isQuerySync_ = false;
 
     // For db ability
     DbAbility remoteDbAbility_;

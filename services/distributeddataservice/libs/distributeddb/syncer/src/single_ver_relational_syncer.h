@@ -27,15 +27,14 @@ public:
 
     void EnableAutoSync(bool enable) override;
 
-    int EraseDeviceWaterMark(const std::string &deviceId, bool isNeedHash) override;
-
     void LocalDataChanged(int notifyEvent) override;
 
 protected:
 
     int PrepareSync(const SyncParma &param, uint32_t syncId) override;
 
-    void RemoteDataChanged(const std::string &device) override;
+    int SyncConditionCheck(QuerySyncObject &query, int mode, bool isQuerySync,
+        const std::vector<std::string> &devices) const override;
 
 private:
 

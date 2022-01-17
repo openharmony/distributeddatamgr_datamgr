@@ -18,6 +18,13 @@
 #include "single_ver_sync_engine.h"
 
 namespace DistributedDB {
+void SingleVerSyncer::RemoteDataChanged(const std::string &device)
+{
+    LOGI("[SingleVerSyncer] device online dev %s", STR_MASK(device));
+    // while remote db is online again, need to do abilitySync
+    static_cast<SingleVerSyncEngine *>(syncEngine_)->SetIsNeedResetAbilitySync(device, true);
+}
+
 void SingleVerSyncer::RemoteDeviceOffline(const std::string &device)
 {
     LOGI("[SingleVerRelationalSyncer] device offline dev %s", STR_MASK(device));
@@ -28,6 +35,15 @@ void SingleVerSyncer::RemoteDeviceOffline(const std::string &device)
     RefObject::IncObjRef(syncEngine_);
     static_cast<SingleVerSyncEngine *>(syncEngine_)->OfflineHandleByDevice(device);
     RefObject::DecObjRef(syncEngine_);
+}
+
+int SingleVerSyncer::EraseDeviceWaterMark(const std::string &deviceId, bool isNeedHash,
+    const std::string &tableName)
+{
+    if (metadata_ == nullptr) {
+        return -E_NOT_INIT;
+    }
+    return metadata_->EraseDeviceWaterMark(deviceId, isNeedHash, tableName);
 }
 
 int SingleVerSyncer::SetStaleDataWipePolicy(WipePolicy policy)

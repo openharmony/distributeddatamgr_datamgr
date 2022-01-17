@@ -116,6 +116,7 @@ protected:
     void GetQueryAutoSyncParam(const std::string &device, const QuerySyncObject &query, InternalSyncParma &outParam);
     void GetSubscribeSyncParam(const std::string &device, const QuerySyncObject &query, InternalSyncParma &outParam);
 
+    ISyncInterface *syncInterface_;
     // Used to store all send sync task infos (such as pull sync response, and push sync request)
     std::map<std::string, ISyncTaskContext *> syncTaskContextMap_;
     std::mutex contextMapLock_;
@@ -185,7 +186,6 @@ private:
 
     static uint8_t GetPermissionCheckFlag(bool isAutoSync, int syncMode);
 
-    ISyncInterface *syncInterface_;
     ICommunicator *communicator_;
     DeviceManager *deviceManager_;
     std::function<void(const std::string &)> onRemoteDataChanged_;

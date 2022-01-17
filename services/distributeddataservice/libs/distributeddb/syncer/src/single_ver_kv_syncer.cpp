@@ -66,14 +66,6 @@ void SingleVerKVSyncer::EnableAutoSync(bool enable)
     }
 }
 
-int SingleVerKVSyncer::EraseDeviceWaterMark(const std::string &deviceId, bool isNeedHash)
-{
-    if (metadata_ == nullptr) {
-        return -E_NOT_INIT;
-    }
-    return metadata_->EraseDeviceWaterMark(deviceId, isNeedHash);
-}
-
 // Local data changed callback
 void SingleVerKVSyncer::LocalDataChanged(int notifyEvent)
 {
@@ -129,8 +121,7 @@ void SingleVerKVSyncer::RemoteDataChanged(const std::string &device)
     std::string appId = syncInterface_->GetDbProperties().GetStringProp(KvDBProperties::APP_ID, "");
     std::string storeId = syncInterface_->GetDbProperties().GetStringProp(KvDBProperties::STORE_ID, "");
     RuntimeContext::GetInstance()->NotifyDatabaseStatusChange(userId, appId, storeId, device, true);
-    // while remote db is online again, need to do abilitySync
-    static_cast<SingleVerSyncEngine *>(syncEngine_)->SetIsNeedResetAbilitySync(device, true);
+    SingleVerSyncer::RemoteDataChanged(device);
     if (autoSyncEnable_) {
         RefObject::IncObjRef(syncEngine_);
         int retCode = RuntimeContext::GetInstance()->ScheduleTask([this, device] {

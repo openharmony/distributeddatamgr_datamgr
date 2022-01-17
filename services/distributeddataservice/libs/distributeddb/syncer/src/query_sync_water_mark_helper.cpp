@@ -547,12 +547,16 @@ int QuerySyncWaterMarkHelper::RemoveLeastUsedQuerySyncItems(const std::vector<Ke
     return DeleteMetaDataFromDB(waitToRemove);
 }
 
-int QuerySyncWaterMarkHelper::ResetRecvQueryWaterMark(const DeviceID &deviceId)
+int QuerySyncWaterMarkHelper::ResetRecvQueryWaterMark(const DeviceID &deviceId, const std::string &tableName)
 {
     // lock prevent other thread modify queryWaterMark at this moment
     {
         std::lock_guard<std::mutex> autoLock(queryWaterMarkLock_);
         std::string prefixKeyStr = QUERY_SYNC_PREFIX_KEY + DBCommon::TransferHashString(deviceId);
+        if (!prefixKeyStr.empty()) {
+            prefixKeyStr += tableName;
+        }
+        
         // remove in db
         Key prefixKey;
         DBCommon::StringToVector(prefixKeyStr, prefixKey);

@@ -213,9 +213,9 @@ std::vector<uint8_t> VirtualRelationalVerSyncDBInterface::GetIdentifier() const
 void VirtualRelationalVerSyncDBInterface::GetMaxTimeStamp(TimeStamp &stamp) const
 {
     for (const auto &item : syncData_) {
-        for (const auto &[hashKey, virtualRowData] : item.second) {
-            if (stamp < virtualRowData.logInfo.timestamp) {
-                stamp = virtualRowData.logInfo.timestamp;
+        for (const auto &entry : item.second) {
+            if (stamp < entry.second.logInfo.timestamp) {
+                stamp = entry.second.logInfo.timestamp;
             }
         }
     }
@@ -292,8 +292,8 @@ int VirtualRelationalVerSyncDBInterface::GetAllSyncData(const std::string &table
     if (syncData_.find(tableName) == syncData_.end()) {
         return -E_NOT_FOUND;
     }
-    for (const auto &[hashKey, virtualRowData] : syncData_[tableName]) {
-        data.push_back(virtualRowData);
+    for (const auto &entry : syncData_[tableName]) {
+        data.push_back(entry.second);
     }
     return E_OK;
 }

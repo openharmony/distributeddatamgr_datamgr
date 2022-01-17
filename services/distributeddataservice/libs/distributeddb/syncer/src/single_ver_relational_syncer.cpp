@@ -137,17 +137,25 @@ void SingleVerRelationalSyncer::EnableAutoSync(bool enable)
 {
 }
 
-int SingleVerRelationalSyncer::EraseDeviceWaterMark(const std::string &deviceId, bool isNeedHash)
-{
-    return E_OK;
-}
-
 void SingleVerRelationalSyncer::LocalDataChanged(int notifyEvent)
 {
 }
 
-void SingleVerRelationalSyncer::RemoteDataChanged(const std::string &device)
+int SingleVerRelationalSyncer::SyncConditionCheck(QuerySyncObject &query, int mode, bool isQuerySync,
+    const std::vector<std::string> &devices) const
 {
+    if (!isQuerySync) {
+        return E_OK;
+    }
+    int errCode = static_cast<RelationalDBSyncInterface *>(syncInterface_)->CheckAndInitQueryCondition(query);
+    if (errCode != E_OK) {
+        LOGE("[SingleVerRelationalSyncer] QuerySyncObject check failed");
+        return errCode;
+    }
+    if (mode == SUBSCRIBE_QUERY) {
+        return -E_NOT_SUPPORT;
+    }
+    return E_OK;
 }
 }
 #endif
