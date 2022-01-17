@@ -29,7 +29,7 @@ class RdbDeviceStore : public RdbStore {
 public:
     explicit RdbDeviceStore(const RdbStoreParam& param);
     
-    virtual ~RdbDeviceStore() override;
+    ~RdbDeviceStore() override;
     
     static void Initialize();
     static RdbStore* CreateStore(const RdbStoreParam& param);
