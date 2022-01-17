@@ -21,13 +21,13 @@
 
 namespace DistributedDB {
 SyncAbleEngine::SyncAbleEngine(ISyncInterface *store)
-    : started_(false),
+    : syncer_(),
+      started_(false),
       store_(store)
 {}
 
 SyncAbleEngine::~SyncAbleEngine()
-{
-}
+{}
 
 // Start a sync action.
 int SyncAbleEngine::Sync(const ISyncer::SyncParma &parm)

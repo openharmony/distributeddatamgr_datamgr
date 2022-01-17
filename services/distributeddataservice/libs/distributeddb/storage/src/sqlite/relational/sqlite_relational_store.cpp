@@ -15,17 +15,25 @@
 #ifdef RELATIONAL_STORE
 #include "sqlite_relational_store.h"
 
+#include "db_common.h"
 #include "db_errno.h"
 #include "log_print.h"
 #include "db_types.h"
 #include "sqlite_relational_store_connection.h"
+#include "storage_engine_manager.h"
 
 namespace DistributedDB {
+namespace {
+    constexpr const char *RELATIONAL_SCHEMA_KEY = "relational_schema";
+    constexpr const char *LOG_TABLE_VERSION_KEY = "log_table_versoin";
+    constexpr const char *LOG_TABLE_VERSION_1 = "1.0";
+}
+
 SQLiteRelationalStore::~SQLiteRelationalStore()
 {
     delete sqliteStorageEngine_;
+    sqliteStorageEngine_ = nullptr;
 }
-
 
 // Called when a new connection created.
 void SQLiteRelationalStore::IncreaseConnectionCounter()
@@ -40,7 +48,6 @@ RelationalStoreConnection *SQLiteRelationalStore::GetDBConnection(int &errCode)
 {
     std::lock_guard<std::mutex> lock(connectMutex_);
     RelationalStoreConnection* connection = new (std::nothrow) SQLiteRelationalStoreConnection(this);
-
     if (connection == nullptr) {
         errCode = -E_OUT_OF_MEMORY;
         return nullptr;
@@ -50,16 +57,16 @@ RelationalStoreConnection *SQLiteRelationalStore::GetDBConnection(int &errCode)
     return connection;
 }
 
-static void InitDataBaseOption(const DBProperties &kvDBProp, OpenDbProperties &option)
+static void InitDataBaseOption(const RelationalDBProperties &properties, OpenDbProperties &option)
 {
-    option.uri = kvDBProp.GetStringProp(KvDBProperties::DATA_DIR, "");
-    option.createIfNecessary = kvDBProp.GetBoolProp(KvDBProperties::CREATE_IF_NECESSARY, false);
+    option.uri = properties.GetStringProp(DBProperties::DATA_DIR, "");
+    option.createIfNecessary = properties.GetBoolProp(DBProperties::CREATE_IF_NECESSARY, false);
 }
 
-int SQLiteRelationalStore::InitStorageEngine(const DBProperties &kvDBProp)
+int SQLiteRelationalStore::InitStorageEngine(const RelationalDBProperties &properties)
 {
     OpenDbProperties option;
-    InitDataBaseOption(kvDBProp, option);
+    InitDataBaseOption(properties, option);
 
     StorageEngineAttr poolSize = {1, 1, 0, 16}; // at most 1 write 16 read.
     int errCode = sqliteStorageEngine_->InitSQLiteStorageEngine(poolSize, option);
@@ -69,22 +76,137 @@ int SQLiteRelationalStore::InitStorageEngine(const DBProperties &kvDBProp)
     return errCode;
 }
 
-int SQLiteRelationalStore::Open(const DBProperties &properties)
+void SQLiteRelationalStore::ReleaseResources()
 {
+    if (sqliteStorageEngine_ != nullptr) {
+        sqliteStorageEngine_->ClearEnginePasswd();
+        (void)StorageEngineManager::ReleaseStorageEngine(sqliteStorageEngine_);
+    }
+}
+
+int SQLiteRelationalStore::CheckDBMode()
+{
+    int errCode = E_OK;
+    auto *handle = GetHandle(false, errCode);
+    if (handle == nullptr) {
+        return errCode;
+    }
+    errCode = handle->CheckDBModeForRelational();
+    if (errCode != E_OK) {
+        LOGE("check relational DB mode failed. %d", errCode);
+    }
+
+    ReleaseHandle(handle);
+    return errCode;
+}
+
+int SQLiteRelationalStore::GetSchemaFromMeta()
+{
+    const Key schemaKey(RELATIONAL_SCHEMA_KEY, RELATIONAL_SCHEMA_KEY + strlen(RELATIONAL_SCHEMA_KEY));
+    Value schemaVal;
+    int errCode = storageEngine_->GetMetaData(schemaKey, schemaVal);
+    if (errCode != E_OK && errCode != -E_NOT_FOUND) {
+        LOGE("Get relational schema from meta table failed. %d", errCode);
+        return errCode;
+    } else if (errCode == -E_NOT_FOUND || schemaVal.empty()) {
+        LOGW("No relational schema info was found.");
+        return E_OK;
+    }
+
+    std::string schemaStr;
+    DBCommon::VectorToString(schemaVal, schemaStr);
+    RelationalSchemaObject schema;
+    errCode = schema.ParseFromSchemaString(schemaStr);
+    if (errCode != E_OK) {
+        LOGE("Parse schema string from mata table failed.");
+        return errCode;
+    }
+
+    std::lock_guard<std::mutex> lock(schemaMutex_);
+    properties_.SetSchema(schema);
+    return E_OK;
+}
+
+int SQLiteRelationalStore::SaveSchemaToMeta()
+{
+    const Key schemaKey(RELATIONAL_SCHEMA_KEY, RELATIONAL_SCHEMA_KEY + strlen(RELATIONAL_SCHEMA_KEY));
+    Value schemaVal;
+    DBCommon::StringToVector(properties_.GetSchema().ToSchemaString(), schemaVal);
+    int errCode = storageEngine_->PutMetaData(schemaKey, schemaVal);
+    if (errCode != E_OK) {
+        LOGE("Save relational schema to meta table failed. %d", errCode);
+    }
+    return errCode;
+}
+
+int SQLiteRelationalStore::SaveLogTableVersionToMeta()
+{
+    LOGD("save log table version to meta table, key: %s, val: %s", LOG_TABLE_VERSION_KEY, LOG_TABLE_VERSION_1);
+    return E_OK;
+}
+
+int SQLiteRelationalStore::CleanDistributedDeviceTable()
+{
+    return E_OK;
+}
+
+int SQLiteRelationalStore::Open(const RelationalDBProperties &properties)
+{
+    std::lock_guard<std::mutex> lock(initalMutex_);
+    if (isInitialized_) {
+        LOGD("[RelationalStore][Open] relational db was already inited.");
+        return E_OK;
+    }
+
     sqliteStorageEngine_ = new (std::nothrow) SQLiteSingleRelationalStorageEngine();
     if (sqliteStorageEngine_ == nullptr) {
-        LOGE("[RelationalStore] Create storage engine failed");
+        LOGE("[RelationalStore][Open] Create storage engine failed");
         return -E_OUT_OF_MEMORY;
     }
 
-    int errCode = InitStorageEngine(properties);
-    if (errCode != E_OK) {
-        LOGE("[RelationalStore][Open] Init database context fail! errCode = [%d]", errCode);
-        return errCode;
-    }
-    storageEngine_ = new(std::nothrow) RelationalSyncAbleStorage(sqliteStorageEngine_);
-    syncEngine_ = std::make_shared<SyncAbleEngine>(storageEngine_);
-    return E_OK;
+    int errCode = E_OK;
+    do {
+        errCode = InitStorageEngine(properties);
+        if (errCode != E_OK) {
+            LOGE("[RelationalStore][Open] Init database context fail! errCode = [%d]", errCode);
+            break;
+        }
+
+        storageEngine_ = new (std::nothrow) RelationalSyncAbleStorage(sqliteStorageEngine_);
+        if (storageEngine_ == nullptr) {
+            LOGE("[RelationalStore][Open] Create syncable storage failed");
+            errCode = -E_OUT_OF_MEMORY;
+            break;
+        }
+
+        errCode = CheckDBMode();
+        if (errCode != E_OK) {
+            break;
+        }
+
+        properties_ = properties;
+        errCode = GetSchemaFromMeta();
+        if (errCode != E_OK) {
+            break;
+        }
+
+        errCode = SaveLogTableVersionToMeta();
+        if (errCode != E_OK) {
+            break;
+        }
+
+        errCode = CleanDistributedDeviceTable();
+        if (errCode != E_OK) {
+            break;
+        }
+
+        syncEngine_ = std::make_unique<SyncAbleEngine>(storageEngine_);
+        isInitialized_ = true;
+        return E_OK;
+    } while (false);
+
+    ReleaseResources();
+    return errCode;
 }
 
 void SQLiteRelationalStore::OnClose(const std::function<void(void)> &notifier)
@@ -178,6 +300,50 @@ void SQLiteRelationalStore::ReleaseDBConnection(RelationalStoreConnection *conne
 void SQLiteRelationalStore::WakeUpSyncer()
 {
     syncEngine_->WakeUpSyncer();
+}
+
+
+int SQLiteRelationalStore::CreateDistributedTable(const std::string &tableName)
+{
+    int errCode = E_OK;
+    std::lock_guard<std::mutex> lock(schemaMutex_);
+    auto schema = properties_.GetSchema();
+    if (schema.GetTable(tableName).GetTableName() == tableName) {
+        LOGW("distributed table was already created.");
+        return E_OK;
+    }
+
+    if (schema.GetTables().size() >= DBConstant::MAX_DISTRIBUTED_TABLE_COUNT) {
+        LOGW("The number of distributed tables is exceeds limit.");
+        return -E_MAX_LIMITS;
+    }
+
+    LOGD("Create distributed table.");
+    auto *handle = GetHandle(true, errCode);
+    if (handle == nullptr) {
+        return errCode;
+    }
+
+    errCode = handle->StartTransaction(TransactType::IMMEDIATE);
+    if (errCode != E_OK) {
+        ReleaseHandle(handle);
+        return errCode;
+    }
+
+    TableInfo table;
+    errCode = handle->CreateDistributedTable(tableName, table);
+    if (errCode != E_OK) {
+        LOGE("create distributed table failed. %d", errCode);
+        (void)handle->Rollback();
+        ReleaseHandle(handle);
+        return errCode;
+    }
+    schema.AddRelationalTable(table);
+    properties_.SetSchema(schema);
+    (void)handle->Commit();
+
+    ReleaseHandle(handle);
+    return SaveSchemaToMeta();
 }
 }
 #endif

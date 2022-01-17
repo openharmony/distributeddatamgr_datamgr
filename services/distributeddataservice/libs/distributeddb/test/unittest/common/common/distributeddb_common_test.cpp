@@ -155,6 +155,26 @@ HWTEST_F(DistributedDBCommonTest, SameProcessReUnLockFile, TestSize.Level1)
     EXPECT_EQ(OS::FileUnlock(fd), E_OK);
 }
 
+/**
+ * @tc.name: CalFileSizeTest
+ * @tc.desc: Test the file size for function test and the performance test.
+ * @tc.type: FUNC
+ * @tc.require: AR000FN6G9
+ * @tc.author: wangbingquan
+ */
+HWTEST_F(DistributedDBCommonTest, CalFileSizeTest, TestSize.Level1)
+{
+    std::string filePath = g_testDir + "/testFileSize";
+    std::ofstream ofs(filePath, std::ofstream::out);
+    ASSERT_TRUE(ofs.good());
+    ofs << "test file size";
+    ofs.close();
+    uint64_t fileSize = 0;
+    EXPECT_EQ(OS::CalFileSize(filePath, fileSize), E_OK);
+    EXPECT_GT(fileSize, 0ULL);
+    EXPECT_EQ(OS::RemoveFile(filePath), E_OK);
+}
+
 // Distributed db is not recommended to use multiple processes to access
 // This testcase only guard for some wrong use on current product
 #if defined(RUN_MULTI_PROCESS_TEST)

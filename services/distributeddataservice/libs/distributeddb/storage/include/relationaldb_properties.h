@@ -12,17 +12,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef MOCK_SINGLE_VER_DATA_SYNC_H
-#define MOCK_SINGLE_VER_DATA_SYNC_H
+#ifndef RELATIONALDB_PROPERTIES_H
+#define RELATIONALDB_PROPERTIES_H
 
-#include <gmock/gmock.h>
-#include "single_ver_data_sync.h"
+#include <map>
+#include <string>
+#include <vector>
+
+#include "db_properties.h"
+#include "relational_schema_object.h"
 
 namespace DistributedDB {
-class MockSingleVerDataSync : public SingleVerDataSync {
+class RelationalDBProperties final : public DBProperties {
 public:
-    MOCK_METHOD4(SendDataAck, int(SingleVerSyncTaskContext *, const Message *, int32_t, WaterMark));
-};
-} // namespace DistributedDB
+    RelationalDBProperties();
+    ~RelationalDBProperties() override;
 
-#endif // MOCK_SINGLE_VER_DATA_SYNC_H
+    // is schema exist
+    bool IsSchemaExist() const;
+
+    // set schema
+    void SetSchema(const RelationalSchemaObject &schema);
+
+    // get schema
+    RelationalSchemaObject GetSchema() const;
+
+private:
+    RelationalSchemaObject schema_;
+};
+}
+#endif

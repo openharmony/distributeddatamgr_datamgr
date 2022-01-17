@@ -22,6 +22,7 @@
 #include "db_common.h"
 #include "db_errno.h"
 #include "parcel.h"
+#include "platform_specific.h"
 #include "runtime_context.h"
 #include "sqlite_single_ver_storage_executor_sql.h"
 
@@ -1030,10 +1031,11 @@ int SQLiteSingleVerStorageExecutor::Commit()
         return -E_INVALID_DB;
     }
     int errCode = SQLiteUtils::CommitTransaction(dbHandle_);
-    if (errCode == E_OK) {
-        isTransactionOpen_ = false;
+    if (errCode != E_OK) {
+        return CheckCorruptedStatus(errCode);
     }
-    return CheckCorruptedStatus(errCode);
+    isTransactionOpen_ = false;
+    return E_OK;
 }
 
 int SQLiteSingleVerStorageExecutor::Rollback()
@@ -1298,9 +1300,9 @@ int SQLiteSingleVerStorageExecutor::PrepareForNotifyConflictAndObserver(DataItem
         LOGD("[SingleVerExe] Ignore the sync data.");
         if (isSyncMigrating_) {
             ResetForMigrateCacheData();
-            return -E_IGNOR_DATA;
+            return -E_IGNORE_DATA;
         }
-        return ResetSaveSyncStatements(-E_IGNOR_DATA);
+        return ResetSaveSyncStatements(-E_IGNORE_DATA);
     }
 
     notify.dataStatus = JudgeSyncSaveType(dataItem, notify.getData, deviceInfo.deviceName, isHashKeyExisted);
@@ -1343,7 +1345,7 @@ int SQLiteSingleVerStorageExecutor::SaveSyncDataItem(DataItem &dataItem, const D
 
     int errCode = PrepareForNotifyConflictAndObserver(dataItem, deviceInfo, notify);
     if (errCode != E_OK) {
-        if (errCode == -E_IGNOR_DATA) {
+        if (errCode == -E_IGNORE_DATA) {
             errCode = E_OK;
         }
         return errCode;
@@ -2131,5 +2133,34 @@ int SQLiteSingleVerStorageExecutor::CheckIntegrity() const
     }
 
     return SQLiteUtils::CheckIntegrity(dbHandle_, CHECK_DB_INTEGRITY_SQL);
+}
+
+int SQLiteSingleVerStorageExecutor::ForceCheckPoint() const
+{
+    if (dbHandle_ == nullptr) {
+        return -E_INVALID_DB;
+    }
+    SQLiteUtils::ExecuteCheckPoint(dbHandle_);
+    return E_OK;
+}
+
+uint64_t SQLiteSingleVerStorageExecutor::GetLogFileSize() const
+{
+    if (isMemDb_) {
+        return 0;
+    }
+
+    const char *fileName = sqlite3_db_filename(dbHandle_, "main");
+    if (fileName == nullptr) {
+        return 0;
+    }
+    std::string walName = std::string(fileName) + "-wal";
+    uint64_t fileSize = 0;
+    int result = OS::CalFileSize(std::string(walName), fileSize);
+    if (result != E_OK) {
+        return 0;
+    }
+    LOGI("The log file size is %llu", fileSize);
+    return fileSize;
 }
 } // namespace DistributedDB

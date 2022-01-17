@@ -81,6 +81,7 @@ int SQLiteStorageEngine::CreateNewExecutor(bool isWrite, StorageExecutor *&handl
             dbHandle = nullptr;
             return errCode;
         }
+        SQLiteUtils::ExecuteCheckPoint(dbHandle);
         isUpdated_ = true;
     }
 

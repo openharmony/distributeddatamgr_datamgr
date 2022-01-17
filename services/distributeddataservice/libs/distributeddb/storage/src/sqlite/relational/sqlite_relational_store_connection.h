@@ -37,12 +37,12 @@ public:
     int TriggerAutoSync() override;
     int SyncToDevice(SyncInfo &info) override;
     std::string GetIdentifier() override;
-    int CreateDistributedTable(const std::string &tableName,
-        const RelationalStoreDelegate::TableOption &option) override;
+    int CreateDistributedTable(const std::string &tableName) override;
+    int RegisterLifeCycleCallback(const DatabaseLifeCycleNotifier &notifier) override;
 
 protected:
 
-    int Pragma(int cmd, void *parameter);
+    int Pragma(int cmd, void *parameter) override;
 private:
 
     SQLiteSingleVerRelationalStorageExecutor *GetExecutor(bool isWrite, int &errCode) const;

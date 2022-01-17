@@ -33,12 +33,14 @@ public:
 
     DBStatus Sync(const std::vector<std::string> &devices, SyncMode mode,
         SyncStatusCallback &onComplete, bool wait) override;
+
     DBStatus Sync(const std::vector<std::string> &devices, SyncMode mode,
-        SyncStatusCallback &onComplete, const Query &query, bool wait) override;
+        const Query &query, SyncStatusCallback &onComplete, bool wait) override;
 
     DBStatus RemoveDeviceData(const std::string &device) override;
 
-    DBStatus CreateDistributedTable(const std::string &tableName, const TableOption &option) override;
+    DBStatus CreateDistributedTable(const std::string &tableName) override;
+
     DBStatus RemoveDevicesData(const std::string &tableName, const std::string &device) override;
 
     // For connection
@@ -46,6 +48,9 @@ public:
     void SetReleaseFlag(bool flag);
 
 private:
+    static void OnSyncComplete(const std::map<std::string, std::vector<TableStatus>> &devicesStatus,
+        SyncStatusCallback &onComplete);
+
     RelationalStoreConnection *conn_ = nullptr;
     std::string storePath_;
     std::atomic<bool> releaseFlag_ = false;

@@ -22,7 +22,7 @@
 namespace DistributedDB {
 DbAbility::DbAbility()
 {
-    for (auto & item : ABILITYBITS) {
+    for (const auto &item : ABILITYBITS) {
         dbAbilityItemSet_.insert(item);
     }
     dbAbility_.resize(ABILITYBITS.back().first + ABILITYBITS.back().second);
@@ -135,11 +135,11 @@ uint8_t DbAbility::GetAbilityItem(const AbilityItem abilityType) const
                 dbAbility_.size());
             return 0;
         }
-        int skip = 0;
-        // dbAbility_ bit[0..len] : low-->high
+        uint32_t skip = 0;
+        // dbAbility_ bit[0..len] : low-->high, skip range 0..7
         for (uint32_t pos = iter->first; pos < (iter->first + iter->second); pos++, skip++) {
             if (dbAbility_[pos]) {
-                data += dbAbility_[pos] << skip;
+                data += (static_cast<uint8_t>(dbAbility_[pos])) << skip;
             }
         }
     }
@@ -150,7 +150,7 @@ int DbAbility::SetAbilityItem(const AbilityItem &abilityType, uint8_t data)
 {
     auto iter = dbAbilityItemSet_.find(abilityType);
     if (iter != dbAbilityItemSet_.end()) {
-        if (data >= pow(2, iter->second)) {
+        if (data >= pow(2, iter->second)) { // 2: means binary
             LOGE("[DbAbility] value is invalid, data=%d, use_bit=%d", data, iter->second);
             return -E_INTERNAL_ERROR;
         }
@@ -159,7 +159,7 @@ int DbAbility::SetAbilityItem(const AbilityItem &abilityType, uint8_t data)
         }
         int pos = iter->first;
         while (data) {
-            dbAbility_[pos] = data % 2; // means binary
+            dbAbility_[pos] = data % 2; // 2: means binary
             data = (data >> 1);
             pos++;
         }

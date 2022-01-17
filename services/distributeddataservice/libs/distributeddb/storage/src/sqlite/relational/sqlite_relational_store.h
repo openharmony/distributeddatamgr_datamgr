@@ -17,7 +17,7 @@
 #ifdef RELATIONAL_STORE
 
 #include <functional>
-#include <memory.h>
+#include <memory>
 #include <vector>
 
 #include "irelational_store.h"
@@ -33,7 +33,7 @@ public:
     ~SQLiteRelationalStore() override;
 
     RelationalStoreConnection *GetDBConnection(int &errCode) override;
-    int Open(const DBProperties &properties) override;
+    int Open(const RelationalDBProperties &properties) override;
     void OnClose(const std::function<void(void)> &notifier);
 
     SQLiteSingleVerRelationalStorageExecutor *GetHandle(bool isWrite, int &errCode) const;
@@ -43,28 +43,46 @@ public:
 
     void ReleaseDBConnection(RelationalStoreConnection *connection);
 
-    void WakeUpSyncer();
+    void WakeUpSyncer() override;
 
     // for test mock
     const RelationalSyncAbleStorage *GetStorageEngine()
     {
         return storageEngine_;
     }
+
+    int CreateDistributedTable(const std::string &tableName);
 private:
+    void ReleaseResources();
+
     // 1 store 1 connection
     void DecreaseConnectionCounter();
+    int CheckDBMode();
+    int GetSchemaFromMeta();
+    int SaveSchemaToMeta();
+
+    int SaveLogTableVersionToMeta();
+
+    int CleanDistributedDeviceTable();
 
     // use for sync Interactive
-    std::shared_ptr<SyncAbleEngine> syncEngine_ = nullptr; // For storage operate sync function
+    std::unique_ptr<SyncAbleEngine> syncEngine_ = nullptr; // For storage operate sync function
     // use ref obj same as kv
     RelationalSyncAbleStorage *storageEngine_ = nullptr; // For storage operate data
     SQLiteSingleRelationalStorageEngine *sqliteStorageEngine_ = nullptr;
 
     void IncreaseConnectionCounter();
-    int InitStorageEngine(const DBProperties &kvDBProp);
+    int InitStorageEngine(const RelationalDBProperties &kvDBProp);
     std::mutex connectMutex_;
     std::atomic<int> connectionCount_ = 0;
     std::vector<std::function<void(void)>> closeNotifiers_;
+
+    RelationalDBProperties properties_;
+
+    mutable std::mutex initalMutex_;
+    bool isInitialized_ = false;
+
+    mutable std::mutex schemaMutex_;
 };
 }  // namespace DistributedDB
 #endif

@@ -20,7 +20,7 @@
 #include <string>
 
 #include "ref_object.h"
-#include "kvdb_properties.h"
+#include "relationaldb_properties.h"
 #include "relational_store_connection.h"
 
 namespace DistributedDB {
@@ -31,7 +31,7 @@ public:
     DISABLE_COPY_ASSIGN_MOVE(IRelationalStore);
 
     // Open the database.
-    virtual int Open(const DBProperties &kvDBProp) = 0;
+    virtual int Open(const RelationalDBProperties &properties) = 0;
 
     virtual void WakeUpSyncer() = 0;
 

@@ -74,11 +74,6 @@ private:
     MulDevTimeRanges timeRanges_;
     MulDevTimeRanges deleteTimeRanges_;
     unsigned int magicEnd_ = MAGIC_END;
-
-    std::map<DeviceID,
-            std::map<std::string, std::pair<TimeStamp, TimeStamp>>> mulDevTableTimeRange_;
-    std::map<DeviceID,
-            std::map<std::string, std::pair<TimeStamp, TimeStamp>>> mulDevTableDeletedTimeRange_;
 };
 }  // namespace DistributedDB
 #endif  // SQLITE_SINGLE_VER_CONTINUE_TOKEN_H

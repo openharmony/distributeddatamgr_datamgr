@@ -83,6 +83,38 @@ std::string FieldValue2String(const FieldValue &val, QueryValueType type)
             return "";
     }
 }
+
+std::string GetSelectAndFromClauseForRDB(const std::string &tableName)
+{
+    return "SELECT b.data_key,"
+        "b.device,"
+        "b.ori_device,"
+        "b.timestamp as " + DBConstant::TIMESTAMP_ALIAS + ","
+        "b.wtimestamp,"
+        "b.flag,"
+        "b.hash_key,"
+        "a.* "
+        "FROM " + tableName + " AS a INNER JOIN " + DBConstant::RELATIONAL_PREFIX + tableName + "_log AS b "
+        "ON a.rowid=b.data_key ";
+}
+
+std::string GetTimeRangeClauseForRDB()
+{
+    return " AND (" + DBConstant::TIMESTAMP_ALIAS + ">=? AND " + DBConstant::TIMESTAMP_ALIAS + "<?) ";
+}
+
+std::string GetOuterQueryClauseForRDB(const std::string &subQueryClause)
+{
+    return "SELECT * "
+        "FROM ( " + subQueryClause + " ) "
+        "WHERE (" + DBConstant::TIMESTAMP_ALIAS + ">=? AND " + DBConstant::TIMESTAMP_ALIAS + "<?) "
+        "ORDER BY " + DBConstant::TIMESTAMP_ALIAS + ";";
+}
+
+std::string GetFlagClauseForRDB()
+{
+    return "WHERE (b.flag&0x03=0x02)";
+}
 }
 
 SqliteQueryHelper::SqliteQueryHelper(const QueryObjInfo &info)
@@ -171,7 +203,7 @@ int SqliteQueryHelper::ToQuerySql()
     return errCode;
 }
 
-int SqliteQueryHelper::ToQuerySyncSql(bool hasSubQuery)
+int SqliteQueryHelper::ToQuerySyncSql(bool hasSubQuery, bool useTimeStampAlias)
 {
     int errCode = ParseQueryObjNodeToSQL();
     if (errCode != E_OK) {
@@ -180,7 +212,9 @@ int SqliteQueryHelper::ToQuerySyncSql(bool hasSubQuery)
 
     // Order by time when no order by and no limit and no need order by key.
     if (!hasOrderBy_ && !hasLimit_ && !isNeedOrderbyKey_) {
-        querySql_ += "ORDER BY timestamp ASC";
+        querySql_ += (useTimeStampAlias ?
+            ("ORDER BY " + DBConstant::TIMESTAMP_ALIAS + " ASC") :
+            "ORDER BY timestamp ASC");
     }
 
     if (!hasSubQuery) {
@@ -792,6 +826,94 @@ int SqliteQueryHelper::GetSubscribeSql(const std::string &subscribeId, TriggerMo
     }
     if (errCode != E_OK) {
         LOGD("Get subscribe query condition failed. %d", errCode);
+    }
+    return errCode;
+}
+
+int SqliteQueryHelper::GetRelationalSyncDataQuerySql(std::string &sql, bool hasSubQuery)
+{
+    if (!isValid_) {
+        return -E_INVALID_QUERY_FORMAT;
+    }
+
+    if (hasPrefixKey_) {
+        LOGE("For relational DB query, prefix key is not supported.");
+        return -E_NOT_SUPPORT;
+    }
+
+    sql = AssembleSqlForSuggestIndex(GetSelectAndFromClauseForRDB(tableName_), GetFlagClauseForRDB());
+    sql = hasSubQuery ? sql : (sql + GetTimeRangeClauseForRDB());
+
+    querySql_.clear(); // clear local query sql format
+    int errCode = ToQuerySyncSql(hasSubQuery, true);
+    if (errCode != E_OK) {
+        LOGE("To query sql fail! errCode[%d]", errCode);
+        return errCode;
+    }
+    sql += querySql_;
+    if (hasSubQuery) {
+        // The last timestamp in one query will be stored in continue token and used for next query.
+        // Therefore all query data must be ordered by timestamp.
+        // When there is limit in SQL, data should be ordered by key in sub query, and timestamp is ordered by outside.
+        sql = GetOuterQueryClauseForRDB(sql);
+    }
+    return errCode;
+}
+
+int SqliteQueryHelper::GetRelationalQueryStatement(sqlite3 *dbHandle, uint64_t beginTime, uint64_t endTime,
+    sqlite3_stmt *&statement)
+{
+    bool hasSubQuery = false;
+    if (hasLimit_) {
+        hasSubQuery = true; // Need sub query.
+    } else {
+        isNeedOrderbyKey_ = false; // Need order by timestamp.
+    }
+    std::string sql;
+    int errCode = GetRelationalSyncDataQuerySql(sql, hasSubQuery);
+    if (errCode != E_OK) {
+        LOGE("[Query] Get SQL fail!");
+        return -E_INVALID_QUERY_FORMAT;
+    }
+
+    errCode = SQLiteUtils::GetStatement(dbHandle, sql, statement);
+    if (errCode != E_OK) {
+        LOGE("[Query] Get statement fail!");
+        return -E_INVALID_QUERY_FORMAT;
+    }
+
+    int index = 1; // begin with 1.
+    if (hasSubQuery) {
+        /**
+         * SELECT * FROM (
+         *   SELECT b.data_key,b.device,b.ori_device,b.timestamp as naturalbase_rdb_timestamp,
+         *          b.wtimestamp,b.flag,b.hash_key,a.*
+         *   FROM tableName AS a INNER JOIN naturalbase_rdb_log AS b
+         *   ON a.rowid=b.data_key
+         *   WHERE (b.flag&0x03=0x02)
+         *   LIMIT ? OFFSET ? )
+         * WHERE (naturalbase_rdb_timestamp>=? AND naturalbase_rdb_timestamp<?)
+         * ORDER BY naturalbase_rdb_timestamp;
+         */
+        errCode = BindObjNodes(statement, index);
+        if (errCode != E_OK) {
+            return errCode;
+        }
+        errCode = BindTimeRange(statement, index, beginTime, endTime);
+    } else {
+        /**
+         * SELECT b.data_key,b.device,b.ori_device,b.timestamp as naturalbase_rdb_timestamp,
+         *        b.wtimestamp,b.flag,b.hash_key,a.*
+         * FROM tableName AS a INNER JOIN naturalbase_rdb_log AS b
+         * ON a.rowid=b.data_key
+         * WHERE (b.flag&0x03=0x02) AND (naturalbase_rdb_timestamp>=? AND naturalbase_rdb_timestamp<?) ;
+         * ORDER BY naturalbase_rdb_timestamp ASC;
+         */
+        errCode = BindTimeRange(statement, index, beginTime, endTime);
+        if (errCode != E_OK) {
+            return errCode;
+        }
+        errCode = BindObjNodes(statement, index);
     }
     return errCode;
 }

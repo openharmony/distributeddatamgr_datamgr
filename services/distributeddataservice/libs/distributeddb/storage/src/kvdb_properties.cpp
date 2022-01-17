@@ -18,17 +18,9 @@
 #include "db_constant.h"
 
 namespace DistributedDB {
-const std::string KvDBProperties::CREATE_IF_NECESSARY = "createIfNecessary";
-const std::string KvDBProperties::DATABASE_TYPE = "databaseType";
-const std::string KvDBProperties::DATA_DIR = "dataDir";
-const std::string KvDBProperties::USER_ID = "userId";
-const std::string KvDBProperties::APP_ID = "appId";
-const std::string KvDBProperties::STORE_ID = "storeId";
 const std::string KvDBProperties::FILE_NAME = "fileName";
 const std::string KvDBProperties::MEMORY_MODE = "memoryMode";
 const std::string KvDBProperties::ENCRYPTED_MODE = "isEncryptedDb";
-const std::string KvDBProperties::IDENTIFIER_DATA = "identifier";
-const std::string KvDBProperties::IDENTIFIER_DIR = "identifierDir";
 const std::string KvDBProperties::FIRST_OPEN_IS_READ_ONLY = "firstOpenIsReadOnly";
 const std::string KvDBProperties::CREATE_DIR_BY_STORE_ID_ONLY = "createDirByStoreIdOnly";
 const std::string KvDBProperties::SECURITY_LABEL = "securityLabel";
@@ -57,51 +49,6 @@ std::string KvDBProperties::GetStoreSubDirectory(int type)
         default:
             return "unknown";
     }
-}
-
-std::string DBProperties::GetStringProp(const std::string &name, const std::string &defaultValue) const
-{
-    auto iter = stringProperties_.find(name);
-    if (iter != stringProperties_.end()) {
-        return iter->second;
-    } else {
-        return defaultValue;
-    }
-}
-
-void DBProperties::SetStringProp(const std::string &name, const std::string &value)
-{
-    stringProperties_[name] = value;
-}
-
-bool DBProperties::GetBoolProp(const std::string &name, bool defaultValue) const
-{
-    auto iter = boolProperties_.find(name);
-    if (iter != boolProperties_.end()) {
-        return iter->second;
-    } else {
-        return defaultValue;
-    }
-}
-
-void DBProperties::SetBoolProp(const std::string &name, bool value)
-{
-    boolProperties_[name] = value;
-}
-
-int DBProperties::GetIntProp(const std::string &name, int defaultValue) const
-{
-    auto iter = intProperties_.find(name);
-    if (iter != intProperties_.end()) {
-        return iter->second;
-    } else {
-        return defaultValue;
-    }
-}
-
-void DBProperties::SetIntProp(const std::string &name, int value)
-{
-    intProperties_[name] = value;
 }
 
 void KvDBProperties::GetPassword(CipherType &type, CipherPassword &password) const

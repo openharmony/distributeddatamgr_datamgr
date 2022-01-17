@@ -16,8 +16,9 @@
 #define SQLITE_SINGLE_VER_RELATIONAL_STORAGE_EXECUTOR_H
 #ifdef RELATIONAL_STORE
 
-#include "macro_utils.h"
+#include "data_transformer.h"
 #include "db_types.h"
+#include "macro_utils.h"
 #include "sqlite_utils.h"
 #include "sqlite_storage_executor.h"
 #include "relational_store_delegate.h"
@@ -32,19 +33,17 @@ public:
     // Delete the copy and assign constructors
     DISABLE_COPY_ASSIGN_MOVE(SQLiteSingleVerRelationalStorageExecutor);
 
-    int CreateDistributedTable(const std::string &tableName, const RelationalStoreDelegate::TableOption &option);
+    int CreateDistributedTable(const std::string &tableName, TableInfo &table);
 
     int StartTransaction(TransactType type);
     int Commit();
     int Rollback();
 
-    int SetTableInfo(QueryObject query);
+    int SetTableInfo(const QueryObject &query);
 
     // For Get sync data
-    int GetSyncDataByQuery(std::vector<DataItem> &dataItems, size_t appendLength, QueryObject query,
-        const DataSizeSpecInfo &dataSizeInfo, const std::pair<TimeStamp, TimeStamp> &timeRange) const;
-    int GetDeletedSyncDataByTimestamp(std::vector<DataItem> &dataItems, size_t appendLength,
-        TimeStamp begin, TimeStamp end, const DataSizeSpecInfo &dataSizeInfo) const;
+    int GetSyncDataByQuery(std::vector<DataItem> &dataItems, size_t appendLength,
+        const DataSizeSpecInfo &dataSizeInfo, std::function<int(sqlite3 *, sqlite3_stmt *&, bool &)> getStmt);
 
     // operation of meta data
     int GetKvData(const Key &key, Value &value) const;
@@ -57,14 +56,15 @@ public:
     int SaveSyncItems(const QueryObject &object, std::vector<DataItem> &dataItems,
         const std::string &deviceName, TimeStamp &timeStamp);
 
+    int AnalysisRelationalSchema(const std::string &tableName, TableInfo &tableInfo);
+
+    int CheckDBModeForRelational();
+
 private:
     int PrepareForSyncDataByTime(TimeStamp begin, TimeStamp end,
         sqlite3_stmt *&statement, bool getDeletedData) const;
 
-    int GetSyncDataItems(std::vector<DataItem> &dataItems, sqlite3_stmt *statement,
-        size_t appendLength, const DataSizeSpecInfo &dataSizeInfo) const;
-
-    int GetDataItemForSync(sqlite3_stmt *statement, DataItem &dataItem) const;
+    int GetDataItemForSync(sqlite3_stmt *statement, DataItem &dataItem, bool isGettingDeletedData) const;
 
     int SaveSyncDataItems(const QueryObject &object, std::vector<DataItem> &dataItems,
         const std::string &deviceName, TimeStamp &timeStamp);

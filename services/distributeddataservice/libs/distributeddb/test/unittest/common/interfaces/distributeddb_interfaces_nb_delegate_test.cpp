@@ -1780,3 +1780,198 @@ HWTEST_F(DistributedDBInterfacesNBDelegateTest, SingleVerGetSecurityOption002, T
     g_kvNbDelegatePtr = nullptr;
     EXPECT_TRUE(g_mgr.DeleteKvStore("SingleVerGetSecurityOption002") == OK);
 }
+
+/**
+ * @tc.name: MaxLogSize001
+ * @tc.desc: Test the pragma cmd of the max log size limit.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: wangbingquan
+ */
+HWTEST_F(DistributedDBInterfacesNBDelegateTest, MaxLogSize001, TestSize.Level2)
+{
+    /**
+     * @tc.steps:step1. Create database.
+     * @tc.expected: step1. Returns a non-null kvstore.
+     */
+    KvStoreNbDelegate::Option option;
+    g_mgr.GetKvStore("MaxLogSize001", option, g_kvNbDelegateCallback);
+    ASSERT_TRUE(g_kvNbDelegatePtr != nullptr);
+    EXPECT_TRUE(g_kvDelegateStatus == OK);
+
+    /**
+     * @tc.steps:step2. Setting the max log limit for the valid value.
+     * @tc.expected: step2. Returns OK.
+     */
+    uint64_t logSize = DBConstant::MAX_LOG_SIZE_HIGH;
+    PragmaData pragLimit = static_cast<PragmaData>(&logSize);
+    EXPECT_EQ(g_kvNbDelegatePtr->Pragma(SET_MAX_LOG_SIZE, pragLimit), OK);
+
+    logSize = DBConstant::MAX_LOG_SIZE_LOW;
+    pragLimit = static_cast<PragmaData>(&logSize);
+    EXPECT_EQ(g_kvNbDelegatePtr->Pragma(SET_MAX_LOG_SIZE, pragLimit), OK);
+
+    logSize = 10 * 1024 * 1024; // 10M
+    pragLimit = static_cast<PragmaData>(&logSize);
+    EXPECT_EQ(g_kvNbDelegatePtr->Pragma(SET_MAX_LOG_SIZE, pragLimit), OK);
+
+    /**
+     * @tc.steps:step3. Setting the max log limit for the invalid value.
+     * @tc.expected: step3. Returns INLIVAD_ARGS.
+     */
+    logSize = DBConstant::MAX_LOG_SIZE_HIGH + 1;
+    pragLimit = static_cast<PragmaData>(&logSize);
+    EXPECT_EQ(g_kvNbDelegatePtr->Pragma(SET_MAX_LOG_SIZE, pragLimit), INVALID_ARGS);
+
+    logSize = DBConstant::MAX_LOG_SIZE_LOW - 1;
+    pragLimit = static_cast<PragmaData>(&logSize);
+    EXPECT_EQ(g_kvNbDelegatePtr->Pragma(SET_MAX_LOG_SIZE, pragLimit), INVALID_ARGS);
+    EXPECT_EQ(g_mgr.CloseKvStore(g_kvNbDelegatePtr), OK);
+    g_kvNbDelegatePtr = nullptr;
+    EXPECT_TRUE(g_mgr.DeleteKvStore("MaxLogSize001") == OK);
+}
+
+/**
+ * @tc.name: ForceCheckpoint002
+ * @tc.desc: Test the checkpoint of the database.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: wangbingquan
+ */
+HWTEST_F(DistributedDBInterfacesNBDelegateTest, MaxLogSize002, TestSize.Level2)
+{
+    /**
+     * @tc.steps:step1. Create database.
+     * @tc.expected: step1. Returns a non-null kvstore.
+     */
+    KvStoreNbDelegate::Option option;
+    g_mgr.GetKvStore("MaxLogSize002", option, g_kvNbDelegateCallback);
+    ASSERT_TRUE(g_kvNbDelegatePtr != nullptr);
+    EXPECT_TRUE(g_kvDelegateStatus == OK);
+
+    /**
+     * @tc.steps:step2. Put the random entry into the database.
+     * @tc.expected: step2. Returns OK.
+     */
+    Key key;
+    Value value;
+    DistributedDBToolsUnitTest::GetRandomKeyValue(key, 30); // for 30B random key
+    DistributedDBToolsUnitTest::GetRandomKeyValue(value, 3 * 1024 * 1024); // 3M value
+    EXPECT_EQ(g_kvNbDelegatePtr->Put(key, value), OK);
+    DistributedDBToolsUnitTest::GetRandomKeyValue(key, 40); // for 40B random key
+    EXPECT_EQ(g_kvNbDelegatePtr->Put(key, value), OK);
+    DistributedDBToolsUnitTest::GetRandomKeyValue(key, 20); // for 20B random key
+    DistributedDBToolsUnitTest::GetRandomKeyValue(value, 1 * 1024 * 1024); // 1M value
+    EXPECT_EQ(g_kvNbDelegatePtr->Put(key, value), OK);
+
+    /**
+     * @tc.steps:step3. Get the resultset.
+     * @tc.expected: step3. Returns OK.
+     */
+    KvStoreResultSet *resultSet = nullptr;
+    EXPECT_EQ(g_kvNbDelegatePtr->GetEntries(Key{}, resultSet), OK);
+    EXPECT_EQ(resultSet->GetCount(), 3); // size of all the entries is 3
+    EXPECT_EQ(resultSet->MoveToFirst(), true);
+
+    /**
+     * @tc.steps:step4. Put more data into the database.
+     * @tc.expected: step4. Returns OK.
+     */
+    uint64_t logSize = 6 * 1024 * 1024; // 6M for initial test.
+    PragmaData pragLimit = static_cast<PragmaData>(&logSize);
+    EXPECT_EQ(g_kvNbDelegatePtr->Pragma(SET_MAX_LOG_SIZE, pragLimit), OK);
+    DistributedDBToolsUnitTest::GetRandomKeyValue(key, 10); // for 10B random key(different size)
+    DistributedDBToolsUnitTest::GetRandomKeyValue(value, 3 * 1024 * 1024); // 3MB
+    EXPECT_EQ(g_kvNbDelegatePtr->Put(key, value), OK);
+    DistributedDBToolsUnitTest::GetRandomKeyValue(key, 15); // for 15B random key(different size)
+    EXPECT_EQ(g_kvNbDelegatePtr->Put(key, value), OK);
+
+    /**
+     * @tc.steps:step4. Put more data into the database while the log size is over the limit.
+     * @tc.expected: step4. Returns LOG_OVER_LIMITS.
+     */
+    DistributedDBToolsUnitTest::GetRandomKeyValue(value, 25); // for 25B random key(different size)
+    EXPECT_EQ(g_kvNbDelegatePtr->Put(key, value), LOG_OVER_LIMITS);
+    EXPECT_EQ(g_kvNbDelegatePtr->Delete(key), LOG_OVER_LIMITS);
+    EXPECT_EQ(g_kvNbDelegatePtr->StartTransaction(), LOG_OVER_LIMITS);
+    EXPECT_EQ(g_kvNbDelegatePtr->PutLocal(key, value), LOG_OVER_LIMITS);
+    EXPECT_EQ(g_kvNbDelegatePtr->RemoveDeviceData("deviceA"), LOG_OVER_LIMITS);
+    /**
+     * @tc.steps:step4. Change the max log size limit, and put the data.
+     * @tc.expected: step4. Returns OK.
+     */
+    logSize *= 10; // 10 multiple size
+    pragLimit = static_cast<PragmaData>(&logSize);
+    EXPECT_EQ(g_kvNbDelegatePtr->Pragma(SET_MAX_LOG_SIZE, pragLimit), OK);
+    EXPECT_EQ(g_kvNbDelegatePtr->Put(key, value), OK);
+    g_kvNbDelegatePtr->CloseResultSet(resultSet);
+
+    EXPECT_EQ(g_mgr.CloseKvStore(g_kvNbDelegatePtr), OK);
+    EXPECT_EQ(g_mgr.DeleteKvStore("MaxLogSize002"), OK);
+}
+
+/**
+ * @tc.name: MaxLogCheckPoint001
+ * @tc.desc: Pragma the checkpoint command.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author: wangbingquan
+ */
+HWTEST_F(DistributedDBInterfacesNBDelegateTest, MaxLogCheckPoint001, TestSize.Level2)
+{
+    /**
+     * @tc.steps:step1. Create database.
+     * @tc.expected: step1. Returns a non-null kvstore.
+     */
+    KvStoreNbDelegate::Option option;
+    g_mgr.GetKvStore("MaxLogCheckPoint001", option, g_kvNbDelegateCallback);
+    ASSERT_TRUE(g_kvNbDelegatePtr != nullptr);
+    EXPECT_TRUE(g_kvDelegateStatus == OK);
+
+    /**
+     * @tc.steps:step2. Put the random entry into the database.
+     * @tc.expected: step2. Returns OK.
+     */
+    Key key;
+    Value value;
+    DistributedDBToolsUnitTest::GetRandomKeyValue(key, 30); // for 30B random key(different size)
+    DistributedDBToolsUnitTest::GetRandomKeyValue(value, 1 * 1024 * 1024); // 1M
+    EXPECT_EQ(g_kvNbDelegatePtr->Put(key, value), OK);
+    EXPECT_EQ(g_kvNbDelegatePtr->Delete(key), OK);
+
+    /**
+     * @tc.steps:step3. Get the disk file size, execute the checkpoint and get the disk file size.
+     * @tc.expected: step3. Returns OK and the file size is less than the size before checkpoint.
+     */
+    uint64_t sizeBeforeChk = 0;
+    g_mgr.GetKvStoreDiskSize("MaxLogCheckPoint001", sizeBeforeChk);
+    EXPECT_GT(sizeBeforeChk, 1 * 1024 * 1024ULL); // more than 1M
+    int param = 0;
+    PragmaData paraData = static_cast<PragmaData>(&param);
+    g_kvNbDelegatePtr->Pragma(EXEC_CHECKPOINT, paraData);
+    uint64_t sizeAfterChk = 0;
+    g_mgr.GetKvStoreDiskSize("MaxLogCheckPoint001", sizeAfterChk);
+    EXPECT_LT(sizeAfterChk, 100 * 1024ULL); // less than 100K
+    EXPECT_EQ(g_mgr.CloseKvStore(g_kvNbDelegatePtr), OK);
+    EXPECT_EQ(g_mgr.DeleteKvStore("MaxLogCheckPoint001"), OK);
+}
+/**
+  * @tc.name: CreateMemoryDbWithoutPath
+  * @tc.desc: Create memory database without path.
+  * @tc.type: FUNC
+  * @tc.require: AR000CRAKN
+  * @tc.author: sunpeng
+  */
+HWTEST_F(DistributedDBInterfacesNBDelegateTest, CreateMemoryDbWithoutPath, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. Create Memory database by GetKvStore without path.
+     * @tc.expected: step1. Create successfully.
+     */
+    KvStoreDelegateManager mgr(APP_ID, USER_ID);
+    const KvStoreNbDelegate::Option option = {true, true};
+    mgr.GetKvStore("memory_without_path", option, g_kvNbDelegateCallback);
+    ASSERT_TRUE(g_kvNbDelegatePtr != nullptr);
+    EXPECT_TRUE(g_kvDelegateStatus == OK);
+    EXPECT_EQ(g_mgr.CloseKvStore(g_kvNbDelegatePtr), OK);
+}

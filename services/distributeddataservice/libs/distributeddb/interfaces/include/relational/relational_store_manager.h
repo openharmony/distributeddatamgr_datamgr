@@ -21,8 +21,6 @@
 
 #include "auto_launch_export.h"
 #include "relational_store_delegate.h"
-#include "irelational_store.h"
-#include "kvdb_properties.h"
 #include "types.h"
 
 namespace DistributedDB {
@@ -36,15 +34,17 @@ public:
     RelationalStoreManager &operator=(const RelationalStoreManager &) = delete;
     RelationalStoreManager &operator=(RelationalStoreManager &&) = delete;
 
-    // PRAGMA journal_mode=WAL
-    // PRAGMA synchronous=FULL
-    // PRAGMA synchronous=NORMAL
-    DB_API void OpenStore(const std::string &path, const RelationalStoreDelegate::Option &option,
-        const std::function<void(DBStatus, RelationalStoreDelegate *)> &callback);
+    DB_API DBStatus OpenStore(const std::string &path, const std::string &storeId,
+        const RelationalStoreDelegate::Option &option, RelationalStoreDelegate *&delegate);
 
     DB_API DBStatus CloseStore(RelationalStoreDelegate *store);
 
     DB_API DBStatus DeleteStore(const std::string &path);
+
+    DB_API static void SetAutoLaunchRequestCallback(const AutoLaunchRequestCallback &callback);
+
+    DB_API static std::string GetRelationalStoreIdentifier(const std::string &userId, const std::string &appId,
+        const std::string &storeId);
 
 private:
     std::string appId_;

@@ -22,17 +22,6 @@
 #include "kvdb_properties.h"
 
 namespace DistributedDB {
-struct SyncTimeRange {
-    TimeStamp beginTime = 0;
-    TimeStamp deleteBeginTime = 0;
-    TimeStamp endTime = static_cast<TimeStamp>(INT64_MAX);
-    TimeStamp deleteEndTime = static_cast<TimeStamp>(INT64_MAX);
-    bool IsValid() const
-    {
-        return (beginTime <= endTime && deleteBeginTime <= deleteEndTime);
-    }
-};
-
 class ISyncInterface {
 public:
     enum {

@@ -118,17 +118,18 @@ uint32_t DataTransformer::CalDataValueLength(const DataValue &dataValue)
         return 0u;
     }
     uint32_t length = 0;
-    std::string str;
     switch (dataValue.GetType()) {
         case StorageType::STORAGE_TYPE_BLOB:
             (void)dataValue.GetBlobLength(length);
             length = Parcel::GetEightByteAlign(length);
             length += Parcel::GetUInt32Len(); // record data length
             break;
-        case StorageType::STORAGE_TYPE_TEXT:
+        case StorageType::STORAGE_TYPE_TEXT: {
+            std::string str;
             (void)dataValue.GetText(str);
             length = Parcel::GetStringLen(str);
             break;
+        }
         default:
             break;
     }
@@ -139,7 +140,7 @@ void DataTransformer::ReduceMapping(const std::vector<FieldInfo> &remoteFieldInf
     const std::vector<FieldInfo> &localFieldInfo, std::vector<int> &indexMapping)
 {
     std::map<std::string, int> fieldMap;
-    for (int i = 0; i < (int)remoteFieldInfo.size(); ++i) {
+    for (int i = 0; i < static_cast<int>(remoteFieldInfo.size()); ++i) {
         const auto &fieldInfo = remoteFieldInfo[i];
         fieldMap[fieldInfo.GetFieldName()] = i;
     }
@@ -245,7 +246,7 @@ int SerializeBlobValue(const DataValue &dataValue, Parcel &parcel)
 {
     Blob val;
     (void)dataValue.GetBlob(val);
-    const uint32_t &size = val.GetSize();
+    uint32_t size = val.GetSize();
     if (size == 0) {
         return SerializeNullValue(dataValue, parcel);
     }
@@ -253,7 +254,7 @@ int SerializeBlobValue(const DataValue &dataValue, Parcel &parcel)
     if (errCode != E_OK) {
         return errCode;
     }
-    return parcel.WriteBlob(reinterpret_cast<const char*>(val.GetData()), size);
+    return parcel.WriteBlob(reinterpret_cast<const char *>(val.GetData()), size);
 }
 
 int DeSerializeBlobValue(DataValue &dataValue, Parcel &parcel)
@@ -269,7 +270,7 @@ int DeSerializeBlobValue(DataValue &dataValue, Parcel &parcel)
     if (parcel.IsError()) {
         return -E_PARSE_FAIL;
     }
-    int errCode = val.WriteBlob(reinterpret_cast<const uint8_t*>(array), blobLength);
+    int errCode = val.WriteBlob(reinterpret_cast<const uint8_t *>(array), blobLength);
     if (errCode == E_OK) {
         dataValue = val;
     }
@@ -301,27 +302,22 @@ int DataTransformer::SerializeValue(Value &value, const RowData &rowData, const 
     uint32_t totalLength = Parcel::GetUInt64Len(); // first record field count
     for (uint32_t i = 0; i < rowData.size(); ++i) {
         const auto &dataValue = rowData[i];
-        const auto &fieldInfo = fieldInfoList[i];
-        if (dataValue.GetType() != StorageType::STORAGE_TYPE_NULL &&
-            dataValue.GetType() != fieldInfo.GetStorageType()) {
-            return -E_INVALID_DATA;
-        }
         if (typeFuncMap.find(dataValue.GetType()) == typeFuncMap.end()) {
             return -E_NOT_SUPPORT;
         }
+        totalLength += Parcel::GetUInt32Len(); // For save the dataValue's type.
         uint32_t dataLength = CalDataValueLength(dataValue);
         totalLength += dataLength;
     }
     value.resize(totalLength);
+    if (value.size() != totalLength) {
+        return -E_OUT_OF_MEMORY;
+    }
     Parcel parcel(value.data(), value.size());
     (void)parcel.WriteUInt64(rowData.size());
-    int index = 0;
     for (const auto &dataValue : rowData) {
-        const auto &fieldInfo = fieldInfoList[index++];
         StorageType type = dataValue.GetType();
-        if (dataValue.GetType() == StorageType::STORAGE_TYPE_NULL) {
-            type = fieldInfo.GetStorageType();
-        }
+        parcel.WriteUInt32(static_cast<uint32_t>(type));
         int errCode = typeFuncMap[type].serializeFunc(dataValue, parcel);
         if (errCode != E_OK) {
             value.clear();
@@ -346,7 +342,13 @@ int DataTransformer::DeSerializeValue(const Value &value, OptRowData &optionalDa
         DataValue dataValue;
         LOGD("[DataTransformer][DeSerializeValue] start deSerialize %s type %d",
             fieldInfo.GetFieldName().c_str(), fieldInfo.GetStorageType());
-        int errCode = typeFuncMap[fieldInfo.GetStorageType()].deSerializeFunc(dataValue, parcel);
+        uint32_t type = 0;
+        parcel.ReadUInt32(type);
+        auto iter = typeFuncMap.find(static_cast<StorageType>(type));
+        if (iter == typeFuncMap.end()) {
+            return -E_PARSE_FAIL;
+        }
+        int errCode = iter->second.deSerializeFunc(dataValue, parcel);
         if (errCode != E_OK) {
             LOGD("[DataTransformer][DeSerializeValue] deSerialize %s failed", fieldInfo.GetFieldName().c_str());
             return errCode;
@@ -358,24 +360,23 @@ int DataTransformer::DeSerializeValue(const Value &value, OptRowData &optionalDa
             optionalData.push_back(std::nullopt);
             continue;
         }
-        if ((uint32_t)index >= valueList.size()) {
+        if (static_cast<uint32_t>(index) >= valueList.size()) {
             return -E_INTERNAL_ERROR; // should not happen
         }
-        if (valueList[index].GetType() == StorageType::STORAGE_TYPE_NULL) {
-            optionalData.push_back(std::nullopt);
-        } else {
-            optionalData.push_back(valueList[index]);
-        }
+        optionalData.push_back(valueList[index]);
     }
     return E_OK;
 }
 
 int DataTransformer::SerializeHashKey(Key &key, const std::string &hashKey)
 {
-    key.resize(Parcel::GetStringLen(hashKey), 0);
-    Parcel parcel(key.data(), Parcel::GetStringLen(hashKey));
-    int errCode = parcel.WriteString(hashKey);
-    return errCode;
+    uint32_t len = Parcel::GetStringLen(hashKey);
+    key.resize(len, 0);
+    if (key.size() != len) {
+        return -E_OUT_OF_MEMORY;
+    }
+    Parcel parcel(key.data(), len);
+    return parcel.WriteString(hashKey);
 }
 
 int DataTransformer::DeSerializeHashKey(const Key &key, std::string &hashKey)

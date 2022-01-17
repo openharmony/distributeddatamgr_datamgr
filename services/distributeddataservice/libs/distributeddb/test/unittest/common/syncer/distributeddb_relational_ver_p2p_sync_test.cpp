@@ -45,12 +45,6 @@ namespace {
     VirtualCommunicatorAggregator* g_communicatorAggregator = nullptr;
     RelationalVirtualDevice *g_deviceB = nullptr;
 
-    // the type of g_kvDelegateCallback is function<void(DBStatus, KvStoreDelegate*)>
-    auto g_kvDelegateCallback = [](DBStatus status, RelationalStoreDelegate *delegatePtr) {
-        g_kvDelegateStatus = status;
-        g_kvDelegatePtr = delegatePtr;
-    };
-
     int GetDB(sqlite3 *&db)
     {
         int flag = SQLITE_OPEN_URI | SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
@@ -61,6 +55,7 @@ namespace {
         }
         EXPECT_EQ(SQLiteUtils::RegisterCalcHash(db), E_OK);
         EXPECT_EQ(SQLiteUtils::RegisterGetSysTime(db), E_OK);
+        EXPECT_EQ(sqlite3_exec(db, "PRAGMA journal_mode=WAL;", nullptr, nullptr, nullptr), SQLITE_OK);
         return rc;
     }
 
@@ -96,7 +91,7 @@ namespace {
     {
         sqlite3_stmt *stmt = nullptr;
         EXPECT_EQ(PrepareInsert(db, stmt), SQLITE_OK);
-        for (int i = 0; i < (int)rowData.size(); ++i) {
+        for (int i = 0; i < static_cast<int>(rowData.size()); ++i) {
             const auto &item = rowData[i];
             const int index = i + 1;
             int errCode;
@@ -112,6 +107,7 @@ namespace {
             EXPECT_EQ(errCode, E_OK);
         }
         EXPECT_EQ(SimulateCommitData(db, stmt), SQLITE_DONE);
+        sqlite3_finalize(stmt);
     }
 
     void GenerateValue(RowData &rowData, std::map<std::string, DataValue> &dataMap)
@@ -148,21 +144,12 @@ namespace {
     {
         std::vector<std::string> devices = {DEVICE_B};
         Query query = Query::Select(g_tableName);
-        std::mutex syncLock;
-        std::condition_variable syncCondVar;
         std::map<std::string, std::vector<TableStatus>> statusMap;
-        std::mutex syncMutex;
-        std::condition_variable syncCv;
-        SyncStatusCallback callBack = [&statusMap, &syncCv](
+        SyncStatusCallback callBack = [&statusMap](
             const std::map<std::string, std::vector<TableStatus>> &devicesMap) {
             statusMap = devicesMap;
-            syncCv.notify_one();
         };
-        DBStatus callStatus = g_kvDelegatePtr->Sync(devices, syncMode, callBack, query, false);
-        std::unique_lock<std::mutex> uniqueLock(syncMutex);
-        syncCv.wait(uniqueLock, [&statusMap]() {
-            return !statusMap.empty();
-        });
+        DBStatus callStatus = g_kvDelegatePtr->Sync(devices, syncMode, query, callBack, true);
         EXPECT_EQ(callStatus, OK);
         for (const auto &tablesRes : statusMap) {
             for (const auto &tableStatus : tablesRes.second) {
@@ -185,7 +172,7 @@ namespace {
         EXPECT_EQ(GetDB(db), SQLITE_OK);
         EXPECT_EQ(CreateTable(db), SQLITE_OK);
 
-        EXPECT_EQ(g_kvDelegatePtr->CreateDistributedTable(g_tableName, {}), OK);
+        EXPECT_EQ(g_kvDelegatePtr->CreateDistributedTable(g_tableName), OK);
 
         sqlite3_close(db);
 
@@ -206,7 +193,7 @@ namespace {
         g_deviceB->GetAllSyncData(g_tableName, targetData);
 
         for (auto &item : targetData) {
-            for (int j = 0; j < (int)item.rowData.size(); ++j) {
+            for (int j = 0; j < static_cast<int>(item.rowData.size()); ++j) {
                 LOGD("index %d actual_val[%s] except_val[%s]",
                     j, item.rowData[j].ToString().c_str(), rowData[j].ToString().c_str());
                 EXPECT_TRUE(item.rowData[j] == rowData[j]);
@@ -230,6 +217,9 @@ void DistributedDBRelationalVerP2PSyncTest::SetUpTestCase()
     */
     DistributedDBToolsUnitTest::TestDirInit(g_testDir);
     g_dbDir = g_testDir + "/test.db";
+    sqlite3 *db = nullptr;
+    ASSERT_EQ(GetDB(db), SQLITE_OK);
+    sqlite3_close(db);
 
     g_communicatorAggregator = new (std::nothrow) VirtualCommunicatorAggregator();
     ASSERT_TRUE(g_communicatorAggregator != nullptr);
@@ -254,7 +244,7 @@ void DistributedDBRelationalVerP2PSyncTest::SetUp(void)
     /**
     * @tc.setup: create virtual device B, and get a KvStoreNbDelegate as deviceA
     */
-    g_mgr.OpenStore(g_dbDir, {true}, g_kvDelegateCallback);
+    g_kvDelegateStatus = g_mgr.OpenStore(g_dbDir, "Relational_default_id", {}, g_kvDelegatePtr);
     ASSERT_TRUE(g_kvDelegateStatus == OK);
     ASSERT_TRUE(g_kvDelegatePtr != nullptr);
     g_deviceB = new (std::nothrow) RelationalVirtualDevice(DEVICE_B);

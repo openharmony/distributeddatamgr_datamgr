@@ -37,7 +37,10 @@ public:
     Blob();
     ~Blob();
 
-    DISABLE_COPY_ASSIGN_MOVE(Blob);
+    Blob(Blob &&);
+    Blob(const Blob &) = delete;
+    Blob &operator=(Blob &&) noexcept;
+    Blob &operator=(const Blob &) = delete;
 
     const uint8_t* GetData() const;
     uint32_t GetSize() const;
@@ -65,6 +68,8 @@ public:
     DataValue &operator=(const double &doubleVal);
     DataValue &operator=(const Blob &blob);
     DataValue &operator=(const std::string &string);
+    int Set(Blob *&blob);
+
     // equals
     bool operator==(const DataValue &dataValue) const;
     bool operator!=(const DataValue &dataValue) const;

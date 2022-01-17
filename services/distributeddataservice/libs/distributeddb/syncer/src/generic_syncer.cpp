@@ -206,7 +206,7 @@ int GenericSyncer::PrepareSync(const SyncParma &param, uint32_t syncId)
     }
     if (!param.wait) {
         std::lock_guard<std::mutex> lockGuard(syncIdLock_);
-        syncIdList_.push_back((int)syncId);
+        syncIdList_.push_back(static_cast<int>(syncId));
     }
     if (operation->CheckIsAllFinished()) {
         operation->Finished();

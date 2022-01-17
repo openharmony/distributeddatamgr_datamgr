@@ -397,6 +397,10 @@ int SQLiteSingleVerNaturalStoreConnection::Pragma(int cmd, void *parameter)
             return PragmaResultSetCacheMaxSize(parameter);
         case PRAGMA_TRIGGER_TO_MIGRATE_DATA:
             return PragmaTriggerToMigrateData(*static_cast<SecurityOption *>(parameter));
+        case PRAGMA_SET_MAX_LOG_SIZE:
+            return PragmaSetMaxLogSize(static_cast<uint64_t *>(parameter));
+        case PRAGMA_EXEC_CHECKPOINT:
+            return ForceCheckPoint();
         default:
             // Call Pragma() of super class.
             errCode = SyncAbleKvDBConnection::Pragma(cmd, parameter);
@@ -720,6 +724,36 @@ int SQLiteSingleVerNaturalStoreConnection::CheckIntegrity() const
     }
 
     errCode = handle->CheckIntegrity();
+    ReleaseExecutor(handle);
+    return errCode;
+}
+
+int SQLiteSingleVerNaturalStoreConnection::PragmaSetMaxLogSize(uint64_t *limit)
+{
+    if (limit == nullptr) {
+        return -E_INVALID_ARGS;
+    }
+    SQLiteSingleVerNaturalStore *naturalStore = GetDB<SQLiteSingleVerNaturalStore>();
+    if (naturalStore == nullptr) {
+        LOGE("[SingleVerConnection] db is nullptr for max log limit set.");
+        return -E_INVALID_DB;
+    }
+    if (*limit > DBConstant::MAX_LOG_SIZE_HIGH || *limit < DBConstant::MAX_LOG_SIZE_LOW) {
+        return -E_INVALID_ARGS;
+    }
+    return naturalStore->SetMaxLogSize(*limit);
+}
+
+int SQLiteSingleVerNaturalStoreConnection::ForceCheckPoint() const
+{
+    int errCode = E_OK;
+    SQLiteSingleVerStorageExecutor *handle = GetExecutor(true, errCode);
+    if (handle == nullptr) {
+        LOGW("Failed to get the executor for the checkpoint.");
+        return errCode;
+    }
+
+    errCode = handle->ForceCheckPoint();
     ReleaseExecutor(handle);
     return errCode;
 }
@@ -1218,6 +1252,11 @@ int SQLiteSingleVerNaturalStoreConnection::StartTransactionInCacheMode()
     if (handle == nullptr) {
         return errCode;
     }
+    if (CheckLogOverLimit(handle)) {
+        LOGW("Over the log limit");
+        ReleaseExecutor(handle);
+        return -E_LOG_OVER_LIMITS;
+    }
     errCode = handle->StartTransaction(TransactType::DEFERRED);
     if (errCode != E_OK) {
         ReleaseExecutor(handle);
@@ -1236,6 +1275,11 @@ int SQLiteSingleVerNaturalStoreConnection::StartTransactionNormally()
     SQLiteSingleVerStorageExecutor *handle = GetExecutor(true, errCode);
     if (handle == nullptr) {
         return errCode;
+    }
+    if (CheckLogOverLimit(handle)) {
+        LOGW("Over the log limit");
+        ReleaseExecutor(handle);
+        return -E_LOG_OVER_LIMITS;
     }
 
     if (committedData_ == nullptr) {
@@ -1704,6 +1748,20 @@ int SQLiteSingleVerNaturalStoreConnection::CheckAmendValueContentForLocalProcedu
     }
     bool useAmendValue = false;
     return naturalStore->CheckValueAndAmendIfNeed(ValueSource::FROM_LOCAL, oriValue, amendValue, useAmendValue);
+}
+
+bool SQLiteSingleVerNaturalStoreConnection::CheckLogOverLimit(SQLiteSingleVerStorageExecutor *executor) const
+{
+    SQLiteSingleVerNaturalStore *naturalStore = GetDB<SQLiteSingleVerNaturalStore>();
+    if (naturalStore == nullptr || executor == nullptr) { // Not Likely
+        return false;
+    }
+    uint64_t logFileSize = executor->GetLogFileSize();
+    bool result = logFileSize > naturalStore->GetMaxLogSize();
+    if (result) {
+        LOGW("Log size[%llu] over the limit", logFileSize);
+    }
+    return result;
 }
 
 DEFINE_OBJECT_TAG_FACILITIES(SQLiteSingleVerNaturalStoreConnection)

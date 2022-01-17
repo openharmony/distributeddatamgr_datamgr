@@ -44,10 +44,6 @@ namespace DistributedDB {
 namespace {
     constexpr int DEF_LIFE_CYCLE_TIME = 60000; // 60s
     constexpr int WAIT_DELEGATE_CALLBACK_TIME = 100;
-    // In querySync, when getting query data finished,
-    // if the block size reach the half of max block size, will get deleted data next;
-    // if the block size not reach the half of max block size, will not get deleted data.
-    constexpr float QUERY_SYNC_THRESHOLD = 0.50;
 
     const std::string CREATE_DB_TIME = "createDBTime";
 
@@ -161,7 +157,7 @@ namespace {
         bool reachThreshold = false;
         for (size_t i = 0, blockSize = 0; !reachThreshold && i < dataItems.size(); i++) {
             blockSize += SQLiteSingleVerStorageExecutor::GetDataItemSerialSize(dataItems[i], appendLen);
-            reachThreshold = (blockSize >= dataSizeInfo.blockSize * QUERY_SYNC_THRESHOLD);
+            reachThreshold = (blockSize >= dataSizeInfo.blockSize * DBConstant::QUERY_SYNC_THRESHOLD);
         }
         return !reachThreshold;
     }
@@ -178,7 +174,8 @@ SQLiteSingleVerNaturalStore::SQLiteSingleVerNaturalStore()
       lifeTimerId_(0),
       autoLifeTime_(DEF_LIFE_CYCLE_TIME),
       createDBTime_(0),
-      dataInterceptor_(nullptr)
+      dataInterceptor_(nullptr),
+      maxLogSize_(DBConstant::MAX_LOG_SIZE_DEFAULT)
 {}
 
 SQLiteSingleVerNaturalStore::~SQLiteSingleVerNaturalStore()
@@ -372,6 +369,9 @@ int SQLiteSingleVerNaturalStore::ClearIncompleteDatabase(const KvDBProperties &k
 
 int SQLiteSingleVerNaturalStore::CheckDatabaseRecovery(const KvDBProperties &kvDBProp)
 {
+    if (kvDBProp.GetBoolProp(KvDBProperties::MEMORY_MODE, false)) { // memory status not need recovery
+        return E_OK;
+    }
     std::unique_ptr<SingleVerDatabaseOper> operation = std::make_unique<SingleVerDatabaseOper>(this, nullptr);
     (void)operation->ClearExportedTempFiles(kvDBProp);
     int errCode = operation->RekeyRecover(kvDBProp);
@@ -942,8 +942,21 @@ int SQLiteSingleVerNaturalStore::RemoveDeviceData(const std::string &deviceName,
     if (!isInSync && !CheckWritePermission()) {
         return -E_NOT_PERMIT;
     }
+    int errCode = E_OK;
+    SQLiteSingleVerStorageExecutor *handle = GetHandle(true, errCode);
+    if (handle == nullptr) {
+        LOGE("[SingleVerNStore] RemoveDeviceData get handle failed:%d", errCode);
+        return errCode;
+    }
+    uint64_t logFileSize = handle->GetLogFileSize();
+    ReleaseHandle(handle);
+    if (logFileSize > GetMaxLogSize()) {
+        LOGW("[SingleVerNStore] RmDevData log size[%llu] over the limit", logFileSize);
+        return -E_LOG_OVER_LIMITS;
+    }
+
     // Call the syncer module to erase the water mark.
-    int errCode = EraseDeviceWaterMark(deviceName, true);
+    errCode = EraseDeviceWaterMark(deviceName, true);
     if (errCode != E_OK) {
         LOGE("[SingleVerNStore] erase water mark failed:%d", errCode);
         return errCode;
@@ -2216,6 +2229,17 @@ ERR:
 int SQLiteSingleVerNaturalStore::RemoveSubscribe(const std::string &subscribeId)
 {
     return RemoveSubscribe(std::vector<std::string> {subscribeId});
+}
+
+int SQLiteSingleVerNaturalStore::SetMaxLogSize(uint64_t limit)
+{
+    LOGI("Set the max log size to %llu", limit);
+    maxLogSize_.store(limit);
+    return E_OK;
+}
+uint64_t SQLiteSingleVerNaturalStore::GetMaxLogSize() const
+{
+    return maxLogSize_.load();
 }
 
 int SQLiteSingleVerNaturalStore::RemoveAllSubscribe()

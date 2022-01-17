@@ -57,6 +57,8 @@ namespace {
         {RESULT_SET_CACHE_MODE, PRAGMA_RESULT_SET_CACHE_MODE},
         {RESULT_SET_CACHE_MAX_SIZE, PRAGMA_RESULT_SET_CACHE_MAX_SIZE},
         {SET_SYNC_RETRY, PRAGMA_SET_SYNC_RETRY},
+        {SET_MAX_LOG_SIZE, PRAGMA_SET_MAX_LOG_SIZE},
+        {EXEC_CHECKPOINT, PRAGMA_EXEC_CHECKPOINT},
     };
 
     const std::string INVALID_CONNECTION = "[KvStoreNbDelegate] Invalid connection for operation";
@@ -826,25 +828,10 @@ DBStatus KvStoreNbDelegateImpl::DeleteInner(const IOption &option, const Key &ke
 void KvStoreNbDelegateImpl::OnSyncComplete(const std::map<std::string, int> &statuses,
     const std::function<void(const std::map<std::string, DBStatus> &devicesMap)> &onComplete) const
 {
+    const auto &statusMap = SyncOperation::DBStatusTransMap();
     std::map<std::string, DBStatus> result;
     for (const auto &pair : statuses) {
         DBStatus status = DB_ERROR;
-        static const std::map<int, DBStatus> statusMap = {
-            { static_cast<int>(SyncOperation::OP_FINISHED_ALL),                  OK },
-            { static_cast<int>(SyncOperation::OP_TIMEOUT),                       TIME_OUT },
-            { static_cast<int>(SyncOperation::OP_PERMISSION_CHECK_FAILED),       PERMISSION_CHECK_FORBID_SYNC },
-            { static_cast<int>(SyncOperation::OP_COMM_ABNORMAL),                 COMM_FAILURE },
-            { static_cast<int>(SyncOperation::OP_SECURITY_OPTION_CHECK_FAILURE), SECURITY_OPTION_CHECK_ERROR },
-            { static_cast<int>(SyncOperation::OP_EKEYREVOKED_FAILURE),           EKEYREVOKED_ERROR },
-            { static_cast<int>(SyncOperation::OP_SCHEMA_INCOMPATIBLE),           SCHEMA_MISMATCH },
-            { static_cast<int>(SyncOperation::OP_BUSY_FAILURE),                  BUSY },
-            { static_cast<int>(SyncOperation::OP_QUERY_FORMAT_FAILURE),          INVALID_QUERY_FORMAT },
-            { static_cast<int>(SyncOperation::OP_QUERY_FIELD_FAILURE),           INVALID_QUERY_FIELD },
-            { static_cast<int>(SyncOperation::OP_NOT_SUPPORT),                   NOT_SUPPORT },
-            { static_cast<int>(SyncOperation::OP_INTERCEPT_DATA_FAIL),           INTERCEPT_DATA_FAIL },
-            { static_cast<int>(SyncOperation::OP_MAX_LIMITS),                    OVER_MAX_LIMITS },
-            { static_cast<int>(SyncOperation::OP_INVALID_ARGS),                  INVALID_ARGS },
-        };
         auto iter = statusMap.find(pair.second);
         if (iter != statusMap.end()) {
             status = iter->second;

@@ -12,17 +12,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef MOCK_SINGLE_VER_SYNC_TASK_CONTEXT_H
-#define MOCK_SINGLE_VER_SYNC_TASK_CONTEXT_H
 
-#include <gmock/gmock.h>
-#include "single_ver_sync_task_context.h"
+#include "relationaldb_properties.h"
 
 namespace DistributedDB {
-class MockSingleVerSyncTaskContext : public SingleVerSyncTaskContext {
-public:
-    MOCK_METHOD1(HandleDataRequestRecv, int(const Message *));
-    MOCK_CONST_METHOD0(IsReceiveWaterMarkErr, bool(void));
-};
-} // namespace DistributedDB
-#endif // MOCK_SINGLE_VER_SYNC_TASK_CONTEXT_H
+RelationalDBProperties::RelationalDBProperties()
+{}
+
+RelationalDBProperties::~RelationalDBProperties()
+{}
+
+bool RelationalDBProperties::IsSchemaExist() const
+{
+    return schema_.IsSchemaValid();
+}
+
+void RelationalDBProperties::SetSchema(const RelationalSchemaObject &schema)
+{
+    schema_ = schema;
+}
+
+RelationalSchemaObject RelationalDBProperties::GetSchema() const
+{
+    return schema_;
+}
+}

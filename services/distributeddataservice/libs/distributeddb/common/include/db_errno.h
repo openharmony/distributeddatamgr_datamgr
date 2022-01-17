@@ -115,10 +115,11 @@ constexpr int E_SYSTEM_API_ADAPTER_CALL_FAILED = (E_BASE + 91); // Adapter call 
 constexpr int E_NOT_NEED_DELETE_MSG = (E_BASE + 92); // not need delete msg, will be delete by sliding window receiver
 constexpr int E_SLIDING_WINDOW_SENDER_ERR = (E_BASE + 93); // sliding window sender err
 constexpr int E_SLIDING_WINDOW_RECEIVER_INVALID_MSG = (E_BASE + 94); // sliding window receiver invalid msg
-constexpr int E_IGNOR_DATA = (E_BASE + 95); // ignore the data changed by other devices and ignore the same data.
+constexpr int E_IGNORE_DATA = (E_BASE + 95); // ignore the data changed by other devices and ignore the same data.
 constexpr int E_FORBID_CACHEDB = (E_BASE + 96); // such after rekey can not check passwd due to file control.
 constexpr int E_INTERCEPT_DATA_FAIL = (E_BASE + 97); // Intercept push data failed.
 constexpr int E_INVALID_COMPRESS_ALGO = (E_BASE + 98); // The algo is defined, but there's no implement for the algo.
+constexpr int E_LOG_OVER_LIMITS = (E_BASE + 99); // The log file size is over the limits.
 // Num 150+ is reserved for schema related errno, since it may be added regularly
 constexpr int E_JSON_PARSE_FAIL = (E_BASE + 150); // Parse json fail in grammatical level
 constexpr int E_JSON_INSERT_PATH_EXIST = (E_BASE + 151); // Path already exist before insert

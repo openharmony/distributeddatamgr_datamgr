@@ -21,7 +21,6 @@
 #include "sqlite_import.h"
 
 #include "db_types.h"
-#include "iprocess_system_api_adapter.h"
 #include "schema_object.h"
 #include "types.h"
 #ifdef RELATIONAL_STORE
@@ -53,15 +52,15 @@ std::string GetTriggerModeString(TriggerModeEnum mode);
 }
 
 struct OpenDbProperties {
-    std::string uri{};
+    std::string uri {};
     bool createIfNecessary = true;
     bool isMemDb = false;
-    std::vector<std::string> sqls{};
+    std::vector<std::string> sqls {};
     CipherType cipherType = CipherType::AES_256_GCM;
-    CipherPassword passwd{};
-    std::string schema{};
-    std::string subdir{};
-    SecurityOption securityOpt{};
+    CipherPassword passwd {};
+    std::string schema {};
+    std::string subdir {};
+    SecurityOption securityOpt {};
     int conflictReslovePolicy = DEFAULT_LAST_WIN;
     bool createDirByStoreIdOnly = false;
 };
@@ -69,7 +68,7 @@ struct OpenDbProperties {
 class SQLiteUtils {
 public:
     // Initialize the SQLiteUtils with the given properties.
-    static int OpenDatabase(const OpenDbProperties &properties, sqlite3 *&db);
+    static int OpenDatabase(const OpenDbProperties &properties, sqlite3 *&db, bool setWal = true);
 
     // Check the statement and prepare the new if statement is null
     static int GetStatement(sqlite3 *db, const std::string &sql, sqlite3_stmt *&statement);
@@ -116,6 +115,10 @@ public:
     static int GetVersion(const OpenDbProperties &properties, int &version);
 
     static int GetVersion(sqlite3 *db, int &version);
+
+    static int GetJournalMode(sqlite3 *db, std::string &mode);
+
+    static int GetSynchronousMode(sqlite3 *db, int &mode);
 
     static int SetUserVer(const OpenDbProperties &properties, int version);
 
@@ -168,15 +171,20 @@ public:
 
     static int CreateSameStuTable(sqlite3 *db, const std::string &oriTableName, const std::string &newTableName,
         bool isCopyData);
+    static int CloneIndexes(sqlite3 *db, const std::string &oriTableName, const std::string &newTableName);
 #endif
 
     static int DropTriggerByName(sqlite3 *db, const std::string &name);
 
     static int ExpandedSql(sqlite3_stmt *stmt, std::string &basicString);
 
+    static void ExecuteCheckPoint(sqlite3 *db);
+
+    static int CheckTableEmpty(sqlite3 *db, const std::string &tableName, bool &isEmpty);
+
 private:
 
-    static int CreateDataBase(const OpenDbProperties &properties, sqlite3 *&dbTemp);
+    static int CreateDataBase(const OpenDbProperties &properties, sqlite3 *&dbTemp, bool setWal);
 
     static int SetBusyTimeout(sqlite3 *db, int timeout);
 

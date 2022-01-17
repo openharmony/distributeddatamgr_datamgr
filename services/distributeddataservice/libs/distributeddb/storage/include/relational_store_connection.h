@@ -18,9 +18,11 @@
 
 #include <atomic>
 #include <string>
+
+#include "db_types.h"
 #include "macro_utils.h"
-#include "relational_store_delegate.h"
 #include "ref_object.h"
+#include "relational_store_delegate.h"
 
 namespace DistributedDB {
 class IRelationalStore;
@@ -30,15 +32,14 @@ public:
     struct SyncInfo {
         const std::vector<std::string> &devices;
         SyncMode mode = SYNC_MODE_PUSH_PULL;
-        SyncStatusCallback &onComplete;
+        const SyncStatusCallback &onComplete;
         const Query &query;
         bool wait = true;
     };
-    RelationalStoreConnection() = default;
-    explicit RelationalStoreConnection(IRelationalStore *store)
-    {
-        store_ = store;
-    };
+
+    RelationalStoreConnection();
+
+    explicit RelationalStoreConnection(IRelationalStore *store);
 
     virtual ~RelationalStoreConnection() = default;
 
@@ -49,8 +50,8 @@ public:
     virtual int TriggerAutoSync() = 0;
     virtual int SyncToDevice(SyncInfo &info) = 0;
     virtual std::string GetIdentifier() = 0;
-    virtual int CreateDistributedTable(const std::string &tableName,
-        const RelationalStoreDelegate::TableOption &option) = 0;
+    virtual int CreateDistributedTable(const std::string &tableName) = 0;
+    virtual int RegisterLifeCycleCallback(const DatabaseLifeCycleNotifier &notifier) = 0;
 
 protected:
     // Get the stashed 'KvDB_ pointer' without ref.
@@ -62,7 +63,7 @@ protected:
 
     virtual int Pragma(int cmd, void *parameter);
     IRelationalStore *store_ = nullptr;
-    std::atomic<bool> isExclusive_ = false;
+    std::atomic<bool> isExclusive_;
 };
 } // namespace DistributedDB
 #endif

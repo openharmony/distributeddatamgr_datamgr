@@ -41,6 +41,11 @@ public:
     static constexpr int MAX_COMMIT_SIZE = 1000000;
     static constexpr int MAX_ENTRIES_SIZE = 1000000;
 
+    // In querySync, when getting query data finished,
+    // if the block size reach the half of max block size, will get deleted data next;
+    // if the block size not reach the half of max block size, will not get deleted data.
+    static constexpr float QUERY_SYNC_THRESHOLD = 0.50;
+
     static constexpr uint64_t MAX_USER_ID_LENGTH = 128;
     static constexpr uint64_t MAX_APP_ID_LENGTH = 128;
     static constexpr uint64_t MAX_STORE_ID_LENGTH = 128;
@@ -92,6 +97,8 @@ public:
 
     static const std::string UPDATE_META_FUNC;
 
+    static const std::string SYSTEM_TABLE_PREFIX;
+
     static constexpr uint32_t AUTO_SYNC_TIMEOUT = 5000; // 5s
     static constexpr uint32_t MANUAL_SYNC_TIMEOUT = 5000; // 5s
 
@@ -109,6 +116,15 @@ public:
     static constexpr size_t MAX_SYNC_BLOCK_SIZE = 31457280; // 30MB
 
     static constexpr int DOUBLE_PRECISION = 15;
+    static constexpr int MAX_DISTRIBUTED_TABLE_COUNT = 32;
+
+    static constexpr uint64_t MAX_LOG_SIZE_HIGH = 0x400000000ULL; // 16GB
+    static constexpr uint64_t MAX_LOG_SIZE_LOW = 0x400000ULL; // 4MB
+    static constexpr uint64_t MAX_LOG_SIZE_DEFAULT = 0x40000000ULL; // 1GB
+
+    // For relational
+    static const std::string RELATIONAL_PREFIX;
+    static const std::string TIMESTAMP_ALIAS;
 };
 } // namespace DistributedDB
 

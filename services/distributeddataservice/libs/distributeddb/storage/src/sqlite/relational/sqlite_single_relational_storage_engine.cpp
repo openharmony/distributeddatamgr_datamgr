@@ -52,12 +52,12 @@ int SQLiteSingleRelationalStorageEngine::RegisterFunction(sqlite3 *db) const
 int SQLiteSingleRelationalStorageEngine::CreateNewExecutor(bool isWrite, StorageExecutor *&handle)
 {
     sqlite3 *db = nullptr;
-    int errCode = SQLiteUtils::OpenDatabase(option_, db);
+    int errCode = SQLiteUtils::OpenDatabase(option_, db, false);
     if (errCode != E_OK) {
         return errCode;
     }
     do {
-        errCode = Upgrade(db);
+        errCode = Upgrade(db); // cerate meta_data table.
         if (errCode != E_OK) {
             break;
         }
@@ -66,6 +66,7 @@ int SQLiteSingleRelationalStorageEngine::CreateNewExecutor(bool isWrite, Storage
         if (errCode != E_OK) {
             break;
         }
+
         handle = NewSQLiteStorageExecutor(db, isWrite, false);
         if (handle == nullptr) {
             LOGE("[Relational] New SQLiteStorageExecutor[%d] for the pool failed.", isWrite);

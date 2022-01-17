@@ -120,8 +120,8 @@ public:
 
     static RelationalSyncOpinion MakeLocalSyncOpinion(const RelationalSchemaObject &localSchema,
         const std::string &remoteSchema, uint8_t remoteSchemaType);
-    // The remoteOpinion.checkOnReceive is ignored
 
+    // The remoteOpinion.checkOnReceive is ignored
     static RelationalSyncStrategy ConcludeSyncStrategy(const RelationalSyncOpinion &localOpinion,
         const RelationalSyncOpinion &remoteOpinion);
 
@@ -138,7 +138,7 @@ public:
 
     const std::map<std::string, TableInfo> &GetTables() const;
 
-    const TableInfo &GetTable(const std::string& tableName) const;
+    TableInfo GetTable(const std::string& tableName) const;
 
 private:
     int CompareAgainstSchemaObject(const std::string &inSchemaString, std::map<std::string, int> &cmpRst) const;
@@ -153,6 +153,7 @@ private:
     int ParseCheckTableInfo(const JsonObject &inJsonObject);
     int ParseCheckTableName(const JsonObject &inJsonObject, TableInfo &resultTable);
     int ParseCheckTableDefine(const JsonObject &inJsonObject, TableInfo &resultTable);
+    int ParseCheckTableFieldInfo(const JsonObject &inJsonObject, const FieldPath &path, FieldInfo &table);
     int ParseCheckTableAutoInc(const JsonObject &inJsonObject, TableInfo &resultTable);
     int ParseCheckTableUnique(const JsonObject &inJsonObject, TableInfo &resultTable);
     int ParseCheckTableIndex(const JsonObject &inJsonObject, TableInfo &resultTable);

@@ -519,7 +519,7 @@ int JsonObject::MoveToPath(const FieldPath &inPath, Json::Value *&exact, Json::V
 
 int JsonObject::InsertField(const FieldPath &inPath, const JsonObject &inValue, bool isAppend)
 {
-    if (inPath.empty() || inPath.size() > maxNestDepth_|| !inValue.IsValid()) {
+    if (inPath.empty() || inPath.size() > maxNestDepth_ || !inValue.IsValid()) {
         return -E_INVALID_ARGS;
     }
     if (!isValid_) {
@@ -727,6 +727,7 @@ int JsonObject::GetObjectArrayByFieldPath(const FieldPath &inPath, std::vector<J
     int errCode = E_OK;
     const Json::Value &valueNode = GetJsonValueByFieldPath(inPath, errCode);
     if (errCode != E_OK) {
+        LOGE("[Json][GetValue] Get json value failed. %d", errCode);
         return errCode;
     }
 
@@ -734,10 +735,30 @@ int JsonObject::GetObjectArrayByFieldPath(const FieldPath &inPath, std::vector<J
         LOGE("[Json][GetValue] Not Array type.");
         return -E_NOT_PERMIT;
     }
-    outArray.resize(valueNode.size());
     for (Json::ArrayIndex i = 0; i < valueNode.size(); ++i) {
         outArray.emplace_back(JsonObject(valueNode[i]));
     }
+    return E_OK;
+}
+
+int JsonObject::GetObjectByFieldPath(const FieldPath &inPath, JsonObject &outObj) const
+{
+    if (!isValid_) {
+        LOGE("[Json][GetValue] Not Valid Yet.");
+        return -E_NOT_PERMIT;
+    }
+    int errCode = E_OK;
+    const Json::Value &valueNode = GetJsonValueByFieldPath(inPath, errCode);
+    if (errCode != E_OK) {
+        LOGE("[Json][GetValue] Get json value failed. %d", errCode);
+        return errCode;
+    }
+
+    if (!valueNode.isObject()) {
+        LOGE("[Json][GetValue] Not Object type.");
+        return -E_NOT_PERMIT;
+    }
+    outObj = JsonObject(valueNode);
     return E_OK;
 }
 
@@ -750,6 +771,7 @@ int JsonObject::GetStringArrayByFieldPath(const FieldPath &inPath, std::vector<s
     int errCode = E_OK;
     const Json::Value &valueNode = GetJsonValueByFieldPath(inPath, errCode);
     if (errCode != E_OK) {
+        LOGE("[Json][GetValue] Get json value failed. %d", errCode);
         return errCode;
     }
 

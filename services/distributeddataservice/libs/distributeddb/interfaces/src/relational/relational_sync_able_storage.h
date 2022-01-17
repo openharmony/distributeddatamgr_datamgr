@@ -19,7 +19,7 @@
 #include "relational_db_sync_interface.h"
 #include "sqlite_single_relational_storage_engine.h"
 
-#include "sqlite_single_ver_continue_token.h"
+#include "sqlite_single_ver_relational_continue_token.h"
 
 namespace DistributedDB {
 class RelationalSyncAbleStorage : public RelationalDBSyncInterface, public virtual RefObject {
@@ -67,9 +67,6 @@ public:
     int GetSyncDataNext(std::vector<SingleVerKvEntry *> &entries, ContinueToken &continueStmtToken,
         const DataSizeSpecInfo &dataSizeInfo) const override;
 
-    // Release the continue token of getting data.
-    void ReleaseContinueToken(ContinueToken &continueStmtToken) const override;
-
     int PutSyncDataWithQuery(const QueryObject &object, const std::vector<SingleVerKvEntry *> &entries,
         const DeviceID &deviceName) override;
 
@@ -112,7 +109,7 @@ private:
     int SetMaxTimeStamp(TimeStamp timestamp);
 
     // get
-    int GetSyncDataForQuerySync(std::vector<DataItem> &dataItems, SQLiteSingleVerContinueToken *&continueStmtToken,
+    int GetSyncDataForQuerySync(std::vector<DataItem> &dataItems, SQLiteSingleVerRelationalContinueToken *&token,
         const DataSizeSpecInfo &dataSizeInfo) const;
 
     // put

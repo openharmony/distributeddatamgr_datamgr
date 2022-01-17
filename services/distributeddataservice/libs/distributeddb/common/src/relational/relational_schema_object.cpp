@@ -14,10 +14,10 @@
  */
 #ifdef RELATIONAL_STORE
 #include <algorithm>
-#include <schema_utils.h>
 
 #include "json_object.h"
 #include "relational_schema_object.h"
+#include "schema_utils.h"
 
 namespace DistributedDB {
 const std::string &FieldInfo::GetFieldName() const
@@ -97,15 +97,13 @@ void FieldInfo::SetColumnId(int cid)
 // return field define string like ("fieldName": "MY INT(21), NOT NULL, DEFAULT 123")
 std::string FieldInfo::ToAttributeString() const
 {
-    std::string attrStr = "\"" + fieldName_ + "\": \"";
-    attrStr += dataType_;
-    if (isNotNull_) {
-        attrStr += ", NOT NULL";
-    }
+    std::string attrStr = "\"" + fieldName_ + "\": {";
+    attrStr += "\"TYPE\":\"" + dataType_ + "\",";
+    attrStr += "\"NOT_NULL\":" + std::string(isNotNull_ ? "true" : "false") + ",";
     if (hasDefaultValue_) {
-        attrStr += ", " + defaultValue_;
+        attrStr += "\"DEFAULT\":\"" + defaultValue_ + "\"";
     }
-    attrStr +=  + "\"";
+    attrStr += "}";
     return attrStr;
 }
 
@@ -270,7 +268,7 @@ void TableInfo::SetDevId(const std::string &devId)
 }
 
 namespace {
-    std::string VectorJoin(const CompositeFields& fields, char con)
+    std::string VectorJoin(const CompositeFields &fields, char con)
     {
         std::string res;
         auto it = fields.begin();
@@ -292,13 +290,12 @@ JsonObject TableInfo::ToJsonObject() const
     tableJson.InsertField(FieldPath { "AUTOINCREMENT" }, FieldType::LEAF_FIELD_BOOL, jsonField);
     jsonField.stringValue = primaryKey_;
     tableJson.InsertField(FieldPath { "PRIMARY_KEY" }, FieldType::LEAF_FIELD_STRING, jsonField);
-    for (const auto& it : fields_) {
+    for (const auto &it : fields_) {
         jsonField.stringValue = it.second.ToAttributeString();
         tableJson.InsertField(FieldPath { "DEFINE", it.first }, FieldType::LEAF_FIELD_STRING, jsonField);
     }
-    for (const auto& it : uniqueDefines_) {
+    for (const auto &it : uniqueDefines_) {
         jsonField.stringValue = VectorJoin(it, ',');
-        // TODO: add unique to tableJson
     }
     return tableJson;
 }
@@ -337,7 +334,7 @@ int RelationalSyncOpinion::Deserialization(const Parcel &parcel)
     return E_OK;
 }
 
-const SyncOpinion &RelationalSyncOpinion::GetTableOpinion(const std::string& tableName) const
+const SyncOpinion &RelationalSyncOpinion::GetTableOpinion(const std::string &tableName) const
 {
     return opinions_.at(tableName);
 }
@@ -408,12 +405,12 @@ int RelationalSchemaObject::ParseFromSchemaString(const std::string &inSchemaStr
     }
 
     schemaType_ = SchemaType::RELATIVE;
-    schemaString_ = inSchemaString;
+    schemaString_ = schemaObj.ToString();
     isValid_ = true;
     return E_OK;
 }
 
-void RelationalSchemaObject::AddRelationalTable(const TableInfo& tb)
+void RelationalSchemaObject::AddRelationalTable(const TableInfo &tb)
 {
     tables_[tb.GetTableName()] = tb;
 }
@@ -423,9 +420,13 @@ const std::map<std::string, TableInfo> &RelationalSchemaObject::GetTables() cons
     return tables_;
 }
 
-const TableInfo &RelationalSchemaObject::GetTable(const std::string& tableName) const
+TableInfo RelationalSchemaObject::GetTable(const std::string &tableName) const
 {
-    return tables_.at(tableName);
+    auto it = tables_.find(tableName);
+    if (it != tables_.end()) {
+        return it->second;
+    }
+    return {};
 }
 
 int RelationalSchemaObject::CompareAgainstSchemaObject(const std::string &inSchemaString,
@@ -444,8 +445,9 @@ namespace {
 int GetMemberFromJsonObject(const JsonObject &inJsonObject, const std::string &fieldName, FieldType expectType,
     bool isNecessary, FieldValue &fieldValue)
 {
-    if (!inJsonObject.IsFieldPathExist(FieldPath {fieldName}) && !isNecessary) {
-        return E_OK;
+    if (!inJsonObject.IsFieldPathExist(FieldPath {fieldName})) {
+        LOGW("[RelationalSchema][Parse] Get schema %s not exist. isNecessary: %d", fieldName.c_str(), isNecessary);
+        return isNecessary ? -E_SCHEMA_PARSE_FAIL : -E_NOT_FOUND;
     }
 
     FieldType fieldType;
@@ -456,11 +458,11 @@ int GetMemberFromJsonObject(const JsonObject &inJsonObject, const std::string &f
     }
 
     if (fieldType != expectType) {
-        LOGE("[RelationalSchema][Parse] Expect %s fieldType %d but : %d.", fieldName.c_str(), expectType, fieldType);
+        LOGE("[RelationalSchema][Parse] Expect %s fieldType %d but: %d.", fieldName.c_str(), expectType, fieldType);
         return -E_SCHEMA_PARSE_FAIL;
     }
 
-    errCode = inJsonObject.GetFieldValueByFieldPath(FieldPath {"NAME"}, fieldValue);
+    errCode = inJsonObject.GetFieldValueByFieldPath(FieldPath {fieldName}, fieldValue);
     if (errCode != E_OK) {
         LOGE("[RelationalSchema][Parse] Get schema %s value failed: %d.", fieldName.c_str(), errCode);
         return -E_SCHEMA_PARSE_FAIL;
@@ -479,11 +481,7 @@ int RelationalSchemaObject::ParseRelationalSchema(const JsonObject &inJsonObject
     if (errCode != E_OK) {
         return errCode;
     }
-    errCode = ParseCheckSchemaTableDefine(inJsonObject);
-    if (errCode != E_OK) {
-        return errCode;
-    }
-    return E_OK;
+    return ParseCheckSchemaTableDefine(inJsonObject);
 }
 
 int RelationalSchemaObject::ParseCheckSchemaVersionMode(const JsonObject &inJsonObject)
@@ -596,46 +594,67 @@ int RelationalSchemaObject::ParseCheckTableDefine(const JsonObject &inJsonObject
     }
 
     for (const auto &field : tableFields) {
-        if (field.second != FieldType::LEAF_FIELD_STRING) {
-            LOGE("[RelationalSchema][Parse] Expect schema TABLES DEFINE fieldType STRING but : %s.",
+        if (field.second != FieldType::INTERNAL_FIELD_OBJECT) {
+            LOGE("[RelationalSchema][Parse] Expect schema TABLES DEFINE fieldType INTERNAL OBJECT but : %s.",
                 SchemaUtils::FieldTypeString(field.second).c_str());
             return -E_SCHEMA_PARSE_FAIL;
         }
-        FieldValue fieldValue;
-        errCode = inJsonObject.GetFieldValueByFieldPath(field.first, fieldValue);
-        if (errCode != E_OK) {
-            LOGE("[RelationalSchema][Parse] Get schema TABLES DEFINE field value failed: %d.", errCode);
-            return -E_SCHEMA_PARSE_FAIL;
-        }
 
-        SchemaAttribute outAttr;
-        errCode = SchemaUtils::ParseAndCheckSchemaAttribute(fieldValue.stringValue, outAttr, false);
+        JsonObject fieldObj;
+        errCode = inJsonObject.GetObjectByFieldPath(field.first, fieldObj);
         if (errCode != E_OK) {
-            LOGE("[RelationalSchema][Parse] Parse schema TABLES DEFINE attribute failed: %d.", errCode);
+            LOGE("[RelationalSchema][Parse] Get table field object failed. %d", errCode);
             return errCode;
         }
 
         FieldInfo fieldInfo;
-        fieldInfo.SetFieldName(field.first[1]);
-        fieldInfo.SetDataType(outAttr.customFieldType);
-        fieldInfo.SetNotNull(outAttr.hasNotNullConstraint);
-        if (outAttr.hasDefaultValue) {
-            fieldInfo.SetDefaultValue(outAttr.defaultValue.stringValue);
+        fieldInfo.SetFieldName(field.first[0]); // 0 : first element in path
+        errCode = ParseCheckTableFieldInfo(fieldObj, field.first, fieldInfo);
+        if (errCode != E_OK) {
+            LOGE("[RelationalSchema][Parse] Parse table field info failed. %d", errCode);
+            return -E_SCHEMA_PARSE_FAIL;
         }
         resultTable.AddField(fieldInfo);
     }
     return E_OK;
 }
 
+int RelationalSchemaObject::ParseCheckTableFieldInfo(const JsonObject &inJsonObject, const FieldPath &path,
+    FieldInfo &table)
+{
+    FieldValue fieldValue;
+    int errCode = GetMemberFromJsonObject(inJsonObject, "TYPE", FieldType::LEAF_FIELD_STRING, true, fieldValue);
+    if (errCode != E_OK) {
+        return errCode;
+    }
+    table.SetDataType(fieldValue.stringValue);
+
+    errCode = GetMemberFromJsonObject(inJsonObject, "NOT_NULL", FieldType::LEAF_FIELD_BOOL, true, fieldValue);
+    if (errCode != E_OK) {
+        return errCode;
+    }
+    table.SetNotNull(fieldValue.boolValue);
+
+    errCode = GetMemberFromJsonObject(inJsonObject, "DEFAULT", FieldType::LEAF_FIELD_STRING, false, fieldValue);
+    if (errCode == E_OK) {
+        table.SetDefaultValue(fieldValue.stringValue);
+    } else if (errCode != -E_NOT_FOUND) {
+        return errCode;
+    }
+
+    return E_OK;
+}
+
 int RelationalSchemaObject::ParseCheckTableAutoInc(const JsonObject &inJsonObject, TableInfo &resultTable)
 {
     FieldValue fieldValue;
-    int errCode = GetMemberFromJsonObject(inJsonObject, "AUTOINCREMENT", FieldType::LEAF_FIELD_BOOL,
-        false, fieldValue);
+    int errCode = GetMemberFromJsonObject(inJsonObject, "AUTOINCREMENT", FieldType::LEAF_FIELD_BOOL, false, fieldValue);
     if (errCode == E_OK) {
         resultTable.SetAutoIncrement(fieldValue.boolValue);
+    } else if (errCode != -E_NOT_FOUND) {
+        return errCode;
     }
-    return errCode;
+    return E_OK;
 }
 
 int RelationalSchemaObject::ParseCheckTableUnique(const JsonObject &inJsonObject, TableInfo &resultTable)
@@ -681,7 +700,7 @@ int RelationalSchemaObject::ParseCheckTableIndex(const JsonObject &inJsonObject,
             LOGE("[RelationalSchema][Parse] Get schema TABLES INDEX field value failed: %d.", errCode);
             return -E_SCHEMA_PARSE_FAIL;
         }
-        resultTable.AddIndexDefine(field.first[1], indexDefine);
+        resultTable.AddIndexDefine(field.first[1], indexDefine); // 1 : second element in path
     }
     return E_OK;
 }
