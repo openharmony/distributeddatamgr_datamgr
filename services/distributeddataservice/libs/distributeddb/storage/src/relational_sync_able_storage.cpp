@@ -18,6 +18,7 @@
 #include "data_compression.h"
 #include "platform_specific.h"
 #include "generic_single_ver_kv_entry.h"
+#include "runtime_context.h"
 
 namespace DistributedDB {
 #define CHECK_STORAGE_ENGINE do { \
@@ -93,6 +94,14 @@ void RelationalSyncAbleStorage::ReleaseHandle(SQLiteSingleVerRelationalStorageEx
     }
     StorageExecutor *databaseHandle = handle;
     storageEngine_->Recycle(databaseHandle);
+    std::function<void()> listener = nullptr;
+    {
+        std::lock_guard<std::mutex> autoLock(heartBeatMutex_);
+        listener = heartBeatListener_;
+    }
+    if (listener) {
+        listener();
+    }
 }
 
 // Get meta data associated with the given key.
@@ -488,6 +497,12 @@ int RelationalSyncAbleStorage::GetCompressionAlgo(std::set<CompressAlgorithm> &a
     algorithmSet.clear();
     DataCompression::GetCompressionAlgo(algorithmSet);
     return E_OK;
+}
+
+void RelationalSyncAbleStorage::RegisterHeartBeatListener(const std::function<void()> &listener)
+{
+    std::lock_guard<std::mutex> autoLock(heartBeatMutex_);
+    heartBeatListener_ = listener;
 }
 }
 #endif

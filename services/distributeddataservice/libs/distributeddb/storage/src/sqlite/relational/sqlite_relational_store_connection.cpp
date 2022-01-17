@@ -210,7 +210,13 @@ int SQLiteRelationalStoreConnection::SyncToDevice(SyncInfo &info)
 
 int SQLiteRelationalStoreConnection::RegisterLifeCycleCallback(const DatabaseLifeCycleNotifier &notifier)
 {
-    return E_OK;
+    auto *store = GetDB<SQLiteRelationalStore>();
+    if (store == nullptr) {
+        LOGE("[RelationalConnection] store is null, get executor failed!");
+        return -E_INVALID_CONNECTION;
+    }
+    
+    return store->RegisterLifeCycleCallback(notifier);
 }
 }
 #endif

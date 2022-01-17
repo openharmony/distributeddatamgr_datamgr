@@ -92,8 +92,8 @@ public:
 
     int SchemaChanged(int notifyEvent) override;
 
-    int InterceptData(std::vector<SingleVerKvEntry *> &entries,
-                      const std::string &sourceID, const std::string &targetID) const override
+    int InterceptData(std::vector<SingleVerKvEntry *> &entries,const std::string &sourceID,
+        const std::string &targetID) const override
     {
         return E_OK;
     }
@@ -108,6 +108,9 @@ public:
     int RegisterSchemaChangedCallback(const std::function<void()> &callback) override;
 
     void NotifySchemaChanged();
+    
+    void RegisterHeartBeatListener(const std::function<void()> &listener);
+
     int GetCompressionAlgo(std::set<CompressAlgorithm> &algorithmSet) const override;
 
 private:
@@ -131,6 +134,8 @@ private:
 
     std::function<void()> onSchemaChanged_;
     mutable std::mutex onSchemaChangedMutex_;
+    std::function<void()> heartBeatListener_;
+    mutable std::mutex heartBeatMutex_;
 };
 }  // namespace DistributedDB
 #endif

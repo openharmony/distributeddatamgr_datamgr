@@ -243,6 +243,7 @@ ohos_source_set("src_file") {
     "unittest/common/interfaces/process_system_api_adapter_impl.cpp",
     "unittest/common/syncer/generic_virtual_device.cpp",
     "unittest/common/syncer/kv_virtual_device.cpp",
+    "unittest/common/syncer/relational_virtual_device.cpp",
     "unittest/common/syncer/virtual_communicator.cpp",
     "unittest/common/syncer/virtual_communicator_aggregator.cpp",
     "unittest/common/syncer/virtual_multi_ver_sync_db_interface.cpp",

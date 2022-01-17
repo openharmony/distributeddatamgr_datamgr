@@ -292,6 +292,7 @@ int AutoLaunch::RegisterObserver(AutoLaunchItem &autoLaunchItem, const std::stri
         LOGE("[AutoLaunch] autoLaunchItem.conn is nullptr");
         return -E_INTERNAL_ERROR;
     }
+    LOGI("[AutoLaunch] RegisterObserver type=%d", autoLaunchItem.type);
     int errCode;
     Key key;
     KvDBObserverHandle *observerHandle = nullptr;

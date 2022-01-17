@@ -187,6 +187,19 @@ DataValue &DataValue::operator=(const Blob &blob)
     return *this;
 }
 
+int DataValue::Set(Blob *&blob)
+{
+    ResetValue();
+    if (blob == nullptr || blob->GetSize() <= 0) {
+        LOGE("Transfer Blob to DataValue failed.");
+        return -E_INVALID_ARGS;
+    }
+    type_ = StorageType::STORAGE_TYPE_BLOB;
+    value_.blobPtr = blob;
+    blob = nullptr;
+    return E_OK;
+}
+
 DataValue &DataValue::operator=(const std::string &string)
 {
     (void)SetText(string);

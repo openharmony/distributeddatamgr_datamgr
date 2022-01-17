@@ -27,6 +27,7 @@ namespace {
     constexpr const char *RELATIONAL_SCHEMA_KEY = "relational_schema";
     constexpr const char *LOG_TABLE_VERSION_KEY = "log_table_versoin";
     constexpr const char *LOG_TABLE_VERSION_1 = "1.0";
+    constexpr int DEF_LIFE_CYCLE_TIME = 60000; // 60S
 }
 
 SQLiteRelationalStore::~SQLiteRelationalStore()
@@ -423,6 +424,113 @@ int SQLiteRelationalStore::RemoveDeviceData(const std::string &device, const std
 
     ReleaseHandle(handle);
     return errCode;
+}
+
+int SQLiteRelationalStore::StopLifeCycleTimer() const
+{
+    auto runtimeCxt = RuntimeContext::GetInstance();
+    if (runtimeCxt == nullptr) {
+        return -E_INVALID_ARGS;
+    }
+    if (lifeTimerId_ != 0) {
+        TimerId timerId = lifeTimerId_;
+        lifeTimerId_ = 0;
+        runtimeCxt->RemoveTimer(timerId, false);
+    }
+    return E_OK;
+}
+
+int SQLiteRelationalStore::StartLifeCycleTimer(const DatabaseLifeCycleNotifier &notifier) const
+{
+    auto runtimeCxt = RuntimeContext::GetInstance();
+    if (runtimeCxt == nullptr) {
+        return -E_INVALID_ARGS;
+    }
+    RefObject::IncObjRef(this);
+    TimerId timerId = 0;
+    int errCode = runtimeCxt->SetTimer(DEF_LIFE_CYCLE_TIME,
+        [this](TimerId id) -> int {
+            std::lock_guard<std::mutex> lock(lifeCycleMutex_);
+            if (lifeCycleNotifier_) {
+                auto identifier = properties_.GetStringProp(DBProperties::IDENTIFIER_DATA, "");
+                lifeCycleNotifier_(identifier);
+            }
+            return 0;
+        },
+        [this]() {
+            int ret = RuntimeContext::GetInstance()->ScheduleTask([this]() {
+                RefObject::DecObjRef(this);
+            });
+            if (ret != E_OK) {
+                LOGE("SQLiteSingleVerNaturalStore timer finalizer ScheduleTask, errCode %d", ret);
+            }
+        },
+        timerId);
+    if (errCode != E_OK) {
+        lifeTimerId_ = 0;
+        LOGE("SetTimer failed:%d", errCode);
+        RefObject::DecObjRef(this);
+        return errCode;
+    }
+
+    lifeCycleNotifier_ = notifier;
+    lifeTimerId_ = timerId;
+    return E_OK;
+}
+
+int SQLiteRelationalStore::RegisterLifeCycleCallback(const DatabaseLifeCycleNotifier &notifier)
+{
+    int errCode;
+    {
+        std::lock_guard<std::mutex> lock(lifeCycleMutex_);
+        if (!notifier) {
+            if (lifeTimerId_ == 0) {
+                return E_OK;
+            }
+            errCode = StopLifeCycleTimer();
+            if (errCode != E_OK) {
+                LOGE("Stop the life cycle timer failed:%d", errCode);
+            }
+            return E_OK;
+        }
+
+        if (lifeTimerId_ != 0) {
+            errCode = StopLifeCycleTimer();
+            if (errCode != E_OK) {
+                LOGE("Stop the life cycle timer failed:%d", errCode);
+            }
+        }
+        errCode = StartLifeCycleTimer(notifier);
+        if (errCode != E_OK) {
+            LOGE("Register life cycle timer failed:%d", errCode);
+        }
+    }
+    auto listener = std::bind(&SQLiteRelationalStore::HeartBeat, this);
+    storageEngine_->RegisterHeartBeatListener(listener);
+    return errCode;
+}
+
+void SQLiteRelationalStore::HeartBeat() const
+{
+    std::lock_guard<std::mutex> lock(lifeCycleMutex_);
+    int errCode = ResetLifeCycleTimer();
+    if (errCode != E_OK) {
+        LOGE("Heart beat for life cycle failed:%d", errCode);
+    }
+}
+
+int SQLiteRelationalStore::ResetLifeCycleTimer() const
+{
+    if (lifeTimerId_ == 0) {
+        return E_OK;
+    }
+    auto lifeNotifier = lifeCycleNotifier_;
+    lifeCycleNotifier_ = nullptr;
+    int errCode = StopLifeCycleTimer();
+    if (errCode != E_OK) {
+        LOGE("[Reset timer]Stop the life cycle timer failed:%d", errCode);
+    }
+    return StartLifeCycleTimer(lifeNotifier);
 }
 }
 #endif
