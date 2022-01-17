@@ -48,7 +48,7 @@ public:
     void SetReleaseFlag(bool flag);
 
 private:
-    static void OnSyncComplete(const std::map<std::string, std::vector<TableStatus>> &devicesMap,
+    static void OnSyncComplete(const std::map<std::string, std::vector<TableStatus>> &devicesStatus,
         SyncStatusCallback &onComplete);
 
     RelationalStoreConnection *conn_ = nullptr;

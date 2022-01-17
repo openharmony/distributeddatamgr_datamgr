@@ -122,13 +122,13 @@ void RelationalStoreDelegateImpl::SetReleaseFlag(bool flag)
     releaseFlag_ = flag;
 }
 
-void RelationalStoreDelegateImpl::OnSyncComplete(const std::map<std::string, std::vector<TableStatus>> &devicesMap,
+void RelationalStoreDelegateImpl::OnSyncComplete(const std::map<std::string, std::vector<TableStatus>> &devicesStatus,
     SyncStatusCallback &onComplete)
 {
     const auto &statusMap = SyncOperation::DBStatusTransMap();
     std::map<std::string, std::vector<TableStatus>> res;
-    for (const auto &[device, statusList] : devicesMap) {
-        for (const auto &tableStatus : statusList) {
+    for (const auto &[device, tablesStatus] : devicesStatus) {
+        for (const auto &tableStatus : tablesStatus) {
             TableStatus table;
             table.tableName = tableStatus.tableName;
             DBStatus status = DB_ERROR;
