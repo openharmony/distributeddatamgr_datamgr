@@ -1,7 +1,7 @@
 {
     "name": "@ohos/distributeddatamgr_datamgr",
     "version": "1.0.0",
-    "description": "提供设备间数据同步的能力。",
+    "description": "Distributed data manager that provides the capability to store data in the databases of different devices",
     "homePage": "https://gitee.com/openharmony",
     "license": "Apache V2",
     "repository": "https://gitee.com/openharmony/distributeddatamgr_datamgr",
