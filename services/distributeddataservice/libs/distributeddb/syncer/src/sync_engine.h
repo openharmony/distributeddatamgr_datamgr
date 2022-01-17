@@ -106,6 +106,8 @@ public:
 
     bool IsEngineActive() const override;
 
+    void ResetAbilitySync() override;
+
 protected:
     // Create a context
     virtual ISyncTaskContext *CreateSyncTaskContext() = 0;

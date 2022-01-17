@@ -1687,7 +1687,12 @@ bool SingleVerDataSync::CheckPermitReceiveData(const SingleVerSyncTaskContext *c
 
 int SingleVerDataSync::CheckSchemaStrategy(SingleVerSyncTaskContext *context, const Message *message)
 {
-    SyncStrategy localStrategy = context->GetSyncStrategy();
+    auto *packet = message->GetObject<DataRequestPacket>();
+    if (packet == nullptr) {
+        return -E_INVALID_ARGS;
+    }
+    auto query = packet->GetQuery();
+    SyncStrategy localStrategy = context->GetSyncStrategy(query);
     if (!context->GetIsSchemaSync()) {
         LOGE("[DataSync][CheckSchemaStrategy] isSchemaSync=%d check failed", context->GetIsSchemaSync());
         (void)SendDataAck(context, message, -E_NEED_ABILITY_SYNC, 0);

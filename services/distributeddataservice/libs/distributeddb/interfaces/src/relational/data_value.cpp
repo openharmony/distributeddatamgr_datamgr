@@ -98,17 +98,8 @@ DataValue::DataValue(const DataValue &dataValue)
 }
 
 DataValue::DataValue(DataValue &&dataValue) noexcept
-    :type_(dataValue.type_), value_(dataValue.value_)
 {
-    switch (type_) {
-        case StorageType::STORAGE_TYPE_BLOB:
-        case StorageType::STORAGE_TYPE_TEXT:
-            dataValue.value_.blobPtr = nullptr;
-            break;
-        default:
-            break;
-    }
-    dataValue.ResetValue();
+    *this = std::move(dataValue);
 }
 
 DataValue &DataValue::operator=(const DataValue &dataValue)

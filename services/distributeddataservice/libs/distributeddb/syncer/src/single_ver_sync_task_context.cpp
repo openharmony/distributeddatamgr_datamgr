@@ -351,20 +351,6 @@ bool SingleVerSyncTaskContext::GetSendPermitCheck() const
 {
     return isSendPermitChecked_;
 }
-
-void SingleVerSyncTaskContext::SetSyncStrategy(SyncStrategy strategy)
-{
-    syncStrategy_.permitSync = strategy.permitSync;
-    syncStrategy_.convertOnSend = strategy.convertOnSend;
-    syncStrategy_.convertOnReceive = strategy.convertOnReceive;
-    syncStrategy_.checkOnReceive = strategy.checkOnReceive;
-}
-
-SyncStrategy SingleVerSyncTaskContext::GetSyncStrategy() const
-{
-    return syncStrategy_;
-}
-
 void SingleVerSyncTaskContext::SetIsSchemaSync(bool isSchemaSync)
 {
     isSchemaSync_ = isSchemaSync;

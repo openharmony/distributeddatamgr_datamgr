@@ -119,6 +119,7 @@ int VirtualRelationalVerSyncDBInterface::GetSyncData(QueryObject &query,
     for (const auto &[hashKey, virtualData] : localData_[query.GetTableName()]) {
         if (virtualData.logInfo.timestamp < timeRange.beginTime 
             || virtualData.logInfo.timestamp >= timeRange.endTime) {
+            LOGD("ignore hashkey %s", hashKey.c_str());
             continue;
         }
         RowDataWithLog rowData;
@@ -276,6 +277,7 @@ const KvDBProperties &VirtualRelationalVerSyncDBInterface::GetDbProperties() con
 
 void VirtualRelationalVerSyncDBInterface::SetLocalFieldInfo(const std::vector<FieldInfo> &localFieldInfo)
 {
+    localFieldInfo_.clear();
     // sort by dict
     std::map<std::string, FieldInfo> infoMap;
     for (const auto &item : localFieldInfo) {
@@ -311,15 +313,28 @@ int VirtualRelationalVerSyncDBInterface::GetSyncData(const std::string &tableNam
     return E_OK;
 }
 
+void VirtualRelationalVerSyncDBInterface::EraseSyncData(const std::string &tableName)
+{
+    if (syncData_.find(tableName) == syncData_.end()) {
+        return;
+    }
+    syncData_.erase(tableName);
+}
+
 int VirtualRelationalVerSyncDBInterface::CreateDistributedDeviceTable(const std::string &device,
     const RelationalSyncStrategy &syncStrategy)
 {
-    return -E_NOT_SUPPORT;
+    return E_OK;
 }
 
 int VirtualRelationalVerSyncDBInterface::RegisterSchemaChangedCallback(const std::function<void()> &onSchemaChanged)
 {
-    return -E_NOT_SUPPORT;
+    return E_OK;
+}
+
+void VirtualRelationalVerSyncDBInterface::SetTableInfo(const TableInfo &tableInfo)
+{
+    schemaObj_.AddRelationalTable(tableInfo);
 }
 }
 #endif

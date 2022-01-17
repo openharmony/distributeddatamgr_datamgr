@@ -31,12 +31,17 @@ public:
     std::string GetQuerySyncId() const override;
     std::string GetDeleteSyncId() const override;
 
+    void SetRelationalSyncStrategy(RelationalSyncStrategy strategy);
+    SyncStrategy GetSyncStrategy(QuerySyncObject &querySyncObject) const override;
 protected:
     ~SingleVerRelationalSyncTaskContext() override;
     void CopyTargetData(const ISyncTarget *target, const TaskParam &taskParam) override;
 
     std::string querySyncId_;
     std::string deleteSyncId_;
+    
+    // for relational syncStrategy
+    RelationalSyncStrategy relationalSyncStrategy_;
 };
 }
 #endif // RELATIONAL_STORE

@@ -33,4 +33,18 @@ std::string SingleVerKvSyncTaskContext::GetDeleteSyncId() const
 {
     return GetDeviceId();
 }
+
+void SingleVerKvSyncTaskContext::SetSyncStrategy(SyncStrategy strategy)
+{
+    syncStrategy_.permitSync = strategy.permitSync;
+    syncStrategy_.convertOnSend = strategy.convertOnSend;
+    syncStrategy_.convertOnReceive = strategy.convertOnReceive;
+    syncStrategy_.checkOnReceive = strategy.checkOnReceive;
+}
+
+SyncStrategy SingleVerKvSyncTaskContext::GetSyncStrategy(QuerySyncObject &querySyncObject) const
+{
+    return syncStrategy_;
+}
+
 }

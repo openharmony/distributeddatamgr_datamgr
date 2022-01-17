@@ -969,4 +969,19 @@ bool SyncEngine::IsEngineActive() const
 {
     return isActive_;
 }
+
+void SyncEngine::ResetAbilitySync()
+{
+    std::lock_guard<std::mutex> lock(contextMapLock_);
+    for (auto &enrty : syncTaskContextMap_) {
+        auto context = enrty.second;
+        if (context->IsKilled()) {
+            continue;
+        }
+        // IncRef for SyncEngine to make sure context is valid, to avoid a big lock
+        RefObject::IncObjRef(context);
+        context->SetIsNeedResetAbilitySync(true);
+        RefObject::DecObjRef(context);
+    }
+}
 } // namespace DistributedDB

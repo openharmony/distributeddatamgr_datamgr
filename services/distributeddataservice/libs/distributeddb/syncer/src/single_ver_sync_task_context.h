@@ -109,9 +109,7 @@ public:
 
     bool GetSendPermitCheck() const;
 
-    void SetSyncStrategy(SyncStrategy strategy);
-
-    SyncStrategy GetSyncStrategy() const;
+    virtual SyncStrategy GetSyncStrategy(QuerySyncObject &querySyncObject) const = 0;
 
     void SetIsSchemaSync(bool isChecked);
 
@@ -162,7 +160,6 @@ private:
     SecurityOption remoteSecOption_ = {0, 0}; // remote targe can handle secOption data or not.
     bool isReceivcPermitChecked_ = false;
     bool isSendPermitChecked_ = false;
-    SyncStrategy syncStrategy_;
     bool isSchemaSync_ = false;
 
     // is receive waterMark err, peerWaterMark bigger than remote localWaterMark

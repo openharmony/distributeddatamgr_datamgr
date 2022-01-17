@@ -338,8 +338,6 @@ int DataTransformer::DeSerializeValue(const Value &value, OptRowData &optionalDa
     std::vector<DataValue> valueList;
     for (const auto &fieldInfo : remoteFieldInfo) {
         DataValue dataValue;
-        LOGD("[DataTransformer][DeSerializeValue] start deSerialize %s type %d",
-            fieldInfo.GetFieldName().c_str(), fieldInfo.GetStorageType());
         uint32_t type = 0;
         parcel.ReadUInt32(type);
         auto iter = typeFuncMap.find(static_cast<StorageType>(type));

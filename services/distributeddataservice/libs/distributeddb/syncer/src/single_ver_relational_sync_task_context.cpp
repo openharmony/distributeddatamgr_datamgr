@@ -49,5 +49,15 @@ void SingleVerRelationalSyncTaskContext::CopyTargetData(const ISyncTarget *targe
     querySyncId_ = query_.GetRelationTableName() + query_.GetIdentify(); // save as deviceId + tableName + queryId
     deleteSyncId_ = GetDeviceId() + query_.GetRelationTableName(); // save as deviceId + tableName
 }
+
+void SingleVerRelationalSyncTaskContext::SetRelationalSyncStrategy(RelationalSyncStrategy strategy)
+{
+    relationalSyncStrategy_ = strategy;
+}
+
+SyncStrategy SingleVerRelationalSyncTaskContext::GetSyncStrategy(QuerySyncObject &querySyncObject) const
+{
+    return relationalSyncStrategy_.GetTableStrategy(querySyncObject.GetRelationTableName());
+}
 }
 #endif

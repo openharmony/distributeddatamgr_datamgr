@@ -19,6 +19,17 @@
 #include "single_ver_sync_engine.h"
 
 namespace DistributedDB {
+int SingleVerRelationalSyncer::Initialize(ISyncInterface *syncInterface)
+{
+    int errCode = SingleVerSyncer::Initialize(syncInterface);
+    if (errCode != E_OK) {
+        return errCode;
+    }
+    auto callback = std::bind(&SingleVerRelationalSyncer::SchemaChangeCallback, this);
+    return static_cast<RelationalDBSyncInterface*>(syncInterface)->
+        RegisterSchemaChangedCallback(callback);
+}
+
 int SingleVerRelationalSyncer::Sync(const SyncParma &param)
 {
     if (param.mode == SYNC_MODE_PUSH_PULL) {
@@ -60,7 +71,7 @@ int SingleVerRelationalSyncer::GenerateEachSyncTask(const SyncParma &param, uint
     for (const QuerySyncObject &table : tablesQuery) {
         uint32_t subSyncId = GenerateSyncId();
         LOGI("[SingleVerRelationalSyncer] SubSyncId %d create by SyncId %d, tableName = %s",
-             subSyncId, syncId, table.GetRelationTableName().c_str());
+            subSyncId, syncId, STR_MASK(DBCommon::TransferHashString(table.GetRelationTableName())));
         subParam.syncQuery = table;
         subParam.onComplete = std::bind(&SingleVerRelationalSyncer::DoOnSubSyncComplete, this, subSyncId,
             syncId, param, std::placeholders::_1);
@@ -139,6 +150,13 @@ void SingleVerRelationalSyncer::EnableAutoSync(bool enable)
 
 void SingleVerRelationalSyncer::LocalDataChanged(int notifyEvent)
 {
+}
+
+void SingleVerRelationalSyncer::SchemaChangeCallback()
+{
+    if (syncEngine_ != nullptr) {
+        syncEngine_->ResetAbilitySync();
+    }
 }
 
 int SingleVerRelationalSyncer::SyncConditionCheck(QuerySyncObject &query, int mode, bool isQuerySync,

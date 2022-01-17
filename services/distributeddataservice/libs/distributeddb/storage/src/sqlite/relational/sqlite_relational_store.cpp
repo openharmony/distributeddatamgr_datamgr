@@ -482,23 +482,16 @@ int SQLiteRelationalStore::RegisterLifeCycleCallback(const DatabaseLifeCycleNoti
     int errCode;
     {
         std::lock_guard<std::mutex> lock(lifeCycleMutex_);
-        if (!notifier) {
-            if (lifeTimerId_ == 0) {
-                return E_OK;
-            }
-            errCode = StopLifeCycleTimer();
-            if (errCode != E_OK) {
-                LOGE("Stop the life cycle timer failed:%d", errCode);
-            }
-            return E_OK;
-        }
-
         if (lifeTimerId_ != 0) {
             errCode = StopLifeCycleTimer();
             if (errCode != E_OK) {
                 LOGE("Stop the life cycle timer failed:%d", errCode);
                 return errCode;
             }
+        }
+
+        if (!notifier) {
+            return E_OK;
         }
         errCode = StartLifeCycleTimer(notifier);
         if (errCode != E_OK) {

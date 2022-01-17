@@ -321,24 +321,33 @@ std::string TableInfo::ToTableInfoString() const
     return attrStr;
 }
 
-int RelationalSyncOpinion::CalculateParcelLen(uint32_t softWareVersion) const
+uint32_t RelationalSyncOpinion::CalculateParcelLen(uint32_t softWareVersion) const
 {
     return E_OK;
 }
 
-int RelationalSyncOpinion::Serialize(Parcel &parcel, uint32_t softWareVersion) const
+int RelationalSyncOpinion::SerializeData(Parcel &parcel, uint32_t softWareVersion) const
 {
     return E_OK;
 }
 
-int RelationalSyncOpinion::Deserialization(const Parcel &parcel)
+int RelationalSyncOpinion::DeserializeData(Parcel &parcel, RelationalSyncOpinion &opinion)
 {
     return E_OK;
 }
 
-const SyncOpinion &RelationalSyncOpinion::GetTableOpinion(const std::string &tableName) const
+SyncOpinion RelationalSyncOpinion::GetTableOpinion(const std::string &tableName) const
 {
-    return opinions_.at(tableName);
+    auto it = opinions_.find(tableName);
+    if (it == opinions_.end()) {
+        return {};
+    }
+    return it->second;
+}
+
+const std::map<std::string, SyncOpinion> &RelationalSyncOpinion::GetOpinions() const
+{
+    return opinions_;
 }
 
 void RelationalSyncOpinion::AddSyncOpinion(const std::string &tableName, const SyncOpinion &opinion)
@@ -346,9 +355,13 @@ void RelationalSyncOpinion::AddSyncOpinion(const std::string &tableName, const S
     opinions_[tableName] = opinion;
 }
 
-const SyncStrategy &RelationalSyncStrategy::GetTableStrategy(const std::string &tableName) const
+SyncStrategy RelationalSyncStrategy::GetTableStrategy(const std::string &tableName) const
 {
-    return strategies_.at(tableName);
+    auto it = strategies_.find(tableName);
+    if (it == strategies_.end()) {
+        return {};
+    }
+    return it->second;
 }
 
 void RelationalSyncStrategy::AddSyncStrategy(const std::string &tableName, const SyncStrategy &strategy)
@@ -356,14 +369,14 @@ void RelationalSyncStrategy::AddSyncStrategy(const std::string &tableName, const
     strategies_[tableName] = strategy;
 }
 
-RelationalSyncOpinion RelationalSchemaObject::MakeLocalSyncOpinion(
-    const RelationalSchemaObject &localSchema, const std::string &remoteSchema, uint8_t remoteSchemaType)
+RelationalSyncOpinion RelationalSchemaObject::MakeLocalSyncOpinion(const RelationalSchemaObject &localSchema,
+    const std::string &remoteSchemaStr, uint8_t remoteSchemaType)
 {
     return RelationalSyncOpinion();
 }
 
-RelationalSyncStrategy RelationalSchemaObject::ConcludeSyncStrategy(
-    const RelationalSyncOpinion &localOpinion, const RelationalSyncOpinion &remoteOpinion)
+RelationalSyncStrategy RelationalSchemaObject::ConcludeSyncStrategy(const RelationalSyncOpinion &localOpinion,
+    const RelationalSyncOpinion &remoteOpinion)
 {
     return RelationalSyncStrategy();
 }

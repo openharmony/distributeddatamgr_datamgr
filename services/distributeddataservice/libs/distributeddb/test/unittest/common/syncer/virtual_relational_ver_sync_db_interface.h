@@ -97,6 +97,10 @@ public:
     int CreateDistributedDeviceTable(const std::string &device, const RelationalSyncStrategy &syncStrategy) override;
 
     int RegisterSchemaChangedCallback(const std::function<void()> &onSchemaChanged) override;
+    
+    void EraseSyncData(const std::string &tableName);
+
+    void SetTableInfo(const TableInfo &tableInfo);
 
 private:
 

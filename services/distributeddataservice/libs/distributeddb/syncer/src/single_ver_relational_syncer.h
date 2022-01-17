@@ -22,6 +22,8 @@ public:
     SingleVerRelationalSyncer() = default;
     ~SingleVerRelationalSyncer() override = default;
 
+    int Initialize(ISyncInterface *syncInterface) override;
+
     // Sync function. use SyncParma to reduce paramter.
     int Sync(const SyncParma &param) override;
 
@@ -46,6 +48,8 @@ private:
     void DoOnComplete(const SyncParma &param, uint32_t syncId);
     void DoOnSubSyncComplete(const uint32_t subSyncId, const uint32_t syncId,
         const SyncParma &param, const std::map<std::string, int> &devicesMap);
+
+    void SchemaChangeCallback();
 
     mutable std::mutex syncMapLock_;
     std::map<uint32_t, std::set<uint32_t>> fullSyncIdMap_;

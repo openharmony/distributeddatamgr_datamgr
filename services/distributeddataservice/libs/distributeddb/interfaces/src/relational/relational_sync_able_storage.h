@@ -17,6 +17,8 @@
 #ifdef RELATIONAL_STORE
 
 #include "relational_db_sync_interface.h"
+#include "relationaldb_properties.h"
+#include "runtime_context.h"
 #include "sqlite_single_relational_storage_engine.h"
 
 #include "sqlite_single_ver_relational_continue_token.h"
@@ -108,7 +110,7 @@ public:
     int RegisterSchemaChangedCallback(const std::function<void()> &callback) override;
 
     void NotifySchemaChanged();
-    
+
     void RegisterHeartBeatListener(const std::function<void()> &listener);
 
     int GetCompressionAlgo(std::set<CompressAlgorithm> &algorithmSet) const override;

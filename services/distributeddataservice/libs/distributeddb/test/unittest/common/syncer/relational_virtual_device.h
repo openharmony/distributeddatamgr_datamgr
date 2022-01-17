@@ -31,7 +31,9 @@ public:
     int GetAllSyncData(const std::string &tableName, std::vector<VirtualRowData> &data);
     int GetSyncData(const std::string &tableName, const std::string &hashKey, VirtualRowData &data);
     void SetLocalFieldInfo(const std::vector<FieldInfo> &localFieldInfo);
+    void SetTableInfo(const TableInfo &tableInfo);
     int Sync(SyncMode mode, bool wait) override;
+    void EraseSyncData(const std::string &tableName);
 };
 }
 #endif
