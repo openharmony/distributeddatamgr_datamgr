@@ -219,6 +219,10 @@ int SQLiteSingleRelationalStorageEngine::CleanDistributedDeviceTable(std::vector
             for (const auto &tableName : missingTables) {
                 schema_.RemoveRelationalTable(tableName);
             }
+            const Key schemaKey(RELATIONAL_SCHEMA_KEY, RELATIONAL_SCHEMA_KEY + strlen(RELATIONAL_SCHEMA_KEY));
+            Value schemaVal;
+            DBCommon::StringToVector(schema_.ToSchemaString(), schemaVal);
+            errCode = handle->PutKvData(schemaKey, schemaVal); // save schema to meta_data
         }
     } else {
         LOGE("Check distributed table failed. %d", errCode);
