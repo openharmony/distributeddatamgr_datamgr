@@ -246,11 +246,11 @@ int QueryObject::ParseNode(const std::list<QueryObjNode>::iterator &iter)
             LOGE("Only filter by keys in once!!");
             return -E_INVALID_ARGS;
         }
-        hasInKeys_ = true;
         int errCode = CheckInKeys();
         if (errCode != E_OK) {
             return errCode;
         }
+        hasInKeys_ = true;
     }
     return E_OK;
 }
@@ -388,9 +388,6 @@ bool QueryObject::Empty() const
 
 int QueryObject::CheckInKeys() const
 {
-    if (!hasInKeys_) {
-        return E_OK;
-    }
     if (keys_.empty()) {
         return -E_INVALID_ARGS;
     }
