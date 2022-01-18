@@ -58,7 +58,8 @@ void RelationalSyncAbleStorage::DecRefCount()
 // Get the identifier of this kvdb.
 std::vector<uint8_t> RelationalSyncAbleStorage::GetIdentifier() const
 {
-    return {};
+    std::string identifier = storageEngine_->GetIdentifier();
+    return std::vector<uint8_t>(identifier.begin(), identifier.end());
 }
 
 // Get the max timestamp of all entries in database.
