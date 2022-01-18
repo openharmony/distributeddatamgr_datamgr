@@ -447,7 +447,7 @@ const std::map<std::string, TableInfo> &RelationalSchemaObject::GetTables() cons
     return tables_;
 }
 
-std::vector<std::string> RelationalSchemaObject::GettableNames() const
+std::vector<std::string> RelationalSchemaObject::GetTableNames() const
 {
     std::vector<std::string> tableNames;
     for (const auto &it : tables_) {

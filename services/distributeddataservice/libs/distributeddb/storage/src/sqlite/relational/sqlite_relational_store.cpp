@@ -168,7 +168,7 @@ int SQLiteRelationalStore::CleanDistributedDeviceTable()
     std::lock_guard lock(schemaMutex_);
     RelationalSchemaObject schema = properties_.GetSchema();
     std::vector<std::string> missingTables;
-    errCode = handle->CkeckAndCleanDistributedTable(schema.GettableNames(), missingTables);
+    errCode = handle->CkeckAndCleanDistributedTable(schema.GetTableNames(), missingTables);
     if (errCode == E_OK) {
         errCode = handle->Commit();
         if (errCode == E_OK) {
@@ -184,7 +184,7 @@ int SQLiteRelationalStore::CleanDistributedDeviceTable()
     }
 
     ReleaseHandle(handle);
-    return errCode;
+    return SaveSchemaToMeta();
 }
 
 int SQLiteRelationalStore::Open(const RelationalDBProperties &properties)

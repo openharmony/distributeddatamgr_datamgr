@@ -140,7 +140,7 @@ public:
 
     const std::map<std::string, TableInfo> &GetTables() const;
 
-    std::vector<std::string> GettableNames() const;
+    std::vector<std::string> GetTableNames() const;
 
     TableInfo GetTable(const std::string& tableName) const;
 
