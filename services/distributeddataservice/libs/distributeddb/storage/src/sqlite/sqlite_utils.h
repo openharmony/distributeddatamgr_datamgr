@@ -182,6 +182,8 @@ public:
 
     static int CheckTableEmpty(sqlite3 *db, const std::string &tableName, bool &isEmpty);
 
+    static int SetPersistWalMode(sqlite3 *db);
+
 private:
 
     static int CreateDataBase(const OpenDbProperties &properties, sqlite3 *&dbTemp, bool setWal);

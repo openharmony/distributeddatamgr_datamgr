@@ -2057,4 +2057,17 @@ int SQLiteUtils::CheckTableEmpty(sqlite3 *db, const std::string &tableName, bool
     SQLiteUtils::ResetStatement(stmt, true, errCode);
     return SQLiteUtils::MapSQLiteErrno(errCode);
 }
+
+int SQLiteUtils::SetPersistWalMode(sqlite3 *db)
+{
+    if (db == nullptr) {
+        return -E_INVALID_ARGS;
+    }
+    int opCode = 1;
+    int errCode = sqlite3_file_control(db, "main", SQLITE_FCNTL_PERSIST_WAL, &opCode);
+    if (errCode != SQLITE_OK) {
+        LOGE("Set persist wal mode failed. %d", errCode);
+    }
+    return SQLiteUtils::MapSQLiteErrno(errCode);
+}
 } // namespace DistributedDB

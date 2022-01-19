@@ -157,8 +157,16 @@ int SQLiteRelationalStore::CleanDistributedDeviceTable()
     if (errCode != E_OK) {
         LOGE("Clean distributed device table failed. %d", errCode);
     }
-    // TODO: remove water mark
-    // syncEngine_->EraseDeviceWaterMark();
+    for (const auto &deviceTableName : missingTables) {
+        std::string deviceHash;
+        std::string tableName;
+        DBCommon::GetDeviceFromName(deviceTableName, deviceHash, tableName);
+        syncEngine_->EraseDeviceWaterMark(deviceHash, false, tableName);
+        if (errCode != E_OK) {
+            LOGE("Erase water mark failed:%d", errCode);
+            return errCode;
+        }
+    }
     return errCode;
 }
 
@@ -191,6 +199,8 @@ int SQLiteRelationalStore::Open(const RelationalDBProperties &properties)
             break;
         }
 
+        syncEngine_ = std::make_unique<SyncAbleEngine>(storageEngine_);
+
         errCode = CheckDBMode();
         if (errCode != E_OK) {
             break;
@@ -212,7 +222,6 @@ int SQLiteRelationalStore::Open(const RelationalDBProperties &properties)
             break;
         }
 
-        syncEngine_ = std::make_unique<SyncAbleEngine>(storageEngine_);
         isInitialized_ = true;
         return E_OK;
     } while (false);
@@ -353,7 +362,7 @@ int SQLiteRelationalStore::RemoveDeviceData(const std::string &device, const std
     }
     errCode = handle->Commit();
     ReleaseHandle(handle);
-    return (errCode != E_OK) ? errCode : syncEngine_->EraseDeviceWaterMark(device, true);
+    return (errCode != E_OK) ? errCode : syncEngine_->EraseDeviceWaterMark(device, true, tableName);
 }
 
 int SQLiteRelationalStore::StopLifeCycleTimer() const
