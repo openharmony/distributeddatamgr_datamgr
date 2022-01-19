@@ -115,15 +115,30 @@ const RelationalSchemaObject &SQLiteSingleRelationalStorageEngine::GetSchemaRef(
     return schema_;
 }
 
+namespace {
+int SaveSchemaToMetaTable(SQLiteSingleVerRelationalStorageExecutor *handle, const RelationalSchemaObject &schema)
+{
+    const Key schemaKey(RELATIONAL_SCHEMA_KEY, RELATIONAL_SCHEMA_KEY + strlen(RELATIONAL_SCHEMA_KEY));
+    Value schemaVal;
+    DBCommon::StringToVector(schema.ToSchemaString(), schemaVal);
+    int errCode = handle->PutKvData(schemaKey, schemaVal); // save schema to meta_data
+    if (errCode != E_OK) {
+        LOGE("Save schema to meta table failed. %d", errCode);
+    }
+    return errCode;
+}
+}
+
 int SQLiteSingleRelationalStorageEngine::CreateDistributedTable(const std::string &tableName)
 {
     std::lock_guard lock(schemaMutex_);
-    if (schema_.GetTable(tableName).GetTableName() == tableName) {
+    RelationalSchemaObject tmpSchema = schema_;
+    if (tmpSchema.GetTable(tableName).GetTableName() == tableName) {
         LOGW("distributed table was already created.");
         return UpgradeDistributedTable(tableName);
     }
 
-    if (schema_.GetTables().size() >= DBConstant::MAX_DISTRIBUTED_TABLE_COUNT) {
+    if (tmpSchema.GetTables().size() >= DBConstant::MAX_DISTRIBUTED_TABLE_COUNT) {
         LOGE("The number of distributed tables is exceeds limit.");
         return -E_MAX_LIMITS;
     }
@@ -151,13 +166,18 @@ int SQLiteSingleRelationalStorageEngine::CreateDistributedTable(const std::strin
         return errCode;
     }
 
+    tmpSchema.AddRelationalTable(table);
+    errCode = SaveSchemaToMetaTable(handle, tmpSchema);
+    if (errCode != E_OK) {
+        LOGE("Save schema to meta table for create distributed table failed. %d", errCode);
+        (void)handle->Rollback();
+        ReleaseExecutor(handle);
+        return errCode;
+    }
+
     errCode = handle->Commit();
     if (errCode == E_OK) {
-        schema_.AddRelationalTable(table);
-        const Key schemaKey(RELATIONAL_SCHEMA_KEY, RELATIONAL_SCHEMA_KEY + strlen(RELATIONAL_SCHEMA_KEY));
-        Value schemaVal;
-        DBCommon::StringToVector(schema_.ToSchemaString(), schemaVal);
-        errCode = handle->PutKvData(schemaKey, schemaVal); // save schema to meta_data
+        schema_ = tmpSchema;
     }
     ReleaseExecutor(handle);
     return errCode;
@@ -166,6 +186,7 @@ int SQLiteSingleRelationalStorageEngine::CreateDistributedTable(const std::strin
 int SQLiteSingleRelationalStorageEngine::UpgradeDistributedTable(const std::string &tableName)
 {
     LOGD("Upgrade distributed table.");
+    RelationalSchemaObject tmpSchema = schema_;
     int errCode = E_OK;
     auto *handle = static_cast<SQLiteSingleVerRelationalStorageExecutor *>(FindExecutor(true, OperatePerm::NORMAL_PERM,
         errCode));
@@ -180,7 +201,7 @@ int SQLiteSingleRelationalStorageEngine::UpgradeDistributedTable(const std::stri
     }
 
     TableInfo newTable;
-    errCode = handle->UpgradeDistributedTable(schema_.GetTable(tableName), newTable);
+    errCode = handle->UpgradeDistributedTable(tmpSchema.GetTable(tableName), newTable);
     if (errCode != E_OK) {
         LOGE("Upgrade distributed table failed. %d", errCode);
         (void)handle->Rollback();
@@ -188,13 +209,18 @@ int SQLiteSingleRelationalStorageEngine::UpgradeDistributedTable(const std::stri
         return errCode;
     }
 
+    tmpSchema.AddRelationalTable(newTable);
+    errCode = SaveSchemaToMetaTable(handle, tmpSchema);
+        if (errCode != E_OK) {
+        LOGE("Save schema to meta table for upgrade distributed table failed. %d", errCode);
+        (void)handle->Rollback();
+        ReleaseExecutor(handle);
+        return errCode;
+    }
+
     errCode = handle->Commit();
     if (errCode == E_OK) {
-        schema_.AddRelationalTable(newTable);
-        const Key schemaKey(RELATIONAL_SCHEMA_KEY, RELATIONAL_SCHEMA_KEY + strlen(RELATIONAL_SCHEMA_KEY));
-        Value schemaVal;
-        DBCommon::StringToVector(schema_.ToSchemaString(), schemaVal);
-        errCode = handle->PutKvData(schemaKey, schemaVal); // save schema to meta_data
+        schema_ = tmpSchema;
     }
     ReleaseExecutor(handle);
     return errCode;
