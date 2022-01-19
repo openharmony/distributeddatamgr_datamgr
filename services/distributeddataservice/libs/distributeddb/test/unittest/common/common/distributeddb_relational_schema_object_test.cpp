@@ -36,16 +36,19 @@ namespace {
                 "NAME": "FIRST",
                 "DEFINE": {
                     "field_name1": {
+                        "COLUMN_ID":1,
                         "TYPE": "STRING",
                         "NOT_NULL": true,
                         "DEFAULT": "abcd"
                     },
                     "field_name2": {
+                        "COLUMN_ID":2,
                         "TYPE": "MYINT(21)",
                         "NOT_NULL": false,
                         "DEFAULT": "222"
                     },
                     "field_name3": {
+                        "COLUMN_ID":3,
                         "TYPE": "INTGER",
                         "NOT_NULL": false,
                         "DEFAULT": "1"
@@ -62,10 +65,12 @@ namespace {
                 "NAME": "SECOND",
                 "DEFINE": {
                     "key": {
+                        "COLUMN_ID":1,
                         "TYPE": "BLOB",
                         "NOT_NULL": true
                     },
                     "value": {
+                        "COLUMN_ID":2,
                         "TYPE": "BLOB",
                         "NOT_NULL": false
                     }
@@ -81,10 +86,12 @@ namespace {
                 "NAME": "FIRST",
                 "DEFINE": {
                     "field_name1": {
+                        "COLUMN_ID":1,
                         "TYPE": "STRING",
                         "NOT_NULL": true,
                         "DEFAULT": "abcd"
                     },"field_name2": {
+                        "COLUMN_ID":2,
                         "TYPE": "MYINT(21)",
                         "NOT_NULL": false,
                         "DEFAULT": "222"
@@ -115,10 +122,12 @@ namespace {
             "NAME": "FIRST",
             "DEFINE": {
                 "field_name1": {
+                    "COLUMN_ID":1,
                     "TYPE": "STRING",
                     "NOT_NULL": true,
                     "DEFAULT": "abcd"
                 },"field_name2": {
+                    "COLUMN_ID":2,
                     "TYPE": "MYINT(21)",
                     "NOT_NULL": false,
                     "DEFAULT": "222"
@@ -131,10 +140,12 @@ namespace {
         "NAME": "FIRST",
         "DEFINE": {
             "field_name1": {
+                "COLUMN_ID":1,
                 "TYPE": "STRING",
                 "NOT_NULL": true,
                 "DEFAULT": "abcd"
             },"field_name2": {
+                "COLUMN_ID":2,
                 "TYPE": "MYINT(21)",
                 "NOT_NULL": false,
                 "DEFAULT": "222"
@@ -147,10 +158,12 @@ namespace {
     const std::string TABLE_DEFINE_STR_NAME_INVALID = R"("NAME": 123,)";
     const std::string TABLE_DEFINE_STR_FIELDS = R""("DEFINE": {
             "field_name1": {
+                "COLUMN_ID":1,
                 "TYPE": "STRING",
                 "NOT_NULL": true,
                 "DEFAULT": "abcd"
             },"field_name2": {
+                "COLUMN_ID":2,
                 "TYPE": "MYINT(21)",
                 "NOT_NULL": false,
                 "DEFAULT": "222"
@@ -159,6 +172,7 @@ namespace {
     const std::string TABLE_DEFINE_STR_FIELDS_EMPTY = R""("DEFINE": {},)"";
     const std::string TABLE_DEFINE_STR_FIELDS_NOTYPE = R""("DEFINE": {
             "field_name1": {
+                "COLUMN_ID":1,
                 "NOT_NULL": true,
                 "DEFAULT": "abcd"
             }},)"";

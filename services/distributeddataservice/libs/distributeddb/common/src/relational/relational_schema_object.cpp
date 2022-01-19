@@ -97,6 +97,7 @@ void FieldInfo::SetColumnId(int cid)
 std::string FieldInfo::ToAttributeString() const
 {
     std::string attrStr = "\"" + fieldName_ + "\": {";
+    attrStr += "\"COLUMN_ID\":" + std::to_string(cid_) + ",";
     attrStr += "\"TYPE\":\"" + dataType_ + "\",";
     attrStr += "\"NOT_NULL\":" + std::string(isNotNull_ ? "true" : "false");
     if (hasDefaultValue_) {
@@ -890,24 +891,31 @@ int RelationalSchemaObject::ParseCheckTableDefine(const JsonObject &inJsonObject
 }
 
 int RelationalSchemaObject::ParseCheckTableFieldInfo(const JsonObject &inJsonObject, const FieldPath &path,
-    FieldInfo &table)
+    FieldInfo &field)
 {
     FieldValue fieldValue;
-    int errCode = GetMemberFromJsonObject(inJsonObject, "TYPE", FieldType::LEAF_FIELD_STRING, true, fieldValue);
+    int errCode = GetMemberFromJsonObject(inJsonObject, "COLUMN_ID", FieldType::LEAF_FIELD_INTEGER, true, fieldValue);
     if (errCode != E_OK) {
         return errCode;
     }
-    table.SetDataType(fieldValue.stringValue);
+    field.SetColumnId(fieldValue.integerValue);
+
+
+    errCode = GetMemberFromJsonObject(inJsonObject, "TYPE", FieldType::LEAF_FIELD_STRING, true, fieldValue);
+    if (errCode != E_OK) {
+        return errCode;
+    }
+    field.SetDataType(fieldValue.stringValue);
 
     errCode = GetMemberFromJsonObject(inJsonObject, "NOT_NULL", FieldType::LEAF_FIELD_BOOL, true, fieldValue);
     if (errCode != E_OK) {
         return errCode;
     }
-    table.SetNotNull(fieldValue.boolValue);
+    field.SetNotNull(fieldValue.boolValue);
 
     errCode = GetMemberFromJsonObject(inJsonObject, "DEFAULT", FieldType::LEAF_FIELD_STRING, false, fieldValue);
     if (errCode == E_OK) {
-        table.SetDefaultValue(fieldValue.stringValue);
+        field.SetDefaultValue(fieldValue.stringValue);
     } else if (errCode != -E_NOT_FOUND) {
         return errCode;
     }
