@@ -44,6 +44,18 @@ namespace {
         "w_timestamp INT," \
         "UNIQUE(device, ori_device));" \
         "CREATE INDEX key_index ON sync_data (key, flag);";
+
+    const std::string CREATE_TABLE_SQL_NO_PRIMARY_KEY = "CREATE TABLE IF NOT EXISTS sync_data(" \
+        "key         BLOB NOT NULL UNIQUE," \
+        "value       BLOB," \
+        "timestamp   INT  NOT NULL," \
+        "flag        INT  NOT NULL," \
+        "device      BLOB," \
+        "ori_device  BLOB," \
+        "hash_key    BLOB NOT NULL," \
+        "w_timestamp INT," \
+        "UNIQUE(device, ori_device));" \
+        "CREATE INDEX key_index ON sync_data (key, flag);";
 }
 
 class DistributedInterfacesRelationalTest : public testing::Test {
@@ -304,6 +316,56 @@ HWTEST_F(DistributedInterfacesRelationalTest, RelationalStoreTest005, TestSize.L
      * @tc.steps:step4. Close store
      * @tc.expected: step4. Return OK.
      */
+    status = g_mgr.CloseStore(delegate);
+    EXPECT_EQ(status, OK);
+}
+
+/**
+  * @tc.name: RelationalStoreTest005
+  * @tc.desc: Test create distributed table with non primary key schema
+  * @tc.type: FUNC
+  * @tc.require: AR000GK58F
+  * @tc.author: lianhuix
+  */
+HWTEST_F(DistributedInterfacesRelationalTest, RelationalStoreTest006, TestSize.Level1)
+{
+    /**
+     * @tc.steps:step1. Prepare db file
+     * @tc.expected: step1. Return OK.
+     */
+    sqlite3 *db = RelationalTestUtils::CreateDataBase(g_dbDir + STORE_ID + DB_SUFFIX);
+    ASSERT_NE(db, nullptr);
+    EXPECT_EQ(RelationalTestUtils::ExecSql(db, "PRAGMA journal_mode=WAL;"), SQLITE_OK);
+    EXPECT_EQ(RelationalTestUtils::ExecSql(db, CREATE_TABLE_SQL_NO_PRIMARY_KEY), SQLITE_OK);
+    EXPECT_EQ(sqlite3_close_v2(db), SQLITE_OK);
+
+    /**
+     * @tc.steps:step2. Open store
+     * @tc.expected: step2. return OK
+     */
+    RelationalStoreDelegate *delegate = nullptr;
+    DBStatus status = g_mgr.OpenStore(g_dbDir  + STORE_ID + DB_SUFFIX, STORE_ID, {}, delegate);
+    EXPECT_EQ(status, OK);
+    ASSERT_NE(delegate, nullptr);
+
+    /**
+     * @tc.steps:step3. Create distirbuted table with invald table name
+     * @tc.expected: step3. Create distributed table failed.
+     */
+    EXPECT_EQ(delegate->CreateDistributedTable("sync_data"), OK);
+
+    /**
+     * @tc.steps:step4. Close store
+     * @tc.expected: step4. Return OK.
+     */
+    status = g_mgr.CloseStore(delegate);
+    EXPECT_EQ(status, OK);
+    delegate = nullptr;
+
+    status = g_mgr.OpenStore(g_dbDir  + STORE_ID + DB_SUFFIX, STORE_ID, {}, delegate);
+    EXPECT_EQ(status, OK);
+    ASSERT_NE(delegate, nullptr);
+
     status = g_mgr.CloseStore(delegate);
     EXPECT_EQ(status, OK);
 }

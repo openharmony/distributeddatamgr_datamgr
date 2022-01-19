@@ -761,6 +761,10 @@ int AnalysisSchemaFieldDefine(sqlite3 *db, const std::string &tableName, TableIn
         }
     } while (true);
 
+    if (table.GetPrimaryKey().empty()) {
+        table.SetPrimaryKey("rowid");
+    }
+
     SQLiteUtils::ResetStatement(statement, true, errCode);
     return errCode;
 }

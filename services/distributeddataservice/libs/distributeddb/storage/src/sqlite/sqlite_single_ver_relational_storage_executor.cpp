@@ -61,7 +61,7 @@ int SQLiteSingleVerRelationalStorageExecutor::CreateDistributedTable(const std::
     // add trigger
     errCode = SQLiteUtils::AddRelationalLogTableTrigger(dbHandle_, table);
     if (errCode != E_OK) {
-        LOGE("[CreateDistributedTable] create log table failed");
+        LOGE("[CreateDistributedTable] Add relational log table trigger failed.");
         return errCode;
     }
     return E_OK;
