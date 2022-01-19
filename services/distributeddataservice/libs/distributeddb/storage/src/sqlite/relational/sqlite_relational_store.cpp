@@ -161,7 +161,7 @@ int SQLiteRelationalStore::CleanDistributedDeviceTable()
         std::string deviceHash;
         std::string tableName;
         DBCommon::GetDeviceFromName(deviceTableName, deviceHash, tableName);
-        syncEngine_->EraseDeviceWaterMark(deviceHash, false, tableName);
+        syncAbleEngine_->EraseDeviceWaterMark(deviceHash, false, tableName);
         if (errCode != E_OK) {
             LOGE("Erase water mark failed:%d", errCode);
             return errCode;
@@ -199,7 +199,7 @@ int SQLiteRelationalStore::Open(const RelationalDBProperties &properties)
             break;
         }
 
-        syncEngine_ = std::make_unique<SyncAbleEngine>(storageEngine_);
+        syncAbleEngine_ = std::make_unique<SyncAbleEngine>(storageEngine_);
 
         errCode = CheckDBMode();
         if (errCode != E_OK) {
@@ -265,7 +265,7 @@ void SQLiteRelationalStore::ReleaseHandle(SQLiteSingleVerRelationalStorageExecut
 
 int SQLiteRelationalStore::Sync(const ISyncer::SyncParma &syncParam)
 {
-    return syncEngine_->Sync(syncParam);
+    return syncAbleEngine_->Sync(syncParam);
 }
 
 // Called when a connection released.
@@ -291,7 +291,7 @@ void SQLiteRelationalStore::DecreaseConnectionCounter()
     }
 
     // Sync Close
-    syncEngine_->Close();
+    syncAbleEngine_->Close();
 
     if (sqliteStorageEngine_ != nullptr) {
         delete sqliteStorageEngine_;
@@ -320,7 +320,7 @@ void SQLiteRelationalStore::ReleaseDBConnection(RelationalStoreConnection *conne
 
 void SQLiteRelationalStore::WakeUpSyncer()
 {
-    syncEngine_->WakeUpSyncer();
+    syncAbleEngine_->WakeUpSyncer();
 }
 
 
@@ -362,7 +362,7 @@ int SQLiteRelationalStore::RemoveDeviceData(const std::string &device, const std
     }
     errCode = handle->Commit();
     ReleaseHandle(handle);
-    return (errCode != E_OK) ? errCode : syncEngine_->EraseDeviceWaterMark(device, true, tableName);
+    return (errCode != E_OK) ? errCode : syncAbleEngine_->EraseDeviceWaterMark(device, true, tableName);
 }
 
 int SQLiteRelationalStore::StopLifeCycleTimer() const

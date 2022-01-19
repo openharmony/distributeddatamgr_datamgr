@@ -77,7 +77,7 @@ private:
     int ResetLifeCycleTimer() const;
 
     // use for sync Interactive
-    std::unique_ptr<SyncAbleEngine> syncEngine_ = nullptr; // For storage operate sync function
+    std::unique_ptr<SyncAbleEngine> syncAbleEngine_ = nullptr; // For storage operate sync function
     // use ref obj same as kv
     RelationalSyncAbleStorage *storageEngine_ = nullptr; // For storage operate data
     SQLiteSingleRelationalStorageEngine *sqliteStorageEngine_ = nullptr;
