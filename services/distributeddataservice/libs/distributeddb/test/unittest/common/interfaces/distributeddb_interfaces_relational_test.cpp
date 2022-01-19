@@ -87,6 +87,16 @@ void DistributedInterfacesRelationalTest::TearDown(void)
     DistributedDBToolsUnitTest::RemoveTestDbFiles(g_testDir);
 }
 
+namespace {
+void CreateDeviceTable(sqlite3 *db, const std::string &table, const std::string &device)
+{
+    ASSERT_NE(db, nullptr);
+    std::string deviceTable = DBCommon::GetDistributedTableName(device, table);
+    EXPECT_EQ(SQLiteUtils::CreateSameStuTable(db, table, deviceTable, false), E_OK);
+    EXPECT_EQ(SQLiteUtils::CloneIndexes(db, table, deviceTable), E_OK);
+}
+}
+
 /**
   * @tc.name: RelationalStoreTest001
   * @tc.desc: Test open store and create distributed db
@@ -104,6 +114,7 @@ HWTEST_F(DistributedInterfacesRelationalTest, RelationalStoreTest001, TestSize.L
     ASSERT_NE(db, nullptr);
     EXPECT_EQ(RelationalTestUtils::ExecSql(db, "PRAGMA journal_mode=WAL;"), SQLITE_OK);
     EXPECT_EQ(RelationalTestUtils::ExecSql(db, NORMAL_CREATE_TABLE_SQL), SQLITE_OK);
+    CreateDeviceTable(db, "sync_data", "DEVICE_A");
     EXPECT_EQ(sqlite3_close_v2(db), SQLITE_OK);
 
     /**
@@ -453,16 +464,6 @@ HWTEST_F(DistributedInterfacesRelationalTest, RelationalTableModifyTest002, Test
 HWTEST_F(DistributedInterfacesRelationalTest, RelationalTableModifyTest003, TestSize.Level1)
 {
     TableModifyTest("ALTER TABLE sync_data DROP COLUMN w_timestamp;", SCHEMA_MISMATCH);
-}
-
-namespace {
-void CreateDeviceTable(sqlite3 *db, const std::string &table, const std::string &device)
-{
-    ASSERT_NE(db, nullptr);
-    std::string deviceTable = DBCommon::GetDistributedTableName(device, table);
-    EXPECT_EQ(SQLiteUtils::CreateSameStuTable(db, table, deviceTable, false), E_OK);
-    EXPECT_EQ(SQLiteUtils::CloneIndexes(db, table, deviceTable), E_OK);
-}
 }
 
 /**

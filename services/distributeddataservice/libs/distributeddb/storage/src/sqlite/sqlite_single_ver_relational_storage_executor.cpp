@@ -134,7 +134,7 @@ int GetDeviceTableName(sqlite3 *handle, const std::string &tableName, const std:
         if (errCode != E_OK || realTableName.empty()) { // sqlite might return a row with NULL
             continue;
         }
-        if (realTableName.rfind("_log") == (realTableName.length() - 4)) {
+        if (realTableName.rfind("_log") == (realTableName.length() - 4)) { // 4:suffix length of "_log"
             continue;
         }
         deviceTables.emplace_back(realTableName);
@@ -915,46 +915,23 @@ int SQLiteSingleVerRelationalStorageExecutor::CheckDBModeForRelational()
 int SQLiteSingleVerRelationalStorageExecutor::DeleteDistributedDeviceTable(const std::string &device,
     const std::string &tableName)
 {
-    if (device.empty() && tableName.empty()) { // device and table name should not both be empty
-        return -E_INVALID_ARGS;
-    }
-    std::string decicePattern = device.empty() ? "%" : DBCommon::TransferHashString(device);
-    std::string tablePattern = tableName.empty() ? "%" : tableName;
-    std::string deviceTableName = DBConstant::RELATIONAL_PREFIX + tablePattern + "_" + decicePattern;
-
-    const std::string checkSql = "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE '" +
-        deviceTableName + "';";
-    sqlite3_stmt *stmt = nullptr;
-    int errCode = SQLiteUtils::GetStatement(dbHandle_, checkSql, stmt);
+    std::vector<std::string> deviceTables;
+    int errCode = GetDeviceTableName(dbHandle_, tableName, device, deviceTables);
     if (errCode != E_OK) {
-        SQLiteUtils::ResetStatement(stmt, true, errCode);
+        LOGE("Get device table name for alter table failed. %d", errCode);
         return errCode;
     }
 
-    do {
-        errCode = SQLiteUtils::StepWithRetry(stmt, false);
-        if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_DONE)) {
-            errCode = E_OK;
-            break;
-        } else if (errCode != SQLiteUtils::MapSQLiteErrno(SQLITE_ROW)) {
-            LOGE("Get table name failed. %d", errCode);
-            break;
-        }
-        std::string realTableName;
-        (void)SQLiteUtils::GetColumnTextValue(stmt, 1, realTableName); // 1: table name result column index
-        if (realTableName.empty()) { // sqlite might return a row with NULL
-            continue;
-        }
-        std::string deleteSql = "DROP TABLE IF EXISTS " + realTableName + ";"; // drop the found table
+    LOGD("Begin to delete device table: deviceTable[%d]", deviceTables.size());
+    for (const auto &table : deviceTables) {
+        std::string deleteSql = "DROP TABLE IF EXISTS " + table + ";"; // drop the found table
         int errCode = SQLiteUtils::ExecuteRawSQL(dbHandle_, deleteSql);
         if (errCode != E_OK) {
             LOGE("Delete device data failed. %d", errCode);
             break;
         }
-    } while(true);
-
-    SQLiteUtils::ResetStatement(stmt, true, errCode);
-    return CheckCorruptedStatus(errCode);
+    }
+    return errCode;
 }
 
 int SQLiteSingleVerRelationalStorageExecutor::DeleteDistributedLogTable(const std::string &tableName)
