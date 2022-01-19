@@ -632,17 +632,13 @@ int SQLiteSingleVerRelationalStorageExecutor::PrepareForSavingData(const QueryOb
         return errCode;
     }
 
-    std::string colName;
     std::string dataFormat;
-    const std::map<std::string, FieldInfo> fields = table_.GetFields();
-    for (const auto &field : fields) {
-        colName += field.first + ",";
+    for (size_t i = 0; i < table_.GetFields().size(); ++i) {
         dataFormat += "?,";
     }
-    colName.pop_back();
     dataFormat.pop_back();
 
-    std::string sql = "INSERT OR REPLACE INTO " + tableName + " (" + colName + ") VALUES (" + dataFormat + ");";
+    std::string sql = "INSERT OR REPLACE INTO " + tableName + " VALUES (" + dataFormat + ");";
     errCode = SQLiteUtils::GetStatement(dbHandle_, sql, statement);
     if (errCode != E_OK) {
         LOGE("[info statement] Get statement fail!");
