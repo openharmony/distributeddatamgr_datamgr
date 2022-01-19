@@ -497,11 +497,13 @@ int SQLiteRelationalStore::RegisterLifeCycleCallback(const DatabaseLifeCycleNoti
             errCode = StopLifeCycleTimer();
             if (errCode != E_OK) {
                 LOGE("Stop the life cycle timer failed:%d", errCode);
+                return errCode;
             }
         }
         errCode = StartLifeCycleTimer(notifier);
         if (errCode != E_OK) {
             LOGE("Register life cycle timer failed:%d", errCode);
+            return errCode;
         }
     }
     auto listener = std::bind(&SQLiteRelationalStore::HeartBeat, this);
