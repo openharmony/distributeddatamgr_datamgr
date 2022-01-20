@@ -840,7 +840,6 @@ int SQLiteSingleVerRelationalStorageExecutor::GetDataItemForSync(sqlite3_stmt *s
         for (const auto &col: table_.GetFields()) {
             auto colType = col.second.GetStorageType();
             auto colId = col.second.GetColumnId() + 7;  // 7 means the count of log table's column.
-            LOGD("[GetDataItemForSync] field:%s type:%d cid:%d", col.second.GetFieldName().c_str(), colType, colId);
             DataValue value;
             errCode = GetDataValueByType(stmt, value, colType, colId);
             if (errCode != E_OK) {
@@ -881,6 +880,11 @@ int SQLiteSingleVerRelationalStorageExecutor::GetSyncDataByQuery(std::vector<Dat
         } else {
             LOGE("Get sync data error:%d", errCode);
             break;
+        }
+
+        // If one record is over 4M, ignore it.
+        if (item.value.size() > DBConstant::MAX_VALUE_SIZE) {
+            continue;
         }
 
         // If dataTotalSize value is bigger than blockSize value , reserve the surplus data item.

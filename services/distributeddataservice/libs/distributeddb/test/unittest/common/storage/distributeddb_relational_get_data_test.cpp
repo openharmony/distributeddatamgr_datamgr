@@ -163,6 +163,39 @@ int GetCount(sqlite3 *db, const string &sql, size_t &count)
     SQLiteUtils::ResetStatement(stmt, true, errCode);
     return errCode;
 }
+
+int PutBatchData(uint32_t totalCount, uint32_t valueSize)
+{
+    sqlite3 *db = nullptr;
+    sqlite3_stmt *stmt = nullptr;
+    const string sql = "INSERT INTO " + g_tableName + " VALUES(?,?);";
+    int errCode = sqlite3_open(g_storePath.c_str(), &db);
+    if (errCode != SQLITE_OK) {
+        goto ERROR;
+    }
+    errCode = SQLiteUtils::GetStatement(db, sql, stmt);
+    if (errCode != E_OK) {
+        goto ERROR;
+    }
+    for (uint32_t i = 0; i < totalCount; i++) {
+        errCode = SQLiteUtils::BindBlobToStatement(stmt, 2, Value(valueSize, 'a'), false);
+        if (errCode != E_OK) {
+            break;
+        }
+        errCode = SQLiteUtils::StepWithRetry(stmt);
+        if (errCode != SQLiteUtils::MapSQLiteErrno(SQLITE_DONE)) {
+            break;
+        }
+        errCode = E_OK;
+        SQLiteUtils::ResetStatement(stmt, false, errCode);
+    }
+
+ERROR:
+    SQLiteUtils::ResetStatement(stmt, true, errCode);
+    errCode = SQLiteUtils::MapSQLiteErrno(errCode);
+    sqlite3_close(db);
+    return errCode;
+}
 }
 
 class DistributedDBRelationalGetDataTest : public testing::Test {
@@ -277,6 +310,49 @@ HWTEST_F(DistributedDBRelationalGetDataTest, GetSyncData1, TestSize.Level1)
         EXPECT_TRUE(errCode == E_OK || errCode == -E_UNFINISHED);
     }
     EXPECT_EQ(count, RECORD_COUNT);
+    RefObject::DecObjRef(g_store);
+}
+
+/**
+ * @tc.name: GetSyncData2
+ * @tc.desc: GetSyncData interface. For overlarge data(over 4M), ignore it.
+ * @tc.type: FUNC
+ * @tc.require: AR000GK58H
+ * @tc.author: lidongwei
+  */
+HWTEST_F(DistributedDBRelationalGetDataTest, GetSyncData2, TestSize.Level1)
+{
+    ASSERT_EQ(g_mgr.OpenStore(g_storePath, g_storeID, RelationalStoreDelegate::Option {}, g_delegate), DBStatus::OK);
+    ASSERT_NE(g_delegate, nullptr);
+    ASSERT_EQ(g_delegate->CreateDistributedTable(g_tableName), DBStatus::OK);
+
+    /**
+     * @tc.steps: step1. Put 10 records.(1M + 2M + 3M + 4M + 5M) * 2.
+     * @tc.expected: Succeed, return OK.
+     */
+    for (int i = 1; i <= 5; ++i) {
+        EXPECT_EQ(PutBatchData(1, i * 1024 * 1024), E_OK);  // 1024*1024 equals 1M.
+    }
+    for (int i = 1; i <= 5; ++i) {
+        EXPECT_EQ(PutBatchData(1, i * 1024 * 1024), E_OK);  // 1024*1024 equals 1M.
+    }
+
+    /**
+     * @tc.steps: step2. Get all data.
+     * @tc.expected: Succeed and the count is 6.
+     */
+    auto store = GetRelationalStore();
+    ASSERT_NE(store, nullptr);
+    ContinueToken token = nullptr;
+    QueryObject query(Query::Select(g_tableName));
+    std::vector<SingleVerKvEntry *> entries;
+
+    const size_t EXPECT_COUNT = 6;  // expect 6 records.
+    DataSizeSpecInfo sizeInfo;
+    sizeInfo.blockSize = 100 * 1024 * 1024;  // permit 100M.
+    EXPECT_EQ(store->GetSyncData(query, SyncTimeRange {}, sizeInfo, token, entries), E_OK);
+    EXPECT_EQ(entries.size(), EXPECT_COUNT);
+    SingleVerKvEntry::Release(entries);
     RefObject::DecObjRef(g_store);
 }
 

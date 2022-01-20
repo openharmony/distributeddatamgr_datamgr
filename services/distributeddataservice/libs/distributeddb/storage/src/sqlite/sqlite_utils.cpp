@@ -1291,7 +1291,7 @@ int SQLiteUtils::RegisterCalcHash(sqlite3 *db)
 
 void SQLiteUtils::GetSysTime(sqlite3_context *ctx, int argc, sqlite3_value **argv)
 {
-    if (ctx == nullptr || argc != 0) {
+    if (ctx == nullptr || argc != 1 || argv == nullptr) {
         LOGE("Parameter does not meet restrictions.");
         return;
     }
@@ -1303,7 +1303,7 @@ int SQLiteUtils::RegisterGetSysTime(sqlite3 *db)
 {
     TransactFunc func;
     func.xFunc = &GetSysTime;
-    return SQLiteUtils::RegisterFunction(db, "get_sys_time", 0, nullptr, func);
+    return SQLiteUtils::RegisterFunction(db, "get_sys_time", 1, nullptr, func);
 }
 
 int SQLiteUtils::CreateRelationalMetaTable(sqlite3 *db)
@@ -1358,7 +1358,7 @@ int SQLiteUtils::AddRelationalLogTableTrigger(sqlite3 *db, const TableInfo &tabl
         "BEGIN\n"  \
             "\t INSERT OR REPLACE INTO " + DBConstant::RELATIONAL_PREFIX + "%s_log \
             (data_key, device, ori_device, timestamp, wtimestamp, flag, hash_key)" \
-            "VALUES (new.rowid, '%s', '%s', get_sys_time(), get_sys_time(), 0x02, calc_hash(new.%s));\n" \
+            "VALUES (new.rowid, '%s', '%s', get_sys_time(0), get_sys_time(0), 0x02, calc_hash(new.%s));\n" \
         "END;";
     insertTrigger = string_format(insertTrigger, table.GetTableName().c_str(), table.GetTableName().c_str(),
         table.GetTableName().c_str(), table.GetDevId().c_str(),
@@ -1367,7 +1367,7 @@ int SQLiteUtils::AddRelationalLogTableTrigger(sqlite3 *db, const TableInfo &tabl
         "CREATE TRIGGER IF NOT EXISTS naturalbase_rdb_%s_ON_UPDATE AFTER UPDATE \n" \
         "ON %s\n" \
         "BEGIN\n"  \
-            "\t UPDATE " + DBConstant::RELATIONAL_PREFIX + "%s_log SET timestamp=get_sys_time(), device='%s' \
+            "\t UPDATE " + DBConstant::RELATIONAL_PREFIX + "%s_log SET timestamp=get_sys_time(0), device='%s' \
             where hash_key=calc_hash(old.%s) and flag&0x10=0;\n" \
         "END;";
     updateTrigger = string_format(updateTrigger, table.GetTableName().c_str(), table.GetTableName().c_str(),
@@ -1376,7 +1376,7 @@ int SQLiteUtils::AddRelationalLogTableTrigger(sqlite3 *db, const TableInfo &tabl
         "CREATE TRIGGER IF NOT EXISTS naturalbase_rdb_%s_ON_DELETE BEFORE DELETE \n" \
         "ON %s\n" \
         "BEGIN\n"  \
-            "\t UPDATE " + DBConstant::RELATIONAL_PREFIX + "%s_log set flag=0x03,timestamp=get_sys_time() \
+            "\t UPDATE " + DBConstant::RELATIONAL_PREFIX + "%s_log set flag=0x03,timestamp=get_sys_time(0) \
             WHERE hash_key=calc_hash(old.%s);\n" \
         "END;";
     deleteTrigger = string_format(deleteTrigger, table.GetTableName().c_str(),
