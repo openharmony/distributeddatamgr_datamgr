@@ -81,7 +81,7 @@ public:
 
     int GetAllSyncData(const std::string &tableName, std::vector<VirtualRowData> &data);
 
-    int GetSyncData(const std::string &tableName, const std::string hashKey, VirtualRowData &data);
+    int GetVirtualSyncData(const std::string &tableName, const std::string &hashKey, VirtualRowData &data);
 
     int InterceptData(std::vector<SingleVerKvEntry *> &entries,
         const std::string &sourceID, const std::string &targetID) const override
@@ -97,7 +97,7 @@ public:
     int CreateDistributedDeviceTable(const std::string &device, const RelationalSyncStrategy &syncStrategy) override;
 
     int RegisterSchemaChangedCallback(const std::function<void()> &onSchemaChanged) override;
-    
+
     void EraseSyncData(const std::string &tableName);
 
     void SetTableInfo(const TableInfo &tableInfo);

@@ -291,15 +291,8 @@ HWTEST_F(DistributedDBRelationalSchemaObjectTest, RelationalSchemaParseTest003, 
     RelationalSchemaObject schemaObj;
     int errCode = E_OK;
 
-    // std::string emptyTableStr = GenerateFromTableStr("[]");
-    // int errCode = schemaObj.ParseFromSchemaString(emptyTableStr);
-    // EXPECT_EQ(errCode, -E_INVALID_ARGS);
-
     errCode = schemaObj.ParseFromSchemaString(GenerateFromTableStr(TABLE_DEFINE_STR));
     EXPECT_EQ(errCode, -E_SCHEMA_PARSE_FAIL);
-
-    // errCode = schemaObj.ParseFromSchemaString(GenerateFromTableStr("[" + TABLE_DEFINE_STR + "]"));
-    // EXPECT_EQ(errCode, -E_SCHEMA_PARSE_FAIL);
 
     std::string invalidTableStr01 = "{" + TABLE_DEFINE_STR_FIELDS + TABLE_DEFINE_STR_KEY + "}";
     errCode = schemaObj.ParseFromSchemaString(GenerateFromTableStr("[" + invalidTableStr01 + "]"));
@@ -309,11 +302,6 @@ HWTEST_F(DistributedDBRelationalSchemaObjectTest, RelationalSchemaParseTest003, 
         TABLE_DEFINE_STR_KEY + "}";
     errCode = schemaObj.ParseFromSchemaString(GenerateFromTableStr("[" + invalidTableStr02 + "]"));
     EXPECT_EQ(errCode, -E_SCHEMA_PARSE_FAIL);
-
-    // std::string invalidTableStr03 = "{" + TABLE_DEFINE_STR_NAME + TABLE_DEFINE_STR_FIELDS_EMPTY +
-    //     TABLE_DEFINE_STR_KEY + "}";
-    // errCode = schemaObj.ParseFromSchemaString(GenerateFromTableStr("[" + invalidTableStr03 + "]"));
-    // EXPECT_EQ(errCode, -E_SCHEMA_PARSE_FAIL);
 
     std::string invalidTableStr04 = "{" + TABLE_DEFINE_STR_NAME + TABLE_DEFINE_STR_FIELDS_NOTYPE +
         TABLE_DEFINE_STR_KEY + "}";

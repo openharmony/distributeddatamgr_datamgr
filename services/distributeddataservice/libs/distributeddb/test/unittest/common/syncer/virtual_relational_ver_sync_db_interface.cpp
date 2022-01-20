@@ -117,7 +117,7 @@ int VirtualRelationalVerSyncDBInterface::GetSyncData(QueryObject &query,
     std::vector<DataItem> dataItemList;
     TableDataWithLog tableDataWithLog = {query.GetTableName(), {}};
     for (const auto &[hashKey, virtualData] : localData_[query.GetTableName()]) {
-        if (virtualData.logInfo.timestamp < timeRange.beginTime 
+        if (virtualData.logInfo.timestamp < timeRange.beginTime
             || virtualData.logInfo.timestamp >= timeRange.endTime) {
             LOGD("ignore hashkey %s", hashKey.c_str());
             continue;
@@ -131,7 +131,7 @@ int VirtualRelationalVerSyncDBInterface::GetSyncData(QueryObject &query,
         rowData.logInfo = virtualData.logInfo;
         tableDataWithLog.dataList.push_back(rowData);
     }
-    
+
     int errCode = DataTransformer::TransformTableData(tableDataWithLog, localFieldInfo_, dataItemList);
     if (errCode != E_OK) {
         return errCode;
@@ -300,8 +300,8 @@ int VirtualRelationalVerSyncDBInterface::GetAllSyncData(const std::string &table
     return E_OK;
 }
 
-int VirtualRelationalVerSyncDBInterface::GetSyncData(const std::string &tableName,
-    const std::string hashKey, VirtualRowData &data)
+int VirtualRelationalVerSyncDBInterface::GetVirtualSyncData(const std::string &tableName,
+    const std::string &hashKey, VirtualRowData &data)
 {
     if (syncData_.find(tableName) == syncData_.end()) {
         return -E_NOT_FOUND;

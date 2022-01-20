@@ -37,7 +37,7 @@ int RelationalVirtualDevice::GetAllSyncData(const std::string &tableName, std::v
 int RelationalVirtualDevice::GetSyncData(const std::string &tableName,
     const std::string &hashKey, VirtualRowData &data)
 {
-    return static_cast<VirtualRelationalVerSyncDBInterface *>(storage_)->GetSyncData(tableName, hashKey, data);
+    return static_cast<VirtualRelationalVerSyncDBInterface *>(storage_)->GetVirtualSyncData(tableName, hashKey, data);
 }
 
 void RelationalVirtualDevice::SetLocalFieldInfo(const std::vector<FieldInfo> &localFieldInfo)
