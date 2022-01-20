@@ -62,6 +62,11 @@ public:
     int ParseQueryObjNodes();
 
     bool Empty() const;
+    
+    bool HasInKeys() const
+    {
+        return hasInKeys_;
+    }
 
 #ifdef RELATIONAL_STORE
     int SetSchema(const RelationalSchemaObject &schemaObj);  // The interface can only be used in relational query.

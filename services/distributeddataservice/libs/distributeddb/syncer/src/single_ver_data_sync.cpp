@@ -1970,6 +1970,10 @@ bool SingleVerDataSync::QuerySyncCheck(const SingleVerSyncTaskContext *context) 
         LOGE("[SingleVerDataSync] remote version only support prefix key");
         return false;
     }
+    if (context->GetQuery().HasInKeys() &&
+        context->GetRemoteDbAbility().GetAbilityItem(INKEYS_QUERY) != SUPPORT_MARK) {
+        return false;
+    }
     return true;
 }
 
@@ -2097,6 +2101,11 @@ int SingleVerDataSync::ControlCmdStartCheck(SingleVerSyncTaskContext *context)
         (context->GetMode() != SyncModeType::UNSUBSCRIBE_QUERY)) {
         LOGE("[ControlCmdStartCheck] not support controlCmd");
         return -E_INVALID_ARGS;
+    }
+    if (context->GetMode() == SyncModeType::SUBSCRIBE_QUERY &&
+        context->GetQuery().HasInKeys() &&
+        context->GetRemoteDbAbility().GetAbilityItem(INKEYS_QUERY) != SUPPORT_MARK) {
+        return -E_NOT_SUPPORT;
     }
     if ((context->GetMode() != SyncModeType::SUBSCRIBE_QUERY) || context->GetReceivcPermitCheck()) {
         return E_OK;
