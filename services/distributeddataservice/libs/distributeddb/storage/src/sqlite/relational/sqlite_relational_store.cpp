@@ -67,9 +67,10 @@ int SQLiteRelationalStore::InitStorageEngine(const RelationalDBProperties &prope
 {
     OpenDbProperties option;
     InitDataBaseOption(properties, option);
+    std::string identifier = properties.GetStringProp(DBProperties::IDENTIFIER_DATA, "");
 
     StorageEngineAttr poolSize = {1, 1, 0, 16}; // at most 1 write 16 read.
-    int errCode = sqliteStorageEngine_->InitSQLiteStorageEngine(poolSize, option);
+    int errCode = sqliteStorageEngine_->InitSQLiteStorageEngine(poolSize, option, identifier);
     if (errCode != E_OK) {
         LOGE("Init the sqlite storage engine failed:%d", errCode);
     }

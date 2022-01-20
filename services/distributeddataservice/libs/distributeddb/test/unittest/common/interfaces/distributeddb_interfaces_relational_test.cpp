@@ -527,3 +527,50 @@ HWTEST_F(DistributedInterfacesRelationalTest, RelationalTableModifyTest004, Test
     EXPECT_EQ(status, OK);
     EXPECT_EQ(sqlite3_close_v2(db), SQLITE_OK);
 }
+
+/**
+  * @tc.name: RelationalRemoveDeviceDataTest001
+  * @tc.desc: Test remove device data
+  * @tc.type: FUNC
+  * @tc.require: AR000GK58F
+  * @tc.author: lianhuix
+  */
+HWTEST_F(DistributedInterfacesRelationalTest, RelationalRemoveDeviceDataTest001, TestSize.Level1)
+{
+    /**
+     * @tc.steps:step1. Prepare db file
+     * @tc.expected: step1. Return OK.
+     */
+    sqlite3 *db = RelationalTestUtils::CreateDataBase(g_dbDir + STORE_ID + DB_SUFFIX);
+    ASSERT_NE(db, nullptr);
+    EXPECT_EQ(RelationalTestUtils::ExecSql(db, "PRAGMA journal_mode=WAL;"), SQLITE_OK);
+    EXPECT_EQ(RelationalTestUtils::ExecSql(db, NORMAL_CREATE_TABLE_SQL), SQLITE_OK);
+    CreateDeviceTable(db, "sync_data", "DEVICE_A");
+    CreateDeviceTable(db, "sync_data", "DEVICE_B");
+    CreateDeviceTable(db, "sync_data", "DEVICE_C");
+
+    /**
+     * @tc.steps:step2. Open store
+     * @tc.expected: step2. return OK
+     */
+    RelationalStoreDelegate *delegate = nullptr;
+    DBStatus status = g_mgr.OpenStore(g_dbDir  + STORE_ID + DB_SUFFIX, STORE_ID, {}, delegate);
+    EXPECT_EQ(status, OK);
+    ASSERT_NE(delegate, nullptr);
+
+    /**
+     * @tc.steps:step3. Remove device data
+     * @tc.expected: step3. ok
+     */
+    EXPECT_EQ(delegate->RemoveDeviceData("DEVICE_A"), OK);
+    EXPECT_EQ(delegate->RemoveDeviceData("DEVICE_B"), OK);
+    EXPECT_EQ(delegate->RemoveDeviceData("DEVICE_C", "sync_data"), OK);
+
+    /**
+     * @tc.steps:step4. Close store
+     * @tc.expected: step4 Return OK.
+     */
+    status = g_mgr.CloseStore(delegate);
+    EXPECT_EQ(status, OK);
+    EXPECT_EQ(sqlite3_close_v2(db), SQLITE_OK);
+}

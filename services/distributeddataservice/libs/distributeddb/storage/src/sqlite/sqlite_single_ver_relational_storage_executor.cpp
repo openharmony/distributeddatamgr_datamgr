@@ -107,7 +107,8 @@ int GetDeviceTableName(sqlite3 *handle, const std::string &tableName, const std:
     if (device.empty() && tableName.empty()) { // device and table name should not both be empty
         return -E_INVALID_ARGS;
     }
-    std::string decicePattern = device.empty() ? "%" : DBCommon::TransferHashString(device);
+    std::string deviceHash = DBCommon::TransferStringToHex(DBCommon::TransferHashString(device));
+    std::string decicePattern = device.empty() ? "%" : deviceHash;
     std::string tablePattern = tableName.empty() ? "%" : tableName;
     std::string deviceTableName = DBConstant::RELATIONAL_PREFIX + tablePattern + "_" + decicePattern;
 
