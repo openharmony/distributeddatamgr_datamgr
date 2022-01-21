@@ -20,7 +20,7 @@
 #include "json_object.h"
 #include "parcel.h"
 #include "schema.h"
-#include "schema_utils.h"
+#include "schema_constant.h"
 
 namespace DistributedDB {
 using CompositeFields = std::vector<FieldName>;
@@ -83,6 +83,7 @@ public:
     void SetDevId(const std::string &devId);
 
     int CompareWithTable(const TableInfo &inTableInfo) const;
+    std::map<FieldPath, SchemaAttribute> GetSchemaDefine() const;
 
 private:
     void AddFieldDefineString(std::string &attrStr) const;

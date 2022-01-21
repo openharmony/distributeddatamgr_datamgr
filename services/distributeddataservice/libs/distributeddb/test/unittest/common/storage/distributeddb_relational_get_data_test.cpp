@@ -400,6 +400,75 @@ HWTEST_F(DistributedDBRelationalGetDataTest, GetQuerySyncData1, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetQuerySyncData2
+ * @tc.desc: GetSyncData interface.
+ * @tc.type: FUNC
+ * @tc.require: AR000GK58H
+ * @tc.author: lidongwei
+ */
+HWTEST_F(DistributedDBRelationalGetDataTest, GetQuerySyncData2, TestSize.Level1)
+{
+    ASSERT_EQ(g_mgr.OpenStore(g_storePath, g_storeID, RelationalStoreDelegate::Option {}, g_delegate), DBStatus::OK);
+    ASSERT_NE(g_delegate, nullptr);
+    ASSERT_EQ(g_delegate->CreateDistributedTable(g_tableName), DBStatus::OK);
+
+    /**
+     * @tc.steps: step1. Put 100 records.
+     * @tc.expected: Succeed, return OK.
+     */
+    const int RECORD_COUNT = 100; // 100 records.
+    for (int i = 0; i < RECORD_COUNT; ++i) {
+        EXPECT_EQ(AddOrUpdateRecord(i, i), E_OK);
+    }
+
+    /**
+     * @tc.steps: step2. Get record whose key is not equal to 10 and value is not equal to 20, order by key desc.
+     * @tc.expected: Succeed, Get 98 records.
+     */
+    auto store = GetRelationalStore();
+    ASSERT_NE(store, nullptr);
+    ContinueToken token = nullptr;
+
+    Query query = Query::Select(g_tableName).NotEqualTo("key", 10).And().NotEqualTo("value", 20).OrderBy("key", false);
+    size_t expectCount = 98; // expect 98 records.
+    QueryObject queryObj(query);
+    queryObj.SetSchema(store->GetSchemaInfo());
+
+    std::vector<SingleVerKvEntry *> entries;
+    EXPECT_EQ(store->GetSyncData(queryObj, SyncTimeRange {}, DataSizeSpecInfo {}, token, entries), E_OK);
+    EXPECT_EQ(entries.size(), expectCount);
+    EXPECT_EQ(token, nullptr);
+    for (auto iter = entries.begin(); iter != entries.end(); ++iter) {
+        auto nextOne = std::next(iter, 1);
+        if (nextOne != entries.end()) {
+            EXPECT_GT((*iter)->GetTimestamp(), (*nextOne)->GetTimestamp());
+        }
+    }
+    SingleVerKvEntry::Release(entries);
+
+    /**
+     * @tc.steps: step3. Get record whose key is equal to 10 or value is equal to 20, order by key asc.
+     * @tc.expected: Succeed, Get 98 records.
+     */
+    query = Query::Select(g_tableName).EqualTo("key", 10).Or().EqualTo("value", 20).OrderBy("key", true);
+    expectCount = 2; // expect 2 records.
+    queryObj = QueryObject(query);
+    queryObj.SetSchema(store->GetSchemaInfo());
+
+    EXPECT_EQ(store->GetSyncData(queryObj, SyncTimeRange {}, DataSizeSpecInfo {}, token, entries), E_OK);
+    EXPECT_EQ(entries.size(), expectCount);
+    EXPECT_EQ(token, nullptr);
+    for (auto iter = entries.begin(); iter != entries.end(); ++iter) {
+        auto nextOne = std::next(iter, 1);
+        if (nextOne != entries.end()) {
+            EXPECT_LT((*iter)->GetTimestamp(), (*nextOne)->GetTimestamp());
+        }
+    }
+    SingleVerKvEntry::Release(entries);
+    RefObject::DecObjRef(g_store);
+}
+
+/**
  * @tc.name: GetIncorrectTypeData1
  * @tc.desc: GetSyncData and PutSyncDataWithQuery interface.
  * @tc.type: FUNC

@@ -400,6 +400,24 @@ std::string TableInfo::ToTableInfoString() const
     return attrStr;
 }
 
+std::map<FieldPath, SchemaAttribute> TableInfo::GetSchemaDefine() const
+{
+    std::map<FieldPath, SchemaAttribute> schemaDefine;
+    for (const auto &[fieldName, fieldInfo] : GetFields()) {
+        FieldValue defaultValue;
+        defaultValue.stringValue = fieldInfo.GetDefaultValue();
+        schemaDefine[std::vector { fieldName }] = SchemaAttribute {
+            .type = FieldType::LEAF_FIELD_NULL,     // For relational schema, the json field type is unimportant.
+            .isIndexable = true,                    // For relational schema, all field is indexable.
+            .hasNotNullConstraint = fieldInfo.IsNotNull(),
+            .hasDefaultValue = fieldInfo.HasDefaultValue(),
+            .defaultValue = defaultValue,
+            .customFieldType = {}
+        };
+    }
+    return schemaDefine;
+}
+
 namespace {
     const std::string MAGIC = "relational_opinion";
 }

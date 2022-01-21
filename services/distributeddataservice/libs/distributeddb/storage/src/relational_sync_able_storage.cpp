@@ -538,7 +538,7 @@ int RelationalSyncAbleStorage::CheckAndInitQueryCondition(QueryObject &query) co
         LOGE("Query table is not a distributed table.");
         return -E_RELATIONAL_SCHEMA_NOT_FOUND;
     }
-    // TODO: query set schema
+    query.SetSchema(schema);
 
     int errCode = E_OK;
     auto *handle = GetHandle(false, errCode);

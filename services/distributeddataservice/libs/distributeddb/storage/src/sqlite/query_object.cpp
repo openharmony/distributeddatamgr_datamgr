@@ -126,7 +126,7 @@ SqliteQueryHelper QueryObject::GetQueryHelper(int &errCode)
         return SqliteQueryHelper(QueryObjInfo{});
     }
     QueryObjInfo info {schema_, queryObjNodes_, prefixKey_, suggestIndex_, keys_,
-        orderByCounts_, isValid_, hasOrderBy_, hasLimit_, hasPrefixKey_, tableName_};
+        orderByCounts_, isValid_, hasOrderBy_, hasLimit_, hasPrefixKey_, tableName_, isTableNameSpecified_};
     return SqliteQueryHelper {info}; // compiler RVO by default, and RVO is generally required after C++17
 }
 
@@ -267,6 +267,11 @@ int QueryObject::CheckLinkerBefore(const std::list<QueryObjNode>::iterator &iter
     return E_OK;
 }
 
+bool QueryObject::IsRelationalQuery() const
+{
+    return isTableNameSpecified_;
+}
+
 int QueryObject::CheckEqualFormat(const std::list<QueryObjNode>::iterator &iter) const
 {
     if (!schema_.IsSchemaValid()) {
@@ -275,7 +280,8 @@ int QueryObject::CheckEqualFormat(const std::list<QueryObjNode>::iterator &iter)
     }
 
     FieldPath fieldPath;
-    int errCode = SchemaUtils::ParseAndCheckFieldPath(iter->fieldName, fieldPath);
+    bool permitPrefix = !IsRelationalQuery();  // For relational query, $. prefix is not permitted.
+    int errCode = SchemaUtils::ParseAndCheckFieldPath(iter->fieldName, fieldPath, permitPrefix);
     if (errCode != E_OK) {
         return -E_INVALID_QUERY_FIELD;
     }
@@ -341,7 +347,9 @@ int QueryObject::CheckOrderByFormat(const std::list<QueryObjNode>::iterator &ite
 
     FieldType schemaFieldType;
     FieldPath fieldPath;
-    int errCode = SchemaUtils::ParseAndCheckFieldPath(iter->fieldName, fieldPath);
+
+    bool permitPrefix = !IsRelationalQuery();  // For relational query, $. prefix is not permitted.
+    int errCode = SchemaUtils::ParseAndCheckFieldPath(iter->fieldName, fieldPath, permitPrefix);
     if (errCode != E_OK) {
         return -E_INVALID_QUERY_FIELD;
     }
@@ -411,5 +419,18 @@ int QueryObject::CheckInKeys() const
     }
     return E_OK;
 }
+
+#ifdef RELATIONAL_STORE
+int QueryObject::SetSchema(const RelationalSchemaObject &schemaObj)
+{
+    if (!isTableNameSpecified_) {
+        return -E_INVALID_ARGS;
+    }
+    const auto &tableInfo = schemaObj.GetTable(tableName_);
+    SchemaObject schema(tableInfo);
+    schema_ = schema;
+    return E_OK;
+}
+#endif
 }
 

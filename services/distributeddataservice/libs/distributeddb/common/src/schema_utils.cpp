@@ -366,7 +366,7 @@ int CheckDollarDotPrefix(const std::string &inPathStr, bool &hasPrefix)
 }
 }
 
-int SchemaUtils::ParseAndCheckFieldPath(const std::string &inPathString, FieldPath &outPath)
+int SchemaUtils::ParseAndCheckFieldPath(const std::string &inPathString, FieldPath &outPath, bool permitPrefix)
 {
     std::string tempInPathString = inPathString;
     TrimFiled(tempInPathString);
@@ -376,6 +376,12 @@ int SchemaUtils::ParseAndCheckFieldPath(const std::string &inPathString, FieldPa
         LOGE("CheckDollarDotPrefix Fail.");
         return errCode;
     }
+
+    if (!permitPrefix && hasPrefix) {
+        LOGE("Not permit $. prefix.");
+        return -E_SCHEMA_PARSE_FAIL;
+    }
+
     if (!hasPrefix) {
         tempInPathString = std::string("$.") + tempInPathString;
     }

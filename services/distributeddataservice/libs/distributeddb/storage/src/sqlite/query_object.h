@@ -16,6 +16,7 @@
 #define QUERY_OBJECT_H
 
 #include <string>
+#include <relational_schema_object.h>
 #include "schema_object.h"
 #include "query.h"
 #include "sqlite_query_helper.h"
@@ -61,6 +62,10 @@ public:
 
     bool Empty() const;
 
+#ifdef RELATIONAL_STORE
+    int SetSchema(const RelationalSchemaObject &schemaObj);  // The interface can only be used in relational query.
+#endif
+
 protected:
     std::list<QueryObjNode> queryObjNodes_;
     std::vector<uint8_t> prefixKey_;
@@ -85,6 +90,7 @@ private:
     void ClearNodesFlag();
     void GetAttrFromQueryObjNodes();
     int CheckInKeys() const;
+    bool IsRelationalQuery() const;
 
     SchemaObject schema_; // used to check and parse schema filed
     int limit_;
