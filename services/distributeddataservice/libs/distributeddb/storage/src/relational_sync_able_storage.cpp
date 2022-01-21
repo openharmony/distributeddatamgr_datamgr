@@ -527,10 +527,9 @@ void RelationalSyncAbleStorage::RegisterHeartBeatListener(const std::function<vo
 
 int RelationalSyncAbleStorage::CheckAndInitQueryCondition(QueryObject &query) const
 {
-    int errCode = E_OK;
-    auto *handle = GetHandle(false, errCode);
-    if (handle == nullptr) {
-        return errCode;
+    if (!query.IsQueryForRelationalDB()) {
+        LOGE("Not support for this query type.");
+        return -E_NOT_SUPPORT;
     }
 
     RelationalSchemaObject schema = storageEngine_->GetSchemaRef();
@@ -539,12 +538,14 @@ int RelationalSyncAbleStorage::CheckAndInitQueryCondition(QueryObject &query) co
         LOGE("Query table is not a distributed table.");
         return -E_RELATIONAL_SCHEMA_NOT_FOUND;
     }
-
-    if (!query.IsQueryForRelationalDB()) {
-        LOGE("Not support for this query type.");
-        return -E_NOT_SUPPORT;
-    }
     // TODO: query set schema
+
+    int errCode = E_OK;
+    auto *handle = GetHandle(false, errCode);
+    if (handle == nullptr) {
+        return errCode;
+    }
+
 
     errCode = handle->CheckQueryObjectLegal(table, query);
     if (errCode != E_OK) {
