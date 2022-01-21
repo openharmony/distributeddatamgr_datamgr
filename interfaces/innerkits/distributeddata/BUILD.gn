@@ -62,6 +62,7 @@ ohos_shared_library("distributeddata_inner") {
     "../../../frameworks/innerkitsimpl/distributeddatafwk/src/ikvstore_single.cpp",
     "../../../frameworks/innerkitsimpl/distributeddatafwk/src/ikvstore_snapshot.cpp",
     "../../../frameworks/innerkitsimpl/distributeddatafwk/src/ikvstore_sync_callback.cpp",
+    "../../../frameworks/innerkitsimpl/distributeddatafwk/src/itypes_util.cpp",
     "../../../frameworks/innerkitsimpl/distributeddatafwk/src/kvstore_client.cpp",
     "../../../frameworks/innerkitsimpl/distributeddatafwk/src/kvstore_client_death_observer.cpp",
     "../../../frameworks/innerkitsimpl/distributeddatafwk/src/kvstore_death_recipient_impl.cpp",
@@ -71,7 +72,6 @@ ohos_shared_library("distributeddata_inner") {
     "../../../frameworks/innerkitsimpl/distributeddatafwk/src/kvstore_snapshot_client.cpp",
     "../../../frameworks/innerkitsimpl/distributeddatafwk/src/kvstore_sync_callback_client.cpp",
     "../../../frameworks/innerkitsimpl/distributeddatafwk/src/single_kvstore_client.cpp",
-    "../../../frameworks/innerkitsimpl/distributeddatafwk/src/itypes_util.cpp",
     "include/types.h",
   ]
 
