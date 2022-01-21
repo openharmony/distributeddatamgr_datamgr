@@ -162,49 +162,49 @@ namespace {
     {
         switch(item.GetType()) {
             case StorageType::STORAGE_TYPE_BOOL: {
-            bool boolData = false;
-            (void)item.GetBool(boolData);
-            EXPECT_EQ(sqlite3_bind_int(stmt, col, boolData), SQLITE_OK);
-            break;
-        }
+                bool boolData = false;
+                (void)item.GetBool(boolData);
+                EXPECT_EQ(sqlite3_bind_int(stmt, col, boolData), SQLITE_OK);
+                break;
+            }
 
-        case StorageType::STORAGE_TYPE_INTEGER: {
-            int64_t intData = 0;
-            (void)item.GetInt64(intData);
-            EXPECT_EQ(sqlite3_bind_int64(stmt, col, intData), SQLITE_OK);
-            break;
-        }
+            case StorageType::STORAGE_TYPE_INTEGER: {
+                int64_t intData = 0;
+                (void)item.GetInt64(intData);
+                EXPECT_EQ(sqlite3_bind_int64(stmt, col, intData), SQLITE_OK);
+                break;
+            }
 
-        case StorageType::STORAGE_TYPE_REAL: {
-            double doubleData = 0;
-            (void)item.GetDouble(doubleData);
-            EXPECT_EQ(sqlite3_bind_double(stmt, col, doubleData), SQLITE_OK);
-            break;
-        }
+            case StorageType::STORAGE_TYPE_REAL: {
+                double doubleData = 0;
+                (void)item.GetDouble(doubleData);
+                EXPECT_EQ(sqlite3_bind_double(stmt, col, doubleData), SQLITE_OK);
+                break;
+            }
 
-        case StorageType::STORAGE_TYPE_TEXT: {
-            std::string strData;
-            (void)item.GetText(strData);
-            EXPECT_EQ(SQLiteUtils::BindTextToStatement(stmt, col, strData), E_OK);
-            break;
-        }
+            case StorageType::STORAGE_TYPE_TEXT: {
+                std::string strData;
+                (void)item.GetText(strData);
+                EXPECT_EQ(SQLiteUtils::BindTextToStatement(stmt, col, strData), E_OK);
+                break;
+            }
 
-        case StorageType::STORAGE_TYPE_BLOB: {
-            Blob blob;
-            (void)item.GetBlob(blob);
-            std::vector<uint8_t> blobData(blob.GetData(), blob.GetData() + blob.GetSize());
-            EXPECT_EQ(SQLiteUtils::BindBlobToStatement(stmt, col, blobData, true), E_OK);
-            break;
-        }
+            case StorageType::STORAGE_TYPE_BLOB: {
+                Blob blob;
+                (void)item.GetBlob(blob);
+                std::vector<uint8_t> blobData(blob.GetData(), blob.GetData() + blob.GetSize());
+                EXPECT_EQ(SQLiteUtils::BindBlobToStatement(stmt, col, blobData, true), E_OK);
+                break;
+            }
 
-        case StorageType::STORAGE_TYPE_NULL: {
-            EXPECT_EQ(SQLiteUtils::MapSQLiteErrno(sqlite3_bind_null(stmt, col)), E_OK);
-            break;
-        }
+            case StorageType::STORAGE_TYPE_NULL: {
+                EXPECT_EQ(SQLiteUtils::MapSQLiteErrno(sqlite3_bind_null(stmt, col)), E_OK);
+                break;
+            }
 
-        default:
-            break;
-        }
+            default:
+                break;
+            }
     }
 
     void InsertValue(sqlite3 *db, std::map<std::string, DataValue> &dataMap,
@@ -212,7 +212,7 @@ namespace {
     {
         sqlite3_stmt *stmt = nullptr;
         EXPECT_EQ(PrepareInsert(db, stmt, fieldInfoList, tableName), SQLITE_OK);
-        for (int i = 0; i < (int)fieldInfoList.size(); ++i) {
+        for (int i = 0; i < static_cast<int>(fieldInfoList.size()); ++i) {
             const auto &fieldName = fieldInfoList[i].GetFieldName();
             ASSERT_TRUE(dataMap.find(fieldName) != dataMap.end());
             const auto &item = dataMap[fieldName];
@@ -339,7 +339,7 @@ namespace {
                 break;
             }
             case SQLITE_TEXT: {
-                dataValue.SetText(std::string(reinterpret_cast<const char*>(sqlite3_column_text(statement, col))));
+                dataValue.SetText(std::string(reinterpret_cast<const char *>(sqlite3_column_text(statement, col))));
                 break;
             }
             case SQLITE_BLOB: {
