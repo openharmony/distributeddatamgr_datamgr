@@ -25,4 +25,4 @@ public:
     virtual int SetDistributedTables(const std::vector<std::string>& tables) = 0;
 };
 }
-#endif //DISTRIBUTED_DATA_RDB_SYNCER_H
+#endif

@@ -32,4 +32,4 @@ public:
     virtual int RegisterClientDeathRecipient(const std::string& bundleName, sptr<IRemoteObject> object) = 0;
 };
 }
-#endif //DISTRIBUTED_RDB_SERVICE_H
+#endif

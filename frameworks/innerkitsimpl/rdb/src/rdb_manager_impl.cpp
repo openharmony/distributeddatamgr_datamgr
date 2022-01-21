@@ -25,7 +25,6 @@
 #include "ikvstore_data_service.h"
 #include "irdb_service.h"
 
-using namespace OHOS::DistributedKv;
 namespace OHOS::DistributedRdb {
 class ServiceDeathRecipient : public IRemoteObject::DeathRecipient {
 public:
@@ -40,7 +39,7 @@ private:
     RdbManagerImpl* owner_;
 };
 
-static sptr<IKvStoreDataService> GetDistributedDataManager()
+static sptr<DistributedKv::IKvStoreDataService> GetDistributedDataManager()
 {
     auto manager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (manager == nullptr) {
@@ -49,7 +48,7 @@ static sptr<IKvStoreDataService> GetDistributedDataManager()
     }
     ZLOGI("get distributed data manager");
     auto remoteObject = manager->CheckSystemAbility(DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID);
-    return iface_cast<IKvStoreDataService>(remoteObject);
+    return iface_cast<DistributedKv::IKvStoreDataService>(remoteObject);
 }
 
 static void LinkToDeath(const sptr<IRemoteObject>& remote)

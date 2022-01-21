@@ -79,10 +79,10 @@ public:
         std::lock_guard<decltype(mutex_)> lock(mutex_);
         auto it = entries_.find(key);
         if (it == entries_.end()) {
-            return std::pair{ false, mapped_type() };
+            return std::pair { false, mapped_type() };
         }
         
-        return std::pair{ true, it->second };
+        return std::pair { true, it->second };
     }
     
     bool Contains(const key_type& key) const noexcept
@@ -94,7 +94,7 @@ public:
     bool Insert(const key_type &key, const mapped_type &value) noexcept
     {
         std::lock_guard<decltype(mutex_)> lock(mutex_);
-        auto it = entries_.insert(value_type{key, value});
+        auto it = entries_.insert(value_type{ key, value });
         return it.second;
     }
     
@@ -221,7 +221,7 @@ public:
             return it->second;
         }
         mapped_type value = action(key);
-        entries_.insert(value_type{key, value});
+        entries_.insert(value_type{ key, value });
         return value;
     }
 private:

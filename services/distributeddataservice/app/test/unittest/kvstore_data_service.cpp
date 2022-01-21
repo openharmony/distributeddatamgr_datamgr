@@ -550,8 +550,8 @@ bool KvStoreDataService::CheckBackupFileExist(const std::string &deviceAccountId
 {
     auto pathType = KvStoreAppManager::ConvertPathType(bundleName, securityLevel);
     auto backupFileName = Constant::Concatenate({ Constant::DEFAULT_GROUP_ID, "_", bundleName, "_", storeId });
-    std::initializer_list<std::string> backFileList = {BackupHandler::GetBackupPath(deviceAccountId, pathType),
-        "/", BackupHandler::GetHashedBackupName(backupFileName)};
+    std::initializer_list<std::string> backFileList = { BackupHandler::GetBackupPath(deviceAccountId, pathType),
+        "/", BackupHandler::GetHashedBackupName(backupFileName) };
     auto backFilePath = Constant::Concatenate(backFileList);
     if (!BackupHandler::FileExists(backFilePath)) {
         ZLOGE("BackupHandler file is not exist.");
@@ -1265,7 +1265,7 @@ Status KvStoreDataService::GetDeviceList(std::vector<DeviceInfo> &deviceInfoList
 {
     auto devices = KvStoreUtils::GetProviderInstance().GetRemoteNodesBasicInfo();
     for (auto const &device : devices) {
-        deviceInfoList.push_back({device.deviceId, device.deviceName, device.deviceType});
+        deviceInfoList.push_back({ device.deviceId, device.deviceName, device.deviceType });
     }
     ZLOGD("strategy is %d.", strategy);
     return Status::SUCCESS;
@@ -1284,7 +1284,7 @@ Status KvStoreDataService::StartWatchDeviceChange(sptr<IDeviceStatusChangeListen
         KvStoreUtils::GetProviderInstance().StartWatchDeviceChange(deviceListener_.get(), {"serviceWatcher"});
     }
     IRemoteObject *objectPtr = observer->AsObject().GetRefPtr();
-    deviceListeners_.insert({objectPtr, observer});
+    deviceListeners_.insert({ objectPtr, observer });
     ZLOGD("strategy is %d.", strategy);
     return Status::SUCCESS;
 }

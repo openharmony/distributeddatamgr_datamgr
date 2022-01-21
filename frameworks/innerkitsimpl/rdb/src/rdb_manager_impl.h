@@ -65,4 +65,4 @@ private:
     ConcurrentMap<std::string, std::function<void()>> serviceDeathObservers_;
 };
 }
-#endif //DISTRIBUTED_RDB_MANAGER_IMPL_H
+#endif

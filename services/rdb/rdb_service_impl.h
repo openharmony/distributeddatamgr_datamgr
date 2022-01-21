@@ -52,9 +52,8 @@ private:
         DeathCallback callback_;
     };
     
-    ConcurrentMap<std::string, sptr<RdbSyncerImpl>> syncers_; //identifier
-    std::mutex recipientsLock_;
-    std::map<sptr<IRemoteObject>, sptr<ClientDeathRecipient>> recipients_;
+    ConcurrentMap<std::string, sptr<RdbSyncerImpl>> syncers_; // identifier
+    ConcurrentMap<sptr<IRemoteObject>, sptr<ClientDeathRecipient>> recipients_;
 };
 }
 #endif

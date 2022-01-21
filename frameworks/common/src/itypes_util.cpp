@@ -16,9 +16,9 @@
 #define LOG_TAG "ITypesUtil"
 
 #include "itypes_util.h"
-#include <log_print.h>
-#include "autils/constant.h"
 #include <climits>
+#include "autils/constant.h"
+#include "log_print.h"
 
 namespace OHOS::DistributedKv {
 bool ITypesUtil::Marshalling(const Blob &blob, MessageParcel &data)

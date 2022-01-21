@@ -28,7 +28,7 @@ public:
 
 class RdbClientDeathRecipientProxy : public IRemoteProxy<IRdbClientDeathRecipient> {
 public:
-    RdbClientDeathRecipientProxy(const sptr<IRemoteObject>& object);
+    explicit RdbClientDeathRecipientProxy(const sptr<IRemoteObject>& object);
     virtual ~RdbClientDeathRecipientProxy();
 
 private:

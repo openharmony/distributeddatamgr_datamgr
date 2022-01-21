@@ -32,7 +32,6 @@ public:
     static int RegisterRdbServiceDeathObserver(const std::string &storeName, const std::function<void()>& observer);
     
     static int UnRegisterRdbServiceDeathObserver(const std::string &storeName);
-    
 };
 }
-#endif //DISTRIBUTED_RDB_MANAGER_H
+#endif

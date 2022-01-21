@@ -43,9 +43,8 @@ void RdbServiceImpl::ClientDeathRecipient::OnRemoteDied(const wptr<IRemoteObject
 
 void RdbServiceImpl::ClearClientRecipient(const std::string& bundleName, sptr<IRemoteObject>& proxy)
 {
-    std::lock_guard<std::mutex> lock(recipientsLock_);
     ZLOGI("remove %{public}s", bundleName.c_str());
-    recipients_.erase(proxy);
+    recipients_.Erase(proxy);
 }
 
 void RdbServiceImpl::ClearClientSyncers(const std::string& bundleName)
@@ -102,7 +101,6 @@ int RdbServiceImpl::RegisterClientDeathRecipient(const std::string& bundleName, 
         return -1;
     }
     
-    std::lock_guard<std::mutex> lock(recipientsLock_);
     ClientDeathRecipient::DeathCallback callback = [bundleName, this] (sptr<IRemoteObject>& object) {
         OnClientDied(bundleName, object);
     };
@@ -115,8 +113,7 @@ int RdbServiceImpl::RegisterClientDeathRecipient(const std::string& bundleName, 
         ZLOGE("add death recipient failed");
         return -1;
     }
-    auto it = recipients_.insert({proxy, recipient});
-    if (!it.second) {
+    if (!recipients_.Insert(proxy, recipient)) {
         ZLOGE("insert failed");
         return -1;
     }

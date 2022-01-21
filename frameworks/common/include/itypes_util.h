@@ -129,7 +129,9 @@ public:
                 return Status::IPC_ERROR;
             }
         }
-        return Status::SUCCESS;    }
+        return Status::SUCCESS;
+    }
+
 private:
     template<typename T>
     class VectorParcel : public MessageParcel {

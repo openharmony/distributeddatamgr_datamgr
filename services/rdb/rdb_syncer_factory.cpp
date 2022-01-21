@@ -33,7 +33,7 @@ void RdbSyncerFactory::Register(int type, const Creator &creator)
         return;
     }
     ZLOGI("add creator for store type %{public}d", type);
-    creators_.insert({type, creator});
+    creators_.insert({ type, creator });
 }
 
 void RdbSyncerFactory::UnRegister(int type)
