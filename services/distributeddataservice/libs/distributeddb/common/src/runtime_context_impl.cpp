@@ -129,6 +129,16 @@ void RuntimeContextImpl::SetCommunicatorAggregator(ICommunicatorAggregator *inAg
     autoLaunch_.SetCommunicatorAggregator(communicatorAggregator_);
 }
 
+int RuntimeContextImpl::GetLocalIdentity(std::string &outTarget)
+{
+    std::lock_guard<std::mutex> autoLock(communicatorLock_);
+    if (communicatorAggregator_ != nullptr) {
+        return communicatorAggregator_->GetLocalIdentity(outTarget);
+
+    }
+    return -E_NOT_INIT;
+}
+
 // Add and start a timer.
 int RuntimeContextImpl::SetTimer(int milliSeconds, const TimerAction &action,
     const TimerFinalizer &finalizer, TimerId &timerId)
@@ -593,5 +603,56 @@ void RuntimeContextImpl::NotifyDatabaseStatusChange(const std::string &userId, c
             databaseStatusNotifyCallback_(userId, appId, storeId, deviceId, onlineStatus);
         }
     });
+}
+
+int RuntimeContextImpl::SetSyncActivationCheckCallback(SyncActivationCheckCallback &callback)
+{
+    std::unique_lock<std::shared_mutex> writeLock(syncActivationCheckCallbackMutex_);
+    syncActivationCheckCallback_ = callback;
+    LOGI("SetSyncActivationCheckCallback ok");
+    return E_OK;
+}
+
+bool RuntimeContextImpl::IsSyncerNeedActive(std::string &userId, std::string &appId, std::string &storeId) const
+{
+    std::shared_lock<std::shared_mutex> autoLock(syncActivationCheckCallbackMutex_);
+    if (syncActivationCheckCallback_) {
+        return syncActivationCheckCallback_(userId, appId, storeId);
+    }
+    return true;
+}
+
+NotificationChain::Listener *RuntimeContextImpl::RegisterUserChangedListerner(const UserChangedAction &action,
+    bool isActiveEvent)
+{
+    int errCode;
+    std::lock_guard<std::mutex> autoLock(userChangeMonitorLock_);
+    if (userChangeMonitor_ == nullptr) {
+        userChangeMonitor_ = std::make_unique<UserChangeMonitor>();
+        errCode = userChangeMonitor_->Start();
+        if (errCode != E_OK) {
+            LOGE("UserChangeMonitor start failed!");
+            userChangeMonitor_ = nullptr;
+            return nullptr;
+        }
+    }
+    NotificationChain::Listener *listener = userChangeMonitor_->RegisterUserChangedListerner(action, isActiveEvent,
+        errCode);
+    if ((listener == nullptr) || (errCode != E_OK)) {
+        LOGE("Register user status changed listener failed, err = %d", errCode);
+        return nullptr;
+    }
+    return listener;
+}
+
+int RuntimeContextImpl::NotifyUserChanged() const
+{
+    std::lock_guard<std::mutex> autoLock(userChangeMonitorLock_);
+    if (userChangeMonitor_ == nullptr) {
+        LOGD("NotifyUserChanged fail, userChangeMonitor is null");
+        return -E_NOT_SUPPORT;
+    }
+    userChangeMonitor_->NotifyUserChanged();
+    return E_OK;
 }
 } // namespace DistributedDB

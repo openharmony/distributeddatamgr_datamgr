@@ -651,22 +651,6 @@ void SyncEngine::SetMaxQueueCacheSize(int value)
     maxQueueCacheSize_ = value;
 }
 
-int SyncEngine::GetLocalIdentity(std::string &outTarget) const
-{
-    if (communicatorProxy_ == nullptr) {
-        LOGE("[SyncEngine]  communicatorProxy_ is nullptr, return!");
-        return -E_NOT_INIT;
-    }
-    std::string deviceId;
-    int errCode = communicatorProxy_->GetLocalIdentity(deviceId);
-    if (errCode != E_OK) {
-        LOGE("[SyncEngine]  communicatorProxy_ GetLocalIdentity fail errCode:%d", errCode);
-        return errCode;
-    }
-    outTarget = DBCommon::TransferHashString(deviceId);
-    return E_OK;
-}
-
 uint8_t SyncEngine::GetPermissionCheckFlag(bool isAutoSync, int syncMode)
 {
     uint8_t flag = 0;
@@ -729,6 +713,10 @@ void SyncEngine::SetSyncRetry(bool isRetry)
 
 int SyncEngine::SetEqualIdentifier(const std::string &identifier, const std::vector<std::string> &targets)
 {
+    if (!isActive_) {
+        LOGI("[SyncEngine] engine is closed, just put into map");
+        return E_OK;
+    }
     ICommunicator *communicator = nullptr;
     {
         std::lock_guard<std::mutex> lock(equalCommunicatorsLock_);
@@ -876,6 +864,7 @@ void SyncEngine::UnRegCommunicatorsCallback()
         communicator_->RegOnConnectCallback(nullptr, nullptr);
         communicator_->RegOnSendableCallback(nullptr, nullptr);
     }
+
 
     std::lock_guard<std::mutex> lock(equalCommunicatorsLock_);
     for (const auto &iter : equalCommunicators_) {

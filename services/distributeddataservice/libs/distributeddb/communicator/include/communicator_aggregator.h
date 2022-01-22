@@ -75,7 +75,7 @@ public:
     uint32_t GetCommunicatorAggregatorTimeout() const;
     uint32_t GetCommunicatorAggregatorTimeout(const std::string &target) const;
     bool IsDeviceOnline(const std::string &device) const;
-    int GetLocalIdentity(std::string &outTarget) const;
+    int GetLocalIdentity(std::string &outTarget) const override;
 
     // Get the protocol version of remote target. Return -E_NOT_FOUND if no record.
     int GetRemoteCommunicatorVersion(const std::string &target, uint16_t &outVersion) const;

@@ -72,9 +72,6 @@ public:
     // Set the maximum of queue cache memory size
     void SetMaxQueueCacheSize(int value);
 
-    // Get local deviceId, is hashed
-    int GetLocalIdentity(std::string &outTarget) const override;
-
     std::string GetLabel() const override;
 
     bool GetSyncRetry() const;

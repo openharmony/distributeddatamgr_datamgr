@@ -52,9 +52,6 @@ public:
     // Register the device connect callback, this function must be called after Engine initted
     virtual void RegConnectCallback() = 0;
 
-    // Get local deviceId, is hashed
-    virtual int GetLocalIdentity(std::string &outTarget) const = 0;
-
     // Get the database identifier
     virtual std::string GetLabel() const = 0;
 

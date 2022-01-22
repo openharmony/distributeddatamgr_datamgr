@@ -101,6 +101,7 @@ ohos_shared_library("distributeddb") {
     "common/src/task_queue.cpp",
     "common/src/time_tick_monitor.cpp",
     "common/src/types_export.cpp",
+    "common/src/user_change_monitor.cpp",
     "common/src/value_object.cpp",
     "common/src/zlib_compression.cpp",
     "communicator/src/combine_status.cpp",

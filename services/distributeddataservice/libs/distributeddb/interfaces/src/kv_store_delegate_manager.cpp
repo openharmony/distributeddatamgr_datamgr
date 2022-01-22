@@ -107,6 +107,7 @@ namespace {
             properties.SetIntProp(KvDBProperties::COMPRESSION_RATE,
                 ParamCheckUtils::GetValidCompressionRate(option.compressionRate));
         }
+        properties.SetBoolProp(KvDBProperties::SYNC_DUALTUPLE_MODE, option.syncDualTupleMode);
     }
 
     bool CheckObserverConflictParam(const KvStoreNbDelegate::Option &option)
@@ -583,5 +584,17 @@ DBStatus KvStoreDelegateManager::SetProcessSystemAPIAdapter(const std::shared_pt
 void KvStoreDelegateManager::SetStoreStatusNotifier(const StoreStatusNotifier &notifier)
 {
     RuntimeContext::GetInstance()->SetStoreStatusNotifier(notifier);
+}
+
+DBStatus KvStoreDelegateManager::SetSyncActivationCheckCallback(SyncActivationCheckCallback &callback)
+{
+    int errCode = RuntimeContext::GetInstance()->SetSyncActivationCheckCallback(callback);
+    return TransferDBErrno(errCode);
+}
+
+DBStatus KvStoreDelegateManager::NotifyUSerChanged()
+{
+    int errCode = RuntimeContext::GetInstance()->NotifyUserChanged();
+    return TransferDBErrno(errCode);
 }
 } // namespace DistributedDB

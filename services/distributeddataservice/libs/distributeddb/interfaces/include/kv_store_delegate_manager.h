@@ -104,6 +104,9 @@ public:
 
     DB_API static void SetStoreStatusNotifier(const StoreStatusNotifier &notifier);
 
+    DB_API static DBStatus SetSyncActivationCheckCallback(SyncActivationCheckCallback &callback);
+
+    DB_API static DBStatus NotifyUSerChanged();
 private:
 
     // Check if the dataDir is safe arg.

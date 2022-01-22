@@ -90,6 +90,17 @@ int GenericSyncer::Initialize(ISyncInterface *syncInterface)
         if (errCodeMetadata != E_OK || errCodeTimeHelper != E_OK) {
             return -E_INTERNAL_ERROR;
         }
+        bool isSyncDualTupleMode = syncInterface->GetDbProperties().GetBoolProp(KvDBProperties::SYNC_DUALTUPLE_MODE,
+            false);
+        if (isSyncDualTupleMode) {
+            std::string userId = syncInterface->GetDbProperties().GetStringProp(KvDBProperties::USER_ID, "");
+            std::string appId = syncInterface->GetDbProperties().GetStringProp(KvDBProperties::APP_ID, "");
+            std::string storeId = syncInterface->GetDbProperties().GetStringProp(KvDBProperties::STORE_ID, "");
+            if (!RuntimeContext::GetInstance()->IsSyncerNeedActive(userId, appId, storeId)) {
+                LOGI("syncer no need to active");
+                return -E_NOT_INIT;
+            }
+        }
 
         if (!RuntimeContext::GetInstance()->IsCommunicatorAggregatorValid()) {
             LOGW("[Syncer] Communicator component not ready!");
@@ -122,6 +133,8 @@ int GenericSyncer::Close()
         std::lock_guard<std::mutex> lock(syncerLock_);
         if (!initialized_) {
             LOGW("[Syncer] Syncer don't need to close, because it has no been init.");
+            timeHelper_ = nullptr;
+            metadata_ = nullptr;
             return -E_NOT_INIT;
         }
         initialized_ = false;
@@ -584,20 +597,14 @@ int GenericSyncer::EnableManualSync(void)
 
 int GenericSyncer::GetLocalIdentity(std::string &outTarget) const
 {
-    std::lock_guard<std::mutex> lock(syncerLock_);
-    if (!initialized_) {
-        LOGE("[Syncer] Syncer is not initialized, return!");
-        return -E_NOT_INIT;
+    std::string deviceId;
+    int errCode =  RuntimeContext::GetInstance()->GetLocalIdentity(deviceId);
+    if (errCode != E_OK) {
+        LOGE("[GenericSyncer] GetLocalIdentity fail errCode:%d", errCode);
+        return errCode;
     }
-    if (closing_) {
-        LOGE("[Syncer] Syncer is closing, return!");
-        return -E_BUSY;
-    }
-    if (syncEngine_ == nullptr) {
-        LOGE("[Syncer] Syncer syncEngine_ is nullptr, return!");
-        return -E_NOT_INIT;
-    }
-    return syncEngine_->GetLocalIdentity(outTarget);
+    outTarget = DBCommon::TransferHashString(deviceId);
+    return E_OK;
 }
 
 void GenericSyncer::GetOnlineDevices(std::vector<std::string> &devices) const

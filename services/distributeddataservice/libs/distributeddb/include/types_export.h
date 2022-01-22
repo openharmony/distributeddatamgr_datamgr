@@ -122,6 +122,9 @@ using PermissionCheckCallbackV2 = std::function<bool (const std::string &userId,
 using StoreStatusNotifier = std::function<void (std::string userId, std::string appId, std::string storeId,
     const std::string deviceId, bool onlineStatus)>; // status, 1: online, 0: offline
 
+using SyncActivationCheckCallback = std::function<bool (const std::string &userId, const std::string &appId,
+    const std::string &storeId)>;
+
 enum AutoLaunchStatus {
     WRITE_OPENED = 1,
     WRITE_CLOSED = 2,

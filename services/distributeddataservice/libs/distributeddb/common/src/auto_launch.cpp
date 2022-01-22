@@ -948,6 +948,7 @@ int AutoLaunch::GetAutoLaunchKVProperties(const AutoLaunchParam &param,
         propertiesPtr->SetIntProp(KvDBProperties::COMPRESSION_RATE,
             ParamCheckUtils::GetValidCompressionRate(param.option.compressionRate));
     }
+    propertiesPtr->SetBoolProp(KvDBProperties::SYNC_DUALTUPLE_MODE, param.option.syncDualTupleMode);
     DBCommon::SetDatabaseIds(*propertiesPtr, param.appId, param.userId, param.storeId);
     return E_OK;
 }

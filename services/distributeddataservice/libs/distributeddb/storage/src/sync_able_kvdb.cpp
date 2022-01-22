@@ -25,7 +25,8 @@ const EventType SyncAbleKvDB::REMOTE_PUSH_FINISHED = 1;
 
 SyncAbleKvDB::SyncAbleKvDB()
     : started_(false),
-      notifyChain_(nullptr)
+      notifyChain_(nullptr),
+      userChangeListerner_(nullptr)
 {}
 
 SyncAbleKvDB::~SyncAbleKvDB()
@@ -34,6 +35,10 @@ SyncAbleKvDB::~SyncAbleKvDB()
         (void)notifyChain_->UnRegisterEventType(REMOTE_PUSH_FINISHED);
         KillAndDecObjRef(notifyChain_);
         notifyChain_ = nullptr;
+    }
+    if (userChangeListerner_ != nullptr) {
+        userChangeListerner_->Drop(true);
+        userChangeListerner_ = nullptr;
     }
 }
 
@@ -109,21 +114,60 @@ void SyncAbleKvDB::StartSyncer()
         LOGF("KvDB got null sync interface.");
         return;
     }
-
+    std::unique_lock<std::mutex> lock(syncerOperateLock_);
     int errCode = syncer_.Initialize(syncInterface);
     if (errCode == E_OK) {
         started_ = true;
     } else {
         LOGE("KvDB start syncer failed, err:'%d'.", errCode);
     }
+    bool isSyncDualTupleMode = syncInterface->GetDbProperties().GetBoolProp(KvDBProperties::SYNC_DUALTUPLE_MODE, false);
+    if (isSyncDualTupleMode && userChangeListerner_ == nullptr) {
+        userChangeListerner_ = RuntimeContext::GetInstance()->RegisterUserChangedListerner(
+            std::bind(&SyncAbleKvDB::UserChangeHandle, this), started_);
+    }
 }
 
 // Stop syncer
 void SyncAbleKvDB::StopSyncer()
 {
+    std::unique_lock<std::mutex> lock(syncerOperateLock_);
+    syncer_.Close();
     if (started_) {
-        syncer_.Close();
         started_ = false;
+    }
+    if (userChangeListerner_ != nullptr) {
+        userChangeListerner_->Drop(true);
+        userChangeListerner_ = nullptr;
+    }
+}
+
+void SyncAbleKvDB::UserChangeHandle()
+{
+    bool isReActive;
+    bool isNeedChange;
+    {
+        IKvDBSyncInterface *syncInterface = GetSyncInterface();
+        if (syncInterface == nullptr) {
+            LOGF("KvDB got null sync interface.");
+            return;
+        }
+        std::unique_lock<std::mutex> lock(syncerOperateLock_);
+        std::string userId = syncInterface->GetDbProperties().GetStringProp(KvDBProperties::USER_ID, "");
+        std::string appId = syncInterface->GetDbProperties().GetStringProp(KvDBProperties::APP_ID, "");
+        std::string storeId = syncInterface->GetDbProperties().GetStringProp(KvDBProperties::STORE_ID, "");
+        bool isNeedActive = RuntimeContext::GetInstance()->IsSyncerNeedActive(userId, appId, storeId);
+        isNeedChange = (isNeedActive != started_) ? true : false;
+        if (!started_ && isNeedActive) { // non_active to active
+            isReActive = true;
+        }
+    }
+    // non_active to active or active to non_active
+    if (isNeedChange) {
+        StopSyncer(); // will drop userChangeListerner;
+        if (isReActive) {
+            StartSyncer();
+        }
     }
 }
 
