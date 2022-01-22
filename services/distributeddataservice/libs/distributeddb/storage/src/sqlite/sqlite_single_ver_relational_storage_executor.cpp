@@ -900,6 +900,7 @@ int SQLiteSingleVerRelationalStorageExecutor::GetSyncDataByQuery(std::vector<Dat
     }
 
     size_t dataTotalSize = 0;
+    size_t overLongSize = 0;
     do {
         DataItem item;
         errCode = SQLiteUtils::StepWithRetry(stmt, isMemDb_);
@@ -916,6 +917,7 @@ int SQLiteSingleVerRelationalStorageExecutor::GetSyncDataByQuery(std::vector<Dat
 
         // If one record is over 4M, ignore it.
         if (item.value.size() > DBConstant::MAX_VALUE_SIZE) {
+            overLongSize++;
             continue;
         }
 
@@ -929,7 +931,9 @@ int SQLiteSingleVerRelationalStorageExecutor::GetSyncDataByQuery(std::vector<Dat
             dataItems.push_back(std::move(item));
         }
     } while (true);
-
+    if (overLongSize != 0) {
+        LOGW("Over 4M records:%zu.", overLongSize);
+    }
     SQLiteUtils::ResetStatement(stmt, true, errCode);
     return errCode;
 }

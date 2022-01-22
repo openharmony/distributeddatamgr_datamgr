@@ -414,13 +414,16 @@ bool QueryObject::Empty() const
 int QueryObject::CheckInKeys() const
 {
     if (keys_.empty()) {
+        LOGE("Inkeys cannot be empty.");
         return -E_INVALID_ARGS;
     }
     if (keys_.size() > DBConstant::MAX_BATCH_SIZE) {
+        LOGE("Inkeys cannot be over 128.");
         return -E_MAX_LIMITS;
     }
     for (const auto &key : keys_) {
         if (key.empty() || key.size() > DBConstant::MAX_KEY_SIZE) {
+            LOGE("The key in Inkeys cannot be empty or overlong, size:%zu.", key.size());
             return -E_INVALID_ARGS;
         }
     }
