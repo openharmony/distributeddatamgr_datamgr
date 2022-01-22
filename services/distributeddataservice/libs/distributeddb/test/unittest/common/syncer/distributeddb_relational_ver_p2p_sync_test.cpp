@@ -614,7 +614,7 @@ void DistributedDBRelationalVerP2PSyncTest::TearDown(void)
 * @tc.require: AR000GK58N
 * @tc.author: zhangqiquan
 */
-HWTEST_F(DistributedDBRelationalVerP2PSyncTest, NormalSync001, TestSize.Level1)
+HWTEST_F(DistributedDBRelationalVerP2PSyncTest, NormalSync001, TestSize.Level0)
 {
     std::map<std::string, DataValue> dataMap;
     PrepareEnvironment(dataMap);
@@ -630,7 +630,7 @@ HWTEST_F(DistributedDBRelationalVerP2PSyncTest, NormalSync001, TestSize.Level1)
 * @tc.require: AR000GK58N
 * @tc.author: zhangqiquan
 */
-HWTEST_F(DistributedDBRelationalVerP2PSyncTest, NormalSync002, TestSize.Level1)
+HWTEST_F(DistributedDBRelationalVerP2PSyncTest, NormalSync002, TestSize.Level0)
 {
     std::map<std::string, DataValue> dataMap;
     PrepareEnvironment(dataMap);
@@ -706,7 +706,7 @@ HWTEST_F(DistributedDBRelationalVerP2PSyncTest, NormalSync004, TestSize.Level1)
 * @tc.require: AR000GK58N
 * @tc.author: zhangqiquan
 */
-HWTEST_F(DistributedDBRelationalVerP2PSyncTest, NormalSync005, TestSize.Level1)
+HWTEST_F(DistributedDBRelationalVerP2PSyncTest, NormalSync005, TestSize.Level0)
 {
     std::map<std::string, DataValue> dataMap;
     PrepareVirtualEnvironment(dataMap);

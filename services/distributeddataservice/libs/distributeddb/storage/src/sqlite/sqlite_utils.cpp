@@ -2078,7 +2078,7 @@ int SQLiteUtils::CheckSchemaSchanged(sqlite3_stmt *stmt, const TableInfo &table,
     }
 
     int columnNum = sqlite3_column_count(stmt);
-    if (offset + columnNum != static_cast<int>(table.GetFields().size())) {
+    if (columnNum - offset != static_cast<int>(table.GetFields().size())) {
         LOGE("Schema field number does not match.");
         return -E_RELATIONAL_SCHEMA_CHANGED;
     }
@@ -2087,6 +2087,7 @@ int SQLiteUtils::CheckSchemaSchanged(sqlite3_stmt *stmt, const TableInfo &table,
     for (int i=offset; i<columnNum; i++) {
         std::string colName = sqlite3_column_name(stmt, i);
         std::string colType = sqlite3_column_decltype(stmt, i);
+        transform(colType.begin(), colType.end(), colType.begin(), ::tolower);
 
         auto it = fields.find(colName);
         if (it == fields.end() || it->second.GetDataType() != colType) {
