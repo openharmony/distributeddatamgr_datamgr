@@ -36,7 +36,7 @@ ohos_static_library("distributeddata_account_static") {
   ]
 
   external_deps = [
-    "appexecfwk_standard:appexecfwk_base",
+    "bundle_framework:appexecfwk_base",
 
     # "ces:libcommonevent",
     "ability_runtime:want",
