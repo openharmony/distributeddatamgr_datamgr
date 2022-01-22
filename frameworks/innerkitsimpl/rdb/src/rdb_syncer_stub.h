@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-#ifndef DISTRIBUTEDDATAFWK_IRDB_STORE_STUB_H
-#define DISTRIBUTEDDATAFWK_IRDB_STORE_STUB_H
+#ifndef DISTRIBUTED_RDB_SYNCER_STUB_H
+#define DISTRIBUTED_RDB_SYNCER_STUB_H
 
 #include <iremote_stub.h>
-#include "irdb_store.h"
+#include "irdb_syncer.h"
 
-namespace OHOS::DistributedKv {
-class RdbStoreStub : public IRemoteStub<IRdbStore> {
+namespace OHOS::DistributedRdb {
+class RdbSyncerStub : public IRemoteStub<IRdbSyncer> {
 public:
     int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
@@ -29,9 +29,9 @@ private:
     
     int OnRemoteSetDistributedTables(MessageParcel &data, MessageParcel &reply);
     
-    using RequestHandle = int (RdbStoreStub::*)(MessageParcel &, MessageParcel &);
-    static constexpr RequestHandle HANDLERS[RDB_STORE_CMD_MAX] = {
-        [RDB_STORE_CMD_SET_DIST_TABLES] = &RdbStoreStub::OnRemoteSetDistributedTables,
+    using RequestHandle = int (RdbSyncerStub::*)(MessageParcel &, MessageParcel &);
+    static constexpr RequestHandle HANDLERS[RDB_SYNCER_CMD_MAX] = {
+        [RDB_SYNCER_CMD_SET_DIST_TABLES] = &RdbSyncerStub::OnRemoteSetDistributedTables,
     };
 };
 }

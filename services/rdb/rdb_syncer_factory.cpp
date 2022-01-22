@@ -13,44 +13,41 @@
  * limitations under the License.
  */
 
-#define LOG_TAG "RdbStoreFactory"
+#define LOG_TAG "RdbSyncerFactory"
 
-#include "rdb_store_factory.h"
+#include "rdb_syncer_factory.h"
 #include "log_print.h"
-#include "rdb_device_store.h"
+#include "rdb_types.h"
 
-namespace OHOS::DistributedKv {
-RdbStoreFactory::Creator RdbStoreFactory::creators_[RDB_DISTRIBUTED_TYPE_MAX];
-
-void RdbStoreFactory::Initialize()
+namespace OHOS::DistributedRdb {
+RdbSyncerFactory& RdbSyncerFactory::GetInstance()
 {
-    RdbDeviceStore::Initialize();
+    static RdbSyncerFactory factory;
+    return factory;
 }
 
-int RdbStoreFactory::RegisterCreator(int type, Creator &creator)
+void RdbSyncerFactory::Register(int type, const Creator &creator)
 {
-    if (type < 0 || type >= RDB_DISTRIBUTED_TYPE_MAX) {
-        ZLOGE("type=%{public}d is invalid", type);
-        return -1;
-    }
     if (creator == nullptr) {
         ZLOGE("creator is empty");
-        return -1;
+        return;
     }
     ZLOGI("add creator for store type %{public}d", type);
-    creators_[type] = creator;
-    return 0;
+    creators_.insert({ type, creator });
 }
 
-RdbStore* RdbStoreFactory::CreateStore(const RdbStoreParam& param)
+void RdbSyncerFactory::UnRegister(int type)
 {
-    int type = param.type_;
-    if (type < 0 || type >= RDB_DISTRIBUTED_TYPE_MAX) {
-        ZLOGE("type=%{public}d is invalid", type);
+    creators_.erase(type);
+}
+
+RdbSyncerImpl* RdbSyncerFactory::CreateSyncer(const RdbSyncerParam& param)
+{
+    auto it = creators_.find(param.type_);
+    if (it == creators_.end()) {
         return nullptr;
     }
-    
-    return (creators_[type])(param);
+    return it->second(param);
 }
 }
 

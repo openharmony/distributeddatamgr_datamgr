@@ -18,7 +18,7 @@
 #include "rdb_client_death_recipient.h"
 #include "log_print.h"
 
-namespace OHOS::DistributedKv {
+namespace OHOS::DistributedRdb {
 RdbClientDeathRecipientProxy::RdbClientDeathRecipientProxy(const sptr<IRemoteObject> &object)
     : IRemoteProxy<IRdbClientDeathRecipient>(object)
 {

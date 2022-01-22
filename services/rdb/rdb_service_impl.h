@@ -21,27 +21,26 @@
 #include <map>
 #include <mutex>
 #include <string>
-#include "rdb_store.h"
+#include "rdb_syncer_impl.h"
+#include "concurrent_map.h"
 
-namespace OHOS::DistributedKv {
-class RdbService : public RdbServiceStub {
+namespace OHOS::DistributedRdb {
+class RdbServiceImpl : public RdbServiceStub {
 public:
-    sptr<IRdbStore> GetRdbStore(const RdbStoreParam& param) override;
+    sptr<IRdbSyncer> GetRdbSyncerInner(const RdbSyncerParam& param) override;
     
     int RegisterClientDeathRecipient(const std::string& bundleName, sptr<IRemoteObject> proxy) override;
     
     void OnClientDied(const std::string& bundleName, sptr<IRemoteObject>& proxy);
 
-    static void Initialzie();
-    
 private:
-    bool CheckAccess(const RdbStoreParam& param) const;
+    bool CheckAccess(const RdbSyncerParam& param) const;
     
-    sptr<IRdbStore> CreateStore(const RdbStoreParam& param);
+    sptr<IRdbSyncer> CreateSyncer(const RdbSyncerParam& param);
     
     void ClearClientRecipient(const std::string& bundleName, sptr<IRemoteObject>& proxy);
     
-    void ClearClientStores(const std::string& bundleName);
+    void ClearClientSyncers(const std::string& bundleName);
     
     class ClientDeathRecipient : public DeathRecipient {
     public:
@@ -53,10 +52,8 @@ private:
         DeathCallback callback_;
     };
     
-    std::mutex storesLock_;
-    std::map<std::string, sptr<RdbStore>> stores_; // identifier
-    std::mutex recipientsLock_;
-    std::map<sptr<IRemoteObject>, sptr<ClientDeathRecipient>> recipients_;
+    ConcurrentMap<std::string, sptr<RdbSyncerImpl>> syncers_; // identifier
+    ConcurrentMap<sptr<IRemoteObject>, sptr<ClientDeathRecipient>> recipients_;
 };
 }
 #endif

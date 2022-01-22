@@ -16,35 +16,37 @@
 #define LOG_TAG "RdbServiceProxy"
 
 #include "rdb_service_proxy.h"
-#include "irdb_store.h"
+#include "rdb_syncer.h"
+#include "itypes_util.h"
 #include "log_print.h"
 
-namespace OHOS::DistributedKv {
+namespace OHOS::DistributedRdb {
 RdbServiceProxy::RdbServiceProxy(const sptr<IRemoteObject> &object)
     : IRemoteProxy<IRdbService>(object)
 {
 }
 
-sptr<IRdbStore> RdbServiceProxy::GetRdbStore(const RdbStoreParam& param)
+std::shared_ptr<RdbSyncer> RdbServiceProxy::GetRdbSyncer(const RdbSyncerParam& param)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(IRdbService::GetDescriptor())) {
         ZLOGE("write descriptor failed");
         return nullptr;
     }
-    if (!param.Marshalling(data)) {
+    if (!DistributedKv::ITypesUtil::Marshalling(param, data)) {
         return nullptr;
     }
     
     MessageParcel reply;
     MessageOption option;
-    if (Remote()->SendRequest(RDB_SERVICE_CMD_GET_STORE, data, reply, option) != 0) {
+    if (Remote()->SendRequest(RDB_SERVICE_CMD_GET_SYNCER, data, reply, option) != 0) {
         ZLOGE("send request failed");
         return nullptr;
     }
     
     auto remoteObject = reply.ReadRemoteObject();
-    return iface_cast<IRdbStore>(remoteObject);
+    auto syncer = iface_cast<IRdbSyncer>(remoteObject);
+    return std::shared_ptr<IRdbSyncer>(syncer.GetRefPtr(), [holder = syncer] (const auto*) {});
 }
 
 int RdbServiceProxy::RegisterClientDeathRecipient(const std::string& bundleName, sptr<IRemoteObject> object)

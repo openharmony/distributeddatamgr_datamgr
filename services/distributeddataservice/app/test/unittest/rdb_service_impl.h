@@ -13,25 +13,27 @@
  * limitations under the License.
  */
 
-#ifndef RDB_STORE_FACTORY_H
-#define RDB_STORE_FACTORY_H
+#ifndef RDB_SERVICE_IMPL_MOCK_H
+#define RDB_SERVICE_IMPL_MOCK_H
 
-#include <memory>
-#include "rdb_store.h"
+#include "iremote_broker.h"
+#include "iremote_stub.h"
 
-namespace OHOS::DistributedKv {
-class RdbStoreFactory {
+namespace OHOS::DistributedRdb {
+class IRdbService : public IRemoteBroker {
 public:
-    using Creator = std::function<RdbStore* (const RdbStoreParam&)>;
+    DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.DistributedRdb.IRdbService");
+};
+
+class RdbServiceImpl : public IRemoteStub<IRdbService> {
+public:
+    RdbServiceImpl() = default;
+    ~RdbServiceImpl() override = default;
     
-    static void Initialize();
-    
-    static int RegisterCreator(int type, Creator& creator);
-    
-    static RdbStore* CreateStore(const RdbStoreParam& param);
-    
-private:
-    static Creator creators_[RDB_DISTRIBUTED_TYPE_MAX];
+    int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override
+    {
+        return 0;
+    }
 };
 }
 #endif

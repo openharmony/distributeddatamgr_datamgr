@@ -13,65 +13,65 @@
  * limitations under the License.
  */
 
-#define LOG_TAG "RdbStore"
+#define LOG_TAG "RdbSyncerImpl"
 
-#include "rdb_store.h"
+#include "rdb_syncer_impl.h"
 #include "kvstore_utils.h"
 #include "log_print.h"
 
-namespace OHOS::DistributedKv {
+namespace OHOS::DistributedRdb {
 static std::string GetCurrentUserId()
 {
     return "0";
 }
 
-RdbStore::RdbStore(const RdbStoreParam &param)
+RdbSyncerImpl::RdbSyncerImpl(const RdbSyncerParam &param)
     : type_(param.type_), bundleName_(param.bundleName_), path_(param.path_),
       storeId_(param.storeName_)
 {
     ZLOGI("construct %{public}s %{public}s %{public}s %{public}d",
           bundleName_.c_str(), userId_.c_str(), storeId_.c_str(), type_);
-    appId_ = KvStoreUtils::GetAppIdByBundleName(bundleName_);
+    appId_ = DistributedKv::KvStoreUtils::GetAppIdByBundleName(bundleName_);
     userId_ = GetCurrentUserId();
     identifier_ = std::to_string(type_) + "-" + appId_ + "-" + userId_ + "-" + storeId_;
 }
 
-RdbStore::~RdbStore()
+RdbSyncerImpl::~RdbSyncerImpl()
 {
     ZLOGI("destroy %{public}s", storeId_.c_str());
 }
 
-bool RdbStore::operator==(const RdbStore& rhs) const
+bool RdbSyncerImpl::operator==(const RdbSyncerImpl& rhs) const
 {
     return identifier_ == rhs.identifier_;
 }
 
-std::string RdbStore::GetBundleName() const
+std::string RdbSyncerImpl::GetBundleName() const
 {
     return bundleName_;
 }
 
-std::string RdbStore::GetAppId() const
+std::string RdbSyncerImpl::GetAppId() const
 {
     return appId_;
 }
 
-std::string RdbStore::GetUserId() const
+std::string RdbSyncerImpl::GetUserId() const
 {
     return userId_;
 }
 
-std::string RdbStore::GetStoreId() const
+std::string RdbSyncerImpl::GetStoreId() const
 {
     return storeId_;
 }
 
-std::string RdbStore::GetIdentifier() const
+std::string RdbSyncerImpl::GetIdentifier() const
 {
     return identifier_;
 }
 
-std::string RdbStore::GetPath() const
+std::string RdbSyncerImpl::GetPath() const
 {
     return path_;
 }

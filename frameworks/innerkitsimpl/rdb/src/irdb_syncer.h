@@ -13,25 +13,24 @@
  * limitations under the License.
  */
 
-#ifndef DISTRUBTEDDATAFWK_IRDB_STORE_H
-#define DISTRUBTEDDATAFWK_IRDB_STORE_H
+#ifndef DISTRUBTED_IRDB_SYNCER_H
+#define DISTRUBTED_IRDB_SYNCER_H
 
 #include <iremote_broker.h>
-#include "rdb_parcel.h"
+#include "rdb_types.h"
+#include "rdb_syncer.h"
 
-namespace OHOS::DistributedKv {
-class IRdbStore : public IRemoteBroker {
+namespace OHOS::DistributedRdb {
+class IRdbSyncer : public RdbSyncer, public IRemoteBroker {
 public:
     enum {
-        RDB_STORE_CMD_SET_DIST_TABLES,
-        RDB_STORE_CMD_SYNC,
-        RDB_STORE_CMD_SUBSCRIBE,
-        RDB_STORE_CMD_REMOVE_DEVICE_DATA,
-        RDB_STORE_CMD_MAX
+        RDB_SYNCER_CMD_SET_DIST_TABLES,
+        RDB_SYNCER_CMD_SYNC,
+        RDB_SYNCER_CMD_SUBSCRIBE,
+        RDB_SYNCER_CMD_REMOVE_DEVICE_DATA,
+        RDB_SYNCER_CMD_MAX
     };
-    DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.DistributedKv.IRdbStore");
-    
-    virtual int SetDistributedTables(const std::vector<std::string>& tables) = 0;
+    DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.DistributedRdb.IRdbSyncer");
 };
 }
 #endif

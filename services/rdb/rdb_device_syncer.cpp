@@ -13,34 +13,22 @@
  * limitations under the License.
  */
 
-#define LOG_TAG "RdbDeviceStore"
+#define LOG_TAG "RdbDeviceSyncer"
 
-#include "rdb_device_store.h"
+#include "rdb_device_syncer.h"
 #include "log_print.h"
-#include "rdb_store_factory.h"
+#include "rdb_syncer_factory.h"
 #include "relational_store_manager.h"
 #include "relational_store_delegate.h"
 
-namespace OHOS::DistributedKv {
-void RdbDeviceStore::Initialize()
-{
-    RdbStoreFactory::Creator creator = RdbDeviceStore::CreateStore;
-    RdbStoreFactory::RegisterCreator(RDB_DEVICE_COLLABORATION, creator);
-}
-
-RdbStore* RdbDeviceStore::CreateStore(const RdbStoreParam &param)
-{
-    ZLOGI("create device collaboration store");
-    return new(std::nothrow) RdbDeviceStore(param);
-}
-
-RdbDeviceStore::RdbDeviceStore(const RdbStoreParam &param)
-    : RdbStore(param), manager_(nullptr), delegate_(nullptr)
+namespace OHOS::DistributedRdb {
+RdbDeviceSyncer::RdbDeviceSyncer(const RdbSyncerParam &param)
+    : RdbSyncerImpl(param), isInit_(false), manager_(nullptr), delegate_(nullptr)
 {
     ZLOGI("construct %{public}s", param.storeName_.c_str());
 }
 
-RdbDeviceStore::~RdbDeviceStore()
+RdbDeviceSyncer::~RdbDeviceSyncer()
 {
     ZLOGI("destroy");
     if (manager_ != nullptr & delegate_ != nullptr) {
@@ -49,9 +37,12 @@ RdbDeviceStore::~RdbDeviceStore()
     delete manager_;
 }
 
-int RdbDeviceStore::Init()
+int RdbDeviceSyncer::Init()
 {
     ZLOGI("enter");
+    if (isInit_) {
+        return 0;
+    }
     manager_ = new(std::nothrow) DistributedDB::RelationalStoreManager(GetAppId(), GetUserId());
     if (manager_ == nullptr) {
         ZLOGE("malloc manager failed");
@@ -61,17 +52,18 @@ int RdbDeviceStore::Init()
         ZLOGE("create meta data failed");
         return -1;
     }
+    isInit_ = true;
     ZLOGI("success");
     return 0;
 }
 
-int RdbDeviceStore::CreateMetaData()
+int RdbDeviceSyncer::CreateMetaData()
 {
     ZLOGI("enter");
     return 0;
 }
 
-int RdbDeviceStore::SetDistributedTables(const std::vector<std::string> &tables)
+int RdbDeviceSyncer::SetDistributedTables(const std::vector<std::string> &tables)
 {
     auto delegate = GetDelegate();
     if (delegate == nullptr) {
@@ -89,7 +81,7 @@ int RdbDeviceStore::SetDistributedTables(const std::vector<std::string> &tables)
     return 0;
 }
 
-DistributedDB::RelationalStoreDelegate* RdbDeviceStore::GetDelegate()
+DistributedDB::RelationalStoreDelegate* RdbDeviceSyncer::GetDelegate()
 {
     if (manager_ == nullptr) {
         ZLOGE("manager_ is nullptr");

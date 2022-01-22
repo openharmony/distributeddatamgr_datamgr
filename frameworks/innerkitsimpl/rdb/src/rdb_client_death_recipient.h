@@ -20,15 +20,15 @@
 #include <iremote_proxy.h>
 #include <iremote_stub.h>
 
-namespace OHOS::DistributedKv {
+namespace OHOS::DistributedRdb {
 class IRdbClientDeathRecipient : public IRemoteBroker {
 public:
-    DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.DistributedKv.IRdbClientDeathRecipient");
+    DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.DistributedRdb.IRdbClientDeathRecipient");
 };
 
 class RdbClientDeathRecipientProxy : public IRemoteProxy<IRdbClientDeathRecipient> {
 public:
-    RdbClientDeathRecipientProxy(const sptr<IRemoteObject>& object);
+    explicit RdbClientDeathRecipientProxy(const sptr<IRemoteObject>& object);
     virtual ~RdbClientDeathRecipientProxy();
 
 private:

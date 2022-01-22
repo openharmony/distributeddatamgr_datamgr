@@ -13,28 +13,21 @@
  * limitations under the License.
  */
 
-#ifndef DISTRIBUTEDDATAFWK_IRDB_SERVICE_H
-#define DISTRIBUTEDDATAFWK_IRDB_SERVICE_H
+#ifndef DISTRIBUTED_RDB_SERVICE_H
+#define DISTRIBUTED_RDB_SERVICE_H
 
+#include <memory>
 #include <string>
 
-#include <iremote_broker.h>
-#include "irdb_store.h"
-#include "rdb_parcel.h"
-#include "rdb_client_death_recipient.h"
+#include <iremote_object.h>
 
-namespace OHOS::DistributedKv {
-class IRdbService : public IRemoteBroker {
+namespace OHOS::DistributedRdb {
+struct RdbSyncerParam;
+class RdbSyncer;
+
+class RdbService {
 public:
-    enum {
-        RDB_SERVICE_CMD_GET_STORE,
-        RDB_SERVICE_CMD_REGISTER_CLIENT_DEATH,
-        RDB_SERVICE_CMD_MAX
-    };
-    
-    DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.DistributedKv.IRdbService");
-    
-    virtual sptr<IRdbStore> GetRdbStore(const RdbStoreParam& param) = 0;
+    virtual std::shared_ptr<RdbSyncer> GetRdbSyncer(const RdbSyncerParam& param) = 0;
     
     virtual int RegisterClientDeathRecipient(const std::string& bundleName, sptr<IRemoteObject> object) = 0;
 };

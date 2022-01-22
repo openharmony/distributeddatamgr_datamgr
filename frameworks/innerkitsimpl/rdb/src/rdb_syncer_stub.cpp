@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-#define LOG_TAG "IRdbStoreStub"
+#define LOG_TAG "RdbSyncerStub"
 
-#include "rdb_store_stub.h"
+#include "rdb_syncer_stub.h"
 #include "log_print.h"
 
-namespace OHOS::DistributedKv {
-int RdbStoreStub::OnRemoteSetDistributedTables(MessageParcel &data, MessageParcel &reply)
+namespace OHOS::DistributedRdb {
+int RdbSyncerStub::OnRemoteSetDistributedTables(MessageParcel &data, MessageParcel &reply)
 {
     std::vector<std::string> tables;
     data.ReadStringVector(&tables);
@@ -27,9 +27,9 @@ int RdbStoreStub::OnRemoteSetDistributedTables(MessageParcel &data, MessageParce
     return 0;
 }
 
-bool RdbStoreStub::CheckInterfaceToken(MessageParcel& data)
+bool RdbSyncerStub::CheckInterfaceToken(MessageParcel& data)
 {
-    auto localDescriptor = IRdbStore::GetDescriptor();
+    auto localDescriptor = IRdbSyncer::GetDescriptor();
     auto remoteDescriptor = data.ReadInterfaceToken();
     if (remoteDescriptor != localDescriptor) {
         ZLOGE("interface token is not equal");
@@ -38,13 +38,13 @@ bool RdbStoreStub::CheckInterfaceToken(MessageParcel& data)
     return true;
 }
 
-int RdbStoreStub::OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
+int RdbSyncerStub::OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
     ZLOGI("%{public}d", code);
     if (!CheckInterfaceToken(data))  {
         return -1;
     }
-    if (code >= 0 && code < RDB_STORE_CMD_MAX) {
+    if (code >= 0 && code < RDB_SYNCER_CMD_MAX) {
         return (this->*HANDLERS[code])(data, reply);
     }
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);

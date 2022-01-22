@@ -13,21 +13,21 @@
  * limitations under the License.
  */
 
-#include "rdb_store_proxy.h"
+#include "rdb_syncer_proxy.h"
 
-#define LOG_TAG "IRdbStoreProxy"
+#define LOG_TAG "RdbSyncerProxy"
 #include "log_print.h"
 
-namespace OHOS::DistributedKv {
-RdbStoreProxy::RdbStoreProxy(const sptr<IRemoteObject> &object)
-    : IRemoteProxy<IRdbStore>(object)
+namespace OHOS::DistributedRdb {
+RdbSyncerProxy::RdbSyncerProxy(const sptr<IRemoteObject> &object)
+    : IRemoteProxy<IRdbSyncer>(object)
 {
 }
 
-int RdbStoreProxy::SetDistributedTables(const std::vector<std::string> &tables)
+int RdbSyncerProxy::SetDistributedTables(const std::vector<std::string> &tables)
 {
     MessageParcel data;
-    if (!data.WriteInterfaceToken(IRdbStore::GetDescriptor())) {
+    if (!data.WriteInterfaceToken(IRdbSyncer::GetDescriptor())) {
         ZLOGE("write descriptor failed");
         return -1;
     }
@@ -38,7 +38,7 @@ int RdbStoreProxy::SetDistributedTables(const std::vector<std::string> &tables)
     
     MessageParcel reply;
     MessageOption option;
-    if (Remote()->SendRequest(RDB_STORE_CMD_SET_DIST_TABLES, data, reply, option) != 0) {
+    if (Remote()->SendRequest(RDB_SYNCER_CMD_SET_DIST_TABLES, data, reply, option) != 0) {
         ZLOGE("send request failed");
         return -1;
     }

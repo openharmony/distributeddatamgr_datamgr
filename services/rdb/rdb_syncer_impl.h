@@ -13,26 +13,26 @@
  * limitations under the License.
  */
 
-#ifndef DISTRIBUTEDDATASERVICE_RDB_STORE_H
-#define DISTRIBUTEDDATASERVICE_RDB_STORE_H
+#ifndef DISTRIBUTED_RDB_SYNCER_IMPL_H
+#define DISTRIBUTED_RDB_SYNCER_IMPL_H
 
-#include "rdb_store_stub.h"
-#include "rdb_parcel.h"
+#include "rdb_syncer_stub.h"
+#include "rdb_types.h"
 
-namespace OHOS::DistributedKv {
-class RdbStore : public RdbStoreStub {
+namespace OHOS::DistributedRdb {
+class RdbSyncerImpl : public RdbSyncerStub {
 public:
-    explicit RdbStore(const RdbStoreParam& param);
+    explicit RdbSyncerImpl(const RdbSyncerParam& param);
     
-    RdbStore() = delete;
-    RdbStore(const RdbStore&) = delete;
-    RdbStore& operator=(const RdbStore&) = delete;
+    RdbSyncerImpl() = delete;
+    RdbSyncerImpl(const RdbSyncerImpl&) = delete;
+    RdbSyncerImpl& operator=(const RdbSyncerImpl&) = delete;
     
-    virtual ~RdbStore();
+    virtual ~RdbSyncerImpl();
     
     virtual int Init() = 0;
     
-    bool operator==(const RdbStore& rhs) const;
+    bool operator==(const RdbSyncerImpl& rhs) const;
     
     std::string GetBundleName() const;
     

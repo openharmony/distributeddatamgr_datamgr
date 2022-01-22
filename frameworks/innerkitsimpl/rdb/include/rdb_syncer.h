@@ -13,21 +13,16 @@
  * limitations under the License.
  */
 
-#ifndef DISTRIBUTEDDATAFWK_IRDB_STORE_PROXY_H
-#define DISTRIBUTEDDATAFWK_IRDB_STORE_PROXY_H
+#ifndef DISTRIBUTED_RDB_SYNCER_H
+#define DISTRIBUTED_RDB_SYNCER_H
 
-#include <iremote_proxy.h>
-#include "irdb_store.h"
+#include <vector>
+#include <string>
 
-namespace OHOS::DistributedKv {
-class RdbStoreProxy : public IRemoteProxy<IRdbStore> {
+namespace OHOS::DistributedRdb {
+class RdbSyncer {
 public:
-    explicit RdbStoreProxy(const sptr<IRemoteObject>& object);
-    
-    int SetDistributedTables(const std::vector<std::string>& tables) override;
-
-private:
-    static inline BrokerDelegator<RdbStoreProxy> delegator_;
+    virtual int SetDistributedTables(const std::vector<std::string>& tables) = 0;
 };
 }
 #endif

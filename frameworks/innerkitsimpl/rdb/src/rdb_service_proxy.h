@@ -13,22 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef DISTRIBUTEDDATAFWK_IRDB_SERVICE_PROXY_H
-#define DISTRIBUTEDDATAFWK_IRDB_SERVICE_PROXY_H
+#ifndef DISTRIBUTED_RDB_SERVICE_PROXY_H
+#define DISTRIBUTED_RDB_SERVICE_PROXY_H
 
 #include <iremote_proxy.h>
 #include "irdb_service.h"
 
-namespace OHOS::DistributedKv {
+namespace OHOS::DistributedRdb {
 class RdbServiceProxy : public IRemoteProxy<IRdbService> {
 public:
     explicit RdbServiceProxy(const sptr<IRemoteObject>& object);
     
-    sptr<IRdbStore> GetRdbStore(const RdbStoreParam& param) override;
+    std::shared_ptr<RdbSyncer> GetRdbSyncer(const RdbSyncerParam& param) override;
     
     int RegisterClientDeathRecipient(const std::string& bundleName, sptr<IRemoteObject> object) override;
 
 private:
+    
     static inline BrokerDelegator<RdbServiceProxy> delegator_;
 };
 }

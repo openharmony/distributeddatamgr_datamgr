@@ -13,26 +13,25 @@
  * limitations under the License.
  */
 
-#ifndef RDB_DEVICE_STORE_H
-#define RDB_DEVICE_STORE_H
+#ifndef DISTRIBUTED_RDB_DEVICE_SYNCER_H
+#define DISTRIBUTED_RDB_DEVICE_SYNCER_H
 
-#include "rdb_store.h"
-#include "rdb_store_stub.h"
+#include "rdb_syncer_impl.h"
+#include "rdb_syncer_stub.h"
+#include "rdb_types.h"
+#include "rdb_syncer_factory.h"
 
 namespace DistributedDB {
 class RelationalStoreManager;
 class RelationalStoreDelegate;
 }
 
-namespace OHOS::DistributedKv {
-class RdbDeviceStore : public RdbStore {
+namespace OHOS::DistributedRdb {
+class RdbDeviceSyncer : public RdbSyncerImpl {
 public:
-    explicit RdbDeviceStore(const RdbStoreParam& param);
+    explicit RdbDeviceSyncer(const RdbSyncerParam& param);
     
-    ~RdbDeviceStore() override;
-    
-    static void Initialize();
-    static RdbStore* CreateStore(const RdbStoreParam& param);
+    ~RdbDeviceSyncer() override;
     
     /* IPC interface */
     int SetDistributedTables(const std::vector<std::string>& tables) override;
@@ -43,13 +42,14 @@ public:
 private:
     int CreateMetaData();
     
-    DistributedDB::RelationalStoreManager* GetManager();
-    
     DistributedDB::RelationalStoreDelegate* GetDelegate();
     
     std::mutex mutex_;
+    bool isInit_;
     DistributedDB::RelationalStoreManager* manager_;
     DistributedDB::RelationalStoreDelegate* delegate_;
+    
+    static inline RdbSyncerRegistration<RdbDeviceSyncer, RDB_DEVICE_COLLABORATION> registration_;
 };
 }
 #endif

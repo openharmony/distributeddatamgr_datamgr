@@ -13,33 +13,51 @@
  * limitations under the License.
  */
 
-#ifndef DISTRIBUTEDDATAFWK_RDB_PARCEL_H
-#define DISTRIBUTEDDATAFWK_RDB_PARCEL_H
+#ifndef DISTRIBUTEDDATAFWK_RDB_TYPES_H
+#define DISTRIBUTEDDATAFWK_RDB_TYPES_H
 
+#include <functional>
+#include <map>
 #include <string>
-#include <message_parcel.h>
 
-namespace OHOS::DistributedKv {
+namespace OHOS::DistributedRdb {
 enum RdbDistributedType {
     RDB_DEVICE_COLLABORATION,
     RDB_DISTRIBUTED_TYPE_MAX
 };
 
-struct RdbStoreParam {
-public:
-    RdbStoreParam() = default;
-    RdbStoreParam(const RdbStoreParam& param) = default;
-    RdbStoreParam(const std::string& bundleName, const std::string& directory,
-                  const std::string& storeName, int type = RDB_DEVICE_COLLABORATION, bool isAutoSync = false);
-    bool IsValid() const;
-    bool Marshalling(MessageParcel& data) const;
-    bool UnMarshalling(MessageParcel& data);
-    
+struct RdbSyncerParam {
     std::string bundleName_;
     std::string path_;
     std::string storeName_;
-    int type_ = 0;
+    int type_ = RDB_DEVICE_COLLABORATION;
     bool isAutoSync_ = false;
+};
+
+enum SyncMode {
+    PUSH,
+    PULL,
+};
+
+struct SyncOption {
+    SyncMode mode;
+    bool isBlock;
+};
+
+using SyncResult = std::map<std::string, int>; // networkId
+using SyncCallback = std::function<void(SyncResult&)>;
+
+enum SubscribeMode {
+    LOCAL,
+    REMOTE,
+    LOCAL_AND_REMOTE,
+};
+
+struct SubscribeOption {
+    SubscribeMode mode;
+};
+
+struct DropOption {
 };
 }
 #endif

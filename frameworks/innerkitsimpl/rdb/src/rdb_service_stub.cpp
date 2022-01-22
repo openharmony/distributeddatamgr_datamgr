@@ -13,19 +13,20 @@
  * limitations under the License.
  */
 
-#include "rdb_service_stub.h"
-
 #define LOG_TAG "RdbServiceStub"
-#include "log_print.h"
-#include "irdb_store.h"
 
-namespace OHOS::DistributedKv {
-int RdbServiceStub::OnRemoteGetRdbStore(MessageParcel& data, MessageParcel& reply)
+#include "rdb_service_stub.h"
+#include "log_print.h"
+#include "irdb_syncer.h"
+#include "itypes_util.h"
+
+namespace OHOS::DistributedRdb {
+int RdbServiceStub::OnRemoteGetRdbSyncer(MessageParcel& data, MessageParcel& reply)
 {
-    RdbStoreParam param;
-    sptr<IRdbStore> store;
-    if (param.UnMarshalling(data)) {
-        store = GetRdbStore(param);
+    RdbSyncerParam param;
+    sptr<IRdbSyncer> store;
+    if (DistributedKv::ITypesUtil::UnMarshalling(data, param)) {
+        store = GetRdbSyncerInner(param);
     }
     reply.WriteRemoteObject(store->AsObject().GetRefPtr());
     return 0;
