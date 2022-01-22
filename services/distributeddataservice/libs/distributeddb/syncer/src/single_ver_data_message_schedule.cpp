@@ -143,8 +143,6 @@ void SingleVerDataMessageSchedule::UpdateMsgMapInner(std::queue<Message *> &msgT
         uint32_t sequenceId = msg->GetSequenceId();
         uint64_t packetId = packet->GetPacketId();
         if (prevSessionId_ != 0 && sessionId == prevSessionId_) {
-            LOGD("[DataMsgSchedule] recv prev sessionId msg,drop msg,label=%s,dev=%s", label_.c_str(),
-                STR_MASK(deviceId_));
             delete msg;
             continue;
         }
@@ -159,8 +157,6 @@ void SingleVerDataMessageSchedule::UpdateMsgMapInner(std::queue<Message *> &msgT
         if (messageMap_.count(sequenceId) > 0) {
             const auto *cachePacket = messageMap_[sequenceId]->GetObject<DataRequestPacket>();
             if (cachePacket != nullptr) {
-                LOGD("[DataMsgSchedule] msg packetId=%llu,cachePacketId=%llu,label=%s,dev=%s", packetId,
-                    cachePacket->GetPacketId(), label_.c_str(), STR_MASK(deviceId_));
                 if (packetId != 0 && packetId < cachePacket->GetPacketId()) {
                     delete msg;
                     continue;
@@ -170,8 +166,6 @@ void SingleVerDataMessageSchedule::UpdateMsgMapInner(std::queue<Message *> &msgT
             messageMap_[sequenceId] = nullptr;
         }
         messageMap_[sequenceId] = msg;
-        LOGD("[DataMsgSchedule] put into msgMap seqId=%llu,packetId=%llu,label=%s,dev=%s", sequenceId, packetId,
-            label_.c_str(), STR_MASK(deviceId_));
     }
 }
 
