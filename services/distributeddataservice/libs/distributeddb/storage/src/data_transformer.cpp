@@ -72,7 +72,7 @@ int DataTransformer::SerializeDataItem(const RowDataWithLog &data,
     dataItem.origDev = logInfo.originDev;
     dataItem.writeTimeStamp = logInfo.wTimeStamp;
     dataItem.flag = logInfo.flag;
-    DBCommon::StringToVector(logInfo.hashKey, dataItem.hashKey);
+    dataItem.hashKey = logInfo.hashKey;
     return E_OK;
 }
 
@@ -93,7 +93,7 @@ int DataTransformer::DeSerializeDataItem(const DataItem &dataItem, OptRowDataWit
     logInfo.originDev = dataItem.origDev;
     logInfo.wTimeStamp = dataItem.writeTimeStamp;
     logInfo.flag = dataItem.flag;
-    DBCommon::VectorToString(dataItem.hashKey, logInfo.hashKey);
+    logInfo.hashKey = dataItem.hashKey;
     return E_OK;
 }
 
@@ -357,24 +357,6 @@ int DataTransformer::DeSerializeValue(const Value &value, OptRowData &optionalDa
         optionalData.push_back(valueList[index]);
     }
     return E_OK;
-}
-
-int DataTransformer::SerializeHashKey(Key &key, const std::string &hashKey)
-{
-    uint32_t len = Parcel::GetStringLen(hashKey);
-    key.resize(len, 0);
-    if (key.size() != len) {
-        return -E_OUT_OF_MEMORY;
-    }
-    Parcel parcel(key.data(), len);
-    return parcel.WriteString(hashKey);
-}
-
-int DataTransformer::DeSerializeHashKey(const Key &key, std::string &hashKey)
-{
-    Parcel parcel(const_cast<uint8_t *>(key.data()), key.size());
-    (void)parcel.ReadString(hashKey);
-    return parcel.IsError() ? -E_PARSE_FAIL : E_OK;
 }
 } // namespace DistributedDB
 #endif

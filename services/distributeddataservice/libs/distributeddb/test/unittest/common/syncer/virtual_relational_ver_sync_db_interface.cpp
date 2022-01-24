@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #ifdef RELATIONAL_STORE
+#include "db_common.h"
 #include "virtual_relational_ver_sync_db_interface.h"
 #include "generic_single_ver_kv_entry.h"
 #include "virtual_single_ver_sync_db_Interface.h"
@@ -49,6 +50,13 @@ namespace {
         }
         LOGD("[GetEntriesFromItems] size:%d", dataItems.size());
         return errCode;
+    }
+
+    std::string GetStr(const std::vector<uint8_t> &vec)
+    {
+        std::string str;
+        DBCommon::VectorToString(vec, str);
+        return str;
     }
 }
 
@@ -91,7 +99,7 @@ int VirtualRelationalVerSyncDBInterface::PutSyncDataWithQuery(const QueryObject 
             virtualRowData.objectData.PutDataValue(localFieldInfo_[index].GetFieldName(), dataValue);
             index++;
         }
-        syncData_[object.GetTableName()][virtualRowData.logInfo.hashKey] = virtualRowData;
+        syncData_[object.GetTableName()][GetStr(virtualRowData.logInfo.hashKey)] = virtualRowData;
     }
     LOGD("tableName %s", optTableDataWithLog.tableName.c_str());
     return errCode;
@@ -101,7 +109,7 @@ int VirtualRelationalVerSyncDBInterface::PutLocalData(const std::vector<VirtualR
     const std::string &tableName)
 {
     for (const auto &item : dataList) {
-        localData_[tableName][item.logInfo.hashKey] = item;
+        localData_[tableName][GetStr(item.logInfo.hashKey)] = item;
     }
     return E_OK;
 }
