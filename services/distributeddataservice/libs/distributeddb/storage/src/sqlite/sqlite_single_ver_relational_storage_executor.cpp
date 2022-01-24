@@ -295,6 +295,7 @@ int SQLiteSingleVerRelationalStorageExecutor::Rollback()
 
 int SQLiteSingleVerRelationalStorageExecutor::SetTableInfo(const QueryObject &query)
 {
+    table_ = {};
     int errCode = SQLiteUtils::AnalysisSchema(dbHandle_, query.GetTableName(), table_);
     if (errCode != E_OK) {
         LOGE("[CreateDistributedTable] analysis table schema failed");
