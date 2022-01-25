@@ -83,7 +83,6 @@ HWTEST_F(DistributedDBMockSyncModuleTest, StateMachineCheck001, TestSize.Level1)
     stateMachine.CallStepToTimeout(actualId);
 }
 
-
 /**
  * @tc.name: StateMachineCheck002
  * @tc.desc: Test machine do timeout when has diff timerId.
@@ -105,4 +104,33 @@ HWTEST_F(DistributedDBMockSyncModuleTest, StateMachineCheck002, TestSize.Level1)
     EXPECT_CALL(stateMachine, SwitchStateAndStep(_)).Times(0);
 
     stateMachine.CallStepToTimeout(actualId);
+}
+
+/**
+ * @tc.name: StateMachineCheck003
+ * @tc.desc: Test machine exec next task when queue not empty.
+ * @tc.type: FUNC
+ * @tc.require: AR000CCPOM
+ * @tc.author: zhangqiquan
+ */
+HWTEST_F(DistributedDBMockSyncModuleTest, StateMachineCheck003, TestSize.Level1)
+{
+    MockSingleVerStateMachine stateMachine;
+    MockSyncTaskContext syncTaskContext;
+    MockCommunicator communicator;
+    VirtualSingleVerSyncDBInterface dbSyncInterface;
+    Init(stateMachine, syncTaskContext, communicator, dbSyncInterface);
+
+    EXPECT_CALL(stateMachine, PrepareNextSyncTask()).WillOnce(Return(E_OK));
+    
+    EXPECT_CALL(syncTaskContext, IsTargetQueueEmpty()).WillRepeatedly(Return(false));
+    EXPECT_CALL(syncTaskContext, MoveToNextTarget()).WillRepeatedly(Return());
+    EXPECT_CALL(syncTaskContext, IsCurrentSyncTaskCanBeSkipped())
+        .WillOnce(Return(true))
+        .WillOnce(Return(false));
+    // we expect machine dont change context status when queue not empty
+    EXPECT_CALL(syncTaskContext, SetOperationStatus(_)).WillOnce(Return());
+    EXPECT_CALL(syncTaskContext, SetTaskExecStatus(_)).Times(0);
+
+    EXPECT_EQ(stateMachine.CallExecNextTask(), E_OK);
 }

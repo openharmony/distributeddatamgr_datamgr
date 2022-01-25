@@ -23,6 +23,18 @@ namespace DistributedDB {
 class MockSyncTaskContext : public SingleVerKvSyncTaskContext {
 public:
     MOCK_CONST_METHOD0(GetTimerId, TimerId(void));
+
+    MOCK_CONST_METHOD0(IsTargetQueueEmpty, bool(void));
+
+    MOCK_METHOD0(MoveToNextTarget, void(void));
+
+    MOCK_CONST_METHOD0(IsCurrentSyncTaskCanBeSkipped, bool(void));
+
+    MOCK_METHOD1(SetOperationStatus, void(int));
+
+    MOCK_METHOD1(SetTaskExecStatus, void(int));
+
+    MOCK_METHOD0(Clear, void(void));
 };
 } // namespace DistributedDB
 #endif  // #define MOCK_SINGLE_VER_STATE_MACHINE_H

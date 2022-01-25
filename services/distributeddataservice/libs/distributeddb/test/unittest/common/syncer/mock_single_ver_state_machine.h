@@ -27,7 +27,14 @@ public:
         SingleVerSyncStateMachine::StepToTimeout(timerId);
     }
 
+    int CallExecNextTask()
+    {
+        return SyncStateMachine::ExecNextTask();
+    }
+
     MOCK_METHOD1(SwitchStateAndStep, void(uint8_t));
+
+    MOCK_METHOD0(PrepareNextSyncTask, int(void));
 };
 } // namespace DistributedDB
 #endif  // #define MOCK_SINGLE_VER_STATE_MACHINE_H

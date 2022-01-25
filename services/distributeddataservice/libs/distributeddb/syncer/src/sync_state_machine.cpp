@@ -169,7 +169,6 @@ int SyncStateMachine::ExecNextTask()
         syncContext_->MoveToNextTarget();
         if (syncContext_->IsCurrentSyncTaskCanBeSkipped()) {
             syncContext_->SetOperationStatus(SyncOperation::OP_FINISHED_ALL);
-            syncContext_->SetTaskExecStatus(ISyncTaskContext::FINISHED);
             continue;
         }
         int errCode = PrepareNextSyncTask();
