@@ -1399,15 +1399,28 @@ int SQLiteUtils::AddRelationalLogTableTrigger(sqlite3 *db, const TableInfo &tabl
 int SQLiteUtils::CreateSameStuTable(sqlite3 *db, const std::string &oriTableName, const std::string &newTableName,
     bool isCopyData)
 {
-    std::string sql = "create table IF NOT EXISTS " + newTableName + " as select * from " + oriTableName;
-    if (!isCopyData) {
-        sql += " where 1=0 ";
+    std::string sql = "SELECT sql FROM sqlite_master WHERE type='table' AND tbl_name='" + oriTableName + "';";
+    sqlite3_stmt *stmt = nullptr;
+    int errCode = SQLiteUtils::GetStatement(db, sql, stmt);
+    if (errCode != E_OK) {
+        goto ERROR;
     }
-    sql += ";";
-    int errCode = SQLiteUtils::ExecuteRawSQL(db, sql);
+    errCode = SQLiteUtils::StepWithRetry(stmt, false);
+    if (errCode != SQLiteUtils::MapSQLiteErrno(SQLITE_ROW)) {
+        goto ERROR;
+    }
+    errCode = SQLiteUtils::GetColumnTextValue(stmt, 0, sql);
+    if (errCode != E_OK) {
+        goto ERROR;
+    }
+    sql.replace(sql.find(oriTableName), oriTableName.length(), newTableName);
+    errCode = SQLiteUtils::ExecuteRawSQL(db, sql);
+
+ERROR:
     if (errCode != E_OK) {
         LOGE("[SQLite] execute create table sql failed");
     }
+    SQLiteUtils::ResetStatement(stmt, true, errCode);
     return errCode;
 }
 

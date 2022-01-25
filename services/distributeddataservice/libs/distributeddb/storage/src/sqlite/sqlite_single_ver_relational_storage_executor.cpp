@@ -1006,7 +1006,12 @@ int SQLiteSingleVerRelationalStorageExecutor::CreateDistributedDeviceTable(const
     }
 
     std::string deviceTableName = DBCommon::GetDistributedTableName(device, tableName);
-    int errCode = SQLiteUtils::CreateSameStuTable(dbHandle_, tableName, deviceTableName, false);
+    TableInfo table;
+    int errCode = SQLiteUtils::AnalysisSchema(dbHandle_, deviceTableName, table);
+    if (errCode != -E_NOT_FOUND) {
+        return errCode;
+    }
+    errCode = SQLiteUtils::CreateSameStuTable(dbHandle_, tableName, deviceTableName, false);
     if (errCode != E_OK) {
         LOGE("Create device table failed. %d", errCode);
         return errCode;
