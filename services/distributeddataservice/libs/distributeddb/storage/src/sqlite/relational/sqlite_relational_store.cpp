@@ -83,6 +83,7 @@ void SQLiteRelationalStore::ReleaseResources()
         sqliteStorageEngine_->ClearEnginePasswd();
         (void)StorageEngineManager::ReleaseStorageEngine(sqliteStorageEngine_);
     }
+    RefObject::DecObjRef(storageEngine_);
 }
 
 int SQLiteRelationalStore::CheckDBMode()
@@ -466,6 +467,11 @@ int SQLiteRelationalStore::ResetLifeCycleTimer() const
         LOGE("[Reset timer]Stop the life cycle timer failed:%d", errCode);
     }
     return StartLifeCycleTimer(lifeNotifier);
+}
+
+std::string SQLiteRelationalStore::GetStorePath() const
+{
+    return properties_.GetStringProp(DBProperties::DATA_DIR, "");
 }
 }
 #endif

@@ -40,6 +40,7 @@ struct QueryObjInfo {
     bool hasLimit_ = false;
     bool hasPrefixKey_ = false;
     std::string tableName_;
+    bool isRelationalQuery_ = false;
 };
 
 enum SymbolType : uint32_t {
@@ -119,6 +120,8 @@ private:
     int BindKeysToStmt(std::set<Key> &keys, sqlite3_stmt *&countStmt, int &index) const;
 
     std::string MapKeysInSubCondition(const std::string &accessStr) const;  // For InKeys.
+    // Return the left string of symbol in compare clause.
+    std::string GetFieldShape(const QueryObjNode &queryNode, const std::string &accessStr = "");
 
     SchemaObject schema_;
     std::list<QueryObjNode> queryObjNodes_;
@@ -138,6 +141,7 @@ private:
     bool isOrderByAppeared_;
     bool hasPrefixKey_;
     bool isNeedOrderbyKey_;  // The tag field is used for prefix query filtering key sorting
+    bool isRelationalQuery_;
 };
 }
 #endif

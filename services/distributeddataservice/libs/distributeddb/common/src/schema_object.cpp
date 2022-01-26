@@ -187,6 +187,17 @@ SchemaObject& SchemaObject::operator=(const SchemaObject &other)
     return *this;
 }
 
+#ifdef RELATIONAL_STORE
+SchemaObject::SchemaObject(const TableInfo &tableInfo) : flatbufferSchema_(*this)
+{
+    isValid_ = true;
+    schemaType_ = SchemaType::NONE; // Default NONE
+    schemaVersion_ = "1.0";
+    SchemaDefine schemaDefine = tableInfo.GetSchemaDefine();
+    schemaDefine_.insert({ 0, schemaDefine });
+}
+#endif  // RELATIONAL_STORE
+
 int SchemaObject::ParseFromSchemaString(const std::string &inSchemaString)
 {
     if (isValid_) {

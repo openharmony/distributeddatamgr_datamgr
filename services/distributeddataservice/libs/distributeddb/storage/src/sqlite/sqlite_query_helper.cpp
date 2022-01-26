@@ -131,7 +131,8 @@ SqliteQueryHelper::SqliteQueryHelper(const QueryObjInfo &info)
       hasLimit_(info.hasLimit_),
       isOrderByAppeared_(false),
       hasPrefixKey_(info.hasPrefixKey_),
-      isNeedOrderbyKey_(false)
+      isNeedOrderbyKey_(false),
+      isRelationalQuery_(info.isRelationalQuery_)
 {}
 
 SymbolType SqliteQueryHelper::GetSymbolType(const QueryObjType &queryObjType)
@@ -632,8 +633,7 @@ std::string SqliteQueryHelper::MapKeywordSymbolToSql(const QueryObjNode &queryNo
                 if (!isOrderByAppeared_) {
                     sql += "ORDER BY ";
                 }
-
-                sql += SqliteQueryHelper::MapCastFuncSql(queryNode);
+                sql += GetFieldShape(queryNode);
                 sql += queryNode.fieldValue[0].boolValue ? "ASC," : "DESC,";
                 orderByCounts_--;
                 if (orderByCounts_ == 0) {
@@ -740,6 +740,15 @@ std::string SqliteQueryHelper::MapCastTypeSql(const FieldType &type) const
     }
 }
 
+std::string SqliteQueryHelper::GetFieldShape(const QueryObjNode &queryNode, const std::string &accessStr)
+{
+    if (isRelationalQuery_) {
+        // For relational query, $. prefix is not permitted, so need not extract json. Return directly will be OK.
+        return queryNode.fieldName + " ";
+    }
+    return MapCastFuncSql(queryNode, accessStr);
+}
+
 int SqliteQueryHelper::ParseQueryExpression(const QueryObjNode &queryNode, std::string &querySql,
     const std::string &accessStr, bool placeholder)
 {
@@ -750,7 +759,7 @@ int SqliteQueryHelper::ParseQueryExpression(const QueryObjNode &queryNode, std::
     }
 
     if (symbolType == COMPARE_SYMBOL || symbolType == RELATIONAL_SYMBOL || symbolType == RANGE_SYMBOL) {
-        querySql += MapCastFuncSql(queryNode, accessStr);
+        querySql += GetFieldShape(queryNode, accessStr);
         querySql += MapRelationalSymbolToSql(queryNode, placeholder);
     } else if (symbolType == LOGIC_SYMBOL || symbolType == LINK_SYMBOL) {
         querySql += MapLogicSymbolToSql(queryNode);

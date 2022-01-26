@@ -295,6 +295,7 @@ int SQLiteSingleVerRelationalStorageExecutor::Rollback()
 
 int SQLiteSingleVerRelationalStorageExecutor::SetTableInfo(const QueryObject &query)
 {
+    table_ = {};
     int errCode = SQLiteUtils::AnalysisSchema(dbHandle_, query.GetTableName(), table_);
     if (errCode != E_OK) {
         LOGE("[CreateDistributedTable] analysis table schema failed");
@@ -428,15 +429,7 @@ static int GetLogData(sqlite3_stmt *logStatement, LogInfo &logInfo)
     logInfo.wTimeStamp = static_cast<uint64_t>(sqlite3_column_int64(logStatement, 4));  // 4 means w_timestamp index
     logInfo.flag = static_cast<uint64_t>(sqlite3_column_int64(logStatement, 5));  // 5 means flag index
     logInfo.flag &= (~DataItem::LOCAL_FLAG);
-
-    std::vector<uint8_t> hashKey;
-    errCode = SQLiteUtils::GetColumnBlobValue(logStatement, 6, hashKey);  // 6 means hashKey index
-    if (errCode != E_OK) {
-        return errCode;
-    }
-
-    logInfo.hashKey = std::string(hashKey.begin(), hashKey.end());
-    return errCode;
+    return SQLiteUtils::GetColumnBlobValue(logStatement, 6, logInfo.hashKey);  // 6 means hashKey index
 }
 
 static size_t GetDataItemSerialSize(DataItem &item, size_t appendLen)
@@ -651,9 +644,6 @@ int SQLiteSingleVerRelationalStorageExecutor::PrepareForSavingData(const QueryOb
 int SQLiteSingleVerRelationalStorageExecutor::SaveSyncLog(sqlite3_stmt *statement, const DataItem &dataItem,
     TimeStamp &maxTimestamp)
 {
-    Key hashKey;
-    (void)DBCommon::CalcValueHash(dataItem.key, hashKey);
-    std::string hash = std::string(hashKey.begin(), hashKey.end());
     std::string sql = "select * from " + DBConstant::RELATIONAL_PREFIX + table_.GetTableName() +
         "_log where hash_key = ?;";
     sqlite3_stmt *queryStmt = nullptr;
@@ -662,7 +652,11 @@ int SQLiteSingleVerRelationalStorageExecutor::SaveSyncLog(sqlite3_stmt *statemen
         LOGE("[info statement] Get statement fail!");
         return -E_INVALID_QUERY_FORMAT;
     }
-    SQLiteUtils::BindTextToStatement(queryStmt, 1, hash);
+    errCode = SQLiteUtils::BindBlobToStatement(queryStmt, 1, dataItem.hashKey);
+    if (errCode != E_OK) {
+        SQLiteUtils::ResetStatement(queryStmt, true, errCode);
+        return errCode;
+    }
 
     LogInfo logInfoGet;
     errCode = SQLiteUtils::StepWithRetry(queryStmt, isMemDb_);
@@ -674,8 +668,7 @@ int SQLiteSingleVerRelationalStorageExecutor::SaveSyncLog(sqlite3_stmt *statemen
     SQLiteUtils::ResetStatement(queryStmt, true, errCode);
 
     LogInfo logInfoBind;
-    std::string key = std::string(dataItem.key.begin(), dataItem.key.end());
-    logInfoBind.hashKey = hash;
+    logInfoBind.hashKey = dataItem.hashKey;
     logInfoBind.device = dataItem.dev;
     logInfoBind.timestamp = dataItem.timeStamp;
     int dataKeyBind = -1;
@@ -698,7 +691,7 @@ int SQLiteSingleVerRelationalStorageExecutor::SaveSyncLog(sqlite3_stmt *statemen
     SQLiteUtils::BindInt64ToStatement(statement, 3, logInfoBind.timestamp);  // 3 means timestamp index
     SQLiteUtils::BindInt64ToStatement(statement, 4, logInfoBind.wTimeStamp);  // 4 means w_timestamp index
     SQLiteUtils::BindInt64ToStatement(statement, 5, logInfoBind.flag);  // 5 means flag index
-    SQLiteUtils::BindTextToStatement(statement, 6, logInfoBind.hashKey);  // 6 means hashKey index
+    SQLiteUtils::BindBlobToStatement(statement, 6, logInfoBind.hashKey);  // 6 means hashKey index
     errCode = SQLiteUtils::StepWithRetry(statement, isMemDb_);
     if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_DONE)) {
         return E_OK;
@@ -709,13 +702,18 @@ int SQLiteSingleVerRelationalStorageExecutor::SaveSyncLog(sqlite3_stmt *statemen
 int SQLiteSingleVerRelationalStorageExecutor::DeleteSyncDataItem(const DataItem &dataItem)
 {
     const std::string tableName = DBCommon::GetDistributedTableName(dataItem.dev, table_.GetTableName());
-    std::string hashKey = std::string(dataItem.hashKey.begin(), dataItem.hashKey.end());
-    std::string sql = "DELETE FROM " + tableName + " WHERE calc_hash(" + table_.GetPrimaryKey() + ")=" + hashKey + ";";
+    std::string sql = "DELETE FROM " + tableName + " WHERE calc_hash(" + table_.GetPrimaryKey() + ")=?;";
     sqlite3_stmt *stmt = nullptr;
     int errCode = SQLiteUtils::GetStatement(dbHandle_, sql, stmt);
     if (errCode != E_OK) {
         LOGE("[info statement] Get statement fail!");
         return -E_INVALID_QUERY_FORMAT;
+    }
+
+    errCode = SQLiteUtils::BindBlobToStatement(stmt, 1, dataItem.hashKey);
+    if (errCode != E_OK) {
+        SQLiteUtils::ResetStatement(stmt, true, errCode);
+        return errCode;
     }
 
     errCode = SQLiteUtils::StepWithRetry(stmt, isMemDb_);
@@ -785,14 +783,17 @@ int SQLiteSingleVerRelationalStorageExecutor::SaveSyncDataItems(const QueryObjec
         if (item.neglect) { // Do not save this record if it is neglected
             continue;
         }
+
+        item.dev = deviceName;
         errCode = SaveSyncDataItem(statement, item);
         if (errCode != E_OK && errCode != -E_NOT_FOUND) {
+            LOGE("Save sync dataitem failed:%d.", errCode);
             break;
         }
 
-        item.dev = deviceName;
         errCode = SaveSyncLog(logStmt, item, maxTimestamp);
         if (errCode != E_OK) {
+            LOGE("Save sync log failed:%d.", errCode);
             break;
         }
         maxTimestamp = std::max(item.timeStamp, maxTimestamp);
@@ -1005,7 +1006,12 @@ int SQLiteSingleVerRelationalStorageExecutor::CreateDistributedDeviceTable(const
     }
 
     std::string deviceTableName = DBCommon::GetDistributedTableName(device, tableName);
-    int errCode = SQLiteUtils::CreateSameStuTable(dbHandle_, tableName, deviceTableName, false);
+    TableInfo table;
+    int errCode = SQLiteUtils::AnalysisSchema(dbHandle_, deviceTableName, table);
+    if (errCode != -E_NOT_FOUND) {
+        return errCode;
+    }
+    errCode = SQLiteUtils::CreateSameStuTable(dbHandle_, tableName, deviceTableName, false);
     if (errCode != E_OK) {
         LOGE("Create device table failed. %d", errCode);
         return errCode;
@@ -1039,7 +1045,7 @@ int SQLiteSingleVerRelationalStorageExecutor::CheckQueryObjectLegal(const TableI
         return errCode;
     }
 
-    errCode = SQLiteUtils::CheckSchemaSchanged(stmt, table, DBConstant::RELATIONAL_LOG_TABLE_FIELD_NUM);
+    errCode = SQLiteUtils::CheckSchemaChanged(stmt, table, DBConstant::RELATIONAL_LOG_TABLE_FIELD_NUM);
     if (errCode != E_OK) {
         LOGE("Check schema failed, schema was changed. %d", errCode);
     }

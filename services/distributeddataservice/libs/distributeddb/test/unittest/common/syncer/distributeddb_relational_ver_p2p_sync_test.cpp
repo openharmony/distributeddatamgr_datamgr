@@ -361,10 +361,11 @@ namespace {
         std::vector<FieldInfo> fieldInfoList)
     {
         int columnCount = sqlite3_column_count(statement);
+        ASSERT_EQ(static_cast<size_t>(columnCount), fieldInfoList.size());
         for (int col = 0; col < columnCount; ++col) {
             DataValue dataValue;
             GetDataValue(statement, col, dataValue);
-            dataMap[fieldInfoList[col].GetFieldName()] = std::move(dataValue);
+            dataMap[fieldInfoList.at(col).GetFieldName()] = std::move(dataValue);
         }
     }
 
@@ -418,7 +419,7 @@ namespace {
     }
 
     void PrepareVirtualEnvironment(std::map<std::string, DataValue> &dataMap, const std::string &tableName,
-        std::vector<FieldInfo> fieldInfoList)
+        std::vector<FieldInfo> &fieldInfoList)
     {
         PrepareBasicTable(tableName, fieldInfoList);
         GenerateValue(dataMap, fieldInfoList);
@@ -567,6 +568,7 @@ void DistributedDBRelationalVerP2PSyncTest::TearDownTestCase()
 void DistributedDBRelationalVerP2PSyncTest::SetUp(void)
 {
     DistributedDBToolsUnitTest::PrintTestCaseInfo();
+    g_fieldInfoList.clear();
     /**
     * @tc.setup: create virtual device B, and get a KvStoreNbDelegate as deviceA
     */
@@ -614,7 +616,7 @@ void DistributedDBRelationalVerP2PSyncTest::TearDown(void)
 * @tc.require: AR000GK58N
 * @tc.author: zhangqiquan
 */
-HWTEST_F(DistributedDBRelationalVerP2PSyncTest, NormalSync001, TestSize.Level1)
+HWTEST_F(DistributedDBRelationalVerP2PSyncTest, NormalSync001, TestSize.Level0)
 {
     std::map<std::string, DataValue> dataMap;
     PrepareEnvironment(dataMap);
@@ -630,7 +632,7 @@ HWTEST_F(DistributedDBRelationalVerP2PSyncTest, NormalSync001, TestSize.Level1)
 * @tc.require: AR000GK58N
 * @tc.author: zhangqiquan
 */
-HWTEST_F(DistributedDBRelationalVerP2PSyncTest, NormalSync002, TestSize.Level1)
+HWTEST_F(DistributedDBRelationalVerP2PSyncTest, NormalSync002, TestSize.Level0)
 {
     std::map<std::string, DataValue> dataMap;
     PrepareEnvironment(dataMap);
@@ -706,7 +708,7 @@ HWTEST_F(DistributedDBRelationalVerP2PSyncTest, NormalSync004, TestSize.Level1)
 * @tc.require: AR000GK58N
 * @tc.author: zhangqiquan
 */
-HWTEST_F(DistributedDBRelationalVerP2PSyncTest, NormalSync005, TestSize.Level1)
+HWTEST_F(DistributedDBRelationalVerP2PSyncTest, NormalSync005, TestSize.Level0)
 {
     std::map<std::string, DataValue> dataMap;
     PrepareVirtualEnvironment(dataMap);

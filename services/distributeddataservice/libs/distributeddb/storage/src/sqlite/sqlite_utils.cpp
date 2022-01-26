@@ -1399,15 +1399,28 @@ int SQLiteUtils::AddRelationalLogTableTrigger(sqlite3 *db, const TableInfo &tabl
 int SQLiteUtils::CreateSameStuTable(sqlite3 *db, const std::string &oriTableName, const std::string &newTableName,
     bool isCopyData)
 {
-    std::string sql = "create table IF NOT EXISTS " + newTableName + " as select * from " + oriTableName;
-    if (!isCopyData) {
-        sql += " where 1=0 ";
+    std::string sql = "SELECT sql FROM sqlite_master WHERE type='table' AND tbl_name='" + oriTableName + "';";
+    sqlite3_stmt *stmt = nullptr;
+    int errCode = SQLiteUtils::GetStatement(db, sql, stmt);
+    if (errCode != E_OK) {
+        goto ERROR;
     }
-    sql += ";";
-    int errCode = SQLiteUtils::ExecuteRawSQL(db, sql);
+    errCode = SQLiteUtils::StepWithRetry(stmt, false);
+    if (errCode != SQLiteUtils::MapSQLiteErrno(SQLITE_ROW)) {
+        goto ERROR;
+    }
+    errCode = SQLiteUtils::GetColumnTextValue(stmt, 0, sql);
+    if (errCode != E_OK) {
+        goto ERROR;
+    }
+    sql.replace(sql.find(oriTableName), oriTableName.length(), newTableName);
+    errCode = SQLiteUtils::ExecuteRawSQL(db, sql);
+
+ERROR:
     if (errCode != E_OK) {
         LOGE("[SQLite] execute create table sql failed");
     }
+    SQLiteUtils::ResetStatement(stmt, true, errCode);
     return errCode;
 }
 
@@ -1433,8 +1446,9 @@ int SQLiteUtils::CloneIndexes(sqlite3 *db, const std::string &oriTableName, cons
     while (true) {
         errCode = SQLiteUtils::StepWithRetry(stmt, false);
         if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_ROW)) {
-            const unsigned char *indexSql = sqlite3_column_text(stmt, 0);
-            sql += std::string(reinterpret_cast<const char *>(indexSql));
+            std::string indexSql;
+            (void)GetColumnTextValue(stmt, 0, indexSql);
+            sql += indexSql;
             continue;
         }
         if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_DONE)) {
@@ -2071,22 +2085,25 @@ int SQLiteUtils::SetPersistWalMode(sqlite3 *db)
     return SQLiteUtils::MapSQLiteErrno(errCode);
 }
 
-int SQLiteUtils::CheckSchemaSchanged(sqlite3_stmt *stmt, const TableInfo &table, int offset)
+int SQLiteUtils::CheckSchemaChanged(sqlite3_stmt *stmt, const TableInfo &table, int offset)
 {
     if (stmt == nullptr) {
         return  -E_INVALID_ARGS;
     }
 
     int columnNum = sqlite3_column_count(stmt);
-    if (offset + columnNum != static_cast<int>(table.GetFields().size())) {
+    if (columnNum - offset != static_cast<int>(table.GetFields().size())) {
         LOGE("Schema field number does not match.");
         return -E_RELATIONAL_SCHEMA_CHANGED;
     }
 
     auto fields = table.GetFields();
-    for (int i=offset; i<columnNum; i++) {
-        std::string colName = sqlite3_column_name(stmt, i);
-        std::string colType = sqlite3_column_decltype(stmt, i);
+    for (int i = offset; i < columnNum; i++) {
+        const char *name = sqlite3_column_name(stmt, i);
+        std::string colName = (name == nullptr) ? std::string() : name;
+        const char *declType = sqlite3_column_decltype(stmt, i);
+        std::string colType = (declType == nullptr) ? std::string() : declType;
+        transform(colType.begin(), colType.end(), colType.begin(), ::tolower);
 
         auto it = fields.find(colName);
         if (it == fields.end() || it->second.GetDataType() != colType) {

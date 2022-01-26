@@ -19,6 +19,7 @@
 
 #include "db_errno.h"
 #include "log_print.h"
+#include "schema_constant.h"
 #include "schema_utils.h"
 
 using namespace testing::ext;

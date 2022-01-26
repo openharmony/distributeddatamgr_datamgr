@@ -321,7 +321,7 @@ int RelationalSyncAbleStorage::GetSyncData(QueryObject &query, const SyncTimeRan
     if (!timeRange.IsValid()) {
         return -E_INVALID_ARGS;
     }
-
+    query.SetSchema(storageEngine_->GetSchemaRef());
     auto token = new (std::nothrow) SQLiteSingleVerRelationalContinueToken(timeRange, query);
     if (token == nullptr) {
         LOGE("[SingleVerNStore] Allocate continue token failed.");
@@ -388,15 +388,16 @@ int RelationalSyncAbleStorage::SaveSyncDataItems(const QueryObject &object, std:
     if (handle == nullptr) {
         return errCode;
     }
-
-    errCode = handle->SetTableInfo(object);
+    QueryObject query = object;
+    query.SetSchema(storageEngine_->GetSchemaRef());
+    errCode = handle->SetTableInfo(query);
     if (errCode != E_OK) {
         ReleaseHandle(handle);
         return errCode;
     }
 
     TimeStamp maxTimestamp = 0;
-    errCode = handle->SaveSyncItems(object, dataItems, deviceName, maxTimestamp);
+    errCode = handle->SaveSyncItems(query, dataItems, deviceName, maxTimestamp);
     if (errCode == E_OK) {
         (void)SetMaxTimeStamp(maxTimestamp);
     }
@@ -538,7 +539,7 @@ int RelationalSyncAbleStorage::CheckAndInitQueryCondition(QueryObject &query) co
         LOGE("Query table is not a distributed table.");
         return -E_RELATIONAL_SCHEMA_NOT_FOUND;
     }
-    // TODO: query set schema
+    query.SetSchema(schema);
 
     int errCode = E_OK;
     auto *handle = GetHandle(false, errCode);

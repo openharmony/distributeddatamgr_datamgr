@@ -15,6 +15,7 @@
 #ifdef RELATIONAL_STORE
 #include "data_transformer.h"
 
+#include "db_common.h"
 #include "db_errno.h"
 #include "log_print.h"
 #include "parcel.h"
@@ -66,15 +67,12 @@ int DataTransformer::SerializeDataItem(const RowDataWithLog &data,
         return errCode;
     }
     const LogInfo &logInfo = data.logInfo;
-    errCode = SerializeHashKey(dataItem.hashKey, logInfo.hashKey);
-    if (errCode != E_OK) {
-        return errCode;
-    }
     dataItem.timeStamp = logInfo.timestamp;
     dataItem.dev = logInfo.device;
     dataItem.origDev = logInfo.originDev;
     dataItem.writeTimeStamp = logInfo.wTimeStamp;
     dataItem.flag = logInfo.flag;
+    dataItem.hashKey = logInfo.hashKey;
     return E_OK;
 }
 
@@ -90,15 +88,12 @@ int DataTransformer::DeSerializeDataItem(const DataItem &dataItem, OptRowDataWit
     }
 
     LogInfo &logInfo = data.logInfo;
-    errCode = DeSerializeHashKey(dataItem.hashKey, logInfo.hashKey);
-    if (errCode != E_OK) {
-        return errCode;
-    }
     logInfo.timestamp = dataItem.timeStamp;
     logInfo.device = dataItem.dev;
     logInfo.originDev = dataItem.origDev;
     logInfo.wTimeStamp = dataItem.writeTimeStamp;
     logInfo.flag = dataItem.flag;
+    logInfo.hashKey = dataItem.hashKey;
     return E_OK;
 }
 
@@ -362,24 +357,6 @@ int DataTransformer::DeSerializeValue(const Value &value, OptRowData &optionalDa
         optionalData.push_back(valueList[index]);
     }
     return E_OK;
-}
-
-int DataTransformer::SerializeHashKey(Key &key, const std::string &hashKey)
-{
-    uint32_t len = Parcel::GetStringLen(hashKey);
-    key.resize(len, 0);
-    if (key.size() != len) {
-        return -E_OUT_OF_MEMORY;
-    }
-    Parcel parcel(key.data(), len);
-    return parcel.WriteString(hashKey);
-}
-
-int DataTransformer::DeSerializeHashKey(const Key &key, std::string &hashKey)
-{
-    Parcel parcel(const_cast<uint8_t *>(key.data()), key.size());
-    (void)parcel.ReadString(hashKey);
-    return parcel.IsError() ? -E_PARSE_FAIL : E_OK;
 }
 } // namespace DistributedDB
 #endif
