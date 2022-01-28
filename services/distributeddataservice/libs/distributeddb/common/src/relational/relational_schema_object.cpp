@@ -163,11 +163,11 @@ const std::map<std::string, FieldInfo> &TableInfo::GetFields() const
 
 std::string TableInfo::GetFieldName(uint32_t cid) const
 {
-    if (cid == 0 || cid > fields_.size()) {
+    if (cid >= fields_.size()) {
         return {};
     }
     if (!fieldNames_.empty()) {
-        return fieldNames_.at(cid - 1);
+        return fieldNames_.at(cid);
     }
     fieldNames_.resize(fields_.size());
     if (fieldNames_.size() != fields_.size()) {
@@ -177,7 +177,7 @@ std::string TableInfo::GetFieldName(uint32_t cid) const
     for (const auto &[fieldName, fieldInfo] : fields_) {
         fieldNames_.at(fieldInfo.GetColumnId()) = fieldName;
     }
-    return fieldNames_.at(cid - 1);
+    return fieldNames_.at(cid);
 }
 
 bool TableInfo::IsValid() const

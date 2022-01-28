@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 #ifdef RELATIONAL_STORE
-#ifdef SQLITE_DISTRIBUTE_RELATIONAL
 #include <gtest/gtest.h>
 
 #include "data_transformer.h"
@@ -745,5 +744,4 @@ HWTEST_F(DistributedDBRelationalGetDataTest, UpdateData1, TestSize.Level1)
     sqlite3_close(db);
     RefObject::DecObjRef(g_store);
 }
-#endif
 #endif

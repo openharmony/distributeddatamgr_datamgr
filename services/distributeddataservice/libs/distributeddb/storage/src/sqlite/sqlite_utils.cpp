@@ -1400,7 +1400,7 @@ int SQLiteUtils::CreateSameStuTable(sqlite3 *db, const TableInfo &baseTbl, const
 {
     std::string sql = "CREATE TABLE IF NOT EXISTS " + newTableName + "(";
     const std::map<FieldName, FieldInfo> &fields = baseTbl.GetFields();
-    for (uint32_t cid = 1; cid <= fields.size(); ++cid) {
+    for (uint32_t cid = 0; cid < fields.size(); ++cid) {
         std::string fieldName = baseTbl.GetFieldName(cid);
         sql += fieldName + " " + fields.at(fieldName).GetDataType();
         if (fields.at(fieldName).IsNotNull()) {
