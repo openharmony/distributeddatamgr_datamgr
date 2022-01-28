@@ -44,6 +44,7 @@ SyncTaskContext::SyncTaskContext()
       communicator_(nullptr),
       stateMachine_(nullptr),
       requestSessionId_(0),
+      lastRequestSessionId_(0),
       timeHelper_(nullptr),
       remoteSoftwareVersion_(0),
       remoteSoftwareVersionId_(0),
@@ -53,8 +54,7 @@ SyncTaskContext::SyncTaskContext()
       isSyncRetry_(false),
       negotiationCount_(0),
       isAutoSubscribe_(false),
-      isNeedResetAbilitySync_(false),
-      lastRequestSessionId_(0)
+      isNeedResetAbilitySync_(false)
 {
 }
 
@@ -559,6 +559,7 @@ void SyncTaskContext::CopyTargetData(const ISyncTarget *target, const TaskParam 
         if (lastRequestSessionId_ == requestSessionId_) {
             // Hash32Func max is 0x7fffffff and UINT32_MAX is 0xffffffff
             requestSessionId_++;
+            LOGI("last sessionId is equal to this sessionId!");
         }
         LOGI("[SyncTaskContext][copyTarget] mode=%d,syncId=%d,isAutoSync=%d,isRetry=%d,dev=%s{private}",
             mode_, syncId_, isAutoSync_, syncTaskRetryStatus_, deviceId_.c_str());
