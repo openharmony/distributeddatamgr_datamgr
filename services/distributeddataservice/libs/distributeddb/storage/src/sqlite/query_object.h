@@ -16,9 +16,10 @@
 #define QUERY_OBJECT_H
 
 #include <string>
-#include <relational_schema_object.h>
-#include "schema_object.h"
+
 #include "query.h"
+#include "relational_schema_object.h"
+#include "schema_object.h"
 #include "sqlite_query_helper.h"
 
 namespace DistributedDB {

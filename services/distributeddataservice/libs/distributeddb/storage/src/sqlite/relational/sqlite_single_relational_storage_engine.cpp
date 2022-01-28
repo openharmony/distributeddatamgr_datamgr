@@ -94,7 +94,7 @@ int SQLiteSingleRelationalStorageEngine::CreateNewExecutor(bool isWrite, Storage
 
 int SQLiteSingleRelationalStorageEngine::ReleaseExecutor(SQLiteSingleVerRelationalStorageExecutor *&handle)
 {
-    if (handle == nullptr) { // TODO: check corrupted
+    if (handle == nullptr) {
         return E_OK;
     }
     StorageExecutor *databaseHandle = handle;
@@ -242,7 +242,7 @@ int SQLiteSingleRelationalStorageEngine::CleanDistributedDeviceTable(std::vector
         return errCode;
     }
 
-    errCode = handle->CkeckAndCleanDistributedTable(schema_.GetTableNames(), missingTables);
+    errCode = handle->CheckAndCleanDistributedTable(schema_.GetTableNames(), missingTables);
     if (errCode == E_OK) {
         errCode = handle->Commit();
         if (errCode == E_OK) {

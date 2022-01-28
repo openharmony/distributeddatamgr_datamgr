@@ -95,7 +95,7 @@ public:
 
     int SchemaChanged(int notifyEvent) override;
 
-    int InterceptData(std::vector<SingleVerKvEntry *> &entries,const std::string &sourceID,
+    int InterceptData(std::vector<SingleVerKvEntry *> &entries, const std::string &sourceID,
         const std::string &targetID) const override
     {
         return E_OK;

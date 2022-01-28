@@ -942,7 +942,6 @@ int RelationalSchemaObject::ParseCheckTableFieldInfo(const JsonObject &inJsonObj
     }
     field.SetColumnId(fieldValue.integerValue);
 
-
     errCode = GetMemberFromJsonObject(inJsonObject, "TYPE", FieldType::LEAF_FIELD_STRING, true, fieldValue);
     if (errCode != E_OK) {
         return errCode;

@@ -178,7 +178,6 @@ namespace {
             }},)"";
     const std::string TABLE_DEFINE_STR_KEY = R""("PRIMARY_KEY": "field_name1")"";
     const std::string TABLE_DEFINE_STR_KEY_INVALID = R""("PRIMARY_KEY": false)"";
-
 }
 
 class DistributedDBRelationalSchemaObjectTest : public testing::Test {

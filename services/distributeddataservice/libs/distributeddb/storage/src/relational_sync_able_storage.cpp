@@ -570,7 +570,6 @@ int RelationalSyncAbleStorage::CheckAndInitQueryCondition(QueryObject &query) co
         return errCode;
     }
 
-
     errCode = handle->CheckQueryObjectLegal(table, query);
     if (errCode != E_OK) {
         LOGE("Check relational query condition failed. %d", errCode);
