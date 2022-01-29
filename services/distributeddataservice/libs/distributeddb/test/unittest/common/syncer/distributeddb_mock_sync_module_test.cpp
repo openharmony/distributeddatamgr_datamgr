@@ -17,6 +17,7 @@
 
 #include "distributeddb_tools_unit_test.h"
 #include "message.h"
+#include "mock_auto_launch.h"
 #include "mock_communicator.h"
 #include "mock_single_ver_state_machine.h"
 #include "mock_sync_task_context.h"
@@ -168,4 +169,46 @@ HWTEST_F(DistributedDBMockSyncModuleTest, DataSyncCheck002, TestSize.Level1)
     message->SetMessageType(TYPE_NOTIFY);
     EXPECT_EQ(dataSync.AckPacketIdCheck(message), true);
     delete message;
+}
+
+/**
+ * @tc.name: AutoLaunchCheck001
+ * @tc.desc: Test autoLaunch close connection.
+ * @tc.type: FUNC
+ * @tc.require: AR000CCPOM
+ * @tc.author: zhangqiquan
+ */
+HWTEST_F(DistributedDBMockSyncModuleTest, AutoLaunchCheck001, TestSize.Level1)
+{
+    MockAutoLaunch mockAutoLaunch;
+    /**
+     * @tc.steps: step1. put AutoLaunchItem in cache to simulate a connection was auto launched
+     */
+    std::string id = "TestAutoLaunch";
+    AutoLaunchItem item;
+    mockAutoLaunch.SetAutoLaunchItem(id, item);
+    EXPECT_CALL(mockAutoLaunch, TryCloseConnection(_)).WillOnce(Return());
+    /**
+     * @tc.steps: step2. send close singal to simulate a connection was unused in 1 min
+     * @tc.expected: 10 thread try to close the connection and one thread close success
+     */
+    const int loopCount = 10;
+    int finishCount = 0;
+    std::mutex mutex;
+    std::unique_lock<std::mutex> lock(mutex);
+    std::condition_variable cv;
+    for (int i = 0; i < loopCount; i++) {
+        std::thread t = std::thread([&finishCount, &mockAutoLaunch, &id, &mutex, &cv]{
+            mockAutoLaunch.CallExtConnectionLifeCycleCallbackTask(id);
+            finishCount++;
+            if (finishCount == loopCount) {
+                std::unique_lock<std::mutex> lockInner(mutex);
+                cv.notify_one();
+            }
+        });
+        t.detach();
+    }
+    cv.wait(lock, [&finishCount, &loopCount](){
+        return finishCount == loopCount;
+    });
 }
