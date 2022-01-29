@@ -838,14 +838,10 @@ void AutoLaunch::ExtConnectionLifeCycleCallbackTask(const std::string &identifie
             return;
         }
         autoLaunchItem = extItemMap_[identifier];
+        extItemMap_.erase(identifier);
     }
     LOGI("[AutoLaunch] ExtConnectionLifeCycleCallbackTask do CloseConnection");
     TryCloseConnection(autoLaunchItem); // do nothing if failed
-    {
-        std::lock_guard<std::mutex> lock(extLock_);
-        autoLaunchItem = extItemMap_[identifier];
-        extItemMap_.erase(identifier);
-    }
     if (autoLaunchItem.isWriteOpenNotifiered) {
         CloseNotifier(autoLaunchItem);
     }
