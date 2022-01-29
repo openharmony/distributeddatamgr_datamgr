@@ -108,9 +108,9 @@ int GetDeviceTableName(sqlite3 *handle, const std::string &tableName, const std:
         return -E_INVALID_ARGS;
     }
     std::string deviceHash = DBCommon::TransferStringToHex(DBCommon::TransferHashString(device));
-    std::string decicePattern = device.empty() ? "%" : deviceHash;
+    std::string devicePattern = device.empty() ? "%" : deviceHash;
     std::string tablePattern = tableName.empty() ? "%" : tableName;
-    std::string deviceTableName = DBConstant::RELATIONAL_PREFIX + tablePattern + "_" + decicePattern;
+    std::string deviceTableName = DBConstant::RELATIONAL_PREFIX + tablePattern + "_" + devicePattern;
 
     const std::string checkSql = "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE '" +
         deviceTableName + "';";
