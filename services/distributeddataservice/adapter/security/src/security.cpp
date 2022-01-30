@@ -29,8 +29,8 @@ namespace OHOS::DistributedKv {
 using namespace DistributedDB;
 std::atomic_bool Security::isInitialized_ = true;
 const char * const Security::LABEL_VALUES[S4 + 1] = {};
-const char * const Security::DATA_DE[] = {};
-const char * const Security::DATA_CE[] = {};
+const char * const Security::DATA_DE[] = { nullptr };
+const char * const Security::DATA_CE[] = { nullptr };
 
 Security::Security(const std::string &appId, const std::string &userId, const std::string &dir)
 {
@@ -180,16 +180,11 @@ const char *Security::Convert2Name(const SecurityOption &option, bool isCE)
         return nullptr;
     }
 
-    return LABEL_VALUES[option.securityLabel];
+    return nullptr;
 }
 
 int Security::Convert2Security(const std::string &name)
 {
-    for (int i = 0; i <= S4; i++) {
-        if (name == LABEL_VALUES[i]) {
-            return i;
-        }
-    }
     return NOT_SET;
 }
 
