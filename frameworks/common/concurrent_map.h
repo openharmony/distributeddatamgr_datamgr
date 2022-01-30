@@ -119,7 +119,7 @@ public:
         return entries_.size();
     }
 
-    size_type EraseIf(std::function<bool(const key_type &key, mapped_type &value)> &action) noexcept
+    size_type EraseIf(const std::function<bool(const key_type &key, mapped_type &value)> &action) noexcept
     {
         if (action == nullptr) {
             return;
@@ -193,7 +193,7 @@ public:
         return true;
     }
 
-    bool ComputeIfAbsent(const key_type &key, std::function<mapped_type(const key_type &)> &action)
+    bool ComputeIfAbsent(const key_type &key, const std::function<mapped_type(const key_type &)> &action)
     {
         if (action == nullptr) {
             return false;

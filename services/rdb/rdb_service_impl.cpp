@@ -51,7 +51,7 @@ void RdbServiceImpl::ClearClientSyncers(const std::string& bundleName)
 {
     ZLOGI("enter");
     std::string appId = DistributedKv::KvStoreUtils::GetAppIdByBundleName(bundleName);
-    auto count = syncers_.EraseIf([&appId] (const std::string& key, sptr<RdbSyncerImpl>& value) {
+    auto count = syncers_.EraseIf([&appId](const std::string &key, sptr <RdbSyncerImpl> &value) -> bool {
         return value->GetAppId() == appId;
     });
     ZLOGI("remove %{public}d", static_cast<int>(count));
@@ -73,7 +73,7 @@ sptr<IRdbSyncer> RdbServiceImpl::CreateSyncer(const RdbSyncerParam& param)
 {
     RdbSyncerImpl* syncerNew = RdbSyncerFactory::GetInstance().CreateSyncer(param);
     syncers_.ComputeIfAbsent(syncerNew->GetIdentifier(),
-        [&syncerNew] (const std::string& key) {
+        [&syncerNew] (const auto& key) -> auto {
             ZLOGI("create new syncer %{public}s", key.c_str());
             if (syncerNew != nullptr) {
                 syncerNew->Init();
