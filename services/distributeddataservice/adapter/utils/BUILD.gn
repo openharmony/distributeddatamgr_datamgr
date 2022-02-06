@@ -23,10 +23,6 @@ ohos_static_library("distributeddata_utils_static") {
     cflags_cc += [ "-DCONFIG_PUBLIC_VERSION" ]
   }
 
-  remove_configs = [ "//build/config/compiler:no_exceptions" ]
-
-  configs = [ "//build/config/compiler:exceptions" ]
-
   include_dirs = [
     "../include/permission",
     "../include/utils",
