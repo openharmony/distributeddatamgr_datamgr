@@ -81,10 +81,7 @@ public:
 
     void OnStop() override;
 
-    Status DeleteKvStore(const AppId &appId, const StoreId &storeId, const std::string &trueAppId);
-
-    Status DeleteKvStoreOnly(const std::string &storeIdTmp, const std::string &deviceAccountId,
-                             const std::string &bundleName);
+    Status DeleteKvStoreOnly(const std::string &storeId, const std::string &userId, const std::string &bundleName);
 
     void AccountEventChanged(const AccountEventInfo &eventInfo);
 
@@ -136,6 +133,8 @@ private:
     void Initialize();
 
     void StartService();
+
+    Status DeleteKvStore(const std::string &bundleName, const StoreId &storeId);
 
     template<class T>
     Status RecoverKvStore(const Options &options, const std::string &bundleName, const std::string &storeId,
