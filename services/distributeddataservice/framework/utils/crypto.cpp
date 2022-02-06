@@ -17,35 +17,9 @@
 #include "openssl/sha.h"
 namespace OHOS {
 namespace DistributedData {
-std::string Crypto::Sha256(const std::string &text)
+std::string Crypto::Sha256(const std::string &text, bool isUpper)
 {
-    unsigned char hash[SHA256_DIGEST_LENGTH] = "";
-    SHA256_CTX ctx;
-    SHA256_Init(&ctx);
-    SHA256_Update(&ctx, text.c_str(), text.size());
-    SHA256_Final(hash, &ctx);
-    std::string hashToHex;
-    // here we translate sha256 hash to hexadecimal. each 8-bit char will be presented by two characters([0-9a-f])
-    constexpr int CHAR_WIDTH = 8;
-    constexpr int HEX_WIDTH = 4;
-    constexpr unsigned char HEX_MASK = 0xf;
-    constexpr int HEX_A = 10;
-    hashToHex.reserve(SHA256_DIGEST_LENGTH * (CHAR_WIDTH / HEX_WIDTH));
-    for (unsigned char i : hash) {
-        unsigned char hex = i >> HEX_WIDTH;
-        if (hex < HEX_A) {
-            hashToHex.push_back('0' + hex);
-        } else {
-            hashToHex.push_back('a' + hex - HEX_A);
-        }
-        hex = i & HEX_MASK;
-        if (hex < HEX_A) {
-            hashToHex.push_back('0' + hex);
-        } else {
-            hashToHex.push_back('a' + hex - HEX_A);
-        }
-    }
-    return hashToHex;
+    return Sha256(text.data(), text.size(), isUpper);
 }
 
 std::vector<uint8_t> Crypto::Random(int32_t len)
@@ -57,6 +31,26 @@ std::vector<uint8_t> Crypto::Random(int32_t len)
         key[i] = static_cast<uint8_t>(distribution(randomDevice));
     }
     return key;
+}
+
+std::string Crypto::Sha256(const void *data, size_t size, bool isUpper)
+{
+    unsigned char hash[SHA256_DIGEST_LENGTH * 2 + 1] = "";
+    SHA256_CTX ctx;
+    SHA256_Init(&ctx);
+    SHA256_Update(&ctx, data, size);
+    SHA256_Final(&hash[SHA256_DIGEST_LENGTH], &ctx);
+    // here we translate sha256 hash to hexadecimal. each 8-bit char will be presented by two characters([0-9a-f])
+    constexpr int WIDTH = 4;
+    constexpr unsigned char MASK = 0x0F;
+    const char* hexCode = isUpper ? "0123456789ABCDEF" : "0123456789abcdef";
+    for (int32_t i = 0; i < SHA256_DIGEST_LENGTH; ++i) {
+        unsigned char value = hash[SHA256_DIGEST_LENGTH + i];
+        hash[i * 2] = hexCode[(value >> WIDTH) & MASK];
+        hash[i * 2 + 1] = hexCode[value & MASK];
+    }
+    hash[SHA256_DIGEST_LENGTH * 2] = 0;
+    return reinterpret_cast<char *>(hash);
 }
 }
 }

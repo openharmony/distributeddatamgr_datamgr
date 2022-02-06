@@ -16,6 +16,7 @@
 #define LOG_TAG "EVENT_HANDLER"
 
 #include "account_delegate_impl.h"
+#include <algorithm>
 #include <list>
 #include <regex>
 #include <thread>
@@ -23,13 +24,15 @@
 #include <vector>
 #include "constant.h"
 #include "ohos_account_kits.h"
-#include "openssl/sha.h"
 #include "permission_validator.h"
+#include "utils/crypto.h"
 
 namespace OHOS {
 namespace DistributedKv {
 using namespace OHOS::EventFwk;
 using namespace OHOS::AAFwk;
+using namespace OHOS::DistributedData;
+
 EventSubscriber::EventSubscriber(const CommonEventSubscribeInfo &info) : CommonEventSubscriber(info) {}
 
 void EventSubscriber::OnReceiveEvent(const CommonEventData &event)
@@ -224,24 +227,7 @@ std::string AccountDelegateImpl::Sha256UserId(const std::string &plainText) cons
     std::list<char> unionList(std::begin(unionLong.byteLen), std::end(unionLong.byteLen));
     unionList.reverse();
     std::vector<char> unionVec(unionList.begin(), unionList.end());
-
-    unsigned char hash[SHA256_DIGEST_LENGTH];
-    SHA256_CTX ctx;
-    SHA256_Init(&ctx);
-    SHA256_Update(&ctx, unionVec.data(), sizeof(int64_t));
-    SHA256_Final(hash, &ctx);
-
-    const char* hexArray = "0123456789ABCDEF";
-    char* hexChars = new char[SHA256_DIGEST_LENGTH * 2 + 1];
-    for (int i = 0; i < SHA256_DIGEST_LENGTH; i++) {
-        unsigned int value = hash[i] & 0xFF;
-        hexChars[i * 2] = hexArray[value >> 4];
-        hexChars[i * 2 + 1] = hexArray[value & 0x0F];
-    }
-    hexChars[SHA256_DIGEST_LENGTH * 2] = '\0';
-    std::string res(hexChars);
-    delete []hexChars;
-    return res;
+    return Crypto::Sha256(unionVec.data(), unionVec.size(), true);
 }
 }  // namespace DistributedKv
 }  // namespace OHOS

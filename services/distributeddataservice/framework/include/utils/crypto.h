@@ -22,7 +22,8 @@ namespace OHOS {
 namespace DistributedData {
 class Crypto {
 public:
-    API_EXPORT static std::string Sha256(const std::string &text);
+    API_EXPORT static std::string Sha256(const std::string &text, bool isUpper = false);
+    API_EXPORT static std::string Sha256(const void *data, size_t size, bool isUpper = false);
     API_EXPORT static std::vector<uint8_t> Random(int32_t len);
 };
 }
