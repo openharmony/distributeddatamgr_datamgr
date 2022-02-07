@@ -41,21 +41,17 @@ bool SystemChecker::SetTrustInfo(const CheckerManager::Trust &trust)
 
 std::string SystemChecker::GetAppId(pid_t uid, const std::string &bundleName)
 {
-    if (trusts_.find(bundleName) == trusts_.end() || uid >= SYSTEM_UID || uid == CheckerManager::INVALID_UID) {
+    if (uid >= SYSTEM_UID || uid == CheckerManager::INVALID_UID) {
         return "";
     }
-    ZLOGD("bundleName:%{public}s, uid:%{public}d, appId:%{public}s", bundleName.c_str(), uid,
-        trusts_[bundleName].c_str());
-    return trusts_[bundleName];
+    std::string appId = (trusts_.find(bundleName) != trusts_.end()) ? trusts_[bundleName] : bundleName;
+    ZLOGD("bundleName:%{public}s, uid:%{public}d, appId:%{public}s", bundleName.c_str(), uid, appId.c_str());
+    return appId;
 }
 
 bool SystemChecker::IsValid(pid_t uid, const std::string &bundleName)
 {
-    if (trusts_.find(bundleName) == trusts_.end() || uid >= SYSTEM_UID || uid == CheckerManager::INVALID_UID) {
-        return false;
-    }
-    // todo get appid
-    return true;
+    return (uid < SYSTEM_UID && uid != CheckerManager::INVALID_UID);
 }
 }
 }
