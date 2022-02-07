@@ -442,11 +442,9 @@ void AutoLaunch::GetAutoLaunchSyncDevices(const std::string &identifier, std::ve
 void AutoLaunch::CloseNotifier(const AutoLaunchItem &autoLaunchItem)
 {
     if (autoLaunchItem.notifier) {
-        std::shared_ptr<KvDBProperties> properties =
-            std::static_pointer_cast<KvDBProperties>(autoLaunchItem.propertiesPtr);
-        std::string userId = properties->GetStringProp(KvDBProperties::USER_ID, "");
-        std::string appId = properties->GetStringProp(KvDBProperties::APP_ID, "");
-        std::string storeId = properties->GetStringProp(KvDBProperties::STORE_ID, "");
+        std::string userId = autoLaunchItem.propertiesPtr->GetStringProp(DBProperties::USER_ID, "");
+        std::string appId = autoLaunchItem.propertiesPtr->GetStringProp(DBProperties::APP_ID, "");
+        std::string storeId = autoLaunchItem.propertiesPtr->GetStringProp(DBProperties::STORE_ID, "");
         LOGI("[AutoLaunch] CloseNotifier do autoLaunchItem.notifier");
         autoLaunchItem.notifier(userId, appId, storeId, AutoLaunchStatus::WRITE_CLOSED);
         LOGI("[AutoLaunch] CloseNotifier do autoLaunchItem.notifier finished");
@@ -838,14 +836,10 @@ void AutoLaunch::ExtConnectionLifeCycleCallbackTask(const std::string &identifie
             return;
         }
         autoLaunchItem = extItemMap_[identifier];
+        extItemMap_.erase(identifier);
     }
     LOGI("[AutoLaunch] ExtConnectionLifeCycleCallbackTask do CloseConnection");
     TryCloseConnection(autoLaunchItem); // do nothing if failed
-    {
-        std::lock_guard<std::mutex> lock(extLock_);
-        autoLaunchItem = extItemMap_[identifier];
-        extItemMap_.erase(identifier);
-    }
     if (autoLaunchItem.isWriteOpenNotifiered) {
         CloseNotifier(autoLaunchItem);
     }

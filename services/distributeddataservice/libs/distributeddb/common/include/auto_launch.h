@@ -84,7 +84,7 @@ public:
     static int GetAutoLaunchProperties(const AutoLaunchParam &param, const DBType &openType,
         std::shared_ptr<DBProperties> &propertiesPtr);
 
-private:
+protected:
 
     int EnableKvStoreAutoLaunchParmCheck(AutoLaunchItem &autoLaunchItem, const std::string &identifier);
 
@@ -96,7 +96,7 @@ private:
     static int CloseConnectionStrict(AutoLaunchItem &autoLaunchItem);
 
     // before ReleaseDatabaseConnection, if errCode != E_OK, we not return, we try close more
-    static void TryCloseConnection(AutoLaunchItem &autoLaunchItem);
+    virtual void TryCloseConnection(AutoLaunchItem &autoLaunchItem);
 
     int RegisterObserverAndLifeCycleCallback(AutoLaunchItem &autoLaunchItem, const std::string &identifier,
         bool isExt);
@@ -154,9 +154,9 @@ private:
 
     static int PragmaAutoSync(AutoLaunchItem &autoLaunchItem);
 
-    static void TryCloseKvConnection(AutoLaunchItem &autoLaunchItem);
+    void TryCloseKvConnection(AutoLaunchItem &autoLaunchItem);
 
-    static void TryCloseRelationConnection(AutoLaunchItem &autoLaunchItem);
+    void TryCloseRelationConnection(AutoLaunchItem &autoLaunchItem);
 
     mutable std::mutex dataLock_;
     mutable std::mutex communicatorLock_;
