@@ -44,7 +44,7 @@ KvStoreAppManager::KvStoreAppManager(const std::string &bundleName, pid_t uid)
     : bundleName_(bundleName), uid_(uid), flowCtrl_(BURST_CAPACITY, SUSTAINED_CAPACITY)
 {
     ZLOGI("begin.");
-    deviceAccountId_ = CheckerManager::GetInstance().GetAppId(bundleName, uid);
+    deviceAccountId_ = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(uid);
     GetDelegateManager(PATH_DE);
     GetDelegateManager(PATH_CE);
 }
@@ -690,12 +690,12 @@ size_t KvStoreAppManager::GetTotalKvStoreNum() const
     return int(total);
 };
 
-std::string KvStoreAppManager::GetDataStoragePath(const std::string &deviceAccountId, const std::string &bundleName,
+std::string KvStoreAppManager::GetDataStoragePath(const std::string &userId, const std::string &bundleName,
                                                   PathType type)
 {
     std::string miscPath = (type == PATH_DE) ? Constant::ROOT_PATH_DE : Constant::ROOT_PATH_CE;
     return Constant::Concatenate({
-        miscPath, "/", Constant::SERVICE_NAME, "/", deviceAccountId, "/", Constant::GetDefaultHarmonyAccountName(),
+        miscPath, "/", Constant::SERVICE_NAME, "/", userId, "/", Constant::GetDefaultHarmonyAccountName(),
         "/", bundleName, "/"
     });
 }

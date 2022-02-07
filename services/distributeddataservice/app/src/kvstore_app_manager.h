@@ -63,7 +63,7 @@ public:
     static Status InitNbDbOption(const Options &options, const std::vector<uint8_t> &cipherKey,
                                  DistributedDB::KvStoreNbDelegate::Option &dbOption);
 
-    static std::string GetDataStoragePath(const std::string &deviceAccountId, const std::string &bundleName,
+    static std::string GetDataStoragePath(const std::string &userId, const std::string &bundleName,
                                           PathType type);
 
     static PathType ConvertPathType(int32_t uid, const std::string &bundleName, int securityLevel);
