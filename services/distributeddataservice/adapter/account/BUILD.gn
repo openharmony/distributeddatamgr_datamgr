@@ -25,6 +25,7 @@ ohos_static_library("distributeddata_account_static") {
     "./src",
     "//utils/native/base/include",
     "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/distributeddata/include",
+    "//foundation/distributeddatamgr/distributeddatamgr/frameworks/common",
   ]
 
   cflags_cc = [ "-fvisibility=hidden" ]
@@ -36,7 +37,7 @@ ohos_static_library("distributeddata_account_static") {
   ]
 
   external_deps = [
-    "appexecfwk_standard:appexecfwk_base",
+    "bundle_framework:appexecfwk_base",
 
     # "ces:libcommonevent",
     "ability_runtime:want",
