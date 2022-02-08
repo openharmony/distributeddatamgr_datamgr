@@ -556,15 +556,11 @@ void KvStoreDataService::GetAllKvStoreId(
     }
 
     const int32_t uid = IPCSkeleton::GetCallingUid();
-    const std::string deviceAccountId = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(uid);
-    if (deviceAccountId != AccountDelegate::MAIN_DEVICE_ACCOUNT_ID) {
-        ZLOGE("not support sub account");
-        return;
-    }
+    const std::string userId = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(uid);
     std::vector<DistributedDB::Entry> dbEntries;
     DistributedDB::DBStatus dbStatus;
     DistributedDB::Key dbKey = KvStoreMetaRow::GetKeyFor(DeviceKvStoreImpl::GetLocalDeviceId() +
-        Constant::KEY_SEPARATOR + deviceAccountId + Constant::KEY_SEPARATOR +
+        Constant::KEY_SEPARATOR + userId + Constant::KEY_SEPARATOR +
         "default" + Constant::KEY_SEPARATOR + bundleName + Constant::KEY_SEPARATOR);
     DdsTrace traceDelegate(std::string(LOG_TAG "Delegate::") + std::string(__FUNCTION__));
     dbStatus = metaKvStoreDelegate->GetEntries(dbKey, dbEntries);
@@ -607,10 +603,6 @@ Status KvStoreDataService::CloseKvStore(const AppId &appId, const StoreId &store
         return Status::PERMISSION_DENIED;
     }
     const std::string userId = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(uid);
-    if (userId != AccountDelegate::MAIN_DEVICE_ACCOUNT_ID) {
-        ZLOGE("not support sub account");
-        return Status::NOT_SUPPORT;
-    }
     std::lock_guard<std::mutex> lg(accountMutex_);
     auto it = deviceAccountMap_.find(userId);
     if (it != deviceAccountMap_.end()) {
@@ -642,10 +634,6 @@ Status KvStoreDataService::CloseAllKvStore(const AppId &appId)
     }
 
     const std::string userId = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(uid);
-    if (userId != AccountDelegate::MAIN_DEVICE_ACCOUNT_ID) {
-        ZLOGE("not support sub account");
-        return Status::NOT_SUPPORT;
-    }
     std::lock_guard<std::mutex> lg(accountMutex_);
     auto it = deviceAccountMap_.find(userId);
     if (it != deviceAccountMap_.end()) {
@@ -672,13 +660,7 @@ Status KvStoreDataService::DeleteKvStore(const AppId &appId, const StoreId &stor
     std::initializer_list<std::string> backFileList = {
         AccountDelegate::GetInstance()->GetCurrentAccountId(), "_", appId.appId, "_", storeId.storeId};
     auto backupFileName = Constant::Concatenate(backFileList);
-
     const std::string userId = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(uid);
-    if (userId != AccountDelegate::MAIN_DEVICE_ACCOUNT_ID) {
-        ZLOGE("not support sub account");
-        return Status::NOT_SUPPORT;
-    }
-
     std::initializer_list<std::string> backPathListDE = {BackupHandler::GetBackupPath(userId,
         KvStoreAppManager::PATH_DE), "/", BackupHandler::GetHashedBackupName(backupFileName)};
     auto backFilePath = Constant::Concatenate(backPathListDE);
@@ -866,8 +848,8 @@ void KvStoreDataService::StartService()
     // add softbus permission.
     AddPermission();
 #endif
-    std::string backupPath = BackupHandler::GetBackupPath(AccountDelegate::MAIN_DEVICE_ACCOUNT_ID,
-                                                          KvStoreAppManager::PATH_DE);
+    std::string backupPath = BackupHandler::GetBackupPath(
+        AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(getuid()), KvStoreAppManager::PATH_DE);
     ZLOGI("backupPath is : %s ", backupPath.c_str());
     if (!ForceCreateDirectory(backupPath)) {
         ZLOGE("backup create directory failed");
@@ -1078,7 +1060,7 @@ Status KvStoreDataService::DeleteKvStore(const std::string &bundleName, const St
             ZLOGW("Remove Kvstore Metakey failed.");
         }
         KvStoreMetaManager::GetInstance().RemoveSecretKey(uid, bundleName, storeId.storeId);
-        KvStoreMetaManager::GetInstance().DeleteStrategyMeta(bundleName, storeId.storeId);
+        KvStoreMetaManager::GetInstance().DeleteStrategyMeta(bundleName, storeId.storeId, userId);
     }
     return status;
 }

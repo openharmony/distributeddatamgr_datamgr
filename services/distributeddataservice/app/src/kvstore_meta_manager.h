@@ -230,7 +230,7 @@ public:
 
     void GetStrategyMetaKey(const StrategyMeta &params, std::string &retVal);
 
-    Status DeleteStrategyMeta(const std::string &bundleName, const std::string &storeId);
+    Status DeleteStrategyMeta(const std::string &bundleName, const std::string &storeId, const std::string &userId);
 
     Status SaveStrategyMetaEnable(const std::string &key, bool enable);
 
@@ -239,7 +239,7 @@ public:
                                   const std::vector<std::string> &remoteSupportLabels);
 
     Status CheckSyncPermission(const std::string &userId, const std::string &appId, const std::string &storeId,
-                               uint8_t flag, const std::string &deviceId);
+                               uint8_t flag, const std::string &remoteId);
 
     Status QueryKvStoreMetaDataByDeviceIdAndAppId(const std::string &devId, const std::string &appId,
                                                   KvStoreMetaData &val);

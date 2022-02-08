@@ -98,15 +98,15 @@ void KvStoreMetaManager::InitMetaData()
         ZLOGI("get meta failed.");
         return;
     }
-    const std::string userId = AccountDelegate::GetInstance()->GetCurrentAccountId();
-    auto metaKey = GetMetaKey(AccountDelegate::MAIN_DEVICE_ACCOUNT_ID, "default", META_DB_APP_ID,
-                              Constant::SERVICE_META_DB_NAME);
+    const std::string accountId = AccountDelegate::GetInstance()->GetCurrentAccountId();
+    const std::string userId = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(getuid());
+    auto metaKey = GetMetaKey(userId, "default", META_DB_APP_ID, Constant::SERVICE_META_DB_NAME);
     struct KvStoreMetaData metaData {
         .appId = META_DB_APP_ID,
         .appType = "default",
         .bundleName = META_DB_APP_ID,
         .dataDir = "default",
-        .deviceAccountId = AccountDelegate::MAIN_DEVICE_ACCOUNT_ID,
+        .deviceAccountId = userId,
         .deviceId = DeviceKvStoreImpl::GetLocalDeviceId(),
         .isAutoSync = false,
         .isBackup = false,
@@ -114,7 +114,7 @@ void KvStoreMetaManager::InitMetaData()
         .kvStoreType = KvStoreType::SINGLE_VERSION,
         .schema = "",
         .storeId = Constant::SERVICE_META_DB_NAME,
-        .userId = userId,
+        .userId = accountId,
         .uid = -1,
         .version = KvStoreDataService::KVSTORE_META_VERSION,
         .securityLevel = SecurityLevel::NO_LABEL,
@@ -262,12 +262,11 @@ Status KvStoreMetaManager::CheckUpdateServiceMeta(const std::vector<uint8_t> &me
     DistributedDB::Value dbValue = val;
     DistributedDB::DBStatus dbStatus;
     DistributedDB::CipherPassword dbPassword;
-    const std::string deviceAccountId = AccountDelegate::MAIN_DEVICE_ACCOUNT_ID;
-
-    const std::string userId = AccountDelegate::GetInstance()->GetCurrentAccountId();
-    std::initializer_list<std::string> backList = {userId, "_", META_DB_APP_ID, "_", Constant::SERVICE_META_DB_NAME};
+    const std::string userId = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(getuid());
+    const std::string accountId = AccountDelegate::GetInstance()->GetCurrentAccountId();
+    std::initializer_list<std::string> backList = {accountId, "_", META_DB_APP_ID, "_", Constant::SERVICE_META_DB_NAME};
     std::string backupName = Constant::Concatenate(backList);
-    std::initializer_list<std::string> backFullList = {BackupHandler::GetBackupPath(deviceAccountId, pathType), "/",
+    std::initializer_list<std::string> backFullList = {BackupHandler::GetBackupPath(userId, pathType), "/",
         BackupHandler::GetHashedBackupName(backupName)};
     auto backupFullName = Constant::Concatenate(backFullList);
 
@@ -776,7 +775,8 @@ Status KvStoreMetaManager::SaveStrategyMetaLabels(const std::string &key,
     return Status::SUCCESS;
 }
 
-Status KvStoreMetaManager::DeleteStrategyMeta(const std::string &bundleName, const std::string &storeId)
+Status KvStoreMetaManager::DeleteStrategyMeta(const std::string &bundleName, const std::string &storeId,
+                                              const std::string &userId)
 {
     ZLOGI("start");
     std::string key;
@@ -785,8 +785,7 @@ Status KvStoreMetaManager::DeleteStrategyMeta(const std::string &bundleName, con
         ZLOGE("get device id empty.");
         return Status::ERROR;
     }
-    std::string devAccId = AccountDelegate::MAIN_DEVICE_ACCOUNT_ID;
-    StrategyMeta params = {devId, devAccId, Constant::DEFAULT_GROUP_ID, bundleName, storeId};
+    StrategyMeta params = {devId, userId, Constant::DEFAULT_GROUP_ID, bundleName, storeId};
     GetStrategyMetaKey(params, key);
 
     auto &metaDelegate = GetMetaKvStore();
@@ -847,22 +846,22 @@ void KvStoreMetaManager::SubscribeMetaKvStore()
 }
 
 Status KvStoreMetaManager::CheckSyncPermission(const std::string &userId, const std::string &appId,
-                                               const std::string &storeId, uint8_t flag, const std::string &deviceId)
+                                               const std::string &storeId, uint8_t flag, const std::string &remoteId)
 {
-    std::string devId = DeviceKvStoreImpl::GetLocalDeviceId();
-    if (devId.empty()) {
+    std::string localId = DeviceKvStoreImpl::GetLocalDeviceId();
+    if (localId.empty()) {
         ZLOGE("get device id empty.");
         return Status::ERROR;
     }
-    KvStoreMetaData val;
-    auto queryStatus = QueryKvStoreMetaDataByDeviceIdAndAppId(devId, appId, val);
+    KvStoreMetaData localMeta;
+    auto queryStatus = QueryKvStoreMetaDataByDeviceIdAndAppId(localId, appId, localMeta);
     if (queryStatus != Status::SUCCESS) {
         ZLOGE("get kvstore by deviceId and appId empty.");
         return Status::ERROR;
     }
 
-    std::string devAccId = AccountDelegate::MAIN_DEVICE_ACCOUNT_ID;
-    StrategyMeta params = {devId, devAccId, Constant::DEFAULT_GROUP_ID, val.bundleName, storeId};
+    StrategyMeta params = {localId, localMeta.deviceAccountId, Constant::DEFAULT_GROUP_ID, localMeta.bundleName,
+                           storeId};
     std::string localKey;
     GetStrategyMetaKey(params, localKey);
     if (localKey.empty()) {
@@ -871,7 +870,7 @@ Status KvStoreMetaManager::CheckSyncPermission(const std::string &userId, const 
     }
 
     std::string remoteKey;
-    params.devId = deviceId;
+    params.devId = remoteId;
     GetStrategyMetaKey(params, remoteKey);
     if (remoteKey.empty()) {
         ZLOGE("get key empty.");

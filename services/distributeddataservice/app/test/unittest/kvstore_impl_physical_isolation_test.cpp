@@ -101,10 +101,9 @@ void KvStoreImplPhysicalIsolationTest::TearDown(void)
 */
 HWTEST_F(KvStoreImplPhysicalIsolationTest, PhysicalIsolation001, TestSize.Level1)
 {
-    const std::string storePath = Constant::Concatenate({Constant::ROOT_PATH_CE, "/", Constant::SERVICE_NAME, "/",
-        AccountDelegate::MAIN_DEVICE_ACCOUNT_ID, "/",
-        Constant::GetDefaultHarmonyAccountName(), "/" }) +
-        std::string("phy0/store0");
+    const std::string storePath = Constant::Concatenate(
+        {Constant::ROOT_PATH_CE, "/", Constant::SERVICE_NAME, "/", "0", "/", Constant::GetDefaultHarmonyAccountName(),
+         "/"}) + std::string("phy0/store0");
 
     sptr<IKvStoreImpl> kvStorePtr;
     Status status = g_kvStoreDataService->GetKvStore(g_defaultOptions, g_appId, g_storeId,
@@ -123,7 +122,7 @@ HWTEST_F(KvStoreImplPhysicalIsolationTest, PhysicalIsolation001, TestSize.Level1
 */
 HWTEST_F(KvStoreImplPhysicalIsolationTest, PhysicalIsolation002, TestSize.Level1)
 {
-    const std::string deviceAccountId = AccountDelegate::MAIN_DEVICE_ACCOUNT_ID;
+    const std::string deviceAccountId = "0";
     const std::string storePath = Constant::Concatenate({ Constant::ROOT_PATH_CE, "/", Constant::SERVICE_NAME, "/",
         deviceAccountId, "/", Constant::GetDefaultHarmonyAccountName(), "/" }) + std::string("phy0/store0");
 
@@ -153,7 +152,7 @@ HWTEST_F(KvStoreImplPhysicalIsolationTest, PhysicalIsolation002, TestSize.Level1
 */
 HWTEST_F(KvStoreImplPhysicalIsolationTest, PhysicalIsolation003, TestSize.Level1)
 {
-    const std::string deviceAccountId = AccountDelegate::MAIN_DEVICE_ACCOUNT_ID;
+    const std::string deviceAccountId = "0";
     const std::string storePath = Constant::Concatenate({ Constant::ROOT_PATH_CE, "/", Constant::SERVICE_NAME, "/",
         deviceAccountId, "/", Constant::GetDefaultHarmonyAccountName(), "/" }) + std::string("phy0/store0");
 
@@ -183,7 +182,7 @@ HWTEST_F(KvStoreImplPhysicalIsolationTest, PhysicalIsolation003, TestSize.Level1
 */
 HWTEST_F(KvStoreImplPhysicalIsolationTest, PhysicalIsolation004, TestSize.Level1)
 {
-    const std::string deviceAccountId = AccountDelegate::MAIN_DEVICE_ACCOUNT_ID;
+    const std::string deviceAccountId = "0";
     const std::string storePath = Constant::Concatenate({ Constant::ROOT_PATH_CE, "/", Constant::SERVICE_NAME, "/",
         deviceAccountId, "/", Constant::GetDefaultHarmonyAccountName(), "/" }) + std::string("phy0/store0");
 
@@ -214,9 +213,9 @@ HWTEST_F(KvStoreImplPhysicalIsolationTest, PhysicalIsolation004, TestSize.Level1
 */
 HWTEST_F(KvStoreImplPhysicalIsolationTest, PhysicalIsolation005, TestSize.Level1)
 {
-    const std::string storePath = Constant::Concatenate({ Constant::ROOT_PATH_CE, "/", Constant::SERVICE_NAME, "/",
-        AccountDelegate::MAIN_DEVICE_ACCOUNT_ID, "/",
-        Constant::GetDefaultHarmonyAccountName(), "/" }) + std::string("phy0/store0");
+    const std::string storePath = Constant::Concatenate(
+        {Constant::ROOT_PATH_CE, "/", Constant::SERVICE_NAME, "/", "0", "/", Constant::GetDefaultHarmonyAccountName(),
+         "/"}) + std::string("phy0/store0");
 
     sptr<IKvStoreImpl> kvStorePtr;
     Status status = g_kvStoreDataService->GetKvStore(g_defaultOptions, g_appId, g_storeId,
@@ -242,9 +241,9 @@ HWTEST_F(KvStoreImplPhysicalIsolationTest, PhysicalIsolation005, TestSize.Level1
 */
 HWTEST_F(KvStoreImplPhysicalIsolationTest, PhysicalIsolation006, TestSize.Level1)
 {
-    const std::string storePath = Constant::Concatenate({ Constant::ROOT_PATH_CE, "/", Constant::SERVICE_NAME, "/",
-        AccountDelegate::MAIN_DEVICE_ACCOUNT_ID, "/",
-        Constant::GetDefaultHarmonyAccountName(), "/" }) + std::string("phy0/store0");
+    const std::string storePath = Constant::Concatenate(
+        {Constant::ROOT_PATH_CE, "/", Constant::SERVICE_NAME, "/", "0", "/", Constant::GetDefaultHarmonyAccountName(),
+         "/"}) + std::string("phy0/store0");
     sptr<IKvStoreImpl> kvStorePtr;
     sptr<IKvStoreImpl> kvStorePtr1;
     sptr<IKvStoreImpl> kvStorePtr2;
@@ -282,7 +281,7 @@ HWTEST_F(KvStoreImplPhysicalIsolationTest, PhysicalIsolation006, TestSize.Level1
 */
 HWTEST_F(KvStoreImplPhysicalIsolationTest, PhysicalIsolation007, TestSize.Level1)
 {
-    const std::string deviceAccountId = AccountDelegate::MAIN_DEVICE_ACCOUNT_ID;
+    const std::string deviceAccountId = "0";
     const std::string storePath = Constant::Concatenate({ Constant::ROOT_PATH_CE, "/", Constant::SERVICE_NAME, "/",
         deviceAccountId, "/", Constant::GetDefaultHarmonyAccountName(), "/" }) + std::string("phy0/store0");
     const std::string storePath1 = Constant::Concatenate({ Constant::ROOT_PATH_CE, "/", Constant::SERVICE_NAME, "/",
