@@ -46,6 +46,7 @@ std::string Crypto::Sha256(const void *data, size_t size, bool isUpper)
     const char* hexCode = isUpper ? "0123456789ABCDEF" : "0123456789abcdef";
     for (int32_t i = 0; i < SHA256_DIGEST_LENGTH; ++i) {
         unsigned char value = hash[SHA256_DIGEST_LENGTH + i];
+        // uint8_t is 2 digits in hexadecimal.
         hash[i * 2] = hexCode[(value >> WIDTH) & MASK];
         hash[i * 2 + 1] = hexCode[value & MASK];
     }

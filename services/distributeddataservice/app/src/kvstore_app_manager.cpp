@@ -237,8 +237,7 @@ Status KvStoreAppManager::GetKvStore(const Options &options, const std::string &
         return Status::ERROR;
     }
 
-    ZLOGI("after emplace refcount: %d autoSync: %d",
-        kvStore->GetSptrRefCount(), static_cast<int>(options.autoSync));
+    ZLOGI("after emplace refcount: %d autoSync: %d", kvStore->GetSptrRefCount(), static_cast<int>(options.autoSync));
     if (options.autoSync) {
         bool autoSync = true;
         DistributedDB::PragmaData data = static_cast<DistributedDB::PragmaData>(&autoSync);
@@ -417,7 +416,8 @@ std::string KvStoreAppManager::GetDbDir(const Options &options) const
     return GetDataStoragePath(deviceAccountId_, bundleName_, ConvertPathType(uid_, bundleName_, options.securityLevel));
 }
 
-KvStoreAppManager::PathType KvStoreAppManager::ConvertPathType(int32_t uid, const std::string &bundleName, int securityLevel)
+KvStoreAppManager::PathType KvStoreAppManager::ConvertPathType(int32_t uid, const std::string &bundleName,
+                                                               int securityLevel)
 {
     switch (securityLevel) {
         case S0:    // fallthrough

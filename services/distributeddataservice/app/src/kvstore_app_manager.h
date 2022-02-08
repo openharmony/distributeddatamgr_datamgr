@@ -41,11 +41,11 @@ public:
 
     virtual ~KvStoreAppManager();
 
-    Status GetKvStore(const Options &options, const std::string &appId, const std::string &storeId, const std::vector<uint8_t> &cipherKey,
-        sptr<KvStoreImpl> &kvStore);
+    Status GetKvStore(const Options &options, const std::string &appId, const std::string &storeId,
+                      const std::vector<uint8_t> &cipherKey, sptr<KvStoreImpl> &kvStore);
 
-    Status GetKvStore(const Options &options, const std::string &appId, const std::string &storeId, const std::vector<uint8_t> &cipherKey,
-        sptr<SingleKvStoreImpl> &kvStore);
+    Status GetKvStore(const Options &options, const std::string &appId, const std::string &storeId,
+                      const std::vector<uint8_t> &cipherKey, sptr<SingleKvStoreImpl> &kvStore);
 
     Status CloseKvStore(const std::string &storeId);
 
