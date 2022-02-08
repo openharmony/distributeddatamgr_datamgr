@@ -103,7 +103,7 @@ public:
 
     int CheckAndInitQueryCondition(QueryObject &query) const override;
     void RegisterObserverAction(const RelationalObserverAction &action);
-    void TriggerObserverAction(const std::string deviceName);
+    void TriggerObserverAction(const std::string &deviceName);
 
     int CreateDistributedDeviceTable(const std::string &device, const RelationalSyncStrategy &syncStrategy) override;
 

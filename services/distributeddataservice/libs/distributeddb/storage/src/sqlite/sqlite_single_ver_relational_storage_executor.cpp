@@ -194,25 +194,25 @@ std::map<std::string, CompositeFields> GetChangedIndexes(const TableInfo &oldTab
             if (itOld->second != itNew->second) {
                 indexes.insert({itNew->first, itNew->second});
             }
-            itOld ++;
-            itNew ++;
+            itOld++;
+            itNew++;
         } else if (itOld->first < itNew->first) {
             indexes.insert({itOld->first,{}});
-            itOld ++;
+            itOld++;
         } else if (itOld->first > itNew->first) {
             indexes.insert({itNew->first, itNew->second});
-            itNew ++;
+            itNew++;
         }
     }
 
     while (itOld != itOldEnd) {
         indexes.insert({itOld->first,{}});
-        itOld ++;
+        itOld++;
     }
 
     while (itNew != itNewEnd) {
         indexes.insert({itNew->first, itNew->second});
-        itNew ++;
+        itNew++;
     }
 
     return indexes;
@@ -226,8 +226,8 @@ int Upgradeindexes(sqlite3 *db, const std::vector<std::string> &tables,
     }
 
     int errCode = E_OK;
-    for (auto table : tables) {
-        for (auto index : indexes) {
+    for (const auto &table : tables) {
+        for (const auto &index : indexes) {
             if (index.first.empty()) {
                 continue;
             }
@@ -931,11 +931,11 @@ int SQLiteSingleVerRelationalStorageExecutor::CheckDBModeForRelational()
 {
     std::string journalMode;
     int errCode = SQLiteUtils::GetJournalMode(dbHandle_, journalMode);
-    if (errCode != E_OK || journalMode != "wal") {
-        LOGE("Not support journal mode %s for relational db, expect wal mode, %d", journalMode.c_str(), errCode);
+    if (errCode == E_OK && journalMode != "wal") {
+        LOGE("Not support journal mode %s for relational db, expect wal mode.", journalMode.c_str());
         return -E_NOT_SUPPORT;
     }
-    return E_OK;
+    return errCode;
 }
 
 int SQLiteSingleVerRelationalStorageExecutor::DeleteDistributedDeviceTable(const std::string &device,
@@ -951,7 +951,7 @@ int SQLiteSingleVerRelationalStorageExecutor::DeleteDistributedDeviceTable(const
     LOGD("Begin to delete device table: deviceTable[%d]", deviceTables.size());
     for (const auto &table : deviceTables) {
         std::string deleteSql = "DROP TABLE IF EXISTS " + table + ";"; // drop the found table
-        int errCode = SQLiteUtils::ExecuteRawSQL(dbHandle_, deleteSql);
+        errCode = SQLiteUtils::ExecuteRawSQL(dbHandle_, deleteSql);
         if (errCode != E_OK) {
             LOGE("Delete device data failed. %d", errCode);
             break;
