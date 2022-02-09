@@ -53,9 +53,10 @@ void UvQueue::CallFunction(NapiArgsGenerator genArgs)
         loop_, work, [](uv_work_t* work) {},
         [](uv_work_t* work, int uvstatus) {
             auto *entry = static_cast<UvEntry*>(work->data);
-            int argc = ARGC_MAX;
+            int argc = 0;
             napi_value argv[ARGC_MAX] = { nullptr };
             if (entry->args) {
+                argc = ARGC_MAX;
                 entry->args(entry->env, argc, argv);
             }
             ZLOGD("queue uv_after_work_cb");
