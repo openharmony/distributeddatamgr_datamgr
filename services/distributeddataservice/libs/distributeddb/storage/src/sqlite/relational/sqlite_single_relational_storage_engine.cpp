@@ -40,6 +40,21 @@ int SQLiteSingleRelationalStorageEngine::Upgrade(sqlite3 *db)
     return SQLiteUtils::CreateRelationalMetaTable(db);
 }
 
+int SQLiteSingleRelationalStorageEngine::RegisterFunction(sqlite3 *db) const
+{
+    int errCode = SQLiteUtils::RegisterCalcHash(db);
+    if (errCode != E_OK) {
+        LOGE("[engine] register calculate hash failed!");
+        return errCode;
+    }
+
+    errCode = SQLiteUtils::RegisterGetSysTime(db);
+    if (errCode != E_OK) {
+        LOGE("[engine] register get sys time failed!");
+    }
+    return E_OK;
+}
+
 int SQLiteSingleRelationalStorageEngine::CreateNewExecutor(bool isWrite, StorageExecutor *&handle)
 {
     sqlite3 *db = nullptr;
@@ -54,6 +69,11 @@ int SQLiteSingleRelationalStorageEngine::CreateNewExecutor(bool isWrite, Storage
         }
 
         errCode = Upgrade(db); // cerate meta_data table.
+        if (errCode != E_OK) {
+            break;
+        }
+
+        errCode = RegisterFunction(db);
         if (errCode != E_OK) {
             break;
         }
