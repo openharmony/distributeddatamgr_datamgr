@@ -20,6 +20,11 @@
 #include "types.h"
 
 namespace DistributedDB {
+struct StoreProperty {
+    std::string userId;
+    std::string appId;
+    std::string storeId;
+};
 class StoreChangedData {
 public:
     StoreChangedData() {}
@@ -27,6 +32,9 @@ public:
 
     // Interface for Getting the device whose data changed.
     DB_API virtual const std::string GetDataChangeDevice() const = 0;
+
+    // Interface for Getting the store whose data changed.
+    DB_API virtual void GetStoreProperty(StoreProperty &storeProperty) const = 0;
 };
 } // namespace DistributedDB
 

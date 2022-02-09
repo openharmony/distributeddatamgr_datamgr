@@ -94,8 +94,9 @@ DB_API DBStatus RelationalStoreManager::OpenStore(const std::string &path, const
         conn->Close();
         return DB_ERROR;
     }
-    conn->RegisterObserverAction([option](const std::string &changedDevice) {
+    conn->RegisterObserverAction([option, storeId, this](const std::string &changedDevice) {
         RelationalStoreChangedDataImpl data(changedDevice);
+        data.SetStoreProperty({userId_, appId_, storeId});
         if (option.observer) {
             LOGD("begin to observer onchange, changedDevice=%s", STR_MASK(changedDevice));
             option.observer->OnChange(data);

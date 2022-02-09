@@ -292,6 +292,13 @@ int AutoLaunch::RegisterObserver(AutoLaunchItem &autoLaunchItem, const std::stri
         RelationalStoreConnection *conn = static_cast<RelationalStoreConnection *>(autoLaunchItem.conn);
         conn->RegisterObserverAction([autoLaunchItem](const std::string &changedDevice) {
             RelationalStoreChangedDataImpl data(changedDevice);
+            if (autoLaunchItem.propertiesPtr != nullptr) {
+                data.SetStoreProperty({
+                    autoLaunchItem.propertiesPtr->GetStringProp(DBProperties::USER_ID, ""),
+                    autoLaunchItem.propertiesPtr->GetStringProp(DBProperties::APP_ID, ""),
+                    autoLaunchItem.propertiesPtr->GetStringProp(DBProperties::STORE_ID, "")
+                });
+            }
             if (autoLaunchItem.relationObserver) {
                 LOGD("begin to observer onchange, changedDevice=%s", STR_MASK(changedDevice));
                 autoLaunchItem.relationObserver->OnChange(data);

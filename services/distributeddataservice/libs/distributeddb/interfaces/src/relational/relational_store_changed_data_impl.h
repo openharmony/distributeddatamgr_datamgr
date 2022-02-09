@@ -23,17 +23,20 @@
 namespace DistributedDB {
 class RelationalStoreChangedDataImpl : public StoreChangedData {
 public:
-    explicit RelationalStoreChangedDataImpl(std::string changedDevice) : changedDevice_(changedDevice) {}
+    explicit RelationalStoreChangedDataImpl(const std::string &changedDevice) : changedDevice_(changedDevice) {}
     virtual ~RelationalStoreChangedDataImpl();
 
     DISABLE_COPY_ASSIGN_MOVE(RelationalStoreChangedDataImpl);
 
     const std::string GetDataChangeDevice() const override;
 
-    void SetDataChangeDevice(std::string changedDevice);
+    void GetStoreProperty(StoreProperty &storeProperty) const override;
+
+    void SetStoreProperty(const StoreProperty &storeProperty);
 private:
     mutable std::mutex mutex_;
     mutable std::string changedDevice_;
+    StoreProperty storeProperty_;
 };
 } // namespace DistributedDB
 
