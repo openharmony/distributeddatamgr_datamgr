@@ -299,9 +299,9 @@ int AutoLaunch::RegisterObserver(AutoLaunchItem &autoLaunchItem, const std::stri
                     autoLaunchItem.propertiesPtr->GetStringProp(DBProperties::STORE_ID, "")
                 });
             }
-            if (autoLaunchItem.relationObserver) {
+            if (autoLaunchItem.storeObserver) {
                 LOGD("begin to observer onchange, changedDevice=%s", STR_MASK(changedDevice));
-                autoLaunchItem.relationObserver->OnChange(data);
+                autoLaunchItem.storeObserver->OnChange(data);
             }
         });
         return E_OK;
@@ -738,7 +738,7 @@ int AutoLaunch::AutoLaunchExt(const std::string &identifier)
         param.option.notifier};
     autoLaunchItem.isAutoSync = param.option.isAutoSync;
     autoLaunchItem.type = openType;
-    autoLaunchItem.relationObserver = param.option.relationObserver;
+    autoLaunchItem.storeObserver = param.option.storeObserver;
     errCode = RuntimeContext::GetInstance()->ScheduleTask(std::bind(&AutoLaunch::AutoLaunchExtTask, this,
         identifier, autoLaunchItem));
     if (errCode != E_OK) {

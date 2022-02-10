@@ -1104,7 +1104,7 @@ HWTEST_F(DistributedDBRelationalVerP2PSyncTest, observer002, TestSize.Level3)
         param.appId   = APP_ID;
         param.userId  = USER_ID;
         param.storeId = STORE_ID_1;
-        param.option.relationObserver = observer;
+        param.option.storeObserver = observer;
         return true;
     };
     g_mgr.SetAutoLaunchRequestCallback(callback);
