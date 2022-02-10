@@ -19,7 +19,7 @@
 #include <map>
 
 #include "query.h"
-#include "types.h"
+#include "store_types.h"
 #include "store_observer.h"
 
 namespace DistributedDB {

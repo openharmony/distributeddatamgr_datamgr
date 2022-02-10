@@ -17,7 +17,6 @@
 #define DISTRIBUTEDDB_CONSTANT_DEFINE_H
 
 #include <string>
-#include "types.h"
 
 namespace DistributedDBDataGenerator {
 const int TEST_ID_1 = 1;

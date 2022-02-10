@@ -42,7 +42,7 @@
 #include "sqlite_single_ver_natural_store.h"
 #include "sqlite_utils.h"
 #include "sync_types.h"
-#include "types.h"
+#include "store_types.h"
 
 namespace DistributedDBUnitTest {
 static const int DIR_PERMISSION = 0750;

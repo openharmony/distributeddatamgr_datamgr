@@ -21,7 +21,7 @@
 
 #include "auto_launch_export.h"
 #include "relational_store_delegate.h"
-#include "types.h"
+#include "store_types.h"
 
 namespace DistributedDB {
 class RelationalStoreManager final {

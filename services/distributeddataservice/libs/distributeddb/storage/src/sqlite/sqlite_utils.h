@@ -22,7 +22,7 @@
 
 #include "db_types.h"
 #include "schema_object.h"
-#include "types.h"
+#include "store_types.h"
 #ifdef RELATIONAL_STORE
 #include "relational_schema_object.h"
 #endif
