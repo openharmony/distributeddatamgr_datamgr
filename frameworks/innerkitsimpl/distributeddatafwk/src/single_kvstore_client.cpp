@@ -449,8 +449,8 @@ Status SingleKvStoreClient::GetSecurityLevel(SecurityLevel &securityLevel) const
     return Status::SERVER_UNAVAILABLE;
 }
 
-Status SingleKvStoreClient::SyncWithCondition(const std::vector<std::string> &deviceIds, SyncMode mode,
-                                              const DataQuery &query)
+Status SingleKvStoreClient::SyncWithCondition(const std::vector<std::string> &deviceIds, SyncMode mode, 
+        const DataQuery &query, std::shared_ptr<KvStoreSyncCallback> syncCallback)
 {
     if (kvStoreProxy_ == nullptr) {
         ZLOGE("singleKvstore proxy is nullptr.");
@@ -459,6 +459,26 @@ Status SingleKvStoreClient::SyncWithCondition(const std::vector<std::string> &de
     if (deviceIds.empty()) {
         ZLOGW("deviceIds is empty.");
         return Status::INVALID_ARGUMENT;
+    }
+    sptr<KvStoreSyncCallbackClient> ipcCallback;
+    if (syncCallback == nullptr) {
+        ipcCallback = new KvStoreSyncCallbackClient();
+        if (ipcCallback->GetCommonSyncCallback() != nullptr) {
+            syncCallback = ipcCallback->GetCommonSyncCallback();
+            ipcCallback = new (std::nothrow) KvStoreSyncCallbackClient(syncCallback);
+        }
+    } else {
+        ipcCallback = new (std::nothrow) KvStoreSyncCallbackClient(syncCallback);
+        for (const std::string &deviceId : deviceIds) {
+            std::string label = deviceId + query.ToString();
+            ZLOGI("label = %{public}s", label.c_str());
+            ipcCallback->AddKvStoreSyncCallback(syncCallback, label);
+        }
+    }
+    auto status = kvStoreProxy_->RegisterSyncCallback(ipcCallback);
+    if (status != Status::SUCCESS) {
+        ZLOGE("RegisterSyncCallback is not success.");
+        return status;
     }
     return kvStoreProxy_->Sync(deviceIds, mode, query.ToString());
 }

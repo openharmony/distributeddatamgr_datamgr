@@ -399,6 +399,13 @@ public:
     //     This Query.
     KVSTORE_API DataQuery& SetSuggestIndex(const std::string &index);
 
+    // Select results with many keys.
+    // Parameters:
+    //     keys: the vector of keys for query
+    // Return:
+    //     This Query.
+    KVSTORE_API DataQuery& InKeys(const std::vector<std::string> &keys);
+
     // Get string representation
     // Return:
     //     String representation of this query.
@@ -511,6 +518,9 @@ public:
 
     // suggested index
     static const std::string SUGGEST_INDEX;
+
+    //in keys
+    static const std::string IN_KEYS;
 private:
     std::string str_;
 

@@ -85,7 +85,7 @@ public:
 
     Status GetSecurityLevel(SecurityLevel &securityLevel) const override;
     Status SyncWithCondition(const std::vector<std::string> &deviceIds, SyncMode mode,
-                             const DataQuery &query) override;
+                             const DataQuery &query, std::shared_ptr<KvStoreSyncCallback> syncCallback) override;
 
     Status SubscribeWithQuery(const std::vector<std::string> &deviceIds, const DataQuery &query) override;
     Status UnSubscribeWithQuery(const std::vector<std::string> &deviceIds, const DataQuery &query) override;

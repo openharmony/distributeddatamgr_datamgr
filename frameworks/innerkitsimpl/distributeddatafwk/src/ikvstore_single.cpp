@@ -487,6 +487,7 @@ Status SingleKvStoreProxy::Sync(const std::vector<std::string> &deviceIds, SyncM
     }
     return static_cast<Status>(reply.ReadInt32());
 }
+
 Status SingleKvStoreProxy::Sync(const std::vector<std::string> &deviceIds, SyncMode mode, const std::string &query)
 {
     MessageParcel data;

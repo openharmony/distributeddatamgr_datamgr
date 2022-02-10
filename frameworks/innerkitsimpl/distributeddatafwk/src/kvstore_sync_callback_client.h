@@ -24,16 +24,24 @@ namespace DistributedKv {
 
 class KvStoreSyncCallbackClient : public KvStoreSyncCallbackStub {
 public:
+    explicit KvStoreSyncCallbackClient();
+
     explicit KvStoreSyncCallbackClient(std::shared_ptr<KvStoreSyncCallback> kvStoreSyncCallback);
 
     virtual ~KvStoreSyncCallbackClient();
 
-    void SyncCompleted(const std::map<std::string, Status> &results) override;
+    void SyncCompleted(const std::map<std::string, Status> &results, const std::string &label) override;
 
+    void AddKvStoreSyncCallback(const std::shared_ptr<KvStoreSyncCallback> kvStoreSyncCallback,
+                                const std::string &label);
+
+    std::shared_ptr<KvStoreSyncCallback> GetCommonSyncCallback();
+
+    std::string GetCommonSyncCallbackLabel();
 private:
-    std::shared_ptr<KvStoreSyncCallback> kvStoreSyncCallback_;
+    static const std::string CommonSyncCallbackLabel;
+    static std::map<std::string, std::shared_ptr<KvStoreSyncCallback>> kvStoreSyncCallbackInfo_;
 };
-
 }  // namespace DistributedKv
 }  // namespace OHOS
 

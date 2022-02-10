@@ -88,7 +88,8 @@ private:
     Status AddSync(const std::vector<std::string> &deviceIds, SyncMode mode,
                    const std::string &query, uint32_t delayMs);
     Status RemoveAllSyncOperation();
-    void DoSyncComplete(const std::map<std::string, DistributedDB::DBStatus> &devicesSyncResult);
+    void DoSyncComplete(const std::map<std::string, DistributedDB::DBStatus> &devicesSyncResult,
+                        const std::string &query);
     Status DoSync(const std::vector<std::string> &deviceIds, SyncMode mode, const KvStoreSyncManager::SyncEnd &syncEnd);
     Status DoQuerySync(const std::vector<std::string> &deviceIds, SyncMode mode, const std::string &query,
                        const KvStoreSyncManager::SyncEnd &syncEnd);

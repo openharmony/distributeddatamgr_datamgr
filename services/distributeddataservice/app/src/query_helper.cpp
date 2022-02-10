@@ -22,6 +22,8 @@
 #include "kvstore_utils.h"
 #include "data_query.h"
 #include "log_print.h"
+#include <set>
+#include "types.h"
 
 namespace OHOS::DistributedKv {
 constexpr int QUERY_SKIP_SIZE = 1;
@@ -29,11 +31,12 @@ constexpr int QUERY_WORD_SIZE = 2;
 constexpr int MAX_QUERY_LENGTH = 5 * 1024; // Max query string length 5k
 constexpr int MAX_QUERY_COMPLEXITY = 500; // Max query complexity 500
 bool QueryHelper::hasPrefixKey_{};
+bool QueryHelper::hasInKeys_{};
 std::string QueryHelper::deviceId_{};
 
 DistributedDB::Query QueryHelper::StringToDbQuery(const std::string &query, bool &isSuccess)
 {
-    ZLOGI("query string length:%zu", query.length());
+    ZLOGI("query string length:%{public}zu", query.length());
     DistributedDB::Query dbQuery = DistributedDB::Query::Select();
     if (query.size() == 0) {
         ZLOGI("Query string is empty.");
@@ -47,6 +50,7 @@ DistributedDB::Query QueryHelper::StringToDbQuery(const std::string &query, bool
     }
     deviceId_.clear();
     hasPrefixKey_ = (query.find(DataQuery::KEY_PREFIX) != std::string::npos);
+    hasInKeys_ = (query.find(DataQuery::IN_KEYS) != std::string::npos);
     size_t pos = query.find_first_not_of(DataQuery::SPACE);
     std::string inputTrim = (pos == std::string::npos) ? "" : query.substr(pos);
     std::regex regex(" ");
@@ -127,6 +131,8 @@ void QueryHelper::HandleExtra(const std::vector<std::string> &words, int &pointe
         HandleDeviceId(words, pointer, end, isSuccess, dbQuery);
     } else if (keyword == DataQuery::SUGGEST_INDEX) {
         HandleSetSuggestIndex(words, pointer, end, isSuccess, dbQuery);
+    } else if (keyword == DataQuery::IN_KEYS) {
+        HandleInKeys(words, pointer, end, isSuccess, dbQuery);
     } else {
         ZLOGE("Invalid keyword.");
         isSuccess = false;
@@ -497,6 +503,29 @@ void QueryHelper::HandleKeyPrefix(const std::vector<std::string> &words, int &po
     pointer += 2; // Pointer goes to next keyword
 }
 
+void QueryHelper::HandleInKeys(const std::vector<std::string> &words, int &pointer,
+                               const int &end, bool &isSuccess, DistributedDB::Query &dbQuery) {
+    if (pointer + 2 > end || words.at(pointer + 1) != DataQuery::START_IN) { // This keyword has at least 2 params
+        ZLOGE("In not enough params.");
+        isSuccess = false;
+        return;
+    }
+    int elementPointer = pointer + 2;
+    const std::vector<std::string> inKeys = GetInKeyList(words, elementPointer, end);
+    std::set<std::vector<uint8_t>> inDbKeys;
+    for(const std::string &inKey : inKeys) {
+        ZLOGI("inKey=%{public}s", inKey.c_str());
+	    std::vector<uint8_t> dbKey;
+        dbKey.assign(inKey.begin(), inKey.end());
+        inDbKeys.insert(dbKey);
+    }
+    int size = inDbKeys.size();
+    ZLOGI("size of inKeys=%{public}d", size);
+    dbQuery.InKeys(inDbKeys);
+    isSuccess = true;
+    pointer = elementPointer + 1; // Pointer goes to next keyword
+}
+
 void QueryHelper::HandleSetSuggestIndex(const std::vector<std::string> &words, int &pointer,
                                         const int &end, bool &isSuccess, DistributedDB::Query &dbQuery) {
     if (pointer + QUERY_SKIP_SIZE > end) {
@@ -527,6 +556,16 @@ void QueryHelper::HandleDeviceId(const std::vector<std::string> &words, int &poi
         dbQuery.PrefixKey(prefixVector);
     } else {
         ZLOGD("Join deviceId with user specified prefixkey later.");
+    }
+    if (!hasInKeys_) {
+        ZLOGD("DeviceId as the only inkey.");
+	    std::set<std::vector<uint8_t>> inDbKeys;
+        std::vector<uint8_t> dbKey;
+        dbKey.assign(deviceId_.begin(), deviceId_.begin());
+        inDbKeys.insert(dbKey);
+        dbQuery.InKeys(inDbKeys);
+    } else {
+        ZLOGD("Join deviceId with user specified inkeys later.");
     }
     isSuccess = true;
     pointer += 2; // Pointer goes to next keyword
@@ -662,6 +701,28 @@ std::vector<std::string> QueryHelper::GetStringList(const std::vector<std::strin
     }
     if (isEndFound) {
         return valueList;
+    } else {
+        ZLOGE("GetStringList failed.");
+        return std::vector<std::string>();
+    }
+}
+
+std::vector<std::string> QueryHelper::GetInKeyList(const std::vector<std::string> &words,
+                                       int &elementPointer, const int &end) {
+    std::vector<std::string> values;
+    bool isEndFound = false;
+    while (elementPointer <= end) {
+        if (words.at(elementPointer) == DataQuery::END_IN) {
+            isEndFound = true;
+            break;
+        }
+        std::string inKeyStr = deviceId_ + StringToString(words.at(elementPointer));
+        values.push_back(inKeyStr);
+	    ZLOGI("value=%{public}s", inKeyStr.c_str());
+        elementPointer++;
+    }
+    if (isEndFound) {
+        return values;
     } else {
         ZLOGE("GetStringList failed.");
         return std::vector<std::string>();

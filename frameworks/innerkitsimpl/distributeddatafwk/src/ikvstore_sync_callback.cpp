@@ -18,8 +18,11 @@
 #include "ikvstore_sync_callback.h"
 #include <chrono>
 #include <ctime>
+#include <map>
 #include "log_print.h"
 #include "message_parcel.h"
+#include "message_option.h"
+#include "types.h"
 
 namespace OHOS {
 namespace DistributedKv {
@@ -31,7 +34,7 @@ KvStoreSyncCallbackProxy::KvStoreSyncCallbackProxy(const sptr<IRemoteObject> &im
     : IRemoteProxy<IKvStoreSyncCallback>(impl)
 {}
 
-void KvStoreSyncCallbackProxy::SyncCompleted(const std::map<std::string, Status> &results)
+void KvStoreSyncCallbackProxy::SyncCompleted(const std::map<std::string, Status> &results, const std::string &label)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -49,6 +52,10 @@ void KvStoreSyncCallbackProxy::SyncCompleted(const std::map<std::string, Status>
             ZLOGW("write results error.");
             return;
         }
+    }
+    if (!data.WriteString(label)) {
+        ZLOGW("write label error.");
+        return;
     }
     MessageOption mo { MessageOption::TF_SYNC };
     int error = Remote()->SendRequest(SYNCCOMPLETED, data, reply, mo);
@@ -78,7 +85,8 @@ int32_t KvStoreSyncCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel &d
                 results.insert(std::pair<std::string, Status>(data.ReadString(),
                     static_cast<Status>(data.ReadInt32())));
             }
-            SyncCompleted(results);
+            std::string label = data.ReadString();
+            SyncCompleted(results, label);
             return 0;
         }
         default:
