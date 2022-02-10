@@ -116,7 +116,7 @@ void KvStoreMetaManager::InitMetaData()
         .storeId = Constant::SERVICE_META_DB_NAME,
         .userId = accountId,
         .uid = int32_t(uid),
-        .version = KvStoreDataService::KVSTORE_META_VERSION,
+        .version = META_STORE_VERSION,
         .securityLevel = SecurityLevel::S1,
     };
     std::string jsonStr = metaData.Marshal();

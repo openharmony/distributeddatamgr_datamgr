@@ -143,24 +143,9 @@ private:
     static constexpr const char *KVSTORE_TYPE = "kvStoreType";
 };
 
-struct DelegateGuard {
-    using Fn = std::function<void()>;
-    Fn action_;
-    DelegateGuard(Fn action) : action_(std::forward<Fn>(action)) {}
-
-    ~DelegateGuard()
-    {
-        if (action_) {
-            action_();
-        }
-    }
-    DelegateGuard() = delete;
-    DelegateGuard(const DelegateGuard &) = delete;
-    DelegateGuard &operator=(const DelegateGuard &) = delete;
-};
-
 class KvStoreMetaManager {
 public:
+    static constexpr uint32_t META_STORE_VERSION = 0x03000001;
     using NbDelegate = std::unique_ptr<DistributedDB::KvStoreNbDelegate,
         std::function<void(DistributedDB::KvStoreNbDelegate *)>>;
 

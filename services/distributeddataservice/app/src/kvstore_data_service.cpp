@@ -333,7 +333,7 @@ Status KvStoreDataService::UpdateMetaData(const Options &options, const KvStoreP
     metaData.storeId = kvParas.storeId;
     metaData.userId = AccountDelegate::GetInstance()->GetCurrentAccountId(kvParas.bundleName);
     metaData.uid = IPCSkeleton::GetCallingUid();
-    metaData.version = KVSTORE_META_VERSION;
+    metaData.version = STORE_VERSION;
     metaData.securityLevel = options.securityLevel;
     metaData.dataDir = kvStoreUserManager.GetDbDir(kvParas.bundleName, options);
 
