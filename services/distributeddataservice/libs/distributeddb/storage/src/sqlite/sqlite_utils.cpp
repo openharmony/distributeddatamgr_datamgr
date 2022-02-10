@@ -31,6 +31,7 @@
 #include "log_print.h"
 #include "value_object.h"
 #include "schema_utils.h"
+#include "schema_constant.h"
 #include "time_helper.h"
 #include "platform_specific.h"
 
@@ -1739,7 +1740,7 @@ void SQLiteUtils::FlatBufferExtractInnerFunc(sqlite3_context *ctx, const SchemaO
     RawString inPath)
 {
     // All parameter had already been check inside FlatBufferExtractByPath, only called by FlatBufferExtractByPath
-    if (schema.GetSkipSize() % SECURE_BYTE_ALIGN == 0) {
+    if (schema.GetSkipSize() % SchemaConstant::SECURE_BYTE_ALIGN == 0) {
         TypeValue outExtract;
         int errCode = schema.ExtractValue(ValueSource::FROM_DBFILE, inPath, inValue, outExtract, nullptr);
         if (errCode != E_OK) {

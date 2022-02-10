@@ -35,10 +35,8 @@ public:
     ValueHashCalc() {};
     ~ValueHashCalc()
     {
-        if (context_ != nullptr) {
-            delete context_;
-            context_ = nullptr;
-        }
+        delete context_;
+        context_ = nullptr;
     }
 
     int Initialize()
@@ -106,12 +104,12 @@ public:
     static TimeStamp GetSysCurrentTime()
     {
         uint64_t curTime = 0;
-        std::lock_guard<std::mutex> lock(systemTimeLock_);
         int errCode = GetCurrentSysTimeInMicrosecond(curTime);
         if (errCode != E_OK) {
             return INVALID_TIMESTAMP;
         }
 
+        std::lock_guard<std::mutex> lock(systemTimeLock_);
         // If GetSysCurrentTime in 1us, we need increase the currentIncCount_
         if (curTime == lastSystemTimeUs_) {
             // if the currentIncCount_ has been increased MAX_INC_COUNT, keep the currentIncCount_
@@ -136,9 +134,9 @@ public:
 
     static TimeStamp GetTime(TimeOffset TimeOffset)
     {
-        std::lock_guard<std::mutex> lock(lastLocalTimeLock_);
         TimeStamp currentSysTime = GetSysCurrentTime();
         TimeStamp currentLocalTime = currentSysTime + TimeOffset;
+        std::lock_guard<std::mutex> lock(lastLocalTimeLock_);
         if (currentLocalTime <= lastLocalTime_ || currentLocalTime > MAX_VALID_TIME) {
             lastLocalTime_++;
             currentLocalTime = lastLocalTime_;

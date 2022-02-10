@@ -22,6 +22,7 @@
 #include "log_print.h"
 #include "relational_schema_object.h"
 #include "schema_utils.h"
+#include "schema_constant.h"
 
 using namespace std;
 using namespace testing::ext;
@@ -223,7 +224,7 @@ HWTEST_F(DistributedDBRelationalSchemaObjectTest, RelationalSchemaParseTest002, 
 {
     RelationalSchemaObject schemaObj;
 
-    std::string schemaStr01(SCHEMA_STRING_SIZE_LIMIT + 1, 's');
+    std::string schemaStr01(SchemaConstant::SCHEMA_STRING_SIZE_LIMIT + 1, 's');
     int errCode = schemaObj.ParseFromSchemaString(schemaStr01);
     EXPECT_EQ(errCode, -E_INVALID_ARGS);
 
@@ -421,5 +422,45 @@ HWTEST_F(DistributedDBRelationalSchemaObjectTest, RelationalSchemaNegotiateTest0
     EXPECT_EQ(strategy.GetStrategies().size(), 2);
     EXPECT_EQ(strategy.GetTableStrategy("table_2").permitSync, true);
     EXPECT_EQ(strategy.GetTableStrategy("table_3").permitSync, false);
+}
+
+/**
+ * @tc.name: TableCompareTest001
+ * @tc.desc: Test table compare
+ * @tc.type: FUNC
+ * @tc.require: AR000GK58I
+ * @tc.author: lianhuix
+ */
+HWTEST_F(DistributedDBRelationalSchemaObjectTest, TableCompareTest001, TestSize.Level1)
+{
+    FieldInfo field1;
+    field1.SetFieldName("a");
+    FieldInfo field2;
+    field2.SetFieldName("b");
+    FieldInfo field3;
+    field3.SetFieldName("c");
+    FieldInfo field4;
+    field4.SetFieldName("d");
+
+    TableInfo table;
+    table.AddField(field2);
+    table.AddField(field3);
+
+    TableInfo inTable1;
+    inTable1.AddField(field1);
+    inTable1.AddField(field2);
+    inTable1.AddField(field3);
+    EXPECT_EQ(table.CompareWithTable(inTable1), -E_RELATIONAL_TABLE_COMPATIBLE_UPGRADE);
+
+    TableInfo inTable2;
+    inTable2.AddField(field1);
+    inTable2.AddField(field2);
+    inTable2.AddField(field4);
+    EXPECT_EQ(table.CompareWithTable(inTable2), -E_RELATIONAL_TABLE_INCOMPATIBLE);
+
+    TableInfo inTable3;
+    inTable3.AddField(field3);
+    inTable3.AddField(field2);
+    EXPECT_EQ(table.CompareWithTable(inTable3), -E_RELATIONAL_TABLE_EQUAL);
 }
 #endif

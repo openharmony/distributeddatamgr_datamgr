@@ -94,6 +94,7 @@ ohos_source_set("src_file") {
     "../common/src/relational/relational_schema_object.cpp",
     "../common/src/runtime_context.cpp",
     "../common/src/runtime_context_impl.cpp",
+    "../common/src/schema_constant.cpp",
     "../common/src/schema_object.cpp",
     "../common/src/schema_utils.cpp",
     "../common/src/semaphore_utils.cpp",

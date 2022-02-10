@@ -20,46 +20,49 @@
 
 // This header is supposed to be included only in source files. Do not include it in any header files.
 namespace DistributedDB {
-const std::string KEYWORD_SCHEMA_VERSION = "SCHEMA_VERSION";
-const std::string KEYWORD_SCHEMA_MODE = "SCHEMA_MODE";
-const std::string KEYWORD_SCHEMA_DEFINE = "SCHEMA_DEFINE";
-const std::string KEYWORD_SCHEMA_INDEXES = "SCHEMA_INDEXES";
-const std::string KEYWORD_SCHEMA_SKIPSIZE = "SCHEMA_SKIPSIZE";
-const std::string KEYWORD_SCHEMA_TYPE = "SCHEMA_TYPE";
-const std::string KEYWORD_SCHEMA_TABLE = "TABLES";
-const std::string KEYWORD_INDEX = "INDEX"; // For FlatBuffer-Schema
+class SchemaConstant final {
+public :
+    static const std::string KEYWORD_SCHEMA_VERSION;
+    static const std::string KEYWORD_SCHEMA_MODE;
+    static const std::string KEYWORD_SCHEMA_DEFINE;
+    static const std::string KEYWORD_SCHEMA_INDEXES;
+    static const std::string KEYWORD_SCHEMA_SKIPSIZE;
+    static const std::string KEYWORD_SCHEMA_TYPE;
+    static const std::string KEYWORD_SCHEMA_TABLE;
+    static const std::string KEYWORD_INDEX; // For FlatBuffer-Schema
 
-const std::string KEYWORD_MODE_STRICT = "STRICT";
-const std::string KEYWORD_MODE_COMPATIBLE = "COMPATIBLE";
+    static const std::string KEYWORD_MODE_STRICT;
+    static const std::string KEYWORD_MODE_COMPATIBLE;
 
-const std::string KEYWORD_TYPE_BOOL = "BOOL";
-const std::string KEYWORD_TYPE_INTEGER = "INTEGER";
-const std::string KEYWORD_TYPE_LONG = "LONG";
-const std::string KEYWORD_TYPE_DOUBLE = "DOUBLE";
-const std::string KEYWORD_TYPE_STRING = "STRING";
+    static const std::string KEYWORD_TYPE_BOOL;
+    static const std::string KEYWORD_TYPE_INTEGER;
+    static const std::string KEYWORD_TYPE_LONG;
+    static const std::string KEYWORD_TYPE_DOUBLE;
+    static const std::string KEYWORD_TYPE_STRING;
 
-const std::string KEYWORD_ATTR_NOT_NULL = "NOT NULL";
-const std::string KEYWORD_ATTR_DEFAULT = "DEFAULT";
-const std::string KEYWORD_ATTR_VALUE_NULL = "null";
-const std::string KEYWORD_ATTR_VALUE_TRUE = "true";
-const std::string KEYWORD_ATTR_VALUE_FALSE = "false";
+    static const std::string KEYWORD_ATTR_NOT_NULL;
+    static const std::string KEYWORD_ATTR_DEFAULT;
+    static const std::string KEYWORD_ATTR_VALUE_NULL;
+    static const std::string KEYWORD_ATTR_VALUE_TRUE;
+    static const std::string KEYWORD_ATTR_VALUE_FALSE;
 
-const std::string KEYWORD_TYPE_RELATIVE = "RELATIVE";
+    static const std::string KEYWORD_TYPE_RELATIVE;
+    static const std::string SCHEMA_SUPPORT_VERSION;
+    static const std::string SCHEMA_SUPPORT_VERSION_V2;
 
-const uint32_t SCHEMA_META_FEILD_COUNT_MAX = 5;
-const uint32_t SCHEMA_META_FEILD_COUNT_MIN = 3;
-const uint32_t SCHEMA_FEILD_NAME_LENGTH_MAX = 64;
-const uint32_t SCHEMA_FEILD_NAME_LENGTH_MIN = 1;
-const uint32_t SCHEMA_FEILD_NAME_COUNT_MAX = 256;
-const uint32_t SCHEMA_FEILD_NAME_COUNT_MIN = 1;
-const uint32_t SCHEMA_FEILD_PATH_DEPTH_MAX = 4;
-const uint32_t SCHEMA_INDEX_COUNT_MAX = 32;
-const uint32_t SCHEMA_STRING_SIZE_LIMIT = 524288; // 512K
-const uint32_t SCHEMA_DEFAULT_STRING_SIZE_LIMIT = 4096; // 4K
-const uint32_t SCHEMA_SKIPSIZE_MAX = 4194302; // 4M - 2 Bytes
-const std::string SCHEMA_SUPPORT_VERSION = "1.0";
-const std::string SCHEMA_SUPPORT_VERSION_V2 = "2.0";
+    static const uint32_t SCHEMA_META_FEILD_COUNT_MAX;
+    static const uint32_t SCHEMA_META_FEILD_COUNT_MIN;
+    static const uint32_t SCHEMA_FEILD_NAME_LENGTH_MAX;
+    static const uint32_t SCHEMA_FEILD_NAME_LENGTH_MIN;
+    static const uint32_t SCHEMA_FEILD_NAME_COUNT_MAX;
+    static const uint32_t SCHEMA_FEILD_NAME_COUNT_MIN;
+    static const uint32_t SCHEMA_FEILD_PATH_DEPTH_MAX;
+    static const uint32_t SCHEMA_INDEX_COUNT_MAX;
+    static const uint32_t SCHEMA_STRING_SIZE_LIMIT;
+    static const uint32_t SCHEMA_DEFAULT_STRING_SIZE_LIMIT;
+    static const uint32_t SCHEMA_SKIPSIZE_MAX;
 
-const uint32_t SECURE_BYTE_ALIGN = 8; // 8 bytes align
+    static const uint32_t SECURE_BYTE_ALIGN;
+};
 } // namespace DistributedDB
 #endif // SCHEMA_CONSTANT_H
