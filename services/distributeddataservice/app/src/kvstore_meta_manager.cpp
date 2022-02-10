@@ -60,7 +60,7 @@ KvStoreMetaManager::KvStoreMetaManager()
                     ZLOGE("CloseMetaKvstore return error status: %d", static_cast<int>(result));
                 }
             }),
-      metaDBDirectory_("/data/service/el1/public/database/ddms/meta"),
+      metaDBDirectory_("/data/service/el1/public/database/distributeddata/meta"),
       kvStoreDelegateManager_(META_DB_APP_ID, Constant::GetDefaultHarmonyAccountName())
 {
     ZLOGI("begin.");
