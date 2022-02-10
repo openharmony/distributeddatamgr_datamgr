@@ -717,22 +717,25 @@ int SQLiteSingleVerRelationalStorageExecutor::SaveSyncLog(sqlite3_stmt *statemen
 int SQLiteSingleVerRelationalStorageExecutor::DeleteSyncDataItem(const DataItem &dataItem)
 {
     const std::string tableName = DBCommon::GetDistributedTableName(dataItem.dev, table_.GetTableName());
-    std::string sql = "DELETE FROM " + tableName + " WHERE rowid IN ("
+    const std::string sql = "DELETE FROM " + tableName + " WHERE rowid IN ("
         "SELECT data_key FROM " + DBConstant::RELATIONAL_PREFIX + table_.GetTableName() + "_log "
-        "WHERE hash_key=? AND flag&0x01=0);";
+        "WHERE hash_key=? AND device=? AND flag&0x01=0);";
     sqlite3_stmt *stmt = nullptr;
     int errCode = SQLiteUtils::GetStatement(dbHandle_, sql, stmt);
     if (errCode != E_OK) {
         LOGE("[info statement] Get statement fail!");
         return -E_INVALID_QUERY_FORMAT;
     }
-
-    errCode = SQLiteUtils::BindBlobToStatement(stmt, 1, dataItem.hashKey);
+    errCode = SQLiteUtils::BindBlobToStatement(stmt, 1, dataItem.hashKey); // 1 means hash_key index
     if (errCode != E_OK) {
         SQLiteUtils::ResetStatement(stmt, true, errCode);
         return errCode;
     }
-
+    errCode = SQLiteUtils::BindTextToStatement(stmt, 2, dataItem.dev); // 2 means device index
+    if (errCode != E_OK) {
+        SQLiteUtils::ResetStatement(stmt, true, errCode);
+        return errCode;
+    }
     errCode = SQLiteUtils::StepWithRetry(stmt, isMemDb_);
     if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_DONE)) {
         errCode = E_OK;
