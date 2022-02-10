@@ -129,7 +129,7 @@ int SaveSchemaToMetaTable(SQLiteSingleVerRelationalStorageExecutor *handle, cons
 }
 }
 
-int SQLiteSingleRelationalStorageEngine::CreateDistributedTable(const std::string &tableName)
+int SQLiteSingleRelationalStorageEngine::CreateDistributedTable(const std::string &tableName, bool &schemaChanged)
 {
     std::lock_guard lock(schemaMutex_);
     RelationalSchemaObject tmpSchema = schema_;
@@ -182,6 +182,7 @@ int SQLiteSingleRelationalStorageEngine::CreateDistributedTable(const std::strin
     errCode = handle->Commit();
     if (errCode == E_OK) {
         schema_ = tmpSchema;
+        schemaChanged = true;
     }
     ReleaseExecutor(handle);
     return errCode;

@@ -196,11 +196,6 @@ int VirtualRelationalVerSyncDBInterface::LocalDataChanged(int notifyEvent, std::
     return E_OK;
 }
 
-int VirtualRelationalVerSyncDBInterface::SchemaChanged(int notifyEvent)
-{
-    return E_OK;
-}
-
 int VirtualRelationalVerSyncDBInterface::GetInterfaceType() const
 {
     return SYNC_RELATION;

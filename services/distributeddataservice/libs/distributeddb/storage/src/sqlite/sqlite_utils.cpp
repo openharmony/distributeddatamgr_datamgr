@@ -2072,7 +2072,7 @@ int SQLiteUtils::CheckSchemaChanged(sqlite3_stmt *stmt, const TableInfo &table, 
     int columnNum = sqlite3_column_count(stmt);
     if (columnNum - offset != static_cast<int>(table.GetFields().size())) {
         LOGE("Schema field number does not match.");
-        return -E_RELATIONAL_SCHEMA_CHANGED;
+        return -E_DISTRIBUTED_SCHEMA_CHANGED;
     }
 
     auto fields = table.GetFields();
@@ -2086,7 +2086,7 @@ int SQLiteUtils::CheckSchemaChanged(sqlite3_stmt *stmt, const TableInfo &table, 
         auto it = fields.find(colName);
         if (it == fields.end() || it->second.GetDataType() != colType) {
             LOGE("Schema field define does not match.");
-            return -E_RELATIONAL_SCHEMA_CHANGED;
+            return -E_DISTRIBUTED_SCHEMA_CHANGED;
         }
     }
     return E_OK;

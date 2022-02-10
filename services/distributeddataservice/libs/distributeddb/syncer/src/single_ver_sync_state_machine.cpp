@@ -840,7 +840,7 @@ int SingleVerSyncStateMachine::GetSyncOperationStatus(int errCode) const
         { -E_NOT_SUPPORT, SyncOperation::OP_NOT_SUPPORT },
         { -E_INTERCEPT_DATA_FAIL, SyncOperation::OP_INTERCEPT_DATA_FAIL },
         { -E_MAX_LIMITS, SyncOperation::OP_MAX_LIMITS },
-        { -E_RELATIONAL_SCHEMA_CHANGED, SyncOperation::OP_SCHEMA_CHANGED },
+        { -E_DISTRIBUTED_SCHEMA_CHANGED, SyncOperation::OP_SCHEMA_CHANGED },
         { -E_NOT_REGISTER, SyncOperation::OP_NOT_SUPPORT },
     };
     auto iter = statusMap.find(errCode);
