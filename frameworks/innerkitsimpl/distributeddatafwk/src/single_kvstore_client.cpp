@@ -459,11 +459,9 @@ Status SingleKvStoreClient::SyncWithCondition(const std::vector<std::string> &de
     }
     sptr<KvStoreSyncCallbackClient> ipcCallback = new KvStoreSyncCallbackClient();
     if (syncCallback != nullptr) {
-        for (const std::string &deviceId : deviceIds) {
-            std::string label = deviceId + query.ToString();
-            ZLOGI("label = %{public}s", label.c_str());
-            ipcCallback->AddKvStoreSyncCallback(syncCallback, label);
-        }
+        std::string label = query.ToString();
+        ZLOGI("label = %{public}s", label.c_str());
+        ipcCallback->AddKvStoreSyncCallback(syncCallback, label);
     }
     auto status = kvStoreProxy_->RegisterSyncCallback(ipcCallback);
     if (status != Status::SUCCESS) {

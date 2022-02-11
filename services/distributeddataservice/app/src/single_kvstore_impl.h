@@ -153,6 +153,7 @@ private:
     KvStoreFlowCtrlManager flowCtrl_;
     static constexpr int BURST_CAPACITY = 1000;
     static constexpr int SUSTAINED_CAPACITY = 10000;
+    static const std::string DEFAULT_QUERY;
 };
 }  // namespace OHOS::DistributedKv
 #endif  // SINGLE_KVSTORE_IMPL_H
