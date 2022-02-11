@@ -78,9 +78,10 @@ private:
 
     int SaveSyncDataItems(const QueryObject &object, std::vector<DataItem> &dataItems,
         const std::string &deviceName, TimeStamp &timeStamp);
-    int SaveSyncDataItem(sqlite3_stmt *statement, const DataItem &dataItem, int64_t &rowid);
+    int SaveSyncDataItem(const DataItem &dataItem, sqlite3_stmt *saveDataStmt, sqlite3_stmt *rmDataStmt,
+        int64_t &rowid);
 
-    int DeleteSyncDataItem(const DataItem &dataItem);
+    int DeleteSyncDataItem(const DataItem &dataItem, sqlite3_stmt *&rmDataStmt);
 
     int SaveSyncLog(sqlite3_stmt *statement, const DataItem &dataItem, TimeStamp &maxTimestamp, int64_t rowid);
     int PrepareForSavingData(const QueryObject &object, const std::string &deviceName, sqlite3_stmt *&statement) const;
@@ -89,8 +90,8 @@ private:
     int AlterAuxTableForUpgrade(const TableInfo &oldTableInfo, const TableInfo &newTableInfo);
 
     int SetTableInfo(const std::string &baseTbl);
-    int DeleteSyncLog(const Key &hashKey);
-    int ProcessMissQueryData(const DataItem &item);
+    int DeleteSyncLog(const DataItem &item, sqlite3_stmt *&rmLogStmt);
+    int ProcessMissQueryData(const DataItem &item, sqlite3_stmt *&rmDataStmt, sqlite3_stmt *&rmLogStmt);
     int GetMissQueryData(std::vector<DataItem> &dataItems, size_t &dataTotalSize, const Key &cursorHashKey,
         sqlite3_stmt *fullStmt, size_t appendLength, const DataSizeSpecInfo &dataSizeInfo);
 
