@@ -540,10 +540,13 @@ DataQuery& DataQuery::SetSuggestIndex(const std::string &index)
 
 DataQuery& DataQuery::InKeys(const std::vector<std::string> &keys)
 {
+<<<<<<< HEAD
     if (keys.empty()) {
         ZLOGE("Invalid number param");
         return *this;
     }
+=======
+>>>>>>> 672b78e5d6bb76451eb6d1126117c72da6d9890b
     str_.append(SPACE);
     str_.append(IN_KEYS);
     str_.append(SPACE);
