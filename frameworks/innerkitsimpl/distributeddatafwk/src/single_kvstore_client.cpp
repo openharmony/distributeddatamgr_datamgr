@@ -305,7 +305,7 @@ Status SingleKvStoreClient::RegisterSyncCallback(std::shared_ptr<KvStoreSyncCall
         return Status::INVALID_ARGUMENT;
     }
     // remove storeId after remove SubscribeKvStore function in manager. currently reserve for convenience.
-    sptr<KvStoreSyncCallbackClient> ipcCallback = new KvStoreSyncCallbackClient();
+    sptr<KvStoreSyncCallbackClient> ipcCallback = GetInstance();
     const std::string &label = ipcCallback->GetCommonSyncCallbackLabel();
     ipcCallback->AddKvStoreSyncCallback(callback, label);
     return kvStoreProxy_->RegisterSyncCallback(ipcCallback);
@@ -314,7 +314,7 @@ Status SingleKvStoreClient::RegisterSyncCallback(std::shared_ptr<KvStoreSyncCall
 Status SingleKvStoreClient::UnRegisterSyncCallback()
 {
     ZLOGI("begin.");
-    sptr<KvStoreSyncCallbackClient> ipcCallback = new KvStoreSyncCallbackClient();
+    sptr<KvStoreSyncCallbackClient> ipcCallback = GetInstance();
     ipcCallback->DeleteCommonKvStoreSyncCallback();
     return kvStoreProxy_->UnRegisterSyncCallback();
 }

@@ -39,10 +39,16 @@ public:
     void DeleteCommonKvStoreSyncCallback();
 
     std::string GetCommonSyncCallbackLabel();
+
+    static sptr<KvStoreSyncCallbackClient> GetInstance()
+    {
+        return pInstance_;
+    }
 private:
     static const std::string CommonSyncCallbackLabel;
     static std::map<std::string, std::shared_ptr<KvStoreSyncCallback>> kvStoreSyncCallbackInfo_;
     std::mutex syncCallbackMutex_;
+    static sptr<KvStoreSyncCallbackClient> pInstance_;
 };
 }  // namespace DistributedKv
 }  // namespace OHOS
