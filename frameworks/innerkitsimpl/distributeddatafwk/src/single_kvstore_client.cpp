@@ -305,12 +305,9 @@ Status SingleKvStoreClient::RegisterSyncCallback(std::shared_ptr<KvStoreSyncCall
         return Status::INVALID_ARGUMENT;
     }
     // remove storeId after remove SubscribeKvStore function in manager. currently reserve for convenience.
-    sptr<KvStoreSyncCallbackClient> ipcCallback =
-            new (std::nothrow) KvStoreSyncCallbackClient(callback);
-    if (ipcCallback == nullptr) {
-        ZLOGW("new KvStoreSyncCallbackClient failed");
-        return Status::ERROR;
-    }
+    sptr<KvStoreSyncCallbackClient> ipcCallback = new KvStoreSyncCallbackClient();
+    const std::string &label = ipcCallback->GetCommonSyncCallbackLabel();
+    ipcCallback->AddKvStoreSyncCallback(callback, label);
     return kvStoreProxy_->RegisterSyncCallback(ipcCallback);
 }
 
@@ -460,15 +457,8 @@ Status SingleKvStoreClient::SyncWithCondition(const std::vector<std::string> &de
         ZLOGW("deviceIds is empty.");
         return Status::INVALID_ARGUMENT;
     }
-    sptr<KvStoreSyncCallbackClient> ipcCallback;
-    if (syncCallback == nullptr) {
-        ipcCallback = new KvStoreSyncCallbackClient();
-        if (ipcCallback->GetCommonSyncCallback() != nullptr) {
-            syncCallback = ipcCallback->GetCommonSyncCallback();
-            ipcCallback = new (std::nothrow) KvStoreSyncCallbackClient(syncCallback);
-        }
-    } else {
-        ipcCallback = new (std::nothrow) KvStoreSyncCallbackClient(syncCallback);
+    sptr<KvStoreSyncCallbackClient> ipcCallback = new KvStoreSyncCallbackClient();
+    if (syncCallback != nullptr) {
         for (const std::string &deviceId : deviceIds) {
             std::string label = deviceId + query.ToString();
             ZLOGI("label = %{public}s", label.c_str());

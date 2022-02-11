@@ -27,13 +27,6 @@ const std::string KvStoreSyncCallbackClient::CommonSyncCallbackLabel("CommonSync
 
 KvStoreSyncCallbackClient::KvStoreSyncCallbackClient() = default;
 
-KvStoreSyncCallbackClient::KvStoreSyncCallbackClient(std::shared_ptr<KvStoreSyncCallback> kvStoreSyncCallback)
-{
-    if (kvStoreSyncCallbackInfo_.find(CommonSyncCallbackLabel) == kvStoreSyncCallbackInfo_.end()) {
-        AddKvStoreSyncCallback(std::move(kvStoreSyncCallback), CommonSyncCallbackLabel);
-    }
-}
-
 KvStoreSyncCallbackClient::~KvStoreSyncCallbackClient() = default;
 
 void KvStoreSyncCallbackClient::SyncCompleted(const std::map<std::string, Status> &results, const std::string &label)

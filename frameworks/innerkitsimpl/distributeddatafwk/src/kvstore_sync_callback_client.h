@@ -26,8 +26,6 @@ class KvStoreSyncCallbackClient : public KvStoreSyncCallbackStub {
 public:
     explicit KvStoreSyncCallbackClient();
 
-    explicit KvStoreSyncCallbackClient(std::shared_ptr<KvStoreSyncCallback> kvStoreSyncCallback);
-
     virtual ~KvStoreSyncCallbackClient();
 
     void SyncCompleted(const std::map<std::string, Status> &results, const std::string &label) override;

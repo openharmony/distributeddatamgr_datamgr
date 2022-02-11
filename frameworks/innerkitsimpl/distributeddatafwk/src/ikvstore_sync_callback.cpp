@@ -85,7 +85,11 @@ int32_t KvStoreSyncCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel &d
                 results.insert(std::pair<std::string, Status>(data.ReadString(),
                     static_cast<Status>(data.ReadInt32())));
             }
-            std::string label = data.ReadString();
+            const std::string &label = data.ReadString();
+            if (label.empty()) {
+                ZLOGE("get label error");
+                return -1;
+            }
             SyncCompleted(results, label);
             return 0;
         }
