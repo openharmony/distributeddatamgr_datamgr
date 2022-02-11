@@ -45,7 +45,7 @@ ohos_static_library("distributeddata_account_static") {
     "bundle_framework:appexecfwk_base",
 
     # "ces:libcommonevent",
-    "ability_runtime:want",
+    "ability_base:want",
     "ces_standard:cesfwk_innerkits",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",

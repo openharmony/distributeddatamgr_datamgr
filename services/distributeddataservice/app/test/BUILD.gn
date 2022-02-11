@@ -393,7 +393,7 @@ ohos_unittest("KvStoreUninstallerTest") {
   ]
 
   external_deps = [
-    "ability_runtime:base",
+    "ability_base:base",
     "ability_runtime:intent",
     "battery_manager_native:batterysrv_client",
     "hiviewdfx_hilog_native:libhilog",
