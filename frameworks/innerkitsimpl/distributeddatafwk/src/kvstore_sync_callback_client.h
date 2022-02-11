@@ -16,6 +16,7 @@
 #ifndef KVSTORE_SYNC_CALLBACK_CLIENT_H
 #define KVSTORE_SYNC_CALLBACK_CLIENT_H
 
+#include <mutex>
 #include "ikvstore_sync_callback.h"
 #include "kvstore_sync_callback.h"
 
@@ -39,6 +40,7 @@ public:
 private:
     static const std::string CommonSyncCallbackLabel;
     static std::map<std::string, std::shared_ptr<KvStoreSyncCallback>> kvStoreSyncCallbackInfo_;
+    std::mutex syncCallbackMutex_;
 };
 }  // namespace DistributedKv
 }  // namespace OHOS

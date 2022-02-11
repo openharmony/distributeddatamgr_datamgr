@@ -15,8 +15,6 @@
 
 #define LOG_TAG "KvStoreSyncCallbackClient"
 
-#include <memory>
-#include <mutex>
 #include "log_print.h"
 #include "kvstore_sync_callback_client.h"
 
@@ -31,6 +29,7 @@ KvStoreSyncCallbackClient::~KvStoreSyncCallbackClient() = default;
 
 void KvStoreSyncCallbackClient::SyncCompleted(const std::map<std::string, Status> &results, const std::string &label)
 {
+    std::lock_guard<std::mutex> lg(syncCallbackMutex_);
     if (kvStoreSyncCallbackInfo_.find(label) != kvStoreSyncCallbackInfo_.end()) {
         ZLOGI("label = %{public}s", label.c_str());
         kvStoreSyncCallbackInfo_[label]->SyncCompleted(results);
@@ -40,16 +39,15 @@ void KvStoreSyncCallbackClient::SyncCompleted(const std::map<std::string, Status
 void KvStoreSyncCallbackClient::AddKvStoreSyncCallback(const std::shared_ptr<KvStoreSyncCallback> kvStoreSyncCallback,
                                                        const std::string &label)
 {
-    std::mutex mtx;
+    std::lock_guard<std::mutex> lg(syncCallbackMutex_);
     if(kvStoreSyncCallbackInfo_.find(label) == kvStoreSyncCallbackInfo_.end()) {
-        mtx.lock();
         kvStoreSyncCallbackInfo_.insert({label, kvStoreSyncCallback});
-        mtx.unlock();
     }
 }
 
 std::shared_ptr<KvStoreSyncCallback> KvStoreSyncCallbackClient::GetCommonSyncCallback()
 {
+    std::lock_guard<std::mutex> lg(syncCallbackMutex_);
     if (kvStoreSyncCallbackInfo_.find(CommonSyncCallbackLabel) != kvStoreSyncCallbackInfo_.end()) {
         return kvStoreSyncCallbackInfo_[CommonSyncCallbackLabel];
     } else {
