@@ -55,6 +55,14 @@ std::shared_ptr<KvStoreSyncCallback> KvStoreSyncCallbackClient::GetCommonSyncCal
     }
 }
 
+void KvStoreSyncCallbackClient::DeleteCommonKvStoreSyncCallback()
+{
+    std::lock_guard<std::mutex> lg(syncCallbackMutex_);
+    if(kvStoreSyncCallbackInfo_.find(CommonSyncCallbackLabel) != kvStoreSyncCallbackInfo_.end()) {
+        kvStoreSyncCallbackInfo_.erase(CommonSyncCallbackLabel);
+    }
+}
+
 std::string KvStoreSyncCallbackClient::GetCommonSyncCallbackLabel()
 {
     return CommonSyncCallbackLabel;

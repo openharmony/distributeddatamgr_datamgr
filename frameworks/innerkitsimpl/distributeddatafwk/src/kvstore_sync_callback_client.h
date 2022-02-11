@@ -36,6 +36,8 @@ public:
 
     std::shared_ptr<KvStoreSyncCallback> GetCommonSyncCallback();
 
+    void DeleteCommonKvStoreSyncCallback();
+
     std::string GetCommonSyncCallbackLabel();
 private:
     static const std::string CommonSyncCallbackLabel;

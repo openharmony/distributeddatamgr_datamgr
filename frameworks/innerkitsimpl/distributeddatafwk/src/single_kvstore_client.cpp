@@ -314,6 +314,8 @@ Status SingleKvStoreClient::RegisterSyncCallback(std::shared_ptr<KvStoreSyncCall
 Status SingleKvStoreClient::UnRegisterSyncCallback()
 {
     ZLOGI("begin.");
+    sptr<KvStoreSyncCallbackClient> ipcCallback = new KvStoreSyncCallbackClient();
+    ipcCallback->DeleteCommonKvStoreSyncCallback();
     return kvStoreProxy_->UnRegisterSyncCallback();
 }
 
