@@ -43,7 +43,7 @@ class KvStoreDataService : public SystemAbility, public KvStoreDataServiceStub {
 
 public:
     // record kvstore meta version for compatible, should update when modify kvstore meta structure.
-    static constexpr int KVSTORE_META_VERSION = 1;
+    static constexpr uint32_t STORE_VERSION = 0x03000001;
 
     explicit KvStoreDataService(bool runOnCreate = false);
     explicit KvStoreDataService(int32_t systemAbilityId, bool runOnCreate = false);
@@ -154,10 +154,6 @@ private:
         KvStoreUserManager &kvUserManager, sptr<SingleKvStoreImpl> &kvStore);
 
     Status AppExit(const AppId &appId);
-
-    bool CheckBundleName(const std::string &bundleName) const;
-
-    bool CheckStoreId(const std::string &storeId) const;
 
     bool CheckPermissions(const std::string &userId, const std::string &appId, const std::string &storeId,
                           const std::string &deviceId, uint8_t flag) const;
