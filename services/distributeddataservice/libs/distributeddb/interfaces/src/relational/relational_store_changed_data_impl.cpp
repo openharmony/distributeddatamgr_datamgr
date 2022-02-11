@@ -26,5 +26,17 @@ DB_API const std::string RelationalStoreChangedDataImpl::GetDataChangeDevice() c
     // add get changedDevice_ code;
     return changedDevice_;
 }
+
+DB_API void RelationalStoreChangedDataImpl::GetStoreProperty(StoreProperty &storeProperty) const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    storeProperty = storeProperty_;
+}
+
+void RelationalStoreChangedDataImpl::SetStoreProperty(const StoreProperty &storeProperty)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    storeProperty_ = storeProperty;
+}
 } // namespace DistributedDB
 

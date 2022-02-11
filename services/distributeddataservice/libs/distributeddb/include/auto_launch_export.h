@@ -39,7 +39,7 @@ struct AutoLaunchOption {
     bool isNeedCompressOnSync = false;
     uint8_t compressionRate = 100; // valid in [1, 100].
     bool isAutoSync = true;
-    StoreObserver *relationObserver = nullptr;
+    StoreObserver *storeObserver = nullptr;
 };
 
 struct AutoLaunchParam {

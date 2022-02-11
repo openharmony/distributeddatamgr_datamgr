@@ -93,8 +93,6 @@ public:
 
     int LocalDataChanged(int notifyEvent, std::vector<QuerySyncObject> &queryObj) override;
 
-    int SchemaChanged(int notifyEvent) override;
-
     int InterceptData(std::vector<SingleVerKvEntry *> &entries, const std::string &sourceID,
         const std::string &targetID) const override
     {

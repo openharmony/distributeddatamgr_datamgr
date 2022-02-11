@@ -49,8 +49,6 @@ public:
 
     int LocalDataChanged(int notifyEvent, std::vector<QuerySyncObject> &queryObj) override;
 
-    int SchemaChanged(int notifyEvent) override;
-
     int GetSyncData(QueryObject &query, const SyncTimeRange &timeRange,
         const DataSizeSpecInfo &dataSizeInfo, ContinueToken &continueStmtToken,
         std::vector<SingleVerKvEntry *> &entries) const override;

@@ -30,7 +30,7 @@ using namespace std;
 namespace {
     constexpr const char* DB_SUFFIX = ".db";
     constexpr const char* STORE_ID = "Relational_Store_ID";
-    const std::string DEVICE_A = "device_a";
+    const std::string DEVICE_A = "DEVICE_A";
     std::string g_testDir;
     std::string g_dbDir;
     DistributedDB::RelationalStoreManager g_mgr(APP_ID, USER_ID);
@@ -84,7 +84,7 @@ void DistributedDBRelationalSyncTest::SetUp()
     ASSERT_NE(db, nullptr);
     EXPECT_EQ(RelationalTestUtils::ExecSql(db, "PRAGMA journal_mode=WAL;"), SQLITE_OK);
     EXPECT_EQ(RelationalTestUtils::ExecSql(db, NORMAL_CREATE_TABLE_SQL), SQLITE_OK);
-    RelationalTestUtils::CreateDeviceTable(db, "sync_data", "DEVICE_A");
+    RelationalTestUtils::CreateDeviceTable(db, "sync_data", DEVICE_A);
 
     DBStatus status = g_mgr.OpenStore(g_dbDir + STORE_ID + DB_SUFFIX, STORE_ID, {}, delegate);
     EXPECT_EQ(status, OK);
@@ -117,7 +117,7 @@ HWTEST_F(DistributedDBRelationalSyncTest, RelationalSyncTest001, TestSize.Level1
             EXPECT_EQ(devicesMap.size(), devices.size());
         }, true);
 
-    EXPECT_EQ(errCode, RELATIONAL_SCHEMA_NOT_FOUND);
+    EXPECT_EQ(errCode, DISTRIBUTED_SCHEMA_NOT_FOUND);
 }
 
 /**
@@ -196,7 +196,7 @@ HWTEST_F(DistributedDBRelationalSyncTest, RelationalSyncTest005, TestSize.Level1
             EXPECT_EQ(devicesMap.size(), devices.size());
         }, true);
 
-    EXPECT_EQ(errCode, RELATIONAL_SCHEMA_CHANGED);
+    EXPECT_EQ(errCode, DISTRIBUTED_SCHEMA_CHANGED);
 }
 
 /**
@@ -228,7 +228,7 @@ HWTEST_F(DistributedDBRelationalSyncTest, RelationalSyncTest006, TestSize.Level1
 HWTEST_F(DistributedDBRelationalSyncTest, RelationalSyncTest007, TestSize.Level1)
 {
     EXPECT_EQ(RelationalTestUtils::ExecSql(db, EMPTY_COLUMN_TYPE_CREATE_TABLE_SQL), SQLITE_OK);
-    RelationalTestUtils::CreateDeviceTable(db, "student", "DEVICE_A");
+    RelationalTestUtils::CreateDeviceTable(db, "student", DEVICE_A);
 
     DBStatus status = delegate->CreateDistributedTable("student");
     EXPECT_EQ(status, OK);
@@ -236,6 +236,63 @@ HWTEST_F(DistributedDBRelationalSyncTest, RelationalSyncTest007, TestSize.Level1
     std::vector<std::string> devices = {DEVICE_A};
     Query query = Query::Select("student");
     int errCode = delegate->Sync(devices, SyncMode::SYNC_MODE_PUSH_ONLY, query,
+        [&devices](const std::map<std::string, std::vector<TableStatus>> &devicesMap) {
+            EXPECT_EQ(devicesMap.size(), devices.size());
+        }, true);
+
+    EXPECT_EQ(errCode, OK);
+}
+
+/**
+  * @tc.name: RelationalSyncTest008
+  * @tc.desc: Test sync with rebuilt table
+  * @tc.type: FUNC
+  * @tc.require: AR000GK58F
+  * @tc.author: lianhuix
+  */
+HWTEST_F(DistributedDBRelationalSyncTest, RelationalSyncTest008, TestSize.Level1)
+{
+    /**
+     * @tc.steps:step1. Drop sync_data
+     * @tc.expected: step1. ok
+     */
+    std::string dropSql = "DROP TABLE IF EXISTS sync_data;";
+    EXPECT_EQ(RelationalTestUtils::ExecSql(db, dropSql), SQLITE_OK);
+
+    /**
+     * @tc.steps:step2. sync with sync_data
+     * @tc.expected: step2. return INVALID_QUERY_FORMAT
+     */
+    std::vector<std::string> devices = {DEVICE_A};
+    Query query = Query::Select("sync_data");
+    int errCode = delegate->Sync(devices, SyncMode::SYNC_MODE_PUSH_ONLY, query,
+        [&devices](const std::map<std::string, std::vector<TableStatus>> &devicesMap) {
+            EXPECT_EQ(devicesMap.size(), devices.size());
+        }, true);
+    EXPECT_EQ(errCode, INVALID_QUERY_FORMAT);
+
+    /**
+     * @tc.steps:step3. recreate sync_data
+     * @tc.expected: step3. ok
+     */
+    EXPECT_EQ(RelationalTestUtils::ExecSql(db, NORMAL_CREATE_TABLE_SQL), SQLITE_OK);
+    DBStatus status = delegate->CreateDistributedTable("sync_data");
+    EXPECT_EQ(status, OK);
+
+    /**
+     * @tc.steps:step4. Check trigger
+     * @tc.expected: step4. trigger exists
+     */
+    bool result = false;
+    std::string checkSql = "select * from sqlite_master where type = 'trigger' and tbl_name = 'sync_data';";
+    EXPECT_EQ(RelationalTestUtils::CheckSqlResult(db, checkSql, result), E_OK);
+    EXPECT_EQ(result, true);
+
+    /**
+     * @tc.steps:step5. sync with sync_data
+     * @tc.expected: step5. ok
+     */
+    errCode = delegate->Sync(devices, SyncMode::SYNC_MODE_PUSH_ONLY, query,
         [&devices](const std::map<std::string, std::vector<TableStatus>> &devicesMap) {
             EXPECT_EQ(devicesMap.size(), devices.size());
         }, true);

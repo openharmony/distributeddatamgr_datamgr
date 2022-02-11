@@ -24,8 +24,8 @@
 #include "db_types.h"
 #include "macro_utils.h"
 #include "relational_schema_object.h"
-#include "value_object.h"
 #include "schema.h"
+#include "value_object.h"
 
 namespace DistributedDB {
 using IndexName = FieldPath;

@@ -725,6 +725,7 @@ void RelationalStoreObserverUnitTest::OnChange(const StoreChangedData& data)
 {
     callCount_++;
     changeDevice_ = data.GetDataChangeDevice();
+    data.GetStoreProperty(storeProperty_);
     LOGD("Onchangedata : %s", changeDevice_.c_str());
     LOGD("Onchange() called success!");
 }
@@ -733,11 +734,17 @@ void RelationalStoreObserverUnitTest::ResetToZero()
 {
     callCount_ = 0;
     changeDevice_.clear();
+    storeProperty_ = {};
 }
 
 const std::string RelationalStoreObserverUnitTest::GetDataChangeDevice() const
 {
     return changeDevice_;
+}
+
+DistributedDB::StoreProperty RelationalStoreObserverUnitTest::GetStoreProperty() const
+{
+    return storeProperty_;
 }
 
 DBStatus DistributedDBToolsUnitTest::SyncTest(KvStoreNbDelegate* delegate,
@@ -906,5 +913,29 @@ void RelationalTestUtils::CreateDeviceTable(sqlite3 *db, const std::string &tabl
     ASSERT_EQ(SQLiteUtils::AnalysisSchema(db, table, baseTbl), E_OK);
     EXPECT_EQ(SQLiteUtils::CreateSameStuTable(db, baseTbl, deviceTable), E_OK);
     EXPECT_EQ(SQLiteUtils::CloneIndexes(db, table, deviceTable), E_OK);
+}
+
+int RelationalTestUtils::CheckSqlResult(sqlite3 *db, const std::string &sql, bool &result)
+{
+    if (db == nullptr || sql.empty()) {
+        return -E_INVALID_ARGS;
+    }
+    sqlite3_stmt *stmt = nullptr;
+    int errCode = SQLiteUtils::GetStatement(db, sql, stmt);
+    if (errCode != E_OK) {
+        goto END;
+    }
+
+    errCode = SQLiteUtils::StepWithRetry(stmt);
+    if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_ROW)) {
+        result = true;
+        errCode = E_OK;
+    } else if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_DONE)) {
+        result = false;
+        errCode = E_OK;
+    }
+END:
+    SQLiteUtils::ResetStatement(stmt, true, errCode);
+    return errCode;
 }
 } // namespace DistributedDBUnitTest

@@ -59,7 +59,7 @@ struct AutoLaunchItem {
     bool inObserver = false;
     bool isAutoSync = true;
     DBType type = DBType::DB_INVALID;
-    StoreObserver *relationObserver = nullptr;
+    StoreObserver *storeObserver = nullptr;
 };
 
 class AutoLaunch {

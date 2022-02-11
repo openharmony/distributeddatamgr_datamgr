@@ -292,9 +292,16 @@ int AutoLaunch::RegisterObserver(AutoLaunchItem &autoLaunchItem, const std::stri
         RelationalStoreConnection *conn = static_cast<RelationalStoreConnection *>(autoLaunchItem.conn);
         conn->RegisterObserverAction([autoLaunchItem](const std::string &changedDevice) {
             RelationalStoreChangedDataImpl data(changedDevice);
-            if (autoLaunchItem.relationObserver) {
+            if (autoLaunchItem.propertiesPtr != nullptr) {
+                data.SetStoreProperty({
+                    autoLaunchItem.propertiesPtr->GetStringProp(DBProperties::USER_ID, ""),
+                    autoLaunchItem.propertiesPtr->GetStringProp(DBProperties::APP_ID, ""),
+                    autoLaunchItem.propertiesPtr->GetStringProp(DBProperties::STORE_ID, "")
+                });
+            }
+            if (autoLaunchItem.storeObserver) {
                 LOGD("begin to observer onchange, changedDevice=%s", STR_MASK(changedDevice));
-                autoLaunchItem.relationObserver->OnChange(data);
+                autoLaunchItem.storeObserver->OnChange(data);
             }
         });
         return E_OK;
@@ -731,7 +738,7 @@ int AutoLaunch::AutoLaunchExt(const std::string &identifier)
         param.option.notifier};
     autoLaunchItem.isAutoSync = param.option.isAutoSync;
     autoLaunchItem.type = openType;
-    autoLaunchItem.relationObserver = param.option.relationObserver;
+    autoLaunchItem.storeObserver = param.option.storeObserver;
     errCode = RuntimeContext::GetInstance()->ScheduleTask(std::bind(&AutoLaunch::AutoLaunchExtTask, this,
         identifier, autoLaunchItem));
     if (errCode != E_OK) {

@@ -464,11 +464,6 @@ int RelationalSyncAbleStorage::LocalDataChanged(int notifyEvent, std::vector<Que
     return -E_NOT_SUPPORT;
 }
 
-int RelationalSyncAbleStorage::SchemaChanged(int notifyEvent)
-{
-    return -E_NOT_SUPPORT;
-}
-
 int RelationalSyncAbleStorage::CreateDistributedDeviceTable(const std::string &device,
     const RelationalSyncStrategy &syncStrategy)
 {
@@ -560,7 +555,7 @@ int RelationalSyncAbleStorage::CheckAndInitQueryCondition(QueryObject &query) co
     TableInfo table = schema.GetTable(query.GetTableName());
     if (table.GetTableName() != query.GetTableName()) {
         LOGE("Query table is not a distributed table.");
-        return -E_RELATIONAL_SCHEMA_NOT_FOUND;
+        return -E_DISTRIBUTED_SCHEMA_NOT_FOUND;
     }
     query.SetSchema(schema);
 

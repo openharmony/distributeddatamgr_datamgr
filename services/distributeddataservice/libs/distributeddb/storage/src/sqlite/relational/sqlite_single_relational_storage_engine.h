@@ -33,7 +33,7 @@ public:
 
     const RelationalSchemaObject &GetSchemaRef() const;
 
-    int CreateDistributedTable(const std::string &tableName);
+    int CreateDistributedTable(const std::string &tableName, bool &schemaChanged);
 
     int CleanDistributedDeviceTable(std::vector<std::string> &missingTables);
 
@@ -45,6 +45,9 @@ protected:
 private:
     // For executor.
     int ReleaseExecutor(SQLiteSingleVerRelationalStorageExecutor *&handle);
+
+    // For db.
+    int RegisterFunction(sqlite3 *db) const;
 
     int UpgradeDistributedTable(const std::string &tableName);
 

@@ -13,10 +13,12 @@
  * limitations under the License.
  */
 #ifdef RELATIONAL_STORE
+#include "relational_schema_object.h"
+
 #include <algorithm>
 
 #include "json_object.h"
-#include "relational_schema_object.h"
+#include "schema_constant.h"
 #include "schema_utils.h"
 
 namespace DistributedDB {
@@ -166,7 +168,7 @@ std::string TableInfo::GetFieldName(uint32_t cid) const
     if (cid >= fields_.size()) {
         return {};
     }
-    if (!fieldNames_.empty()) {
+    if (!fieldNames_.empty() && fieldNames_.size() == fields_.size()) {
         return fieldNames_.at(cid);
     }
     fieldNames_.resize(fields_.size());
@@ -330,7 +332,7 @@ int TableInfo::CompareWithTableFields(const std::map<std::string, FieldInfo> &in
 {
     auto itLocal = fields_.begin();
     auto itInTable = inTableFields.begin();
-
+    int errCode = -E_RELATIONAL_TABLE_EQUAL;
     while (itLocal != fields_.end() && itInTable != inTableFields.end()) {
         if (itLocal->first == itInTable->first) { // Same field
             if (!itLocal->second.CompareWithField(itInTable->second)) { // Compare field
@@ -343,6 +345,7 @@ int TableInfo::CompareWithTableFields(const std::map<std::string, FieldInfo> &in
                 LOGW("[Relational][Compare] Table upgrade field should allowed to be empty or have default value.");
                 return -E_RELATIONAL_TABLE_INCOMPATIBLE;
             }
+            errCode = -E_RELATIONAL_TABLE_COMPATIBLE_UPGRADE;
         }
         itInTable++; // Next in table field
     }
@@ -353,7 +356,7 @@ int TableInfo::CompareWithTableFields(const std::map<std::string, FieldInfo> &in
     }
 
     if (itInTable == inTableFields.end()) {
-        return -E_RELATIONAL_TABLE_EQUAL;
+        return errCode;
     }
 
     while (itInTable != inTableFields.end()) {
@@ -562,7 +565,7 @@ const std::map<std::string, SyncStrategy> &RelationalSyncStrategy::GetStrategies
 }
 
 RelationalSyncOpinion RelationalSchemaObject::MakeLocalSyncOpinion(const RelationalSchemaObject &localSchema,
-    const std::string &remoteSchemaStr, uint8_t remoteSchemaType)
+    const std::string &remoteSchema, uint8_t remoteSchemaType)
 {
     SchemaType localType = localSchema.GetSchemaType();
     SchemaType remoteType = ReadSchemaType(remoteSchemaType);
@@ -583,8 +586,8 @@ RelationalSyncOpinion RelationalSchemaObject::MakeLocalSyncOpinion(const Relatio
         return {};
     }
 
-    RelationalSchemaObject remoteSchema;
-    int errCode = remoteSchema.ParseFromSchemaString(remoteSchemaStr);
+    RelationalSchemaObject remoteSchemaObj;
+    int errCode = remoteSchemaObj.ParseFromSchemaString(remoteSchema);
     if (errCode != E_OK) {
         LOGW("[RelationalSchema][opinion] Parse remote schema failed %d, remote schema type %s", errCode,
             SchemaUtils::SchemaTypeString(remoteType).c_str());
@@ -593,24 +596,24 @@ RelationalSyncOpinion RelationalSchemaObject::MakeLocalSyncOpinion(const Relatio
 
     RelationalSyncOpinion opinion;
     for (const auto &it : localSchema.GetTables()) {
-        if (remoteSchema.GetTable(it.first).GetTableName() != it.first) {
+        if (remoteSchemaObj.GetTable(it.first).GetTableName() != it.first) {
             LOGW("[RelationalSchema][opinion] Table was missing in remote schema");
             continue;
         }
         // remote table is compatible(equal or upgrade) based on local table, permit sync and don't need check
-        errCode = it.second.CompareWithTable(remoteSchema.GetTable(it.first));
+        errCode = it.second.CompareWithTable(remoteSchemaObj.GetTable(it.first));
         if (errCode != -E_RELATIONAL_TABLE_INCOMPATIBLE) {
             opinion.AddSyncOpinion(it.first, {true, false, false});
             continue;
         }
         // local table is compatible upgrade based on remote table, permit sync and need check
-        errCode = remoteSchema.GetTable(it.first).CompareWithTable(it.second);
+        errCode = remoteSchemaObj.GetTable(it.first).CompareWithTable(it.second);
         if (errCode != -E_RELATIONAL_TABLE_INCOMPATIBLE) {
             opinion.AddSyncOpinion(it.first, {true, false, true});
             continue;
         }
         // local table is incompatible with remote table mutually, don't permit sync and need check
-        LOGW("[RelationalSchema][opinion] Local table is incompartible with remote table mutually.");
+        LOGW("[RelationalSchema][opinion] Local table is incompatible with remote table mutually.");
         opinion.AddSyncOpinion(it.first, {false, true, true});
     }
 
@@ -672,7 +675,7 @@ int RelationalSchemaObject::ParseFromSchemaString(const std::string &inSchemaStr
         return -E_NOT_PERMIT;
     }
 
-    if (inSchemaString.size() > SCHEMA_STRING_SIZE_LIMIT) {
+    if (inSchemaString.size() > SchemaConstant::SCHEMA_STRING_SIZE_LIMIT) {
         LOGE("[RelationalSchema][Parse] SchemaSize=%zu Too Large.", inSchemaString.size());
         return -E_INVALID_ARGS;
     }
@@ -766,8 +769,11 @@ int GetMemberFromJsonObject(const JsonObject &inJsonObject, const std::string &f
     bool isNecessary, FieldValue &fieldValue)
 {
     if (!inJsonObject.IsFieldPathExist(FieldPath {fieldName})) {
-        LOGW("[RelationalSchema][Parse] Get schema %s not exist. isNecessary: %d", fieldName.c_str(), isNecessary);
-        return isNecessary ? -E_SCHEMA_PARSE_FAIL : -E_NOT_FOUND;
+        if (isNecessary) {
+            LOGE("[RelationalSchema][Parse] Get schema %s not exist. isNecessary: %d", fieldName.c_str(), isNecessary);
+            return -E_SCHEMA_PARSE_FAIL;
+        }
+        return -E_NOT_FOUND;
     }
 
     FieldType fieldType;
@@ -807,30 +813,30 @@ int RelationalSchemaObject::ParseRelationalSchema(const JsonObject &inJsonObject
 int RelationalSchemaObject::ParseCheckSchemaVersionMode(const JsonObject &inJsonObject)
 {
     FieldValue fieldValue;
-    int errCode = GetMemberFromJsonObject(inJsonObject, KEYWORD_SCHEMA_VERSION, FieldType::LEAF_FIELD_STRING,
-        true, fieldValue);
+    int errCode = GetMemberFromJsonObject(inJsonObject, SchemaConstant::KEYWORD_SCHEMA_VERSION,
+        FieldType::LEAF_FIELD_STRING, true, fieldValue);
     if (errCode != E_OK) {
         return errCode;
     }
 
-    if (SchemaUtils::Strip(fieldValue.stringValue) != SCHEMA_SUPPORT_VERSION_V2) {
+    if (SchemaUtils::Strip(fieldValue.stringValue) != SchemaConstant::SCHEMA_SUPPORT_VERSION_V2) {
         LOGE("[RelationalSchema][Parse] Unexpected SCHEMA_VERSION=%s.", fieldValue.stringValue.c_str());
         return -E_SCHEMA_PARSE_FAIL;
     }
-    schemaVersion_ = SCHEMA_SUPPORT_VERSION_V2;
+    schemaVersion_ = SchemaConstant::SCHEMA_SUPPORT_VERSION_V2;
     return E_OK;
 }
 
 int RelationalSchemaObject::ParseCheckSchemaType(const JsonObject &inJsonObject)
 {
     FieldValue fieldValue;
-    int errCode = GetMemberFromJsonObject(inJsonObject, KEYWORD_SCHEMA_TYPE, FieldType::LEAF_FIELD_STRING,
-        true, fieldValue);
+    int errCode = GetMemberFromJsonObject(inJsonObject, SchemaConstant::KEYWORD_SCHEMA_TYPE,
+        FieldType::LEAF_FIELD_STRING, true, fieldValue);
     if (errCode != E_OK) {
         return errCode;
     }
 
-    if (SchemaUtils::Strip(fieldValue.stringValue) != KEYWORD_TYPE_RELATIVE) {
+    if (SchemaUtils::Strip(fieldValue.stringValue) != SchemaConstant::KEYWORD_TYPE_RELATIVE) {
         LOGE("[RelationalSchema][Parse] Unexpected SCHEMA_TYPE=%s.", fieldValue.stringValue.c_str());
         return -E_SCHEMA_PARSE_FAIL;
     }
@@ -841,7 +847,7 @@ int RelationalSchemaObject::ParseCheckSchemaType(const JsonObject &inJsonObject)
 int RelationalSchemaObject::ParseCheckSchemaTableDefine(const JsonObject &inJsonObject)
 {
     FieldType fieldType;
-    int errCode = inJsonObject.GetFieldTypeByFieldPath(FieldPath {KEYWORD_SCHEMA_TABLE}, fieldType);
+    int errCode = inJsonObject.GetFieldTypeByFieldPath(FieldPath {SchemaConstant::KEYWORD_SCHEMA_TABLE}, fieldType);
     if (errCode != E_OK) {
         LOGE("[RelationalSchema][Parse] Get schema TABLES fieldType failed: %d.", errCode);
         return -E_SCHEMA_PARSE_FAIL;
@@ -852,7 +858,7 @@ int RelationalSchemaObject::ParseCheckSchemaTableDefine(const JsonObject &inJson
         return -E_SCHEMA_PARSE_FAIL;
     }
     std::vector<JsonObject> tables;
-    errCode = inJsonObject.GetObjectArrayByFieldPath(FieldPath{KEYWORD_SCHEMA_TABLE}, tables);
+    errCode = inJsonObject.GetObjectArrayByFieldPath(FieldPath{SchemaConstant::KEYWORD_SCHEMA_TABLE}, tables);
     if (errCode != E_OK) {
         LOGE("[RelationalSchema][Parse] Get schema TABLES value failed: %d.", errCode);
         return -E_SCHEMA_PARSE_FAIL;

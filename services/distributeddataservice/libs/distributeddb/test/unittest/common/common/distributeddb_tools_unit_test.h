@@ -42,7 +42,7 @@
 #include "sqlite_single_ver_natural_store.h"
 #include "sqlite_utils.h"
 #include "sync_types.h"
-#include "types.h"
+#include "store_types.h"
 
 namespace DistributedDBUnitTest {
 static const int DIR_PERMISSION = 0750;
@@ -273,9 +273,11 @@ public:
     // get callback results.
     unsigned long GetCallCount() const;
     const std::string GetDataChangeDevice() const;
+    DistributedDB::StoreProperty GetStoreProperty() const;
 private:
     unsigned long callCount_;
     std::string changeDevice_;
+    DistributedDB::StoreProperty storeProperty_;
 };
 
 class KvStoreCorruptInfo {
@@ -302,6 +304,7 @@ public:
     static sqlite3 *CreateDataBase(const std::string &dbUri);
     static int ExecSql(sqlite3 *db, const std::string &sql);
     static void CreateDeviceTable(sqlite3 *db, const std::string &table, const std::string &device);
+    static int CheckSqlResult(sqlite3 *db, const std::string &sql, bool &result);
 };
 } // namespace DistributedDBUnitTest
 

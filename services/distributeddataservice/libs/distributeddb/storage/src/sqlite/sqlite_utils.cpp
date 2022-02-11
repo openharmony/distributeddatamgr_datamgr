@@ -31,6 +31,7 @@
 #include "log_print.h"
 #include "value_object.h"
 #include "schema_utils.h"
+#include "schema_constant.h"
 #include "time_helper.h"
 #include "platform_specific.h"
 
@@ -613,7 +614,8 @@ int AnalysisSchemaSqlAndTrigger(sqlite3 *db, const std::string &tableName, Table
                 table.AddTrigger(triggerName);
             }
         } else {
-            LOGW("[AnalysisSchema] Step for the analysis create table sql and trigger failed:%d", err);
+            LOGE("[AnalysisSchema] Step for the analysis create table sql and trigger failed:%d", err);
+            errCode = SQLiteUtils::MapSQLiteErrno(err);
             break;
         }
     } while (true);
@@ -628,7 +630,7 @@ int GetSchemaIndexList(sqlite3 *db, const std::string &tableName, std::vector<st
     sqlite3_stmt *statement = nullptr;
     int errCode = SQLiteUtils::GetStatement(db, sql, statement);
     if (errCode != E_OK) {
-        LOGE("[AnalysisSchema] Prepare the get schema index list staement error:%d", errCode);
+        LOGE("[AnalysisSchema] Prepare the get schema index list statement error:%d", errCode);
         return errCode;
     }
 
@@ -927,31 +929,6 @@ int SQLiteUtils::GetJournalMode(sqlite3 *db, std::string &mode)
         errCode = SQLiteUtils::GetColumnTextValue(statement, 0, mode);
     } else {
         LOGE("[SqlUtil][GetJournal] Get db journal_mode failed.");
-        errCode = SQLiteUtils::MapSQLiteErrno(SQLITE_ERROR);
-    }
-
-    SQLiteUtils::ResetStatement(statement, true, errCode);
-    return E_OK;
-}
-
-int SQLiteUtils::GetSynchronousMode(sqlite3 *db, int &mode)
-{
-    if (db == nullptr) {
-        return -E_INVALID_DB;
-    }
-
-    std::string sql = "PRAGMA synchronous;";
-    sqlite3_stmt *statement = nullptr;
-    int errCode = sqlite3_prepare(db, sql.c_str(), -1, &statement, nullptr);
-    if (errCode != SQLITE_OK || statement == nullptr) {
-        errCode = SQLiteUtils::MapSQLiteErrno(errCode);
-        return errCode;
-    }
-
-    if (sqlite3_step(statement) == SQLITE_ROW) {
-        mode = sqlite3_column_int(statement, 0);
-    } else {
-        LOGE("[SqlUtil][GetSynchronous] Get db synchronous failed.");
         errCode = SQLiteUtils::MapSQLiteErrno(SQLITE_ERROR);
     }
 
@@ -1341,15 +1318,6 @@ int SQLiteUtils::CreateRelationalLogTable(sqlite3 *db, const std::string &oriTab
     return errCode;
 }
 
-template<typename ... Args>
-static std::string string_format(const std::string& format, Args ... args)
-{
-    auto size = static_cast<size_t>(1024); // trigger string total len need < 1024
-    auto buf = std::make_unique<char[]>(size);
-    (void)sprintf_s(buf.get(), size, format.c_str(), args ...);
-    return std::string(buf.get(), buf.get() + size - 1); // We don't want the '\0' inside
-}
-
 namespace {
 std::string GetInsertTrigger(const TableInfo table)
 {
@@ -1375,7 +1343,7 @@ std::string GetUpdateTrigger(const TableInfo table)
     updateTrigger += "BEGIN\n";
     updateTrigger += "\t UPDATE " + DBConstant::RELATIONAL_PREFIX + table.GetTableName() + "_log";
     updateTrigger += " SET timestamp=get_sys_time(0), device='" + table.GetDevId() + "'";
-    updateTrigger += " where hash_key=calc_hash(old." + table.GetPrimaryKey() + ") and flag&0x10=0;\n";
+    updateTrigger += " where hash_key=calc_hash(old." + table.GetPrimaryKey() + ") and flag&0x02=0x02;\n";
     updateTrigger += "END;";
     return updateTrigger;
 }
@@ -1388,7 +1356,7 @@ std::string GetDeleteTrigger(const TableInfo table)
     deleteTrigger += "BEGIN\n";
     deleteTrigger += "\t UPDATE " + DBConstant::RELATIONAL_PREFIX + table.GetTableName() + "_log";
     deleteTrigger += " SET flag=0x03,timestamp=get_sys_time(0)";
-    deleteTrigger += " where hash_key=calc_hash(old." + table.GetPrimaryKey() + ");\n";
+    deleteTrigger += " where hash_key=calc_hash(old." + table.GetPrimaryKey() + ") and flag&0x02=0x02;\n";
     deleteTrigger += "END;";
     return deleteTrigger;
 }
@@ -1449,7 +1417,7 @@ int SQLiteUtils::CloneIndexes(sqlite3 *db, const std::string &oriTableName, cons
     sqlite3_stmt *stmt = nullptr;
     int errCode = SQLiteUtils::GetStatement(db, sql, stmt);
     if (errCode != E_OK) {
-        LOGE("[AnalysisSchema] Prepare the clone sql failed:%d", errCode);
+        LOGE("Prepare the clone sql failed:%d", errCode);
         return errCode;
     }
 
@@ -1761,10 +1729,10 @@ void SQLiteUtils::FlatBufferExtractByPath(sqlite3_context *ctx, int argc, sqlite
 namespace {
 constexpr uint32_t FLATBUFFER_MAX_CACHE_SIZE = 102400; // 100 KBytes
 
-void FlatBufferCacheFree(std::vector<uint8_t> *inCahce)
+void FlatBufferCacheFree(std::vector<uint8_t> *inCache)
 {
-    delete inCahce;
-    inCahce = nullptr;
+    delete inCache;
+    inCache = nullptr;
 }
 }
 
@@ -1772,7 +1740,7 @@ void SQLiteUtils::FlatBufferExtractInnerFunc(sqlite3_context *ctx, const SchemaO
     RawString inPath)
 {
     // All parameter had already been check inside FlatBufferExtractByPath, only called by FlatBufferExtractByPath
-    if (schema.GetSkipSize() % SECURE_BYTE_ALIGN == 0) {
+    if (schema.GetSkipSize() % SchemaConstant::SECURE_BYTE_ALIGN == 0) {
         TypeValue outExtract;
         int errCode = schema.ExtractValue(ValueSource::FROM_DBFILE, inPath, inValue, outExtract, nullptr);
         if (errCode != E_OK) {
@@ -2105,7 +2073,7 @@ int SQLiteUtils::CheckSchemaChanged(sqlite3_stmt *stmt, const TableInfo &table, 
     int columnNum = sqlite3_column_count(stmt);
     if (columnNum - offset != static_cast<int>(table.GetFields().size())) {
         LOGE("Schema field number does not match.");
-        return -E_RELATIONAL_SCHEMA_CHANGED;
+        return -E_DISTRIBUTED_SCHEMA_CHANGED;
     }
 
     auto fields = table.GetFields();
@@ -2119,7 +2087,7 @@ int SQLiteUtils::CheckSchemaChanged(sqlite3_stmt *stmt, const TableInfo &table, 
         auto it = fields.find(colName);
         if (it == fields.end() || it->second.GetDataType() != colType) {
             LOGE("Schema field define does not match.");
-            return -E_RELATIONAL_SCHEMA_CHANGED;
+            return -E_DISTRIBUTED_SCHEMA_CHANGED;
         }
     }
     return E_OK;

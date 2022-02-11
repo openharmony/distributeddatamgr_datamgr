@@ -65,7 +65,9 @@ namespace {
 
     void OpenStore()
     {
-        g_observer = new (std::nothrow) RelationalStoreObserverUnitTest();
+        if (g_observer == nullptr) {
+            g_observer = new (std::nothrow) RelationalStoreObserverUnitTest();
+        }
         RelationalStoreDelegate::Option option = {g_observer};
         g_mgr.OpenStore(g_dbDir, STORE_ID_1, option, g_rdbDelegatePtr);
         ASSERT_TRUE(g_rdbDelegatePtr != nullptr);
@@ -538,6 +540,15 @@ namespace {
         std::vector<RelationalVirtualDevice *> remoteDeviceVec)
     {
         PrepareEnvironment(dataMap, g_tableName, localFieldInfoList, remoteFieldInfoList, remoteDeviceVec);
+    }
+
+    void CheckIdentify(RelationalStoreObserverUnitTest *observer)
+    {
+        ASSERT_NE(observer, nullptr);
+        StoreProperty property = observer->GetStoreProperty();
+        EXPECT_EQ(property.appId, APP_ID);
+        EXPECT_EQ(property.storeId, STORE_ID_1);
+        EXPECT_EQ(property.userId, USER_ID);
     }
 }
 
@@ -1062,6 +1073,7 @@ HWTEST_F(DistributedDBRelationalVerP2PSyncTest, Observer001, TestSize.Level0)
      */
     EXPECT_EQ(g_observer->GetCallCount(), 1u);
     EXPECT_EQ(g_observer->GetDataChangeDevice(), DEVICE_B);
+    CheckIdentify(g_observer);
 }
 
 /**
@@ -1092,7 +1104,7 @@ HWTEST_F(DistributedDBRelationalVerP2PSyncTest, observer002, TestSize.Level3)
         param.appId   = APP_ID;
         param.userId  = USER_ID;
         param.storeId = STORE_ID_1;
-        param.option.relationObserver = observer;
+        param.option.storeObserver = observer;
         return true;
     };
     g_mgr.SetAutoLaunchRequestCallback(callback);
@@ -1114,6 +1126,7 @@ HWTEST_F(DistributedDBRelationalVerP2PSyncTest, observer002, TestSize.Level3)
     EXPECT_EQ(g_deviceB->GenericVirtualDevice::Sync(SYNC_MODE_PUSH_ONLY, query, true), E_OK);
     EXPECT_EQ(observer->GetCallCount(), 1u);
     EXPECT_EQ(observer->GetDataChangeDevice(), DEVICE_B);
+    CheckIdentify(observer);
     std::this_thread::sleep_for(std::chrono::minutes(1));
     delete observer;
 }

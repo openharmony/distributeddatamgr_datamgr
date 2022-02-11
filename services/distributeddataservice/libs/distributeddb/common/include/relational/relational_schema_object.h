@@ -20,7 +20,6 @@
 #include "json_object.h"
 #include "parcel.h"
 #include "schema.h"
-#include "schema_constant.h"
 
 namespace DistributedDB {
 using CompositeFields = std::vector<FieldName>;
@@ -135,7 +134,7 @@ public:
     ~RelationalSchemaObject() override = default;
 
     static RelationalSyncOpinion MakeLocalSyncOpinion(const RelationalSchemaObject &localSchema,
-        const std::string &remoteSchemaStr, uint8_t remoteSchemaType);
+        const std::string &remoteSchema, uint8_t remoteSchemaType);
 
     // The remoteOpinion.checkOnReceive is ignored
     static RelationalSyncStrategy ConcludeSyncStrategy(const RelationalSyncOpinion &localOpinion,
@@ -184,7 +183,7 @@ private:
     bool isValid_ = false; // set to true after parse success from string or add at least one relational table
     SchemaType schemaType_ = SchemaType::RELATIVE; // Default RELATIVE
     std::string schemaString_; // The minified and valid schemaString
-    std::string schemaVersion_ = SCHEMA_SUPPORT_VERSION_V2;
+    std::string schemaVersion_;
     std::map<std::string, TableInfo> tables_;
 };
 } // namespace DistributedDB

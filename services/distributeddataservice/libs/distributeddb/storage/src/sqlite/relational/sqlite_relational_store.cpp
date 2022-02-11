@@ -325,12 +325,16 @@ void SQLiteRelationalStore::WakeUpSyncer()
     syncAbleEngine_->WakeUpSyncer();
 }
 
-
 int SQLiteRelationalStore::CreateDistributedTable(const std::string &tableName)
 {
-    int errCode = sqliteStorageEngine_->CreateDistributedTable(tableName);
+    bool schemaChanged = false;
+    int errCode = sqliteStorageEngine_->CreateDistributedTable(tableName, schemaChanged);
     if (errCode != E_OK) {
         LOGE("Create distributed table failed. %d", errCode);
+    }
+    if (schemaChanged) {
+        LOGD("Notify schema changed.");
+        storageEngine_->NotifySchemaChanged();
     }
     return errCode;
 }

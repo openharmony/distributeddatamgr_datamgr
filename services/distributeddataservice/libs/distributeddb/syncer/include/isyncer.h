@@ -23,7 +23,7 @@
 #include "isync_interface.h"
 #include "types_export.h"
 #include "query_sync_object.h"
-#include "types.h"
+#include "store_types.h"
 
 namespace DistributedDB {
 class ISyncer {

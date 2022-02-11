@@ -21,7 +21,7 @@
 #include <string>
 #include <vector>
 
-#include "types.h"
+#include "store_types.h"
 #include "version.h"
 #include "ikvdb.h"
 #include "generic_kvdb_connection.h"

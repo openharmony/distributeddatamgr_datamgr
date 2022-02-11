@@ -286,7 +286,7 @@ const std::map<int, DBStatus> &SyncOperation::DBStatusTransMap()
         { static_cast<int>(OP_NOT_SUPPORT),                   NOT_SUPPORT },
         { static_cast<int>(OP_INTERCEPT_DATA_FAIL),           INTERCEPT_DATA_FAIL },
         { static_cast<int>(OP_MAX_LIMITS),                    OVER_MAX_LIMITS },
-        { static_cast<int>(OP_SCHEMA_CHANGED),                RELATIONAL_SCHEMA_CHANGED },
+        { static_cast<int>(OP_SCHEMA_CHANGED),                DISTRIBUTED_SCHEMA_CHANGED },
         { static_cast<int>(OP_INVALID_ARGS),                  INVALID_ARGS },
     };
     return transMap;

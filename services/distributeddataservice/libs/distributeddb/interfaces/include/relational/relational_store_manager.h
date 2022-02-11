@@ -14,14 +14,13 @@
  */
 #ifndef RELATIONAL_STORE_MANAGER_H
 #define RELATIONAL_STORE_MANAGER_H
-
 #include <string>
 #include <functional>
 #include <mutex>
 
 #include "auto_launch_export.h"
 #include "relational_store_delegate.h"
-#include "types.h"
+#include "store_types.h"
 
 namespace DistributedDB {
 class RelationalStoreManager final {
