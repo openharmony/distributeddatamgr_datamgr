@@ -22,7 +22,6 @@ namespace OHOS {
 namespace DistributedKv {
 sptr<KvStoreSyncCallbackClient> KvStoreSyncCallbackClient::pInstance_ = new KvStoreSyncCallbackClient();
 std::map<std::string, std::shared_ptr<KvStoreSyncCallback>> KvStoreSyncCallbackClient::kvStoreSyncCallbackInfo_;
-//const std::string KvStoreSyncCallbackClient::CommonSyncCallbackLabel("CommonSyncCallbackLabel");
 
 KvStoreSyncCallbackClient::KvStoreSyncCallbackClient() = default;
 
@@ -41,8 +40,8 @@ void KvStoreSyncCallbackClient::AddKvStoreSyncCallback(const std::shared_ptr<KvS
                                                        const std::string &label)
 {
     std::lock_guard<std::mutex> lg(syncCallbackMutex_);
-    if(kvStoreSyncCallbackInfo_.find(label) == kvStoreSyncCallbackInfo_.end()) {
-        kvStoreSyncCallbackInfo_.insert({label, kvStoreSyncCallback});
+    if (kvStoreSyncCallbackInfo_.find(label) == kvStoreSyncCallbackInfo_.end()) {
+        kvStoreSyncCallbackInfo_.insert( {label, kvStoreSyncCallback} );
     }
 }
 
@@ -59,7 +58,7 @@ std::shared_ptr<KvStoreSyncCallback> KvStoreSyncCallbackClient::GetCommonSyncCal
 void KvStoreSyncCallbackClient::DeleteCommonKvStoreSyncCallback()
 {
     std::lock_guard<std::mutex> lg(syncCallbackMutex_);
-    if(kvStoreSyncCallbackInfo_.find(CommonSyncCallbackLabel) != kvStoreSyncCallbackInfo_.end()) {
+    if (kvStoreSyncCallbackInfo_.find(CommonSyncCallbackLabel) != kvStoreSyncCallbackInfo_.end()) {
         kvStoreSyncCallbackInfo_.erase(CommonSyncCallbackLabel);
     }
 }

@@ -462,7 +462,7 @@ Status SingleKvStoreProxy::CloseResultSet(sptr<IKvStoreResultSet> resultSetPtr)
 }
 
 Status SingleKvStoreProxy::Sync(const std::vector<std::string> &deviceIds, SyncMode mode,
-                                uint32_t allowedDelayMs)
+                                uint32_t allowedDelayMs, const std::string &syncLabel)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -854,7 +854,8 @@ Status SingleKvStoreProxy::GetSecurityLevel(SecurityLevel &securityLevel)
     return status;
 }
 
-Status SingleKvStoreProxy::SubscribeWithQuery(const std::vector<std::string> &deviceIds, const std::string &query)
+Status SingleKvStoreProxy::SubscribeWithQuery(const std::vector<std::string> &deviceIds, const std::string &query,
+                                              const std::string &syncLabel)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(SingleKvStoreProxy::GetDescriptor())) {
@@ -869,6 +870,10 @@ Status SingleKvStoreProxy::SubscribeWithQuery(const std::vector<std::string> &de
         ZLOGE("write query fail");
         return Status::IPC_ERROR;
     }
+    if (!data.WriteString(syncLabel)) {
+        ZLOGE("write query fail");
+        return Status::IPC_ERROR;
+    }
     MessageParcel reply;
     MessageOption mo { MessageOption::TF_SYNC };
     int32_t error = Remote()->SendRequest(SUBSCRIBE_WITH_QUERY, data, reply, mo);
@@ -879,7 +884,8 @@ Status SingleKvStoreProxy::SubscribeWithQuery(const std::vector<std::string> &de
     return static_cast<Status>(reply.ReadInt32());
 }
 
-Status SingleKvStoreProxy::UnSubscribeWithQuery(const std::vector<std::string> &deviceIds, const std::string &query)
+Status SingleKvStoreProxy::UnSubscribeWithQuery(const std::vector<std::string> &deviceIds, const std::string &query,
+                                                const std::string &syncLabel)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(SingleKvStoreProxy::GetDescriptor())) {
@@ -891,6 +897,10 @@ Status SingleKvStoreProxy::UnSubscribeWithQuery(const std::vector<std::string> &
         return Status::IPC_ERROR;
     }
     if (!data.WriteString(query)) {
+        ZLOGE("write query fail");
+        return Status::IPC_ERROR;
+    }
+    if (!data.WriteString(syncLabel)) {
         ZLOGE("write query fail");
         return Status::IPC_ERROR;
     }
@@ -1224,7 +1234,8 @@ int SingleKvStoreStub::SyncOnRemote(MessageParcel &data, MessageParcel &reply)
     }
     auto mode = static_cast<SyncMode>(data.ReadInt32());
     auto allowedDelayMs = static_cast<uint32_t>(data.ReadInt32());
-    Status status = Sync(devices, mode, allowedDelayMs);
+    auto syncLabel = data.ReadString();
+    Status status = Sync(devices, mode, allowedDelayMs, syncLabel);
     if (!reply.WriteInt32(static_cast<int>(status))) {
         ZLOGW("write sync status fail");
         return -1;
@@ -1599,8 +1610,8 @@ int SingleKvStoreStub::OnSyncRequest(MessageParcel &data, MessageParcel &reply)
     }
     auto mode = static_cast<SyncMode>(data.ReadInt32());
     auto query = data.ReadString();
-    auto synclabel = data.ReadString();
-    Status status = Sync(devices, mode, query, synclabel);
+    auto syncLabel = data.ReadString();
+    Status status = Sync(devices, mode, query, syncLabel);
     if (!reply.WriteInt32(static_cast<int>(status))) {
         ZLOGE("write sync status fail");
         return -1;
@@ -1638,7 +1649,8 @@ int SingleKvStoreStub::OnSubscribeWithQueryRequest(MessageParcel &data, MessageP
         return 0;
     }
     auto query = data.ReadString();
-    Status status = SubscribeWithQuery(devices, query);
+    auto syncLabel = data.ReadString();
+    Status status = SubscribeWithQuery(devices, query, syncLabel);
     if (!reply.WriteInt32(static_cast<uint32_t>(status))) {
         ZLOGE("write sync status fail");
         return -1;
@@ -1658,7 +1670,8 @@ int SingleKvStoreStub::OnUnSubscribeWithQueryRequest(MessageParcel &data, Messag
         return 0;
     }
     auto query = data.ReadString();
-    Status status = UnSubscribeWithQuery(devices, query);
+    auto syncLabel = data.ReadString();
+    Status status = UnSubscribeWithQuery(devices, query, syncLabel);
     if (!reply.WriteInt32(static_cast<uint32_t>(status))) {
         ZLOGE("write sync status fail");
         return -1;

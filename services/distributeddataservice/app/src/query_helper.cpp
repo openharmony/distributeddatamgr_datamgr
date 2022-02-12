@@ -515,7 +515,7 @@ void QueryHelper::HandleInKeys(const std::vector<std::string> &words, int &point
     std::set<std::vector<uint8_t>> inDbKeys;
     for(const std::string &inKey : inKeys) {
         ZLOGI("inKey=%{public}s", inKey.c_str());
-	    std::vector<uint8_t> dbKey;
+        std::vector<uint8_t> dbKey;
         dbKey.assign(inKey.begin(), inKey.end());
         inDbKeys.insert(dbKey);
     }
@@ -559,7 +559,7 @@ void QueryHelper::HandleDeviceId(const std::vector<std::string> &words, int &poi
     }
     if (!hasInKeys_) {
         ZLOGD("DeviceId as the only inkey.");
-	    std::set<std::vector<uint8_t>> inDbKeys;
+        std::set<std::vector<uint8_t>> inDbKeys;
         std::vector<uint8_t> dbKey;
         dbKey.assign(deviceId_.begin(), deviceId_.begin());
         inDbKeys.insert(dbKey);
@@ -718,7 +718,7 @@ std::vector<std::string> QueryHelper::GetInKeyList(const std::vector<std::string
         }
         std::string inKeyStr = deviceId_ + StringToString(words.at(elementPointer));
         values.push_back(inKeyStr);
-	    ZLOGI("value=%{public}s", inKeyStr.c_str());
+        ZLOGI("value=%{public}s", inKeyStr.c_str());
         elementPointer++;
     }
     if (isEndFound) {

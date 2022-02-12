@@ -16,8 +16,8 @@
 #ifndef QUERY_HELPER_H
 #define QUERY_HELPER_H
 
-#include "query.h"
 #include <set>
+#include "query.h"
 #include "types.h"
 
 namespace OHOS::DistributedKv {

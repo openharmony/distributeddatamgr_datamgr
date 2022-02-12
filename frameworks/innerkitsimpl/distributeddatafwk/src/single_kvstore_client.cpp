@@ -176,7 +176,9 @@ Status SingleKvStoreClient::Sync(const std::vector<std::string> &deviceIds, Sync
         ZLOGW("deviceIds is empty.");
         return Status::INVALID_ARGUMENT;
     }
-    return kvStoreProxy_->Sync(deviceIds, mode, allowedDelayMs);
+    sptr<KvStoreSyncCallbackClient> ipcCallback = KvStoreSyncCallbackClient::GetInstance();
+    std::string label = ipcCallback->GetCommonSyncCallbackLabel();
+    return kvStoreProxy_->Sync(deviceIds, mode, allowedDelayMs, label);
 }
 
 Status SingleKvStoreClient::RemoveDeviceData(const std::string &device)
@@ -487,7 +489,9 @@ Status SingleKvStoreClient::SubscribeWithQuery(const std::vector<std::string>& d
         ZLOGW("deviceIds is empty.");
         return Status::INVALID_ARGUMENT;
     }
-    return kvStoreProxy_->SubscribeWithQuery(deviceIds, query.ToString());
+    sptr<KvStoreSyncCallbackClient> ipcCallback = KvStoreSyncCallbackClient::GetInstance();
+    std::string label = ipcCallback->GetCommonSyncCallbackLabel();
+    return kvStoreProxy_->SubscribeWithQuery(deviceIds, query.ToString(), label);
 }
 
 Status SingleKvStoreClient::UnSubscribeWithQuery(const std::vector<std::string>& deviceIds, const DataQuery& query)
@@ -500,7 +504,9 @@ Status SingleKvStoreClient::UnSubscribeWithQuery(const std::vector<std::string>&
         ZLOGW("deviceIds is empty.");
         return Status::INVALID_ARGUMENT;
     }
-    return kvStoreProxy_->UnSubscribeWithQuery(deviceIds, query.ToString());
+    sptr<KvStoreSyncCallbackClient> ipcCallback = KvStoreSyncCallbackClient::GetInstance();
+    std::string label = ipcCallback->GetCommonSyncCallbackLabel();
+    return kvStoreProxy_->UnSubscribeWithQuery(deviceIds, query.ToString(), label);
 }
 
 Status SingleKvStoreClient::GetKvStoreSnapshot(std::shared_ptr<KvStoreObserver> observer,

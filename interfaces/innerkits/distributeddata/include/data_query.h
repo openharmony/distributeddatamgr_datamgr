@@ -519,7 +519,7 @@ public:
     // suggested index
     static const std::string SUGGEST_INDEX;
 
-    //in keys
+    // in keys
     static const std::string IN_KEYS;
 private:
     std::string str_;

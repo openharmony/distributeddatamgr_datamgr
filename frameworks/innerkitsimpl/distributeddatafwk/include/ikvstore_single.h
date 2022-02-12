@@ -75,7 +75,8 @@ public:
                                        std::function<void(Status, sptr<IKvStoreResultSet>)> callback) = 0;
     virtual Status CloseResultSet(sptr<IKvStoreResultSet> resultSet) = 0;
     virtual Status GetCountWithQuery(const std::string &query, int &result) = 0;
-    virtual Status Sync(const std::vector<std::string> &deviceIds, SyncMode mode, uint32_t allowedDelayMs) = 0;
+    virtual Status Sync(const std::vector<std::string> &deviceIds, SyncMode mode,
+                        uint32_t allowedDelayMs, const std::string &syncLabel) = 0;
     virtual Status RemoveDeviceData(const std::string &device) = 0;
     virtual Status RegisterSyncCallback(sptr<IKvStoreSyncCallback> callback) = 0;
     virtual Status UnRegisterSyncCallback() = 0;
@@ -91,8 +92,10 @@ public:
     virtual Status GetSecurityLevel(SecurityLevel &securityLevel) = 0;
     virtual Status Sync(const std::vector<std::string> &deviceIds, SyncMode mode,
                         const std::string &query, const std::string &syncLabel) = 0;
-    virtual Status SubscribeWithQuery(const std::vector<std::string> &deviceIds, const std::string &query) = 0;
-    virtual Status UnSubscribeWithQuery(const std::vector<std::string> &deviceIds, const std::string &query) = 0;
+    virtual Status SubscribeWithQuery(const std::vector<std::string> &deviceIds, const std::string &query,
+                                      const std::string &syncLabel) = 0;
+    virtual Status UnSubscribeWithQuery(const std::vector<std::string> &deviceIds, const std::string &query,
+                                        const std::string &syncLabel) = 0;
 };
 
 class SingleKvStoreStub : public IRemoteStub<ISingleKvStore> {
@@ -179,7 +182,8 @@ public:
                                        std::function<void(Status, sptr<IKvStoreResultSet>)> callback);
     virtual Status CloseResultSet(sptr<IKvStoreResultSet> resultSet);
     virtual Status GetCountWithQuery(const std::string &query, int &result);
-    virtual Status Sync(const std::vector<std::string> &deviceIds, SyncMode mode, uint32_t allowedDelayMs);
+    virtual Status Sync(const std::vector<std::string> &deviceIds, SyncMode mode, uint32_t allowedDelayMs,
+                        const std::string &syncLabel);
     virtual Status Sync(const std::vector<std::string> &deviceIds, SyncMode mode,
                         const std::string &query, const std::string &syncLabel);
     virtual Status RemoveDeviceData(const std::string &device);
@@ -195,8 +199,10 @@ public:
     virtual Status SetCapabilityRange(const std::vector<std::string> &localLabels,
                                       const std::vector<std::string> &remoteSupportLabels);
     virtual Status GetSecurityLevel(SecurityLevel &securityLevel);
-    virtual Status SubscribeWithQuery(const std::vector<std::string> &deviceIds, const std::string &query);
-    virtual Status UnSubscribeWithQuery(const std::vector<std::string> &deviceIds, const std::string &query);
+    virtual Status SubscribeWithQuery(const std::vector<std::string> &deviceIds, const std::string &query,
+                                      const std::string &syncLabel);
+    virtual Status UnSubscribeWithQuery(const std::vector<std::string> &deviceIds, const std::string &query,
+                                        const std::string &syncLabel);
 private:
     static inline BrokerDelegator<SingleKvStoreProxy> delegator_;
 };
