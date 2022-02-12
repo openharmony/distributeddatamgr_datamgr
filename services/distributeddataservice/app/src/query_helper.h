@@ -89,8 +89,8 @@ private:
                                              int &elementPointer, const int &end);
     static std::vector<std::string> GetStringList(const std::vector<std::string> &words,
                                                   int &elementPointer, const int &end);
-    static std::vector<std::string> GetInKeyList(const std::vector<std::string> &words,
-		                             int &elementPointer, const int &end);
+//    static std::vector<std::string> GetInKeyList(const std::vector<std::string> &words,
+//		                             int &elementPointer, const int &end);
 };
 } // namespace OHOS::DistributedKv
 #endif // QUERY_HELPER_H

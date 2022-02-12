@@ -29,7 +29,6 @@ class IKvStoreSyncCallback : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.DistributedKv.IKvStoreSyncCallback");
     virtual void SyncCompleted(const std::map<std::string, Status> &results, const std::string &label) = 0;
-    const std::string CommonSyncCallbackLabel = "CommonSyncCallbackLabel";
 };
 
 class KvStoreSyncCallbackStub : public IRemoteStub<IKvStoreSyncCallback> {
