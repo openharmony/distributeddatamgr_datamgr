@@ -37,6 +37,11 @@ void SingleVerSyncer::RemoteDeviceOffline(const std::string &device)
     RefObject::DecObjRef(syncEngine_);
 }
 
+int SingleVerSyncer::EraseDeviceWaterMark(const std::string &deviceId, bool isNeedHash)
+{
+    return EraseDeviceWaterMark(deviceId, isNeedHash, "");
+}
+
 int SingleVerSyncer::EraseDeviceWaterMark(const std::string &deviceId, bool isNeedHash,
     const std::string &tableName)
 {

@@ -152,6 +152,11 @@ TimeOffset Metadata::GetLocalTimeOffset() const
     return localTimeOffset;
 }
 
+int Metadata::EraseDeviceWaterMark(const std::string &deviceId, bool isNeedHash)
+{
+    return EraseDeviceWaterMark(deviceId, isNeedHash, "");
+}
+
 int Metadata::EraseDeviceWaterMark(const std::string &deviceId, bool isNeedHash, const std::string &tableName)
 {
     // try to erase all the waterMark

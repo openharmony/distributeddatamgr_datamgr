@@ -58,7 +58,9 @@ public:
 
     TimeOffset GetLocalTimeOffset() const;
 
-    int EraseDeviceWaterMark(const std::string &deviceId, bool isNeedHash, const std::string &tableName = "");
+    int EraseDeviceWaterMark(const std::string &deviceId, bool isNeedHash);
+
+    int EraseDeviceWaterMark(const std::string &deviceId, bool isNeedHash, const std::string &tableName);
 
     void SetLastLocalTime(TimeStamp lastLocalTime);
 
