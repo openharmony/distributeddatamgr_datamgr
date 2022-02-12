@@ -421,7 +421,8 @@ namespace {
         sqlite3_close(db);
     }
 
-    void PrepareEnvironment(std::map<std::string, DataValue> &dataMap, std::vector<RelationalVirtualDevice *> remoteDeviceVec)
+    void PrepareEnvironment(std::map<std::string, DataValue> &dataMap,
+        std::vector<RelationalVirtualDevice *> remoteDeviceVec)
     {
         PrepareBasicTable(g_tableName, g_fieldInfoList, remoteDeviceVec);
         GenerateValue(dataMap, g_fieldInfoList);
@@ -441,7 +442,8 @@ namespace {
         g_deviceB->PutData(tableName, {virtualRowData});
     }
 
-    void PrepareVirtualEnvironment(std::map<std::string, DataValue> &dataMap, std::vector<RelationalVirtualDevice *> remoteDeviceVec)
+    void PrepareVirtualEnvironment(std::map<std::string, DataValue> &dataMap,
+        std::vector<RelationalVirtualDevice *> remoteDeviceVec)
     {
         PrepareVirtualEnvironment(dataMap, g_tableName, g_fieldInfoList, remoteDeviceVec);
     }
@@ -1096,7 +1098,7 @@ HWTEST_F(DistributedDBRelationalVerP2PSyncTest, observer002, TestSize.Level3)
      * @tc.steps: step2. set auto launch callBack
      */
     RelationalStoreObserverUnitTest *observer = new (std::nothrow) RelationalStoreObserverUnitTest();
-    const AutoLaunchRequestCallback callback = [observer](const std::string &identifier, AutoLaunchParam &param){
+    const AutoLaunchRequestCallback callback = [observer](const std::string &identifier, AutoLaunchParam &param) {
         if (g_id != identifier) {
             return false;
         }

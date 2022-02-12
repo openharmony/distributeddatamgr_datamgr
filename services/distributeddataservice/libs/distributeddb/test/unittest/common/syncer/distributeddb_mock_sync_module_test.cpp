@@ -124,7 +124,7 @@ HWTEST_F(DistributedDBMockSyncModuleTest, StateMachineCheck003, TestSize.Level1)
     Init(stateMachine, syncTaskContext, communicator, dbSyncInterface);
 
     EXPECT_CALL(stateMachine, PrepareNextSyncTask()).WillOnce(Return(E_OK));
-    
+
     EXPECT_CALL(syncTaskContext, IsTargetQueueEmpty()).WillRepeatedly(Return(false));
     EXPECT_CALL(syncTaskContext, MoveToNextTarget()).WillRepeatedly(Return());
     EXPECT_CALL(syncTaskContext, IsCurrentSyncTaskCanBeSkipped())
@@ -198,7 +198,7 @@ HWTEST_F(DistributedDBMockSyncModuleTest, AutoLaunchCheck001, TestSize.Level1)
     std::unique_lock<std::mutex> lock(mutex);
     std::condition_variable cv;
     for (int i = 0; i < loopCount; i++) {
-        std::thread t = std::thread([&finishCount, &mockAutoLaunch, &id, &mutex, &cv]{
+        std::thread t = std::thread([&finishCount, &mockAutoLaunch, &id, &mutex, &cv] {
             mockAutoLaunch.CallExtConnectionLifeCycleCallbackTask(id);
             finishCount++;
             if (finishCount == loopCount) {
@@ -208,7 +208,7 @@ HWTEST_F(DistributedDBMockSyncModuleTest, AutoLaunchCheck001, TestSize.Level1)
         });
         t.detach();
     }
-    cv.wait(lock, [&finishCount, &loopCount](){
+    cv.wait(lock, [&finishCount, &loopCount]() {
         return finishCount == loopCount;
     });
 }
