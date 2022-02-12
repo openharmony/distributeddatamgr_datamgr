@@ -22,10 +22,10 @@
 namespace DistributedDB {
 DbAbility::DbAbility()
 {
-    for (const auto &item : ABILITYBITS) {
+    for (const auto &item : SyncConfig::ABILITYBITS) {
         dbAbilityItemSet_.insert(item);
     }
-    dbAbility_.resize(ABILITYBITS.back().first + ABILITYBITS.back().second);
+    dbAbility_.resize(SyncConfig::ABILITYBITS.back().first + SyncConfig::ABILITYBITS.back().second);
 }
 
 DbAbility::DbAbility(const DbAbility &other)
@@ -88,7 +88,7 @@ int DbAbility::DeSerialize(Parcel &parcel, DbAbility &curAbility)
         LOGE("[DbAbility][DeSerialize] buf length get failed.");
         return -E_LENGTH_ERROR;
     }
-    std::vector<bool> targetBuff(ABILITYBITS.back().first + ABILITYBITS.back().second);
+    std::vector<bool> targetBuff(SyncConfig::ABILITYBITS.back().first + SyncConfig::ABILITYBITS.back().second);
     uint32_t buffOffset = 0;
     uint32_t innerBuffOffset = 0;
     for (uint32_t pos = 0; pos < targetBuff.size() && pos < SERIALIZE_BIT_SIZE * dstBuf.size(); pos++) {

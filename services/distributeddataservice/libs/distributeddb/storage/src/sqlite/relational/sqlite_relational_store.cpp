@@ -377,7 +377,7 @@ void SQLiteRelationalStore::RegisterObserverAction(const RelationalObserverActio
     storageEngine_->RegisterObserverAction(action);
 }
 
-int SQLiteRelationalStore::StopLifeCycleTimer() const
+int SQLiteRelationalStore::StopLifeCycleTimer()
 {
     auto runtimeCxt = RuntimeContext::GetInstance();
     if (runtimeCxt == nullptr) {
@@ -391,7 +391,7 @@ int SQLiteRelationalStore::StopLifeCycleTimer() const
     return E_OK;
 }
 
-int SQLiteRelationalStore::StartLifeCycleTimer(const DatabaseLifeCycleNotifier &notifier) const
+int SQLiteRelationalStore::StartLifeCycleTimer(const DatabaseLifeCycleNotifier &notifier)
 {
     auto runtimeCxt = RuntimeContext::GetInstance();
     if (runtimeCxt == nullptr) {
@@ -458,7 +458,7 @@ int SQLiteRelationalStore::RegisterLifeCycleCallback(const DatabaseLifeCycleNoti
     return errCode;
 }
 
-void SQLiteRelationalStore::HeartBeat() const
+void SQLiteRelationalStore::HeartBeat()
 {
     std::lock_guard<std::mutex> lock(lifeCycleMutex_);
     int errCode = ResetLifeCycleTimer();
@@ -467,7 +467,7 @@ void SQLiteRelationalStore::HeartBeat() const
     }
 }
 
-int SQLiteRelationalStore::ResetLifeCycleTimer() const
+int SQLiteRelationalStore::ResetLifeCycleTimer()
 {
     if (lifeTimerId_ == 0) {
         return E_OK;

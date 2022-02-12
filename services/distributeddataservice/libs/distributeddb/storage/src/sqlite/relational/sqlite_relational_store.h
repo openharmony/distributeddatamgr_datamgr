@@ -75,10 +75,10 @@ private:
 
     int CleanDistributedDeviceTable();
 
-    int StopLifeCycleTimer() const;
-    int StartLifeCycleTimer(const DatabaseLifeCycleNotifier &notifier) const;
-    void HeartBeat() const;
-    int ResetLifeCycleTimer() const;
+    int StopLifeCycleTimer();
+    int StartLifeCycleTimer(const DatabaseLifeCycleNotifier &notifier);
+    void HeartBeat();
+    int ResetLifeCycleTimer();
 
     // use for sync Interactive
     std::unique_ptr<SyncAbleEngine> syncAbleEngine_ = nullptr; // For storage operate sync function
@@ -100,8 +100,8 @@ private:
 
     // lifeCycle
     mutable std::mutex lifeCycleMutex_;
-    mutable DatabaseLifeCycleNotifier lifeCycleNotifier_;
-    mutable TimerId lifeTimerId_;
+    DatabaseLifeCycleNotifier lifeCycleNotifier_;
+    TimerId lifeTimerId_;
 };
 }  // namespace DistributedDB
 #endif

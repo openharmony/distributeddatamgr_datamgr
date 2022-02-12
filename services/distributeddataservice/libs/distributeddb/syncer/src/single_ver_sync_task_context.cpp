@@ -407,7 +407,7 @@ bool SingleVerSyncTaskContext::IsQuerySync() const
 std::set<CompressAlgorithm> SingleVerSyncTaskContext::GetRemoteCompressAlgo() const
 {
     std::set<CompressAlgorithm> compressAlgoSet;
-    for (const auto &algo : COMPRESSALGOMAP) {
+    for (const auto &algo : SyncConfig::COMPRESSALGOMAP) {
         if (remoteDbAbility_.GetAbilityItem(algo.second) == SUPPORT_MARK) {
             compressAlgoSet.insert(static_cast<CompressAlgorithm>(algo.first));
         }

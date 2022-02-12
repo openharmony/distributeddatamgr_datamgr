@@ -1004,7 +1004,7 @@ void AbilitySync::SetAbilityAckSyncOpinionInfo(AbilitySyncAckPacket &ackPacket, 
 int AbilitySync::GetDbAbilityInfo(DbAbility &dbAbility) const
 {
     int errCode = E_OK;
-    for (const auto &item : ABILITYBITS) {
+    for (const auto &item : SyncConfig::ABILITYBITS) {
         errCode = dbAbility.SetAbilityItem(item, SUPPORT_MARK);
         if (errCode != E_OK) {
             return errCode;
