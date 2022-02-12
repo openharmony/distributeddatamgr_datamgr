@@ -65,6 +65,7 @@ DataQuery::DataQuery()
 DataQuery& DataQuery::Reset()
 {
     str_ = "";
+    inkeysFlag_ = false;
     return *this;
 }
 
@@ -544,6 +545,11 @@ DataQuery& DataQuery::InKeys(const std::vector<std::string> &keys)
         ZLOGE("Invalid number param");
         return *this;
     }
+    if (inkeysFlag_) {
+        ZLOGE("cannot set inkeys more than once");
+        return *this;
+    }
+    inkeysFlag_ = true;
     str_.append(SPACE);
     str_.append(IN_KEYS);
     str_.append(SPACE);

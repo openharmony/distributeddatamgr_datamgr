@@ -72,6 +72,7 @@ ohos_shared_library("distributeddata_inner") {
     "../../../frameworks/innerkitsimpl/distributeddatafwk/src/kvstore_snapshot_client.cpp",
     "../../../frameworks/innerkitsimpl/distributeddatafwk/src/kvstore_sync_callback_client.cpp",
     "../../../frameworks/innerkitsimpl/distributeddatafwk/src/single_kvstore_client.cpp",
+    "../../../frameworks/innerkitsimpl/distributeddatafwk/src/sync_observer.cpp",
     "include/types.h",
   ]
 

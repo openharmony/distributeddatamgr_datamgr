@@ -28,7 +28,7 @@ namespace DistributedKv {
 class IKvStoreSyncCallback : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.DistributedKv.IKvStoreSyncCallback");
-    virtual void SyncCompleted(const std::map<std::string, Status> &results, const std::string &label) = 0;
+    virtual void SyncCompleted(const std::map<std::string, Status> &results, uint64_t sequenceId) = 0;
 };
 
 class KvStoreSyncCallbackStub : public IRemoteStub<IKvStoreSyncCallback> {
@@ -41,7 +41,7 @@ class KvStoreSyncCallbackProxy : public IRemoteProxy<IKvStoreSyncCallback> {
 public:
     explicit KvStoreSyncCallbackProxy(const sptr<IRemoteObject> &impl);
     ~KvStoreSyncCallbackProxy() = default;
-    void SyncCompleted(const std::map<std::string, Status> &results, const std::string &label) override;
+    void SyncCompleted(const std::map<std::string, Status> &results, uint64_t sequenceId) override;
 private:
     static inline BrokerDelegator<KvStoreSyncCallbackProxy> delegator_;
 };

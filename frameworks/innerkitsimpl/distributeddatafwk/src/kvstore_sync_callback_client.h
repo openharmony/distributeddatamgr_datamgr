@@ -17,6 +17,7 @@
 #define KVSTORE_SYNC_CALLBACK_CLIENT_H
 
 #include <mutex>
+#include "concurrent_map.h"
 #include "ikvstore_sync_callback.h"
 #include "kvstore_sync_callback.h"
 
@@ -25,26 +26,17 @@ namespace DistributedKv {
 
 class KvStoreSyncCallbackClient : public KvStoreSyncCallbackStub {
 public:
+    KvStoreSyncCallbackClient() = default;
     virtual ~KvStoreSyncCallbackClient();
 
-    void SyncCompleted(const std::map<std::string, Status> &results, const std::string &syncLabel) override;
+    void SyncCompleted(const std::map<std::string, Status> &results, uint64_t sequenceId) override;
 
-    void AddKvStoreSyncCallback(const std::shared_ptr<KvStoreSyncCallback> kvStoreSyncCallback,
-                                const std::string &syncLabel);
+    void AddSyncCallback(const std::shared_ptr<KvStoreSyncCallback> SyncCallback,
+                         uint64_t sequenceId);
 
-    void DeleteCommonKvStoreSyncCallback(const std::string &syncLabel);
-
-    std::string GetCommonSyncCallbackLabel();
-
-    static KvStoreSyncCallbackClient& GetInstance()
-    {
-        static KvStoreSyncCallbackClient pInstance_;
-        return pInstance_;
-    }
+    void DeleteSyncCallback(uint64_t sequenceId);
 private:
-    KvStoreSyncCallbackClient() = default;
-    static std::map<std::string, std::shared_ptr<KvStoreSyncCallback>> kvStoreSyncCallbackInfo_;
-    static std::mutex syncCallbackMutex_;
+    std::map<uint64_t, std::shared_ptr<KvStoreSyncCallback>> SyncCallbackInfo_;
 };
 }  // namespace DistributedKv
 }  // namespace OHOS

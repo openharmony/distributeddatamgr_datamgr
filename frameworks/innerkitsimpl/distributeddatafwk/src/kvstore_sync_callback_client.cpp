@@ -15,46 +15,35 @@
 
 #define LOG_TAG "KvStoreSyncCallbackClient"
 
+#include <atomic>
 #include "log_print.h"
 #include "kvstore_sync_callback_client.h"
 
 namespace OHOS {
 namespace DistributedKv {
-//sptr<KvStoreSyncCallbackClient> KvStoreSyncCallbackClient::pInstance_ = new KvStoreSyncCallbackClient();
-std::mutex KvStoreSyncCallbackClient::syncCallbackMutex_;
-std::map<std::string, std::shared_ptr<KvStoreSyncCallback>> KvStoreSyncCallbackClient::kvStoreSyncCallbackInfo_;
-
 KvStoreSyncCallbackClient::~KvStoreSyncCallbackClient() = default;
-
-void KvStoreSyncCallbackClient::SyncCompleted(const std::map<std::string, Status> &results, const std::string &syncLabel)
+void KvStoreSyncCallbackClient::SyncCompleted(const std::map<std::string, Status> &results, uint64_t sequenceId)
 {
-    std::lock_guard<std::mutex> lg(syncCallbackMutex_);
-    if (kvStoreSyncCallbackInfo_.find(syncLabel) != kvStoreSyncCallbackInfo_.end()) {
-        ZLOGI("label = %{public}s", syncLabel.c_str());
-        kvStoreSyncCallbackInfo_[syncLabel]->SyncCompleted(results);
+    if (SyncCallbackInfo_.find(sequenceId) != SyncCallbackInfo_.end()) {
+        ZLOGI("label = %{public}llu", sequenceId);
+        SyncCallbackInfo_[sequenceId]->SyncCompleted(results);
+        DeleteSyncCallback(sequenceId);
     }
 }
 
-void KvStoreSyncCallbackClient::AddKvStoreSyncCallback(const std::shared_ptr<KvStoreSyncCallback> kvStoreSyncCallback,
-                                                       const std::string &syncLabel)
+void KvStoreSyncCallbackClient::AddSyncCallback(const std::shared_ptr<KvStoreSyncCallback> SyncCallback,
+                                                uint64_t sequenceId)
 {
-    std::lock_guard<std::mutex> lg(syncCallbackMutex_);
-    if (kvStoreSyncCallbackInfo_.find(syncLabel) == kvStoreSyncCallbackInfo_.end()) {
-        kvStoreSyncCallbackInfo_.insert( {syncLabel, kvStoreSyncCallback} );
+    if (SyncCallbackInfo_.find(sequenceId) == SyncCallbackInfo_.end()) {
+        SyncCallbackInfo_.insert( {sequenceId, SyncCallback} );
     }
 }
 
-void KvStoreSyncCallbackClient::DeleteCommonKvStoreSyncCallback(const std::string &syncLabel)
+void KvStoreSyncCallbackClient::DeleteSyncCallback(uint64_t sequenceId)
 {
-    std::lock_guard<std::mutex> lg(syncCallbackMutex_);
-    if (kvStoreSyncCallbackInfo_.find(syncLabel) != kvStoreSyncCallbackInfo_.end()) {
-        kvStoreSyncCallbackInfo_.erase(syncLabel);
+    if (SyncCallbackInfo_.find(sequenceId) != SyncCallbackInfo_.end()) {
+        SyncCallbackInfo_.erase(sequenceId);
     }
-}
-
-std::string KvStoreSyncCallbackClient::GetCommonSyncCallbackLabel()
-{
-    return CommonSyncCallbackLabel;
 }
 }  // namespace DistributedKv
 }  // namespace OHOS

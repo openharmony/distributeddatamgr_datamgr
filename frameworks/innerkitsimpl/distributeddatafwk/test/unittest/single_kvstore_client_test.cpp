@@ -1084,7 +1084,7 @@ HWTEST_F(SingleKvStoreClientTest, SubscribeWithQuery001, TestSize.Level1)
     std::vector<std::string> deviceIds = {"invalid_device_id1", "invalid_device_id2"};
     DataQuery dataQuery;
     dataQuery.KeyPrefix("name");
-    auto syncStatus = singleKvStorePtr->SubscribeWithQuery(deviceIds, dataQuery);
+    auto syncStatus = singleKvStorePtr->Subscribe(deviceIds, dataQuery);
     EXPECT_NE(syncStatus, Status::SUCCESS) << "sync device should not return success";
 }
 
@@ -1101,7 +1101,7 @@ HWTEST_F(SingleKvStoreClientTest, UnSubscribeWithQuery001, TestSize.Level1)
     std::vector<std::string> deviceIds = {"invalid_device_id1", "invalid_device_id2"};
     DataQuery dataQuery;
     dataQuery.KeyPrefix("name");
-    auto unSubscribeStatus = singleKvStorePtr->UnSubscribeWithQuery(deviceIds, dataQuery);
+    auto unSubscribeStatus = singleKvStorePtr->UnSubscribe(deviceIds, dataQuery);
     EXPECT_NE(unSubscribeStatus, Status::SUCCESS) << "sync device should not return success";
 }
 

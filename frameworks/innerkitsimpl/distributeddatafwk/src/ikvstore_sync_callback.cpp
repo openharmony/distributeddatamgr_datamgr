@@ -34,7 +34,7 @@ KvStoreSyncCallbackProxy::KvStoreSyncCallbackProxy(const sptr<IRemoteObject> &im
     : IRemoteProxy<IKvStoreSyncCallback>(impl)
 {}
 
-void KvStoreSyncCallbackProxy::SyncCompleted(const std::map<std::string, Status> &results, const std::string &label)
+void KvStoreSyncCallbackProxy::SyncCompleted(const std::map<std::string, Status> &results, uint64_t sequenceId)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -53,7 +53,7 @@ void KvStoreSyncCallbackProxy::SyncCompleted(const std::map<std::string, Status>
             return;
         }
     }
-    if (!data.WriteString(label)) {
+    if (!data.WriteUint64(sequenceId)) {
         ZLOGW("write label error.");
         return;
     }
@@ -85,12 +85,8 @@ int32_t KvStoreSyncCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel &d
                 results.insert(std::pair<std::string, Status>(data.ReadString(),
                     static_cast<Status>(data.ReadInt32())));
             }
-            const std::string &label = data.ReadString();
-            if (label.empty()) {
-                ZLOGE("get label error");
-                return -1;
-            }
-            SyncCompleted(results, label);
+            uint64_t sequenceId = data.ReadUint64();
+            SyncCompleted(results, sequenceId);
             return 0;
         }
         default:
