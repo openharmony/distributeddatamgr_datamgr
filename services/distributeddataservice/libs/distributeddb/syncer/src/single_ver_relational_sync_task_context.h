@@ -33,13 +33,15 @@ public:
 
     void SetRelationalSyncStrategy(RelationalSyncStrategy strategy);
     SyncStrategy GetSyncStrategy(QuerySyncObject &querySyncObject) const override;
+
+    void SetIsNeedResetAbilitySync(bool isNeedReset);
 protected:
     ~SingleVerRelationalSyncTaskContext() override;
     void CopyTargetData(const ISyncTarget *target, const TaskParam &taskParam) override;
 
     std::string querySyncId_;
     std::string deleteSyncId_;
-    
+
     // for relational syncStrategy
     RelationalSyncStrategy relationalSyncStrategy_;
 };

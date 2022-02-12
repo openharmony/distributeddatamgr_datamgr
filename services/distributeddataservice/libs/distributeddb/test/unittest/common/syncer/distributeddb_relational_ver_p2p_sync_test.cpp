@@ -756,6 +756,12 @@ HWTEST_F(DistributedDBRelationalVerP2PSyncTest, NormalSync005, TestSize.Level0)
     g_deviceB->GenericVirtualDevice::Sync(SYNC_MODE_PUSH_ONLY, query, true);
 
     CheckData(dataMap);
+
+    g_rdbDelegatePtr->RemoveDeviceData(DEVICE_B);
+
+    g_deviceB->GenericVirtualDevice::Sync(SYNC_MODE_PUSH_ONLY, query, true);
+
+    CheckData(dataMap);
 }
 
 /**

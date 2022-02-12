@@ -61,5 +61,13 @@ SyncStrategy SingleVerRelationalSyncTaskContext::GetSyncStrategy(QuerySyncObject
 {
     return relationalSyncStrategy_.GetTableStrategy(querySyncObject.GetRelationTableName());
 }
+
+void SingleVerRelationalSyncTaskContext::SetIsNeedResetAbilitySync(bool isNeedReset)
+{
+    isNeedResetAbilitySync_ = isNeedReset;
+    if (isNeedResetAbilitySync_) {
+        SetIsSchemaSync(false);
+    }
+}
 }
 #endif
