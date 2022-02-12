@@ -305,8 +305,9 @@ Status SingleKvStoreClient::RegisterSyncCallback(std::shared_ptr<KvStoreSyncCall
         return Status::INVALID_ARGUMENT;
     }
     // remove storeId after remove SubscribeKvStore function in manager. currently reserve for convenience.
-    sptr<KvStoreSyncCallbackClient> ipcCallback = GetInstance();
+    sptr<KvStoreSyncCallbackClient> ipcCallback = KvStoreSyncCallbackClient::GetInstance();
     const std::string &label = ipcCallback->GetCommonSyncCallbackLabel();
+    ZLOGI("label = %{public}s", label.c_str());
     ipcCallback->AddKvStoreSyncCallback(callback, label);
     return kvStoreProxy_->RegisterSyncCallback(ipcCallback);
 }
@@ -314,7 +315,7 @@ Status SingleKvStoreClient::RegisterSyncCallback(std::shared_ptr<KvStoreSyncCall
 Status SingleKvStoreClient::UnRegisterSyncCallback()
 {
     ZLOGI("begin.");
-    sptr<KvStoreSyncCallbackClient> ipcCallback = GetInstance();
+    sptr<KvStoreSyncCallbackClient> ipcCallback = KvStoreSyncCallbackClient::GetInstance();
     ipcCallback->DeleteCommonKvStoreSyncCallback();
     return kvStoreProxy_->UnRegisterSyncCallback();
 }
@@ -459,18 +460,21 @@ Status SingleKvStoreClient::SyncWithCondition(const std::vector<std::string> &de
         ZLOGW("deviceIds is empty.");
         return Status::INVALID_ARGUMENT;
     }
-    sptr<KvStoreSyncCallbackClient> ipcCallback = new KvStoreSyncCallbackClient();
+    sptr<KvStoreSyncCallbackClient> ipcCallback = KvStoreSyncCallbackClient::GetInstance();
+    std::string label;
     if (syncCallback != nullptr) {
-        std::string label = query.ToString();
+        label = query.ToString();
         ZLOGI("label = %{public}s", label.c_str());
         ipcCallback->AddKvStoreSyncCallback(syncCallback, label);
+    } else {
+        label = ipcCallback->GetCommonSyncCallbackLabel();
     }
     auto status = kvStoreProxy_->RegisterSyncCallback(ipcCallback);
     if (status != Status::SUCCESS) {
         ZLOGE("RegisterSyncCallback is not success.");
         return status;
     }
-    return kvStoreProxy_->Sync(deviceIds, mode, query.ToString());
+    return kvStoreProxy_->Sync(deviceIds, mode, query.ToString(), label);
 }
 
 Status SingleKvStoreClient::SubscribeWithQuery(const std::vector<std::string>& deviceIds, const DataQuery& query)

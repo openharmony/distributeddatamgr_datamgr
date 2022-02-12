@@ -20,9 +20,9 @@
 
 namespace OHOS {
 namespace DistributedKv {
-std::map<std::string, std::shared_ptr<KvStoreSyncCallback>> KvStoreSyncCallbackClient::kvStoreSyncCallbackInfo_;
 sptr<KvStoreSyncCallbackClient> KvStoreSyncCallbackClient::pInstance_ = new KvStoreSyncCallbackClient();
-const std::string KvStoreSyncCallbackClient::CommonSyncCallbackLabel("CommonSyncCallbackLabel");
+std::map<std::string, std::shared_ptr<KvStoreSyncCallback>> KvStoreSyncCallbackClient::kvStoreSyncCallbackInfo_;
+//const std::string KvStoreSyncCallbackClient::CommonSyncCallbackLabel("CommonSyncCallbackLabel");
 
 KvStoreSyncCallbackClient::KvStoreSyncCallbackClient() = default;
 

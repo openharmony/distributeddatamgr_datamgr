@@ -488,7 +488,8 @@ Status SingleKvStoreProxy::Sync(const std::vector<std::string> &deviceIds, SyncM
     return static_cast<Status>(reply.ReadInt32());
 }
 
-Status SingleKvStoreProxy::Sync(const std::vector<std::string> &deviceIds, SyncMode mode, const std::string &query)
+Status SingleKvStoreProxy::Sync(const std::vector<std::string> &deviceIds, SyncMode mode,
+                                const std::string &query, const std::string &syncLabel)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(SingleKvStoreProxy::GetDescriptor())) {
@@ -503,6 +504,10 @@ Status SingleKvStoreProxy::Sync(const std::vector<std::string> &deviceIds, SyncM
     }
     if (!data.WriteString(query)) {
         ZLOGE("write query fail");
+        return Status::IPC_ERROR;
+    }
+    if (!data.WriteString(syncLabel)) {
+        ZLOGE("write label fail");
         return Status::IPC_ERROR;
     }
     MessageParcel reply;
@@ -1594,7 +1599,8 @@ int SingleKvStoreStub::OnSyncRequest(MessageParcel &data, MessageParcel &reply)
     }
     auto mode = static_cast<SyncMode>(data.ReadInt32());
     auto query = data.ReadString();
-    Status status = Sync(devices, mode, query);
+    auto synclabel = data.ReadString();
+    Status status = Sync(devices, mode, query, synclabel);
     if (!reply.WriteInt32(static_cast<int>(status))) {
         ZLOGE("write sync status fail");
         return -1;

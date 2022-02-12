@@ -52,7 +52,8 @@ public:
     Status GetCountWithQuery(const std::string &query, int &result) override;
     Status CloseResultSet(sptr<IKvStoreResultSet> resultSet) override;
     Status Sync(const std::vector<std::string> &deviceIds, SyncMode mode, uint32_t allowedDelayMs) override;
-    Status Sync(const std::vector<std::string> &deviceIds, SyncMode mode, const std::string &query) override;
+    Status Sync(const std::vector<std::string> &deviceIds, SyncMode mode,
+                const std::string &query, const std::string &syncLabel) override;
     Status RemoveDeviceData(const std::string &device) override;
     Status RegisterSyncCallback(sptr<IKvStoreSyncCallback> callback) override;
     Status UnRegisterSyncCallback() override;
@@ -86,13 +87,13 @@ private:
     uint32_t GetSyncDelayTime(uint32_t allowedDelayMs) const;
     Status AddSync(const std::vector<std::string> &deviceIds, SyncMode mode, uint32_t delayMs);
     Status AddSync(const std::vector<std::string> &deviceIds, SyncMode mode,
-                   const std::string &query, uint32_t delayMs);
+                   const std::string &query, uint32_t delayMs, const std::string &syncLabel);
     Status RemoveAllSyncOperation();
     void DoSyncComplete(const std::map<std::string, DistributedDB::DBStatus> &devicesSyncResult,
-                        const std::string &query);
+                        const std::string &query, const std::string &syncLabel);
     Status DoSync(const std::vector<std::string> &deviceIds, SyncMode mode, const KvStoreSyncManager::SyncEnd &syncEnd);
     Status DoQuerySync(const std::vector<std::string> &deviceIds, SyncMode mode, const std::string &query,
-                       const KvStoreSyncManager::SyncEnd &syncEnd);
+                       const KvStoreSyncManager::SyncEnd &syncEnd, const std::string &syncLabel);
     Status AddAutoSync();
     Status DoAutoSync(const KvStoreSyncManager::SyncEnd &);
     Status RebuildKvStoreObserver(DistributedDB::KvStoreNbDelegate *kvStoreNbDelegate);

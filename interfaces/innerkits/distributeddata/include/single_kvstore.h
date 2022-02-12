@@ -185,7 +185,7 @@ public:
      *     Status of this Sync operation.
      */
     KVSTORE_API virtual Status SyncWithCondition(const std::vector<std::string> &deviceIds, SyncMode mode,
-            const DataQuery &query, std::shared_ptr<KvStoreSyncCallback> syncCallback) = 0;
+            const DataQuery &query, std::shared_ptr<KvStoreSyncCallback> syncCallback = nullptr) = 0;
 
     /*
      * Subscribe store with other devices consistently Synchronize the data which is satisfied with the condition.
