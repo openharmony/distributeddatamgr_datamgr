@@ -34,7 +34,7 @@ public:
     void SetRelationalSyncStrategy(RelationalSyncStrategy strategy);
     SyncStrategy GetSyncStrategy(QuerySyncObject &querySyncObject) const override;
 
-    void SetIsNeedResetAbilitySync(bool isNeedReset);
+    void SetIsNeedResetAbilitySync(bool isNeedReset) override;
 protected:
     ~SingleVerRelationalSyncTaskContext() override;
     void CopyTargetData(const ISyncTarget *target, const TaskParam &taskParam) override;
@@ -43,6 +43,7 @@ protected:
     std::string deleteSyncId_;
 
     // for relational syncStrategy
+    mutable std::mutex syncStrategyMutex_;
     RelationalSyncStrategy relationalSyncStrategy_;
 };
 }
