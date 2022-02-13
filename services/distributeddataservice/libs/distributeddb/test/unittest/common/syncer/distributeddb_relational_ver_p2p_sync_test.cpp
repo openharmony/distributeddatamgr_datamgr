@@ -291,12 +291,15 @@ namespace {
         FieldInfo columnFirst;
         columnFirst.SetFieldName("ID");
         columnFirst.SetStorageType(StorageType::STORAGE_TYPE_INTEGER);
+        columnFirst.SetColumnId(0);
         FieldInfo columnSecond;
         columnSecond.SetFieldName("NAME");
         columnSecond.SetStorageType(StorageType::STORAGE_TYPE_TEXT);
+        columnSecond.SetColumnId(1);
         FieldInfo columnThird;
         columnThird.SetFieldName("AGE");
         columnThird.SetStorageType(StorageType::STORAGE_TYPE_INTEGER);
+        columnThird.SetColumnId(2);
         fieldInfoList.push_back(columnFirst);
         fieldInfoList.push_back(columnSecond);
         fieldInfoList.push_back(columnThird);
@@ -457,9 +460,14 @@ namespace {
         GetSyncData(db, dataMap, tableName, fieldInfoList);
         sqlite3_close(db);
 
-        for (const auto &[fieldName, dataValue] : targetMap) {
-            ASSERT_TRUE(dataMap.find(fieldName) != dataMap.end());
-            EXPECT_TRUE(dataMap[fieldName] == dataValue);
+        // Attention. The get data is sorted by cid. Only check the value, do not check sort.
+        for (const auto &[fieldName, getData] : dataMap) {
+            (void)fieldName;
+            auto getdata = getData;
+            EXPECT_TRUE(std::any_of(targetMap.begin(), targetMap.end(),
+                [getdata] (const std::pair<std::string, DataValue> &target) {
+                    return getdata == target.second;
+                }));
         }
     }
 
@@ -474,12 +482,14 @@ namespace {
         g_deviceB->GetAllSyncData(tableName, targetData);
 
         ASSERT_EQ(targetData.size(), 1u);
-        for (auto &[field, value] : data) {
-            DataValue target;
-            EXPECT_EQ(targetData[0].objectData.GetDataValue(field, target), E_OK);
-            LOGD("field %s actual_val[%s] except_val[%s]", field.c_str(), target.ToString().c_str(),
-                value.ToString().c_str());
-            EXPECT_TRUE(target == value);
+        // Attention. The get data is sorted by cid. Only check the value, do not check sort.
+        for (auto iter = data.begin(); iter != data.end(); ++iter) {
+            DataValue getData;
+            EXPECT_EQ(targetData[0].objectData.GetDataValue(iter->first, getData), E_OK);
+            EXPECT_TRUE(std::any_of(data.begin(), data.end(),
+                [&getData] (const std::pair<std::string, DataValue> &target) {
+                    return getData == target.second;
+                }));
         }
     }
 

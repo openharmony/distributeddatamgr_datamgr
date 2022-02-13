@@ -184,6 +184,8 @@ public:
     static int CheckSchemaChanged(sqlite3_stmt *stmt, const TableInfo &table, int offset);
 
     static int64_t GetLastRowId(sqlite3 *db);
+    static int GetColumnCnt(sqlite3_stmt *stmt);
+    static std::string GetColumnName(sqlite3_stmt *stmt, int colId);
 
 private:
 

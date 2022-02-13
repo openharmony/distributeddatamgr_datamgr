@@ -58,7 +58,6 @@ struct OptTableDataWithLog {
 
 class DataTransformer {
 public:
-
     static int TransformTableData(const TableDataWithLog &tableDataWithLog,
         const std::vector<FieldInfo> &fieldInfoList, std::vector<DataItem> &dataItems);
     static int TransformDataItem(const std::vector<DataItem> &dataItems, const std::vector<FieldInfo> &remoteFieldInfo,

@@ -84,18 +84,26 @@ std::string FieldValue2String(const FieldValue &val, QueryValueType type)
     }
 }
 
-std::string GetSelectAndFromClauseForRDB(const std::string &tableName)
+std::string GetSelectAndFromClauseForRDB(const std::string &tableName, const std::vector<std::string> &fieldNames)
 {
-    return "SELECT b.data_key,"
+    std::string sql = "SELECT b.data_key,"
         "b.device,"
         "b.ori_device,"
         "b.timestamp as " + DBConstant::TIMESTAMP_ALIAS + ","
         "b.wtimestamp,"
         "b.flag,"
-        "b.hash_key,"
-        "a.* "
-        "FROM " + tableName + " AS a INNER JOIN " + DBConstant::RELATIONAL_PREFIX + tableName + "_log AS b "
+        "b.hash_key,";
+    if (fieldNames.empty()) {  // For query check. If column count changed, can be discovered.
+        sql += "a.*";
+    } else {
+        for (const auto &fieldName : fieldNames) {  // For query data.
+            sql += "a." + fieldName + ",";
+        }
+        sql.pop_back();
+    }
+    sql += " FROM " + tableName + " AS a INNER JOIN " + DBConstant::RELATIONAL_PREFIX + tableName + "_log AS b "
         "ON a.rowid=b.data_key ";
+    return sql;
 }
 
 std::string GetTimeRangeClauseForRDB()
@@ -887,7 +895,7 @@ int SqliteQueryHelper::GetSubscribeSql(const std::string &subscribeId, TriggerMo
     return errCode;
 }
 
-int SqliteQueryHelper::GetRelationalSyncDataFullSql(std::string &sql)
+int SqliteQueryHelper::GetRelationalSyncDataFullSql(std::string &sql, const std::vector<std::string> &fieldNames)
 {
     if (!isValid_) {
         return -E_INVALID_QUERY_FORMAT;
@@ -898,14 +906,15 @@ int SqliteQueryHelper::GetRelationalSyncDataFullSql(std::string &sql)
         return -E_NOT_SUPPORT;
     }
 
-    sql = GetSelectAndFromClauseForRDB(tableName_);
+    sql = GetSelectAndFromClauseForRDB(tableName_, fieldNames);
     sql += GetFlagClauseForRDB();
     sql += GetTimeRangeClauseForRDB();
     sql += "ORDER BY " + DBConstant::TIMESTAMP_ALIAS + " ASC;";
     return E_OK;
 }
 
-int SqliteQueryHelper::GetRelationalSyncDataQuerySql(std::string &sql, bool hasSubQuery)
+int SqliteQueryHelper::GetRelationalSyncDataQuerySql(std::string &sql, bool hasSubQuery,
+    const std::vector<std::string> &fieldNames)
 {
     if (!isValid_) {
         return -E_INVALID_QUERY_FORMAT;
@@ -916,7 +925,7 @@ int SqliteQueryHelper::GetRelationalSyncDataQuerySql(std::string &sql, bool hasS
         return -E_NOT_SUPPORT;
     }
 
-    sql = AssembleSqlForSuggestIndex(GetSelectAndFromClauseForRDB(tableName_), GetFlagClauseForRDB());
+    sql = AssembleSqlForSuggestIndex(GetSelectAndFromClauseForRDB(tableName_, fieldNames), GetFlagClauseForRDB());
     sql = hasSubQuery ? sql : (sql + GetTimeRangeClauseForRDB());
 
     querySql_.clear(); // clear local query sql format
@@ -936,10 +945,10 @@ int SqliteQueryHelper::GetRelationalSyncDataQuerySql(std::string &sql, bool hasS
 }
 
 int SqliteQueryHelper::GetRelationalFullStatement(sqlite3 *dbHandle, uint64_t beginTime, uint64_t endTime,
-    sqlite3_stmt *&statement)
+    const std::vector<std::string> &fieldNames, sqlite3_stmt *&statement)
 {
     std::string sql;
-    int errCode = GetRelationalSyncDataFullSql(sql);
+    int errCode = GetRelationalSyncDataFullSql(sql, fieldNames);
     if (errCode != E_OK) {
         LOGE("[Query] Get SQL fail!");
         return -E_INVALID_QUERY_FORMAT;
@@ -956,7 +965,7 @@ int SqliteQueryHelper::GetRelationalFullStatement(sqlite3 *dbHandle, uint64_t be
 }
 
 int SqliteQueryHelper::GetRelationalQueryStatement(sqlite3 *dbHandle, uint64_t beginTime, uint64_t endTime,
-    sqlite3_stmt *&statement)
+    const std::vector<std::string> &fieldNames, sqlite3_stmt *&statement)
 {
     bool hasSubQuery = false;
     if (hasLimit_ || hasOrderBy_) {
@@ -965,7 +974,7 @@ int SqliteQueryHelper::GetRelationalQueryStatement(sqlite3 *dbHandle, uint64_t b
         isNeedOrderbyKey_ = false; // Need order by timestamp.
     }
     std::string sql;
-    int errCode = GetRelationalSyncDataQuerySql(sql, hasSubQuery);
+    int errCode = GetRelationalSyncDataQuerySql(sql, hasSubQuery, fieldNames);
     if (errCode != E_OK) {
         LOGE("[Query] Get SQL fail!");
         return -E_INVALID_QUERY_FORMAT;

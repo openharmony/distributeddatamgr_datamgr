@@ -952,4 +952,91 @@ HWTEST_F(DistributedDBRelationalGetDataTest, MissQuery1, TestSize.Level1)
     sqlite3_close(db);
     RefObject::DecObjRef(g_store);
 }
+
+/**
+ * @tc.name: CompatibleData1
+ * @tc.desc: Check compatibility.
+ * @tc.type: FUNC
+ * @tc.require: AR000GK58H
+ * @tc.author: lidongwei
+  */
+HWTEST_F(DistributedDBRelationalGetDataTest, CompatibleData1, TestSize.Level1)
+{
+    ASSERT_EQ(g_mgr.OpenStore(g_storePath, g_storeID, RelationalStoreDelegate::Option {}, g_delegate), DBStatus::OK);
+    ASSERT_NE(g_delegate, nullptr);
+    ASSERT_EQ(g_delegate->CreateDistributedTable(g_tableName), DBStatus::OK);
+    /**
+     * @tc.steps: step1. Create distributed table "dataPlus".
+     * @tc.expected: Succeed, return OK.
+     */
+    const string tableName = g_tableName + "Plus";
+    std::string sql = "CREATE TABLE " + tableName + "(key INTEGER, value INTEGER NOT NULL, \
+        extra_field TEXT NOT NULL DEFAULT 'default_value');";
+    sqlite3 *db = nullptr;
+    ASSERT_EQ(sqlite3_open(g_storePath.c_str(), &db), SQLITE_OK);
+    ASSERT_EQ(sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr), SQLITE_OK);
+    ASSERT_EQ(g_delegate->CreateDistributedTable(tableName), DBStatus::OK);
+    /**
+     * @tc.steps: step2. Put 1 record into data and dataPlus table.
+     * @tc.expected: Succeed, return OK.
+     */
+    ASSERT_EQ(AddOrUpdateRecord(1, 101), E_OK);
+    sql = "INSERT INTO " + tableName + " VALUES(2, 102, 'f3');"; // k2v102
+    ASSERT_EQ(sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr), SQLITE_OK);
+    /**
+     * @tc.steps: step3. Get all data from "data" table.
+     * @tc.expected: Succeed and the count is right.
+     */
+    auto store = GetRelationalStore();
+    ASSERT_NE(store, nullptr);
+    ContinueToken token = nullptr;
+    QueryObject query(Query::Select(g_tableName));
+    std::vector<SingleVerKvEntry *> entries;
+    EXPECT_EQ(store->GetSyncData(query, SyncTimeRange {}, DataSizeSpecInfo {}, token, entries), E_OK);
+    EXPECT_EQ(entries.size(), 1UL);
+    /**
+     * @tc.steps: step4. Put data into "data_plus" table from deviceA.
+     * @tc.expected: Succeed, return OK.
+     */
+    query = QueryObject(Query::Select(tableName));
+    const DeviceID deviceID = "deviceA";
+    ASSERT_EQ(E_OK, SQLiteUtils::CreateSameStuTable(db, store->GetSchemaInfo().GetTable(tableName),
+        DBCommon::GetDistributedTableName(deviceID, tableName)));
+    EXPECT_EQ(const_cast<RelationalSyncAbleStorage *>(store)->PutSyncDataWithQuery(query, entries, deviceID), E_OK);
+    SingleVerKvEntry::Release(entries);
+    /**
+     * @tc.steps: step4. Get all data from "dataPlus" table.
+     * @tc.expected: Succeed and the count is right.
+     */
+    query = QueryObject(Query::Select(tableName));
+    EXPECT_EQ(store->GetSyncData(query, SyncTimeRange {}, DataSizeSpecInfo {}, token, entries), E_OK);
+    EXPECT_EQ(entries.size(), 1UL);
+    /**
+     * @tc.steps: step5. Put data into "data" table from deviceA.
+     * @tc.expected: Succeed, return OK.
+     */
+    query = QueryObject(Query::Select(g_tableName));
+    ASSERT_EQ(E_OK, SQLiteUtils::CreateSameStuTable(db, store->GetSchemaInfo().GetTable(g_tableName),
+        DBCommon::GetDistributedTableName(deviceID, g_tableName)));
+    EXPECT_EQ(const_cast<RelationalSyncAbleStorage *>(store)->PutSyncDataWithQuery(query, entries, deviceID), E_OK);
+    SingleVerKvEntry::Release(entries);
+    /**
+     * @tc.steps: step6. Check data.
+     * @tc.expected: All data in the two tables are same.
+     */
+    sql = "SELECT count(*) FROM " + g_tableName + " as a," + DBConstant::RELATIONAL_PREFIX + tableName + "_" +
+        DBCommon::TransferStringToHex(DBCommon::TransferHashString(deviceID)) + " as b " +
+        "WHERE a.key=b.key AND a.value=b.value;";
+    size_t count = 0;
+    EXPECT_EQ(GetCount(db, sql, count), E_OK);
+    EXPECT_EQ(count, 1UL);
+    sql = "SELECT count(*) FROM " + tableName + " as a," + DBConstant::RELATIONAL_PREFIX + g_tableName + "_" +
+        DBCommon::TransferStringToHex(DBCommon::TransferHashString(deviceID)) + " as b " +
+        "WHERE a.key=b.key AND a.value=b.value;";
+    count = 0;
+    EXPECT_EQ(GetCount(db, sql, count), E_OK);
+    EXPECT_EQ(count, 1UL);
+    sqlite3_close(db);
+    RefObject::DecObjRef(g_store);
+}
 #endif

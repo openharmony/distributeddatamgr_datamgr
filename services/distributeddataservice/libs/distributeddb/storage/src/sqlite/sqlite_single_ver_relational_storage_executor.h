@@ -43,7 +43,7 @@ public:
 
     // For Get sync data
     int GetSyncDataByQuery(std::vector<DataItem> &dataItems, size_t appendLength, const DataSizeSpecInfo &dataSizeInfo,
-        std::function<int(sqlite3 *, sqlite3_stmt *&, sqlite3_stmt *&, bool &)> getStmt, const std::string &baseTbl);
+        std::function<int(sqlite3 *, sqlite3_stmt *&, sqlite3_stmt *&, bool &)> getStmt, const TableInfo &tableInfo);
 
     // operation of meta data
     int GetKvData(const Key &key, Value &value) const;
@@ -84,18 +84,21 @@ private:
     int DeleteSyncDataItem(const DataItem &dataItem, sqlite3_stmt *&rmDataStmt);
 
     int SaveSyncLog(sqlite3_stmt *statement, const DataItem &dataItem, TimeStamp &maxTimestamp, int64_t rowid);
-    int PrepareForSavingData(const QueryObject &object, const std::string &deviceName, sqlite3_stmt *&statement) const;
+    int PrepareForSavingData(const QueryObject &object, sqlite3_stmt *&statement) const;
     int PrepareForSavingLog(const QueryObject &object, const std::string &deviceName, sqlite3_stmt *&statement) const;
 
     int AlterAuxTableForUpgrade(const TableInfo &oldTableInfo, const TableInfo &newTableInfo);
 
-    int SetTableInfo(const std::string &baseTbl);
     int DeleteSyncLog(const DataItem &item, sqlite3_stmt *&rmLogStmt);
     int ProcessMissQueryData(const DataItem &item, sqlite3_stmt *&rmDataStmt, sqlite3_stmt *&rmLogStmt);
     int GetMissQueryData(std::vector<DataItem> &dataItems, size_t &dataTotalSize, const Key &cursorHashKey,
         sqlite3_stmt *fullStmt, size_t appendLength, const DataSizeSpecInfo &dataSizeInfo);
 
-    TableInfo table_;
+    // When put or get sync data, must call the func first. The table name is to be operating.
+    int SetTableInfo(const std::string &tableName);
+    void SetTableInfo(const TableInfo &tableInfo);
+    std::string baseTblName_;
+    TableInfo table_;  // Always operating table, user table when get, device table when put.
 };
 } // namespace DistributedDB
 #endif

@@ -91,7 +91,11 @@ int SQLiteSingleVerRelationalContinueToken::GetQuerySyncStatement(sqlite3 *db, s
     if (errCode != E_OK) {
         return errCode;
     }
-    return helper.GetRelationalQueryStatement(db, timeRange_.beginTime, timeRange_.endTime, stmt);
+    if (fieldNames_.empty()) {
+        LOGE("field names cannot be empty.");
+        return -E_INTERNAL_ERROR;
+    }
+    return helper.GetRelationalQueryStatement(db, timeRange_.beginTime, timeRange_.endTime, fieldNames_, stmt);
 }
 
 int SQLiteSingleVerRelationalContinueToken::GetFullStatement(sqlite3 *db, sqlite3_stmt *&stmt)
@@ -101,7 +105,7 @@ int SQLiteSingleVerRelationalContinueToken::GetFullStatement(sqlite3 *db, sqlite
     if (errCode != E_OK) {
         return errCode;
     }
-    return helper.GetRelationalFullStatement(db, timeRange_.beginTime, timeRange_.endTime, stmt);
+    return helper.GetRelationalFullStatement(db, timeRange_.beginTime, timeRange_.endTime, fieldNames_, stmt);
 }
 
 int SQLiteSingleVerRelationalContinueToken::GetDeletedDataStmt(sqlite3 *db, sqlite3_stmt *&stmt) const
@@ -139,6 +143,11 @@ std::string SQLiteSingleVerRelationalContinueToken::GetDeletedDataSQL() const
     std::string tableName = DBConstant::RELATIONAL_PREFIX + tableName_ + "_log";
     return "SELECT * FROM " + tableName +
         " WHERE timestamp >= ? AND timestamp < ? AND (flag&0x03 = 0x03) ORDER BY timestamp ASC;";
+}
+
+void SQLiteSingleVerRelationalContinueToken::SetFieldNames(const std::vector<std::string> &fieldNames)
+{
+    fieldNames_ = fieldNames;
 }
 }  // namespace DistributedDB
 #endif

@@ -35,6 +35,7 @@ public:
     void FinishGetData();
     bool IsGetAllDataFinished() const;
     const QueryObject &GetQuery() const;
+    void SetFieldNames(const std::vector<std::string> &fieldNames);
 
 private:
     std::string GetDeletedDataSQL() const;
@@ -49,6 +50,7 @@ private:
     QueryObject queryObj_;
     const std::string &tableName_;
     SyncTimeRange timeRange_;
+    std::vector<std::string> fieldNames_;
     unsigned int magicEnd_ = MAGIC_END;
 };
 }  // namespace DistributedDB

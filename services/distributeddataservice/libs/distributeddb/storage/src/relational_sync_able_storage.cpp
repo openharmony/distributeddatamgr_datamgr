@@ -291,7 +291,7 @@ int RelationalSyncAbleStorage::GetSyncDataForQuerySync(std::vector<DataItem> &da
             dataSizeInfo,
             std::bind(&SQLiteSingleVerRelationalContinueToken::GetStatement, *token,
                 std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
-            token->GetQuery().GetTableName());
+            storageEngine_->GetSchemaRef().GetTable(token->GetQuery().GetTableName()));
         if (errCode == -E_FINISHED) {
             token->FinishGetData();
             errCode = token->IsGetAllDataFinished() ? E_OK : -E_UNFINISHED;
@@ -335,6 +335,7 @@ int RelationalSyncAbleStorage::GetSyncDataNext(std::vector<SingleVerKvEntry *> &
     if (!token->CheckValid()) {
         return -E_INVALID_ARGS;
     }
+    token->SetFieldNames(storageEngine_->GetSchemaRef().GetTable(token->GetQuery().GetTableName()).GetFieldNames());
 
     std::vector<DataItem> dataItems;
     int errCode = GetSyncDataForQuerySync(dataItems, token, dataSizeInfo);
