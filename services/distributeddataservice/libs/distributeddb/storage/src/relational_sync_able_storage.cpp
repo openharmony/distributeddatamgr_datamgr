@@ -389,7 +389,8 @@ int RelationalSyncAbleStorage::SaveSyncDataItems(const QueryObject &object, std:
     query.SetSchema(storageEngine_->GetSchemaRef());
 
     TimeStamp maxTimestamp = 0;
-    errCode = handle->SaveSyncItems(query, dataItems, deviceName, maxTimestamp);
+    errCode = handle->SaveSyncItems(query, dataItems, deviceName,
+        storageEngine_->GetSchemaRef().GetTable(object.GetTableName()), maxTimestamp);
     if (errCode == E_OK) {
         (void)SetMaxTimeStamp(maxTimestamp);
         // dataItems size > 0 now because already check befor

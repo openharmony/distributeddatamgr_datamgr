@@ -24,7 +24,7 @@
 
 namespace DistributedDB {
 using RowData = std::vector<DataValue>;
-using OptRowData = std::vector<std::optional<DataValue>>;
+using OptRowData = std::vector<DataValue>;
 
 struct LogInfo {
     int dataKey = -1;

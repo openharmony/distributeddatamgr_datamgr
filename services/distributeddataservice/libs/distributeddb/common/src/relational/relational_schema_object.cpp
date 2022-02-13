@@ -165,7 +165,7 @@ const std::map<std::string, FieldInfo> &TableInfo::GetFields() const
 
 const std::vector<std::string> &TableInfo::GetFieldNames() const
 {
-    if (!fieldNames_.empty()) {
+    if (!fieldNames_.empty() && fieldNames_.size() == fields_.size()) {
         return fieldNames_;
     }
     fieldNames_.resize(fields_.size());
@@ -174,6 +174,11 @@ const std::vector<std::string> &TableInfo::GetFieldNames() const
         return fieldNames_;
     }
     for (const auto &[fieldName, fieldInfo] : fields_) {
+        if (fieldInfo.GetColumnId() >= fieldNames_.size()) {
+            LOGE("Cid is over field size.");
+            fieldNames_.clear();
+            return fieldNames_;
+        }
         fieldNames_.at(fieldInfo.GetColumnId()) = fieldName;
     }
     return fieldNames_;

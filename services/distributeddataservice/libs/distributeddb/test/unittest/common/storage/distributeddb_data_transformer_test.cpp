@@ -127,10 +127,7 @@ bool Equal(const RowDataWithLog &origin, const OptRowDataWithLog &target)
     for (uint32_t i = 0; i < origin.rowData.size(); i++) {
         const auto &originData = origin.rowData[i];
         const auto &targetData = target.optionalData[i];
-        if (!targetData.has_value()) {
-            return false;
-        }
-        if (originData != targetData.value()) {
+        if (originData != targetData) {
             LOGD("VALUE NOT EQUAL!");
             return false;
         }

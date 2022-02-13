@@ -330,7 +330,6 @@ int DataTransformer::DeSerializeValue(const Value &value, OptRowData &optionalDa
     if (fieldCount > DBConstant::MAX_COLUMN || parcel.IsError()) {
         return -E_PARSE_FAIL;
     }
-    std::vector<DataValue> valueList;
     for (size_t i = 0; i < fieldCount; ++i) {
         DataValue dataValue;
         uint32_t type = 0;
@@ -344,8 +343,7 @@ int DataTransformer::DeSerializeValue(const Value &value, OptRowData &optionalDa
             LOGD("[DataTransformer][DeSerializeValue] deSerialize failed");
             return errCode;
         }
-        valueList.push_back(std::move(dataValue));
-        optionalData.push_back(valueList[i]);
+        optionalData.push_back(std::move(dataValue));
     }
     return E_OK;
 }

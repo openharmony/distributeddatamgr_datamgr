@@ -323,16 +323,6 @@ int SQLiteSingleVerRelationalStorageExecutor::Rollback()
     return errCode;
 }
 
-int SQLiteSingleVerRelationalStorageExecutor::SetTableInfo(const std::string &tableName)
-{
-    table_ = {};
-    int errCode = SQLiteUtils::AnalysisSchema(dbHandle_, tableName, table_);
-    if (errCode != E_OK) {
-        LOGE("[CreateDistributedTable] analysis table schema failed");
-    }
-    return errCode;
-}
-
 void SQLiteSingleVerRelationalStorageExecutor::SetTableInfo(const TableInfo &tableInfo)
 {
     table_ = tableInfo;
@@ -389,10 +379,6 @@ static int GetDataValueByType(sqlite3_stmt *statement, DataValue &value, int cid
 
 static int BindDataValueByType(sqlite3_stmt *statement, const std::optional<DataValue> &data, int cid)
 {
-    if (!data.has_value()) {  // For the column that added after enable distributed.
-        return E_OK;
-    }
-
     int errCode = E_OK;
     StorageType type = data.value().GetType();
     switch (type) {
@@ -779,7 +765,8 @@ int SQLiteSingleVerRelationalStorageExecutor::SaveSyncDataItem(const DataItem &d
             data.optionalData.size(), table_.GetFields().size());
     }
 
-    for (size_t cid = 0; cid < std::min(data.optionalData.size(), table_.GetFields().size()); ++cid) {
+    auto putSize = std::min(data.optionalData.size(), table_.GetFields().size());
+    for (size_t cid = 0; cid < putSize; ++cid) {
         const auto &fieldData = data.optionalData[cid];
         errCode = BindDataValueByType(saveDataStmt, fieldData, cid + 1);
         if (errCode != E_OK) {
@@ -898,17 +885,16 @@ int SQLiteSingleVerRelationalStorageExecutor::SaveSyncDataItems(const QueryObjec
 }
 
 int SQLiteSingleVerRelationalStorageExecutor::SaveSyncItems(const QueryObject &object, std::vector<DataItem> &dataItems,
-    const std::string &deviceName, TimeStamp &timeStamp)
+    const std::string &deviceName, const TableInfo &table, TimeStamp &timeStamp)
 {
     int errCode = StartTransaction(TransactType::IMMEDIATE);
     if (errCode != E_OK) {
         return errCode;
     }
     baseTblName_ = object.GetTableName();
+    SetTableInfo(table);
     const std::string tableName = DBCommon::GetDistributedTableName(deviceName, baseTblName_);
-    if (!table_.IsValid() || table_.GetTableName() != tableName) {
-        SetTableInfo(tableName);
-    }
+    table_.SetTableName(tableName);
     errCode = SaveSyncDataItems(object, dataItems, deviceName, timeStamp);
     if (errCode == E_OK) {
         errCode = Commit();

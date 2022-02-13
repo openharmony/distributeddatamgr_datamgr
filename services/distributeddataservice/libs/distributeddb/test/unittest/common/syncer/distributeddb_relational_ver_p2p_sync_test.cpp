@@ -460,14 +460,9 @@ namespace {
         GetSyncData(db, dataMap, tableName, fieldInfoList);
         sqlite3_close(db);
 
-        // Attention. The get data is sorted by cid. Only check the value, do not check sort.
-        for (const auto &[fieldName, getData] : dataMap) {
-            (void)fieldName;
-            auto getdata = getData;
-            EXPECT_TRUE(std::any_of(targetMap.begin(), targetMap.end(),
-                [getdata] (const std::pair<std::string, DataValue> &target) {
-                    return getdata == target.second;
-                }));
+        for (const auto &[fieldName, dataValue] : targetMap) {
+            ASSERT_TRUE(dataMap.find(fieldName) != dataMap.end());
+            EXPECT_TRUE(dataMap[fieldName] == dataValue);
         }
     }
 
@@ -482,14 +477,12 @@ namespace {
         g_deviceB->GetAllSyncData(tableName, targetData);
 
         ASSERT_EQ(targetData.size(), 1u);
-        // Attention. The get data is sorted by cid. Only check the value, do not check sort.
-        for (auto iter = data.begin(); iter != data.end(); ++iter) {
-            DataValue getData;
-            EXPECT_EQ(targetData[0].objectData.GetDataValue(iter->first, getData), E_OK);
-            EXPECT_TRUE(std::any_of(data.begin(), data.end(),
-                [&getData] (const std::pair<std::string, DataValue> &target) {
-                    return getData == target.second;
-                }));
+        for (auto &[field, value] : data) {
+            DataValue target;
+            EXPECT_EQ(targetData[0].objectData.GetDataValue(field, target), E_OK);
+            LOGD("field %s actual_val[%s] except_val[%s]", field.c_str(), target.ToString().c_str(),
+                value.ToString().c_str());
+            EXPECT_TRUE(target == value);
         }
     }
 
@@ -707,8 +700,6 @@ HWTEST_F(DistributedDBRelationalVerP2PSyncTest, NormalSync003, TestSize.Level1)
     BlockSync(SyncMode::SYNC_MODE_PUSH_ONLY, OK, {DEVICE_B});
 
     CheckVirtualData(dataMap);
-
-    int64_t val = 0;
 
     GenerateValue(dataMap, g_fieldInfoList);
     dataMap["AGE"] = static_cast<int64_t>(1);

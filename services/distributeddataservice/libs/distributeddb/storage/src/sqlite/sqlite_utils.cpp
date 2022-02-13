@@ -2104,20 +2104,4 @@ int64_t SQLiteUtils::GetLastRowId(sqlite3 *db)
     }
     return sqlite3_last_insert_rowid(db);
 }
-
-int SQLiteUtils::GetColumnCnt(sqlite3_stmt *stmt)
-{
-    if (stmt == nullptr) {
-        return 0;
-    }
-    return sqlite3_column_count(stmt);
-}
-
-std::string SQLiteUtils::GetColumnName(sqlite3_stmt *stmt, int colId)
-{
-    if (stmt == nullptr) {
-        return {};
-    }
-    return std::string(sqlite3_column_name(stmt, colId));
-}
 } // namespace DistributedDB

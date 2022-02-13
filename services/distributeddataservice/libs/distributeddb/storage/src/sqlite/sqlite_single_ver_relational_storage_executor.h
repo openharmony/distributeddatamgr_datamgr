@@ -54,7 +54,7 @@ public:
 
     // For Put sync data
     int SaveSyncItems(const QueryObject &object, std::vector<DataItem> &dataItems,
-        const std::string &deviceName, TimeStamp &timeStamp);
+        const std::string &deviceName, const TableInfo &table, TimeStamp &timeStamp);
 
     int AnalysisRelationalSchema(const std::string &tableName, TableInfo &tableInfo);
 
@@ -94,9 +94,7 @@ private:
     int GetMissQueryData(std::vector<DataItem> &dataItems, size_t &dataTotalSize, const Key &cursorHashKey,
         sqlite3_stmt *fullStmt, size_t appendLength, const DataSizeSpecInfo &dataSizeInfo);
 
-    // When put or get sync data, must call the func first. The table name is to be operating.
-    int SetTableInfo(const std::string &tableName);
-    void SetTableInfo(const TableInfo &tableInfo);
+    void SetTableInfo(const TableInfo &tableInfo);  // When put or get sync data, must call the func first.
     std::string baseTblName_;
     TableInfo table_;  // Always operating table, user table when get, device table when put.
 };
