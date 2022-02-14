@@ -42,7 +42,8 @@ public:
     virtual std::vector<std::string> GetConnectDevices() = 0;
 
     virtual int32_t InitNotifier(const RdbSyncerParam& param, const sptr<IRemoteObject> notifier) = 0;
-    
+
+protected:
     virtual int32_t DoSync(const RdbSyncerParam& param, const SyncOption& option,
                            const RdbPredicates& predicates, SyncResult& result) = 0;
     

@@ -43,25 +43,26 @@ public:
     int32_t Sync(const RdbSyncerParam& param, const SyncOption& option,
                  const RdbPredicates& predicates, const SyncCallback& callback) override;
 
+    int32_t Subscribe(const RdbSyncerParam& param, const SubscribeOption& option,
+                      const RdbStoreObserver& observer) override;
+
+    int32_t UnSubscribe(const RdbSyncerParam& param, const SubscribeOption& option,
+                      const RdbStoreObserver& observer) override;
+
+    ObserverMap ExportObservers();
+
+    void ImportObservers(ObserverMap& observers);
+
+protected:
     int32_t DoSync(const RdbSyncerParam& param, const SyncOption& option,
                    const RdbPredicates& predicates, SyncResult& result) override;
 
     int32_t DoAsync(const RdbSyncerParam& param, uint32_t seqNum, const SyncOption& option,
                     const RdbPredicates& predicates) override;
 
-    int32_t Subscribe(const RdbSyncerParam& param, const SubscribeOption& option,
-                      const RdbStoreObserver& observer) override;
-
     int32_t DoSubscribe(const RdbSyncerParam& param) override;
 
-    int32_t UnSubscribe(const RdbSyncerParam& param, const SubscribeOption& option,
-                      const RdbStoreObserver& observer) override;
-
     int32_t DoUnSubscribe(const RdbSyncerParam& param) override;
-
-    ObserverMap ExportObservers();
-
-    void ImportObservers(ObserverMap& observers);
 
 private:
     uint32_t GetSeqNum();
@@ -79,7 +80,7 @@ private:
     std::atomic<uint32_t> seqNum_ {};
 
     ConcurrentMap<uint32_t, SyncCallback> syncCallbacks_;
-    ObserverMap remoteObservers_;
+    ObserverMap observers_;
     sptr<RdbNotifierStub> notifier_;
 
     static inline BrokerDelegator<RdbServiceProxy> delegator_;

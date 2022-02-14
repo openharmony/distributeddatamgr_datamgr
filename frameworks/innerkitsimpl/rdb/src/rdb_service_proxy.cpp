@@ -37,7 +37,7 @@ void RdbServiceProxy::OnSyncComplete(uint32_t seqNum, const SyncResult &result)
 void RdbServiceProxy::OnDataChange(const std::string& storeName, const std::vector<std::string> &devices)
 {
     ZLOGI("%{public}s", storeName.c_str());
-    remoteObservers_.ComputeIfPresent(
+    observers_.ComputeIfPresent(
         storeName, [&devices] (const auto& key, const ObserverMapValue& value) {
             for (const auto& observer : value.first) {
                 observer->OnChange(devices);
@@ -123,7 +123,7 @@ int32_t RdbServiceProxy::InitNotifier(const RdbSyncerParam &param, const sptr<IR
 
 uint32_t RdbServiceProxy::GetSeqNum()
 {
-    return seqNum_.fetch_add(1);
+    return seqNum_++;
 }
 
 int32_t RdbServiceProxy::DoSync(const RdbSyncerParam& param, const SyncOption &option,
@@ -303,7 +303,7 @@ int32_t RdbServiceProxy::Subscribe(const RdbSyncerParam &param, const SubscribeO
         ZLOGI("communicate to server failed");
         return RDB_ERROR;
     }
-    bool present = remoteObservers_.ComputeIfPresent(
+    bool present = observers_.ComputeIfPresent(
             param.storeName_, [&observer] (const auto& key, ObserverMapValue& value) {
                 for (const auto& element : value.first) {
                     if (element == &observer) {
@@ -314,7 +314,7 @@ int32_t RdbServiceProxy::Subscribe(const RdbSyncerParam &param, const SubscribeO
                 value.first.push_back(const_cast<RdbStoreObserver*>(&observer));
             });
     if (!present) {
-        remoteObservers_.ComputeIfAbsent(
+        observers_.ComputeIfAbsent(
             param.storeName_, [&observer, &param] (const auto& key) -> ObserverMapValue {
                     std::list<RdbStoreObserver*> list;
                     list.push_back(const_cast<RdbStoreObserver*>(&observer));
@@ -353,7 +353,7 @@ int32_t RdbServiceProxy::UnSubscribe(const RdbSyncerParam &param, const Subscrib
     DoUnSubscribe(param);
     bool canErase = false;
     auto* const observerPtr = const_cast<RdbStoreObserver* const>(&observer);
-    remoteObservers_.ComputeIfPresent(
+    observers_.ComputeIfPresent(
         param.storeName_, [observerPtr, &canErase](const auto& key, ObserverMapValue& value) {
             ZLOGI("before remove size=%{public}d", static_cast<int>(value.first.size()));
             value.first.remove(observerPtr);
@@ -364,7 +364,7 @@ int32_t RdbServiceProxy::UnSubscribe(const RdbSyncerParam &param, const Subscrib
     });
 
     if(canErase) {
-        remoteObservers_.Erase(param.storeName_);
+        observers_.Erase(param.storeName_);
     }
     return RDB_OK;
 }
@@ -394,7 +394,7 @@ int32_t RdbServiceProxy::DoUnSubscribe(const RdbSyncerParam &param)
 
 RdbServiceProxy::ObserverMap RdbServiceProxy::ExportObservers()
 {
-    return remoteObservers_;
+    return observers_;
 }
 
 void RdbServiceProxy::ImportObservers(ObserverMap &observers)

@@ -42,17 +42,18 @@ public:
     
     int32_t SetDistributedTables(const RdbSyncerParam& param, const std::vector<std::string>& tables) override;
     
+    void OnDataChange(pid_t pid, const DistributedDB::StoreChangedData& data);
+
+protected:
     int32_t DoSync(const RdbSyncerParam& param, const SyncOption& option,
                    const RdbPredicates& predicates, SyncResult& result) override;
-    
+
     int32_t DoAsync(const RdbSyncerParam& param, uint32_t seqNum, const SyncOption& option,
                     const RdbPredicates& predicates) override;
 
     int32_t DoSubscribe(const RdbSyncerParam& param) override;
 
     int32_t DoUnSubscribe(const RdbSyncerParam& param) override;
-
-    void OnDataChange(pid_t pid, const DistributedDB::StoreChangedData& data);
 
 private:
     std::string GenIdentifier(const RdbSyncerParam& param);
