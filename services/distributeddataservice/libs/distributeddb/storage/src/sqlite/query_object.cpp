@@ -280,8 +280,7 @@ int QueryObject::CheckEqualFormat(const std::list<QueryObjNode>::iterator &iter)
     }
 
     FieldPath fieldPath;
-    bool permitPrefix = !IsRelationalQuery();  // For relational query, $. prefix is not permitted.
-    int errCode = SchemaUtils::ParseAndCheckFieldPath(iter->fieldName, fieldPath, permitPrefix);
+    int errCode = SchemaUtils::ParseAndCheckFieldPath(iter->fieldName, fieldPath);
     if (errCode != E_OK) {
         return -E_INVALID_QUERY_FIELD;
     }
@@ -355,8 +354,7 @@ int QueryObject::CheckOrderByFormat(const std::list<QueryObjNode>::iterator &ite
     FieldType schemaFieldType;
     FieldPath fieldPath;
 
-    bool permitPrefix = !IsRelationalQuery();  // For relational query, $. prefix is not permitted.
-    int errCode = SchemaUtils::ParseAndCheckFieldPath(iter->fieldName, fieldPath, permitPrefix);
+    int errCode = SchemaUtils::ParseAndCheckFieldPath(iter->fieldName, fieldPath);
     if (errCode != E_OK) {
         return -E_INVALID_QUERY_FIELD;
     }

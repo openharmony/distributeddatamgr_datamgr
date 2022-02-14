@@ -299,3 +299,45 @@ HWTEST_F(DistributedDBInterfacesRelationalSyncTest, RelationalSyncTest008, TestS
 
     EXPECT_EQ(errCode, OK);
 }
+
+/**
+  * @tc.name: RelationalSyncTest009
+  * @tc.desc: Test sync with invalid query
+  * @tc.type: FUNC
+  * @tc.require: AR000GK58F
+  * @tc.author: lianhuix
+  */
+HWTEST_F(DistributedDBInterfacesRelationalSyncTest, RelationalSyncTest009, TestSize.Level1)
+{
+    EXPECT_EQ(RelationalTestUtils::ExecSql(db, EMPTY_COLUMN_TYPE_CREATE_TABLE_SQL), SQLITE_OK);
+    RelationalTestUtils::CreateDeviceTable(db, "student", DEVICE_A);
+
+    DBStatus status = delegate->CreateDistributedTable("student");
+    EXPECT_EQ(status, OK);
+
+    LOGD("-----------------------");
+    std::vector<std::string> devices = {DEVICE_A};
+    Query query = Query::Select("student").EqualTo("$id", 123);
+    status = delegate->Sync(devices, SyncMode::SYNC_MODE_PUSH_ONLY, query,
+        [&devices](const std::map<std::string, std::vector<TableStatus>> &devicesMap) {
+            EXPECT_EQ(devicesMap.size(), devices.size());
+        }, true);
+    EXPECT_EQ(status, INVALID_QUERY_FORMAT);
+
+    LOGD("-----------------------");
+    query = Query::Select("student").EqualTo("A$id", 123);
+    status = delegate->Sync(devices, SyncMode::SYNC_MODE_PUSH_ONLY, query,
+        [&devices](const std::map<std::string, std::vector<TableStatus>> &devicesMap) {
+            EXPECT_EQ(devicesMap.size(), devices.size());
+        }, true);
+    EXPECT_EQ(status, INVALID_QUERY_FORMAT);
+
+    LOGD("-----------------------");
+    query = Query::Select("student").EqualTo("$.id", 123);
+    status = delegate->Sync(devices, SyncMode::SYNC_MODE_PUSH_ONLY, query,
+        [&devices](const std::map<std::string, std::vector<TableStatus>> &devicesMap) {
+            EXPECT_EQ(devicesMap.size(), devices.size());
+        }, true);
+
+    EXPECT_EQ(status, OK);
+}

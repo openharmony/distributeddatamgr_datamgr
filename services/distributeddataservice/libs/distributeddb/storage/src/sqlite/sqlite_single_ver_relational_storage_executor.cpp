@@ -1176,6 +1176,11 @@ int SQLiteSingleVerRelationalStorageExecutor::CheckQueryObjectLegal(const TableI
         return errCode;
     }
 
+    if (!query.IsQueryForRelationalDB()) {
+        LOGE("Not support for this query type.");
+        return -E_NOT_SUPPORT;
+    }
+
     SyncTimeRange defaultTimeRange;
     sqlite3_stmt *stmt = nullptr;
     errCode = helper.GetRelationalQueryStatement(dbHandle_, defaultTimeRange.beginTime, defaultTimeRange.endTime, {},

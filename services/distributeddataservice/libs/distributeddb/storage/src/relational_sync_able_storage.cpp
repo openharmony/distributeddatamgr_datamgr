@@ -548,11 +548,6 @@ void RelationalSyncAbleStorage::RegisterHeartBeatListener(const std::function<vo
 
 int RelationalSyncAbleStorage::CheckAndInitQueryCondition(QueryObject &query) const
 {
-    if (!query.IsQueryForRelationalDB()) {
-        LOGE("Not support for this query type.");
-        return -E_NOT_SUPPORT;
-    }
-
     RelationalSchemaObject schema = storageEngine_->GetSchemaRef();
     TableInfo table = schema.GetTable(query.GetTableName());
     if (table.GetTableName() != query.GetTableName()) {
