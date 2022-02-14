@@ -299,7 +299,7 @@ namespace {
         FieldInfo columnThird;
         columnThird.SetFieldName("AGE");
         columnThird.SetStorageType(StorageType::STORAGE_TYPE_INTEGER);
-        columnThird.SetColumnId(2); // the 3rd column
+        columnThird.SetColumnId(2); // the 3rd column(index 2 base 0)
         fieldInfoList.push_back(columnFirst);
         fieldInfoList.push_back(columnSecond);
         fieldInfoList.push_back(columnThird);
