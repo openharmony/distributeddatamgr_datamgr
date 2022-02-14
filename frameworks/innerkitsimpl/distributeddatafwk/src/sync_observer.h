@@ -23,7 +23,7 @@
 namespace OHOS::DistributedKv {
 class SyncObserver : public KvStoreSyncCallback {
 public:
-    SyncObserver(const std::vector<std::shared_ptr<KvStoreSyncCallback>> &callbacks);
+    explicit SyncObserver(const std::vector<std::shared_ptr<KvStoreSyncCallback>> &callbacks);
 
     SyncObserver() = default;
 
@@ -39,4 +39,4 @@ private:
     std::vector<std::shared_ptr<KvStoreSyncCallback>> callbacks_;
 };
 }
-#endif //DISTRIBUTEDDATAMGR_DATAMGR_SYNC_OBSERVER_H
+# endif //DISTRIBUTEDDATAMGR_DATAMGR_SYNC_OBSERVER_H

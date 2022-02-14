@@ -15,15 +15,14 @@
 
 #define LOG_TAG "QueryHelper"
 
-#include "query_helper.h"
 #include <regex>
 #include <sstream>
 #include <string>
 #include "kvstore_utils.h"
 #include "data_query.h"
 #include "log_print.h"
-#include <set>
 #include "types.h"
+#include "query_helper.h"
 
 namespace OHOS::DistributedKv {
 constexpr int QUERY_SKIP_SIZE = 1;
@@ -31,7 +30,6 @@ constexpr int QUERY_WORD_SIZE = 2;
 constexpr int MAX_QUERY_LENGTH = 5 * 1024; // Max query string length 5k
 constexpr int MAX_QUERY_COMPLEXITY = 500; // Max query complexity 500
 bool QueryHelper::hasPrefixKey_{};
-bool QueryHelper::hasInKeys_{};
 std::string QueryHelper::deviceId_{};
 
 DistributedDB::Query QueryHelper::StringToDbQuery(const std::string &query, bool &isSuccess)
@@ -515,7 +513,7 @@ void QueryHelper::HandleInKeys(const std::vector<std::string> &words, int &point
     int inkeyOffSet = startInOffSet + 1;  // inkeyOffSet points at the first inkey value
     const std::vector<std::string> inKeys = GetStringList(words, inkeyOffSet, end);
     std::set<std::vector<uint8_t>> inDbKeys;
-    for(const std::string &inKey : inKeys) {
+    for (const std::string &inKey : inKeys) {
         ZLOGI("inKey=%{public}s", inKey.c_str());
         std::vector<uint8_t> dbKey;
         dbKey.assign(inKey.begin(), inKey.end());

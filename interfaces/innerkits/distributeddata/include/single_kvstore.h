@@ -195,7 +195,8 @@ public:
      * Return:
      *     Status of this Subscribe operation.
      */
-    KVSTORE_API virtual Status SubscribeWithQuery(const std::vector<std::string> &deviceIds, const DataQuery &query) = 0;
+    KVSTORE_API virtual Status SubscribeWithQuery(const std::vector<std::string> &deviceIds,
+                                                  const DataQuery &query) = 0;
 
     /*
      * UnSubscribe store with other devices which is satisfied with the condition.

@@ -466,8 +466,8 @@ Status SingleKvStoreClient::GetSecurityLevel(SecurityLevel &securityLevel) const
     return Status::SERVER_UNAVAILABLE;
 }
 
-Status SingleKvStoreClient::SyncWithCondition(const std::vector<std::string> &deviceIds, SyncMode mode, 
-        const DataQuery &query, std::shared_ptr<KvStoreSyncCallback> callback)
+Status SingleKvStoreClient::SyncWithCondition(const std::vector<std::string> &deviceIds, SyncMode mode,
+                                              const DataQuery &query, std::shared_ptr<KvStoreSyncCallback> callback)
 {
     if (kvStoreProxy_ == nullptr) {
         ZLOGE("singleKvstore proxy is nullptr.");

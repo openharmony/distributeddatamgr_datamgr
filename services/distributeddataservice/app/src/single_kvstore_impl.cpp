@@ -712,7 +712,8 @@ Status SingleKvStoreImpl::RemoveDeviceData(const std::string &device)
     return Status::ERROR;
 }
 
-Status SingleKvStoreImpl::Sync(const std::vector<std::string> &deviceIds, SyncMode mode, uint32_t allowedDelayMs, uint64_t sequenceId)
+Status SingleKvStoreImpl::Sync(const std::vector<std::string> &deviceIds, SyncMode mode,
+                               uint32_t allowedDelayMs, uint64_t sequenceId)
 {
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     ZLOGD("start.");
@@ -808,8 +809,8 @@ void SingleKvStoreImpl::DoSyncComplete(const std::map<std::string, DistributedDB
     }
 }
 
-Status SingleKvStoreImpl::DoQuerySync(const std::vector<std::string> &deviceIds, SyncMode mode, const std::string &query, 
-                                      const KvStoreSyncManager::SyncEnd &syncEnd, uint64_t sequenceId)
+Status SingleKvStoreImpl::DoQuerySync(const std::vector<std::string> &deviceIds, SyncMode mode,
+    const std::string &query, const KvStoreSyncManager::SyncEnd &syncEnd, uint64_t sequenceId)
 {
     ZLOGD("start.");
     std::vector<std::string> deviceUuids = MapNodeIdToUuids(deviceIds);
@@ -905,7 +906,7 @@ std::vector<std::string> SingleKvStoreImpl::MapNodeIdToUuids(const std::vector<s
 }
 
 Status SingleKvStoreImpl::DoSubscribe(const std::vector<std::string> &deviceIds,
-                                               const std::string &query, const KvStoreSyncManager::SyncEnd &syncEnd)
+                                      const std::string &query, const KvStoreSyncManager::SyncEnd &syncEnd)
 {
     ZLOGD("start.");
     std::vector<std::string> deviceUuids = MapNodeIdToUuids(deviceIds);
@@ -936,7 +937,7 @@ Status SingleKvStoreImpl::DoSubscribe(const std::vector<std::string> &deviceIds,
 }
 
 Status SingleKvStoreImpl::DoUnSubscribe(const std::vector<std::string> &deviceIds, const std::string &query,
-                                                 const KvStoreSyncManager::SyncEnd &syncEnd)
+                                        const KvStoreSyncManager::SyncEnd &syncEnd)
 {
     ZLOGD("start.");
     std::vector<std::string> deviceUuids = MapNodeIdToUuids(deviceIds);
@@ -984,7 +985,7 @@ Status SingleKvStoreImpl::AddUnSubscribe(const std::vector<std::string> &deviceI
 }
 
 Status SingleKvStoreImpl::Subscribe(const std::vector<std::string> &deviceIds,
-                                             const std::string &query, uint64_t sequenceId)
+                                    const std::string &query, uint64_t sequenceId)
 {
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     ZLOGD("start.");

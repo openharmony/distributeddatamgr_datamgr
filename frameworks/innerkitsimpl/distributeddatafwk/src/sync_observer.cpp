@@ -20,12 +20,14 @@ SyncObserver::SyncObserver(const std::vector<std::shared_ptr<KvStoreSyncCallback
     :callbacks_(callbacks)
 {};
 
-bool SyncObserver::Add(const std::shared_ptr<KvStoreSyncCallback> callback) {
+bool SyncObserver::Add(const std::shared_ptr<KvStoreSyncCallback> callback)
+{
     callbacks_.push_back(callback);
     return true;
 }
 
-bool SyncObserver::Clean() {
+bool SyncObserver::Clean()
+{
     callbacks_.clear();
     return true;
 }
