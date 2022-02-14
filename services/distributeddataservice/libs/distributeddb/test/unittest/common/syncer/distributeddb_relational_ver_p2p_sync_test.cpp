@@ -291,15 +291,15 @@ namespace {
         FieldInfo columnFirst;
         columnFirst.SetFieldName("ID");
         columnFirst.SetStorageType(StorageType::STORAGE_TYPE_INTEGER);
-        columnFirst.SetColumnId(0);
+        columnFirst.SetColumnId(0); // the first column
         FieldInfo columnSecond;
         columnSecond.SetFieldName("NAME");
         columnSecond.SetStorageType(StorageType::STORAGE_TYPE_TEXT);
-        columnSecond.SetColumnId(1);
+        columnSecond.SetColumnId(1); // the 2nd column
         FieldInfo columnThird;
         columnThird.SetFieldName("AGE");
         columnThird.SetStorageType(StorageType::STORAGE_TYPE_INTEGER);
-        columnThird.SetColumnId(2);
+        columnThird.SetColumnId(2); // the 3rd column
         fieldInfoList.push_back(columnFirst);
         fieldInfoList.push_back(columnSecond);
         fieldInfoList.push_back(columnThird);

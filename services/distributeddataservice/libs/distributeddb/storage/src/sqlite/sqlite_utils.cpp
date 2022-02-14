@@ -721,7 +721,8 @@ int AnalysisSchemaIndexAndUnique(sqlite3 *db, const std::string &tableName, Tabl
 }
 
 namespace {
-bool CheckFieldName(const std::string &fieldName) {
+bool CheckFieldName(const std::string &fieldName) 
+{
     auto iter = std::find_if_not(fieldName.begin(), fieldName.end(), [](char c) {
             return (std::isalnum(c) || c == '_');
         });

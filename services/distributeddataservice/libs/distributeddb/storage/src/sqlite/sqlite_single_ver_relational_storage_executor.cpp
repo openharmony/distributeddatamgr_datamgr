@@ -978,8 +978,7 @@ int SQLiteSingleVerRelationalStorageExecutor::GetMissQueryData(std::vector<DataI
 }
 
 int SQLiteSingleVerRelationalStorageExecutor::GetSyncDataByQuery(std::vector<DataItem> &dataItems, size_t appendLength,
-    const DataSizeSpecInfo &dataSizeInfo,
-    std::function<int(sqlite3 *, sqlite3_stmt *&, sqlite3_stmt *&, bool &)> getStmt,
+    const DataSizeSpecInfo &sizeInfo, std::function<int(sqlite3 *, sqlite3_stmt *&, sqlite3_stmt *&, bool &)> getStmt,
     const TableInfo &tableInfo)
 {
     baseTblName_ = tableInfo.GetTableName();
@@ -1012,7 +1011,7 @@ int SQLiteSingleVerRelationalStorageExecutor::GetSyncDataByQuery(std::vector<Dat
 
         // Get REMOTE_DEVICE_DATA_MISS_QUERY data.
         if (fullStmt != nullptr) {
-            errCode = GetMissQueryData(dataItems, dataTotalSize, item.hashKey, fullStmt, appendLength, dataSizeInfo);
+            errCode = GetMissQueryData(dataItems, dataTotalSize, item.hashKey, fullStmt, appendLength, sizeInfo);
         }
         if (errCode != E_OK) {
             break;
@@ -1026,8 +1025,7 @@ int SQLiteSingleVerRelationalStorageExecutor::GetSyncDataByQuery(std::vector<Dat
 
         // If dataTotalSize value is bigger than blockSize value , reserve the surplus data item.
         dataTotalSize += GetDataItemSerialSize(item, appendLength);
-        if ((dataTotalSize > dataSizeInfo.blockSize && !dataItems.empty()) ||
-            dataItems.size() >= dataSizeInfo.packetSize) {
+        if ((dataTotalSize > sizeInfo.blockSize && !dataItems.empty()) || dataItems.size() >= sizeInfo.packetSize) {
             errCode = -E_UNFINISHED;
             break;
         } else {
