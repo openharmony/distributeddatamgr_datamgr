@@ -25,7 +25,6 @@
 namespace DistributedDB {
 namespace
 {
-
     bool IsLegalFieldCharacter(char character)
     {
         return (std::isalnum(character) || character == '_');

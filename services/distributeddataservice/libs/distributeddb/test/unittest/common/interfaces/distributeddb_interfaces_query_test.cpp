@@ -26,7 +26,8 @@ using namespace std;
 namespace {
     const std::string TEST_FIELD_NAME = "$.test";
 
-    std::string FormatQueryFieldName(const std::string &fieldName) {
+    std::string FormatQueryFieldName(const std::string &fieldName)
+    {
         auto pos = fieldName.rfind("$.", 0);
         if (pos == 0) {
             return fieldName.substr(2); // 2 : length of '$.'

@@ -800,7 +800,7 @@ int SQLiteSingleVerRelationalStorageExecutor::DeleteSyncLog(const DataItem &data
         SQLiteUtils::ResetStatement(stmt, true, errCode);
         return errCode;
     }
-    errCode = SQLiteUtils::BindTextToStatement(stmt, 2, dataItem.dev); // 1 means device index
+    errCode = SQLiteUtils::BindTextToStatement(stmt, 2, dataItem.dev); // 2 means device index
     if (errCode != E_OK) {
         SQLiteUtils::ResetStatement(stmt, true, errCode);
         return errCode;
