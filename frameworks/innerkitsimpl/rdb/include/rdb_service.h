@@ -19,7 +19,6 @@
 #include <memory>
 #include <string>
 
-#include <iremote_object.h>
 #include "rdb_types.h"
 
 namespace OHOS::DistributedRdb {

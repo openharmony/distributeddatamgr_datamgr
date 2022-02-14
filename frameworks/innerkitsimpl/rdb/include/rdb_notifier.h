@@ -23,7 +23,7 @@
 #include "rdb_types.h"
 
 namespace OHOS::DistributedRdb {
-class IRdbNotifier: public IRemoteBroker {
+class IRdbNotifier : public IRemoteBroker {
 public:
     enum {
         RDB_NOTIFIER_CMD_SYNC_COMPLETE,

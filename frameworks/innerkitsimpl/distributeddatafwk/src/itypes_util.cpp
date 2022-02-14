@@ -243,7 +243,7 @@ bool ITypesUtil::UnMarshalling(MessageParcel &parcel, DistributedRdb::SyncResult
             ZLOGE("SyncResult read int failed");
             return false;
         }
-        result.insert( { device, error } );
+        result.insert({ device, error });
     }
     return true;
 }

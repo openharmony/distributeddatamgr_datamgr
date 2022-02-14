@@ -34,8 +34,9 @@ class RdbService;
 class IRdbService;
 class RdbManagerImpl {
 public:
-    static constexpr int GET_DDMS_RETRY_TIMES = 3;
+    static constexpr int GET_SA_RETRY_TIMES = 3;
     static constexpr int RETRY_INTERVAL = 1;
+    static constexpr int WAIT_TIME = 2;
 
     static RdbManagerImpl &GetInstance();
 

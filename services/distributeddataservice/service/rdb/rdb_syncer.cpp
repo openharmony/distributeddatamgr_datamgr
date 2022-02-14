@@ -37,7 +37,7 @@ RdbSyncer::RdbSyncer(const RdbSyncerParam& param, RdbStoreObserverImpl* observer
 RdbSyncer::~RdbSyncer() noexcept
 {
     ZLOGI("destroy %{public}s", param_.storeName_.c_str());
-    if (manager_ != nullptr & delegate_ != nullptr) {
+    if ((manager_ != nullptr) && (delegate_ != nullptr)) {
         manager_->CloseStore(delegate_);
     }
     delete manager_;
@@ -245,8 +245,8 @@ void RdbSyncer::OrderBy(const RdbPredicateOperation &operation, DistributedDB::Q
 void RdbSyncer::Limit(const RdbPredicateOperation &operation, DistributedDB::Query &query)
 {
     char *end = nullptr;
-    int limit = static_cast<int>(strtol(operation.field_.c_str(), &end, 10)); // 10 base number
-    int offset = static_cast<int>(strtol(operation.values_[0].c_str(), &end, 10)); // 10 base number
+    int limit = static_cast<int>(strtol(operation.field_.c_str(), &end, DECIMAL_BASE));
+    int offset = static_cast<int>(strtol(operation.values_[0].c_str(), &end, DECIMAL_BASE));
     query.Limit(limit, offset);
     ZLOGI("limit=%{public}d offset=%{public}d", limit, offset);
 }

@@ -73,12 +73,12 @@ struct RdbPredicates {
     inline void AddOperation(const RdbPredicateOperator op, const std::string& field,
                              const std::string& value)
     {
-        operations_.push_back({op, field, {value}});
+        operations_.push_back({ op, field, { value } });
     }
     inline void AddOperation(const RdbPredicateOperator op, const std::string& field,
                              const std::vector<std::string>& values)
     {
-        operations_.push_back({op, field, values});
+        operations_.push_back({ op, field, values });
     }
 
     std::string table_;

@@ -33,6 +33,5 @@ private:
     pid_t pid_ {};
     RdbServiceImpl* owner_ {};
 };
-
 }
 #endif

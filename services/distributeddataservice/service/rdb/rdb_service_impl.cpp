@@ -208,59 +208,38 @@ std::shared_ptr<RdbSyncer> RdbServiceImpl::GetRdbSyncer(const RdbSyncerParam &pa
     pid_t uid = GetCallingUid();
     std::shared_ptr<RdbSyncer> syncer;
 
-    bool present = syncers_.ComputeIfPresent(pid,
-        [this, &param, pid, uid, &syncer] (const auto& key, StoreSyncersType& syncers) {
-            auto it = syncers.find(param.storeName_);
-            if (it != syncers.end()) {
-                syncer = it->second;
-                timer_.Unregister(syncer->GetTimerId());
-                uint32_t timerId = timer_.Register([this, syncer]() { SyncerTimeout(syncer); }, SYNCER_TIMEOUT, true);
-                syncer->SetTimerId(timerId);
-                return;
-            }
-            if (syncers.size() >= MAX_PROCESS_SYNCER_NUM) {
-                ZLOGE("%{public}d exceed MAX_PROCESS_SYNCER_NUM", pid);
-                return;
-            }
-            if (syncerNum_ >= MAX_SYNCER_NUM) {
-                ZLOGE("no available syncer");
-                return;
-            }
-            auto syncer_ = std::make_shared<RdbSyncer>(param, new (std::nothrow) RdbStoreObserverImpl(this, pid));
-            if (syncer_->Init(pid, uid) != 0) {
-                return;
-            }
-            syncers[param.storeName_] = syncer_;
-            syncer = syncer_;
-            syncerNum_++;
+    syncers_.Compute(pid, [this, &param, pid, uid, &syncer] (const auto& key, StoreSyncersType& syncers) {
+        auto it = syncers.find(param.storeName_);
+        if (it != syncers.end()) {
+            syncer = it->second;
+            timer_.Unregister(syncer->GetTimerId());
             uint32_t timerId = timer_.Register([this, syncer]() { SyncerTimeout(syncer); }, SYNCER_TIMEOUT, true);
             syncer->SetTimerId(timerId);
+            return true;
+        }
+        if (syncers.size() >= MAX_SYNCER_PER_PROCESS) {
+            ZLOGE("%{public}d exceed MAX_PROCESS_SYNCER_NUM", pid);
+            return false;
+        }
+        if (syncerNum_ >= MAX_SYNCER_NUM) {
+            ZLOGE("no available syncer");
+            return false;
+        }
+        auto syncer_ = std::make_shared<RdbSyncer>(param, new (std::nothrow) RdbStoreObserverImpl(this, pid));
+        if (syncer_->Init(pid, uid) != 0) {
+            return false;
+        }
+        syncers[param.storeName_] = syncer_;
+        syncer = syncer_;
+        syncerNum_++;
+        uint32_t timerId = timer_.Register([this, syncer]() { SyncerTimeout(syncer); }, SYNCER_TIMEOUT, true);
+        syncer->SetTimerId(timerId);
+        return true;
     });
-
-    if (!present) {
-        syncers_.ComputeIfAbsent(pid, [this, &param, pid, uid, &syncer] (const auto& key) {
-            StoreSyncersType syncers;
-            if (syncerNum_ >= MAX_SYNCER_NUM) {
-                ZLOGE("no available syncer");
-                return syncers;
-            }
-            auto syncer_ = std::make_shared<RdbSyncer>(param, new (std::nothrow) RdbStoreObserverImpl(this, pid));
-            if (syncer_->Init(pid, uid) != 0) {
-                return syncers;
-            }
-            syncers[param.storeName_] = syncer_;
-            syncer = syncer_;
-            syncerNum_++;
-            uint32_t timerId = timer_.Register([this, syncer]() { SyncerTimeout(syncer); }, SYNCER_TIMEOUT, true);
-            syncer->SetTimerId(timerId);
-            return syncers;
-        });
-    }
 
     if (syncer != nullptr) {
         identifiers_.Insert(syncer->GetIdentifier(), pid);
-    }
-    if (syncer == nullptr) {
+    } else {
         ZLOGE("syncer is nullptr");
     }
     return syncer;
@@ -295,7 +274,7 @@ void RdbServiceImpl::OnAsyncComplete(pid_t pid, uint32_t seqNum, const SyncResul
 }
 
 int32_t RdbServiceImpl::DoAsync(const RdbSyncerParam &param, uint32_t seqNum, const SyncOption &option,
-                            const RdbPredicates &predicates)
+                                const RdbPredicates &predicates)
 {
     pid_t pid = GetCallingPid();
     ZLOGI("seq num=%{public}u", seqNum);

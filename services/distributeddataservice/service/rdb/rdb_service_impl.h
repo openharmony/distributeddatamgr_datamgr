@@ -89,7 +89,7 @@ private:
     static std::string TransferStringToHex(const std::string& origStr);
 
     static constexpr int32_t MAX_SYNCER_NUM = 50;
-    static constexpr int32_t MAX_PROCESS_SYNCER_NUM = 10;
+    static constexpr int32_t MAX_SYNCER_PER_PROCESS = 10;
     static constexpr int32_t SYNCER_TIMEOUT = 60 * 1000; // ms
 };
 }

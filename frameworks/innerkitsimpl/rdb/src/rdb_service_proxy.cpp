@@ -304,22 +304,22 @@ int32_t RdbServiceProxy::Subscribe(const RdbSyncerParam &param, const SubscribeO
         return RDB_ERROR;
     }
     bool present = observers_.ComputeIfPresent(
-            param.storeName_, [&observer] (const auto& key, ObserverMapValue& value) {
-                for (const auto& element : value.first) {
-                    if (element == &observer) {
-                        ZLOGE("duplicate observer");
-                        return;
-                    }
+        param.storeName_, [&observer] (const auto& key, ObserverMapValue& value) {
+            for (const auto& element : value.first) {
+                if (element == &observer) {
+                    ZLOGE("duplicate observer");
+                    return;
                 }
-                value.first.push_back(const_cast<RdbStoreObserver*>(&observer));
-            });
+            }
+            value.first.push_back(const_cast<RdbStoreObserver*>(&observer));
+        });
     if (!present) {
         observers_.ComputeIfAbsent(
             param.storeName_, [&observer, &param] (const auto& key) -> ObserverMapValue {
-                    std::list<RdbStoreObserver*> list;
-                    list.push_back(const_cast<RdbStoreObserver*>(&observer));
-                    return {list, param};
-                });
+                std::list<RdbStoreObserver*> list;
+                list.push_back(const_cast<RdbStoreObserver*>(&observer));
+                return {list, param};
+            });
     }
     return RDB_OK;
 }
@@ -352,7 +352,7 @@ int32_t RdbServiceProxy::UnSubscribe(const RdbSyncerParam &param, const Subscrib
 {
     DoUnSubscribe(param);
     bool canErase = false;
-    auto* const observerPtr = const_cast<RdbStoreObserver* const>(&observer);
+    RdbStoreObserver* const observerPtr = const_cast<RdbStoreObserver* const>(&observer);
     observers_.ComputeIfPresent(
         param.storeName_, [observerPtr, &canErase](const auto& key, ObserverMapValue& value) {
             ZLOGI("before remove size=%{public}d", static_cast<int>(value.first.size()));
@@ -363,7 +363,7 @@ int32_t RdbServiceProxy::UnSubscribe(const RdbSyncerParam &param, const Subscrib
             }
     });
 
-    if(canErase) {
+    if (canErase) {
         observers_.Erase(param.storeName_);
     }
     return RDB_OK;

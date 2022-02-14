@@ -16,10 +16,10 @@
 #ifndef DISTRIBUTED_RDB_SYNCER_H
 #define DISTRIBUTED_RDB_SYNCER_H
 
-#include "rdb_types.h"
 #include <mutex>
 #include <string>
 
+#include "rdb_types.h"
 #include "rdb_notifier.h"
 #include "rdb_store_observer_impl.h"
 #include "relational_store_manager.h"
@@ -92,6 +92,8 @@ private:
         [ORDER_BY] = &RdbSyncer::OrderBy,
         [LIMIT] = &RdbSyncer::Limit,
     };
+
+    static constexpr int DECIMAL_BASE = 10;
 };
 }
 #endif

@@ -31,7 +31,7 @@ namespace OHOS::DistributedRdb {
 static sptr<DistributedKv::KvStoreDataServiceProxy> GetDistributedDataManager()
 {
     int retry = 0;
-    while (++retry <= RdbManagerImpl::GET_DDMS_RETRY_TIMES) {
+    while (++retry <= RdbManagerImpl::GET_SA_RETRY_TIMES) {
         auto manager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
         if (manager == nullptr) {
             ZLOGE("get system ability manager failed");
@@ -135,7 +135,7 @@ void RdbManagerImpl::OnRemoteDied()
     auto observers = proxy->ExportObservers();
     ResetServiceHandle();
 
-    std::this_thread::sleep_for(std::chrono::seconds(2)); // sleep two second
+    std::this_thread::sleep_for(std::chrono::seconds(WAIT_TIME));
     RdbSyncerParam param;
     param.bundleName_ = bundleName_;
     auto service = GetRdbService(param);
