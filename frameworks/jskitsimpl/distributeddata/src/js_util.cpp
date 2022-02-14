@@ -292,15 +292,24 @@ napi_value JSUtil::Convert2JSNumber(napi_env env, const std::vector<uint8_t> &da
     double value;
     switch (data[0]) {
         case INTEGER:
-            memcpy_s(byteValue, sizeof(byteValue), data.data() + DATA_POS, sizeof(int32_t));
+            error_t err = memcpy_s(byteValue, sizeof(byteValue), data.data() + DATA_POS, sizeof(int32_t));
+            if (err != EOK) {
+                return {INVALID};
+            }
             value = *(reinterpret_cast<const int32_t *>(byteValue));
             break;
         case FLOAT:
-            memcpy_s(byteValue, sizeof(byteValue), data.data() + DATA_POS, sizeof(float));
+            error_t err_ = memcpy_s(byteValue, sizeof(byteValue), data.data() + DATA_POS, sizeof(float));
+            if (err_ != EOK) {
+                return {INVALID};
+            }
             value = *(reinterpret_cast<const float *>(byteValue));
             break;
         case DOUBLE:
-            memcpy_s(byteValue, sizeof(byteValue), data.data() + DATA_POS, sizeof(double));
+            error_t result = memcpy_s(byteValue, sizeof(byteValue), data.data() + DATA_POS, sizeof(double));
+            if (result != EOK) {
+                return {INVALID};
+            }
             value = *(reinterpret_cast<const double *>(byteValue));
             break;
         default:
