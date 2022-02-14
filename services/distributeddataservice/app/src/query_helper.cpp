@@ -29,7 +29,7 @@ constexpr int QUERY_SKIP_SIZE = 1;
 constexpr int QUERY_WORD_SIZE = 2;
 constexpr int MAX_QUERY_LENGTH = 5 * 1024; // Max query string length 5k
 constexpr int MAX_QUERY_COMPLEXITY = 500; // Max query complexity 500
-bool QueryHelper::hasPrefixKey_{};
+bool QueryHelper::hasPrefixKey_{ };
 std::string QueryHelper::deviceId_{};
 
 DistributedDB::Query QueryHelper::StringToDbQuery(const std::string &query, bool &isSuccess)
