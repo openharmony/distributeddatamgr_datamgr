@@ -104,17 +104,17 @@ private:
     int ConvertToDbObserverMode(SubscribeType subscribeType) const;
     DistributedDB::SyncMode ConvertToDbSyncMode(SyncMode syncMode) const;
     Status DoSubscribe(const std::vector<std::string> &deviceIds,
-                                const std::string &query, const KvStoreSyncManager::SyncEnd &syncEnd);
+                       const std::string &query, const KvStoreSyncManager::SyncEnd &syncEnd);
     Status AddSubscribe(const std::vector<std::string> &deviceIds,
-                                 const std::string &query, uint32_t delayMs, uint64_t sequenceId);
+                        const std::string &query, uint32_t delayMs, uint64_t sequenceId);
     Status Subscribe(const std::vector<std::string> &deviceIds,
-                              const std::string &query, uint64_t sequenceId) override;
+                     const std::string &query, uint64_t sequenceId) override;
     Status DoUnSubscribe(const std::vector<std::string> &deviceIds,
-                                  const std::string &query, const KvStoreSyncManager::SyncEnd &syncEnd);
+                         const std::string &query, const KvStoreSyncManager::SyncEnd &syncEnd);
     Status AddUnSubscribe(const std::vector<std::string> &deviceIds,
-                                   const std::string &query, uint32_t delayMs, uint64_t sequenceId);
+                          const std::string &query, uint32_t delayMs, uint64_t sequenceId);
     Status UnSubscribe(const std::vector<std::string> &deviceIds,
-                                const std::string &query, uint64_t sequenceId) override;
+                       const std::string &query, uint64_t sequenceId) override;
     std::vector<std::string> MapNodeIdToUuids(const std::vector<std::string> &deviceIds);
 
     // kvstore options.

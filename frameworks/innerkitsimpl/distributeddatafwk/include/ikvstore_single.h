@@ -93,9 +93,9 @@ public:
     virtual Status Sync(const std::vector<std::string> &deviceIds, SyncMode mode,
                         const std::string &query, uint64_t sequenceId) = 0;
     virtual Status Subscribe(const std::vector<std::string> &deviceIds, const std::string &query,
-                                      uint64_t sequenceId) = 0;
+                             uint64_t sequenceId) = 0;
     virtual Status UnSubscribe(const std::vector<std::string> &deviceIds, const std::string &query,
-                                        uint64_t sequenceId) = 0;
+                               uint64_t sequenceId) = 0;
 };
 
 class SingleKvStoreStub : public IRemoteStub<ISingleKvStore> {

@@ -485,7 +485,7 @@ Status SingleKvStoreClient::SyncWithCondition(const std::vector<std::string> &de
     return kvStoreProxy_->Sync(deviceIds, mode, query.ToString(), sequenceId_);
 }
 
-Status SingleKvStoreClient::SubscribeWithQuery(const std::vector<std::string>& deviceIds, const DataQuery& query)
+Status SingleKvStoreClient::SubscribeWithQuery(const std::vector<std::string> &deviceIds, const DataQuery &query)
 {
     if (kvStoreProxy_ == nullptr) {
         ZLOGE("singleKvstore proxy is nullptr.");
@@ -501,7 +501,7 @@ Status SingleKvStoreClient::SubscribeWithQuery(const std::vector<std::string>& d
     return kvStoreProxy_->Subscribe(deviceIds, query.ToString(), sequenceId_);
 }
 
-Status SingleKvStoreClient::UnsubscribeWithQuery(const std::vector<std::string>& deviceIds, const DataQuery &query)
+Status SingleKvStoreClient::UnsubscribeWithQuery(const std::vector<std::string> &deviceIds, const DataQuery &query)
 {
     if (kvStoreProxy_ == nullptr) {
         ZLOGE("singleKvstore proxy is nullptr.");

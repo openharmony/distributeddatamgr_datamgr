@@ -855,7 +855,7 @@ Status SingleKvStoreProxy::GetSecurityLevel(SecurityLevel &securityLevel)
 }
 
 Status SingleKvStoreProxy::Subscribe(const std::vector<std::string> &deviceIds, const std::string &query,
-                                              uint64_t sequenceId)
+                                     uint64_t sequenceId)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(SingleKvStoreProxy::GetDescriptor())) {
@@ -885,7 +885,7 @@ Status SingleKvStoreProxy::Subscribe(const std::vector<std::string> &deviceIds, 
 }
 
 Status SingleKvStoreProxy::UnSubscribe(const std::vector<std::string> &deviceIds, const std::string &query,
-                                                uint64_t sequenceId)
+                                       uint64_t sequenceId)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(SingleKvStoreProxy::GetDescriptor())) {
