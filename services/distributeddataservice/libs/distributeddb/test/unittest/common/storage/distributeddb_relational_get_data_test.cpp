@@ -1039,4 +1039,114 @@ HWTEST_F(DistributedDBRelationalGetDataTest, CompatibleData1, TestSize.Level1)
     sqlite3_close(db);
     RefObject::DecObjRef(g_store);
 }
+
+/**
+ * @tc.name: GetDataSortByTime1
+ * @tc.desc: All query get data sort by time asc.
+ * @tc.type: FUNC
+ * @tc.require: AR000GK58H
+ * @tc.author: lidongwei
+  */
+HWTEST_F(DistributedDBRelationalGetDataTest, GetDataSortByTime1, TestSize.Level1)
+{
+    ASSERT_EQ(g_mgr.OpenStore(g_storePath, g_storeID, RelationalStoreDelegate::Option {}, g_delegate), DBStatus::OK);
+    ASSERT_NE(g_delegate, nullptr);
+    ASSERT_EQ(g_delegate->CreateDistributedTable(g_tableName), DBStatus::OK);
+    /**
+     * @tc.steps: step2. Add 3 record into data. k1v105, k2v104, k3v103, timestamp desc.
+     * @tc.expected: Succeed, return OK.
+     */
+    sqlite3 *db = nullptr;
+    ASSERT_EQ(sqlite3_open(g_storePath.c_str(), &db), SQLITE_OK);
+    std::string sql = "INSERT INTO " + g_tableName + " VALUES(1, 101);"; // k1v101
+    ASSERT_EQ(sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr), SQLITE_OK);
+    sql = "INSERT INTO " + g_tableName + " VALUES(2, 102);"; // k2v102
+    ASSERT_EQ(sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr), SQLITE_OK);
+    sql = "INSERT INTO " + g_tableName + " VALUES(3, 103);"; // k3v103
+    ASSERT_EQ(sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr), SQLITE_OK);
+    sql = "UPDATE " + g_tableName + " SET value=104 WHERE key=2;"; // k2v104
+    ASSERT_EQ(sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr), SQLITE_OK);
+    sql = "UPDATE " + g_tableName + " SET value=105 WHERE key=1;"; // k1v105
+    ASSERT_EQ(sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr), SQLITE_OK);
+    /**
+     * @tc.steps: step3. Get all data from "data" table by all query.
+     * @tc.expected: Succeed and the count is right.
+     */
+    auto store = GetRelationalStore();
+    ASSERT_NE(store, nullptr);
+    ContinueToken token = nullptr;
+    QueryObject query(Query::Select(g_tableName));
+    std::vector<SingleVerKvEntry *> entries;
+    EXPECT_EQ(store->GetSyncData(query, SyncTimeRange {}, DataSizeSpecInfo {}, token, entries), E_OK);
+    size_t count = 0;
+    for (auto iter = entries.begin(); iter != entries.end(); ++iter) {
+        if (((*iter)->GetFlag() & DataItem::REMOTE_DEVICE_DATA_MISS_QUERY) == 0) {
+            count++;
+        }
+        auto nextOne = std::next(iter, 1);
+        if (nextOne != entries.end()) {
+            EXPECT_LT((*iter)->GetTimestamp(), (*nextOne)->GetTimestamp());
+        }
+    }
+    EXPECT_EQ(count, 3UL);
+    SingleVerKvEntry::Release(entries);
+    query = QueryObject(Query::Select(g_tableName).EqualTo("key", 1).Or().EqualTo("key", 3));
+    EXPECT_EQ(store->GetSyncData(query, SyncTimeRange {}, DataSizeSpecInfo {}, token, entries), E_OK);
+    count = 0;
+    for (auto iter = entries.begin(); iter != entries.end(); ++iter) {
+        if (((*iter)->GetFlag() & DataItem::REMOTE_DEVICE_DATA_MISS_QUERY) == 0) {
+            count++;
+        }
+        auto nextOne = std::next(iter, 1);
+        if (nextOne != entries.end()) {
+            EXPECT_LT((*iter)->GetTimestamp(), (*nextOne)->GetTimestamp());
+        }
+    }
+    EXPECT_EQ(count, 2UL);
+    SingleVerKvEntry::Release(entries);
+    query = QueryObject(Query::Select(g_tableName).OrderBy("key", false));
+    EXPECT_EQ(store->GetSyncData(query, SyncTimeRange {}, DataSizeSpecInfo {}, token, entries), E_OK);
+    count = 0;
+    for (auto iter = entries.begin(); iter != entries.end(); ++iter) {
+        if (((*iter)->GetFlag() & DataItem::REMOTE_DEVICE_DATA_MISS_QUERY) == 0) {
+            count++;
+        }
+        auto nextOne = std::next(iter, 1);
+        if (nextOne != entries.end()) {
+            EXPECT_LT((*iter)->GetTimestamp(), (*nextOne)->GetTimestamp());
+        }
+    }
+    EXPECT_EQ(count, 3UL);
+    SingleVerKvEntry::Release(entries);
+    query = QueryObject(Query::Select(g_tableName).OrderBy("value", false));
+    EXPECT_EQ(store->GetSyncData(query, SyncTimeRange {}, DataSizeSpecInfo {}, token, entries), E_OK);
+    count = 0;
+    for (auto iter = entries.begin(); iter != entries.end(); ++iter) {
+        if (((*iter)->GetFlag() & DataItem::REMOTE_DEVICE_DATA_MISS_QUERY) == 0) {
+            count++;
+        }
+        auto nextOne = std::next(iter, 1);
+        if (nextOne != entries.end()) {
+            EXPECT_LT((*iter)->GetTimestamp(), (*nextOne)->GetTimestamp());
+        }
+    }
+    EXPECT_EQ(count, 3UL);
+    SingleVerKvEntry::Release(entries);
+    query = QueryObject(Query::Select(g_tableName).Limit(2));
+    EXPECT_EQ(store->GetSyncData(query, SyncTimeRange {}, DataSizeSpecInfo {}, token, entries), E_OK);
+    count = 0;
+    for (auto iter = entries.begin(); iter != entries.end(); ++iter) {
+        if (((*iter)->GetFlag() & DataItem::REMOTE_DEVICE_DATA_MISS_QUERY) == 0) {
+            count++;
+        }
+        auto nextOne = std::next(iter, 1);
+        if (nextOne != entries.end()) {
+            EXPECT_LT((*iter)->GetTimestamp(), (*nextOne)->GetTimestamp());
+        }
+    }
+    EXPECT_EQ(count, 2UL);
+    SingleVerKvEntry::Release(entries);
+    sqlite3_close(db);
+    RefObject::DecObjRef(g_store);
+}
 #endif

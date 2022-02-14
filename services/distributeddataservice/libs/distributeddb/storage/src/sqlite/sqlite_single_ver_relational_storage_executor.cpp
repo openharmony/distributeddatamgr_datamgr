@@ -948,6 +948,9 @@ int SQLiteSingleVerRelationalStorageExecutor::GetMissQueryData(std::vector<DataI
         errCode = SQLiteUtils::StepWithRetry(fullStmt, isMemDb_);
         if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_ROW)) {
             errCode = GetDataItemForSync(fullStmt, item, false);
+            if (errCode != E_OK) {
+                break;
+            }
         } else if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_DONE)) {
             errCode = -E_FINISHED;
             break;
@@ -996,6 +999,9 @@ int SQLiteSingleVerRelationalStorageExecutor::GetSyncDataByQuery(std::vector<Dat
         errCode = SQLiteUtils::StepWithRetry(queryStmt, isMemDb_);
         if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_ROW)) {
             errCode = GetDataItemForSync(queryStmt, item, isGettingDeletedData);
+            if (errCode != E_OK) {
+                break;
+            }
         } else if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_DONE)) {
             LOGD("Get sync data finished, size of packet:%zu, number of item:%zu", dataTotalSize, dataItems.size());
             errCode = -E_FINISHED;

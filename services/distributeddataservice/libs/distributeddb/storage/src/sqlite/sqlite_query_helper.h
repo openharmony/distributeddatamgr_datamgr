@@ -116,7 +116,7 @@ private:
     std::string AssembleSqlForSuggestIndex(const std::string &baseSql, const std::string &filter) const;
     std::string CheckAndFormatSuggestIndex() const;
     int GetSyncDataQuerySql(std::string &sql, bool hasSubQuery);
-    int ParseQueryObjNodeToSQL();
+    int ParseQueryObjNodeToSQL(bool isQueryForSync);
     int BindTimeRange(sqlite3_stmt *&statement, int &index, uint64_t beginTime, uint64_t endTime) const;
     int BindObjNodes(sqlite3_stmt *&statement, int &index) const;
     int GetSubscribeCondition(const std::string &accessStr, std::string &conditionStr);

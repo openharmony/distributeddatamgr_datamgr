@@ -167,10 +167,12 @@ bool SqliteQueryHelper::FilterSymbolToAddBracketLink(std::string &querySql, bool
 }
 
 
-int SqliteQueryHelper::ParseQueryObjNodeToSQL()
+int SqliteQueryHelper::ParseQueryObjNodeToSQL(bool isQueryForSync)
 {
     if (queryObjNodes_.empty()) {
-        querySql_ += ";";
+        if (!isQueryForSync) {
+            querySql_ += ";";
+        }
         return E_OK;
     }
 
@@ -199,7 +201,7 @@ int SqliteQueryHelper::ParseQueryObjNodeToSQL()
 
 int SqliteQueryHelper::ToQuerySql()
 {
-    int errCode = ParseQueryObjNodeToSQL();
+    int errCode = ParseQueryObjNodeToSQL(false);
     if (errCode != E_OK) {
         return errCode;
     }
@@ -215,7 +217,7 @@ int SqliteQueryHelper::ToQuerySql()
 
 int SqliteQueryHelper::ToQuerySyncSql(bool hasSubQuery, bool useTimeStampAlias)
 {
-    int errCode = ParseQueryObjNodeToSQL();
+    int errCode = ParseQueryObjNodeToSQL(true);
     if (errCode != E_OK) {
         return errCode;
     }
@@ -1010,7 +1012,7 @@ int SqliteQueryHelper::GetRelationalQueryStatement(sqlite3 *dbHandle, uint64_t b
          *        b.wtimestamp,b.flag,b.hash_key,a.*
          * FROM tableName AS a INNER JOIN naturalbase_rdb_log AS b
          * ON a.rowid=b.data_key
-         * WHERE (b.flag&0x03=0x02) AND (naturalbase_rdb_timestamp>=? AND naturalbase_rdb_timestamp<?) ;
+         * WHERE (b.flag&0x03=0x02) AND (naturalbase_rdb_timestamp>=? AND naturalbase_rdb_timestamp<?)
          * ORDER BY naturalbase_rdb_timestamp ASC;
          */
         errCode = BindTimeRange(statement, index, beginTime, endTime);
