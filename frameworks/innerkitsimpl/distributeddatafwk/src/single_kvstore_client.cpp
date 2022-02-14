@@ -176,10 +176,10 @@ Status SingleKvStoreClient::Sync(const std::vector<std::string> &deviceIds, Sync
         ZLOGW("deviceIds is empty.");
         return Status::INVALID_ARGUMENT;
     }
-    ++sequenceId_;
-    syncCallbackClient_.AddSyncCallback(syncObserver_, sequenceId_);
+    uint64_t sequenceId = UUIDGenerate::GenenrateSequenceId();
+    syncCallbackClient_.AddSyncCallback(syncObserver_, sequenceId);
     RegisterCallback();
-    return kvStoreProxy_->Sync(deviceIds, mode, allowedDelayMs, sequenceId_);
+    return kvStoreProxy_->Sync(deviceIds, mode, allowedDelayMs, sequenceId);
 }
 
 Status SingleKvStoreClient::RemoveDeviceData(const std::string &device)
@@ -475,14 +475,14 @@ Status SingleKvStoreClient::SyncWithCondition(const std::vector<std::string> &de
         ZLOGW("deviceIds is empty.");
         return Status::INVALID_ARGUMENT;
     }
-    ++sequenceId_;
+    uint64_t sequenceId = UUIDGenerate::GenenrateSequenceId();
     if (callback != nullptr) {
-        syncCallbackClient_.AddSyncCallback(callback, sequenceId_);
+        syncCallbackClient_.AddSyncCallback(callback, sequenceId);
         RegisterCallback();
     } else {
-        syncCallbackClient_.AddSyncCallback(syncObserver_, sequenceId_);
+        syncCallbackClient_.AddSyncCallback(syncObserver_, sequenceId);
     }
-    return kvStoreProxy_->Sync(deviceIds, mode, query.ToString(), sequenceId_);
+    return kvStoreProxy_->Sync(deviceIds, mode, query.ToString(), sequenceId);
 }
 
 Status SingleKvStoreClient::SubscribeWithQuery(const std::vector<std::string> &deviceIds, const DataQuery &query)
@@ -495,10 +495,10 @@ Status SingleKvStoreClient::SubscribeWithQuery(const std::vector<std::string> &d
         ZLOGW("deviceIds is empty.");
         return Status::INVALID_ARGUMENT;
     }
-    ++sequenceId_;
-    syncCallbackClient_.AddSyncCallback(syncObserver_, sequenceId_);
+    uint64_t sequenceId = UUIDGenerate::GenenrateSequenceId();
+    syncCallbackClient_.AddSyncCallback(syncObserver_, sequenceId);
     RegisterCallback();
-    return kvStoreProxy_->Subscribe(deviceIds, query.ToString(), sequenceId_);
+    return kvStoreProxy_->Subscribe(deviceIds, query.ToString(), sequenceId);
 }
 
 Status SingleKvStoreClient::UnsubscribeWithQuery(const std::vector<std::string> &deviceIds, const DataQuery &query)
@@ -511,9 +511,9 @@ Status SingleKvStoreClient::UnsubscribeWithQuery(const std::vector<std::string> 
         ZLOGW("deviceIds is empty.");
         return Status::INVALID_ARGUMENT;
     }
-    ++sequenceId_;
-    syncCallbackClient_.AddSyncCallback(syncObserver_, sequenceId_);
-    return kvStoreProxy_->UnSubscribe(deviceIds, query.ToString(), sequenceId_);
+    uint64_t sequenceId = UUIDGenerate::GenenrateSequenceId();
+    syncCallbackClient_.AddSyncCallback(syncObserver_, sequenceId);
+    return kvStoreProxy_->UnSubscribe(deviceIds, query.ToString(), sequenceId);
 }
 
 Status SingleKvStoreClient::GetKvStoreSnapshot(std::shared_ptr<KvStoreObserver> observer,
@@ -530,5 +530,15 @@ Status SingleKvStoreClient::ReleaseKvStoreSnapshot(std::shared_ptr<KvStoreSnapsh
 Status SingleKvStoreClient::Clear()
 {
     return Status::NOT_SUPPORT;
+}
+
+std::atomic<uint64_t> UUIDGenerate::sequenceId_ = 0;
+
+UUIDGenerate::UUIDGenerate() {}
+
+uint64_t UUIDGenerate::GenenrateSequenceId()
+{
+    ++sequenceId_;
+    return sequenceId_;
 }
 } // namespace OHOS::DistributedKv

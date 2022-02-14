@@ -107,10 +107,18 @@ private:
     std::mutex observerMapMutex_;
     std::string storeId_;
     KvStoreSyncCallbackClient syncCallbackClient_;
-    std::atomic<uint64_t> sequenceId_;
+//    std::atomic<uint64_t> sequenceId_;
     std::shared_ptr<SyncObserver> syncObserver_;
     bool isRegisterSyncCallback_ = false;
     std::mutex registerCallbackMutex_;
+};
+
+class UUIDGenerate{
+public:
+    explicit UUIDGenerate();
+    static uint64_t GenenrateSequenceId();
+private:
+    static std::atomic<uint64_t> sequenceId_;
 };
 } // namespace OHOS::DistributedKv
 #endif // DISTRIBUTEDDATAMGR2_SINGLE_KVSTORE_CLIENT_H
