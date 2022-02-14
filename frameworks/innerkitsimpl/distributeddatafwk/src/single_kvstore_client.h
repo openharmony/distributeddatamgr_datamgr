@@ -108,7 +108,6 @@ private:
     std::string storeId_;
     KvStoreSyncCallbackClient syncCallbackClient_;
     std::atomic<uint64_t> sequenceId_;
-//    std::vector<std::shared_ptr<KvStoreSyncCallback>> syncCallbacks_;
     std::shared_ptr<SyncObserver> syncObserver_;
     bool isRegisterSyncCallback_ = false;
     std::mutex registerCallbackMutex_;

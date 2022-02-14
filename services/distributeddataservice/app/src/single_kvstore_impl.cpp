@@ -966,7 +966,7 @@ Status SingleKvStoreImpl::DoUnSubscribe(const std::vector<std::string> &deviceId
 }
 
 Status SingleKvStoreImpl::AddSubscribe(const std::vector<std::string> &deviceIds, const std::string &query,
-                                                uint32_t delayMs, uint64_t sequenceId)
+                                       uint32_t delayMs, uint64_t sequenceId)
 {
     ZLOGD("start.");
     return KvStoreSyncManager::GetInstance()->AddSyncOperation(reinterpret_cast<uintptr_t>(this), delayMs,
@@ -975,7 +975,7 @@ Status SingleKvStoreImpl::AddSubscribe(const std::vector<std::string> &deviceIds
 }
 
 Status SingleKvStoreImpl::AddUnSubscribe(const std::vector<std::string> &deviceIds, const std::string &query,
-                                                  uint32_t delayMs, uint64_t sequenceId)
+                                         uint32_t delayMs, uint64_t sequenceId)
 {
     ZLOGD("start.");
     return KvStoreSyncManager::GetInstance()->AddSyncOperation(reinterpret_cast<uintptr_t>(this), delayMs,
@@ -997,7 +997,7 @@ Status SingleKvStoreImpl::Subscribe(const std::vector<std::string> &deviceIds,
 }
 
 Status SingleKvStoreImpl::UnSubscribe(const std::vector<std::string> &deviceIds,
-                                               const std::string &query, uint64_t sequenceId)
+                                      const std::string &query, uint64_t sequenceId)
 {
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     ZLOGD("start.");

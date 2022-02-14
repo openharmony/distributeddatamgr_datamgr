@@ -505,12 +505,13 @@ void QueryHelper::HandleKeyPrefix(const std::vector<std::string> &words, int &po
 
 void QueryHelper::HandleInKeys(const std::vector<std::string> &words, int &pointer,
                                const int &end, bool &isSuccess, DistributedDB::Query &dbQuery) {
+    // pointer points at keyword "IN_KEYS", (pointer + 1) points at keyword "START_IN"
     if (pointer + 2 > end || words.at(pointer + 1) != DataQuery::START_IN) { // This keyword has at least 2 params
         ZLOGE("In not enough params.");
         isSuccess = false;
         return;
     }
-    int elementPointer = pointer + 2;
+    int elementPointer = pointer + 2;  // elementPointer points at the first inkey value
     const std::vector<std::string> inKeys = GetStringList(words, elementPointer, end);
     std::set<std::vector<uint8_t>> inDbKeys;
     for(const std::string &inKey : inKeys) {
@@ -523,7 +524,7 @@ void QueryHelper::HandleInKeys(const std::vector<std::string> &words, int &point
     ZLOGI("size of inKeys=%{public}d", size);
     dbQuery.InKeys(inDbKeys);
     isSuccess = true;
-    pointer = elementPointer + 1; // Pointer goes to next keyword
+    pointer = elementPointer + 1; // elementPointer points at keyword "END", Pointer goes to next keyword
 }
 
 void QueryHelper::HandleSetSuggestIndex(const std::vector<std::string> &words, int &pointer,

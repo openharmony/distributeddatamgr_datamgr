@@ -200,9 +200,9 @@ public:
                                       const std::vector<std::string> &remoteSupportLabels);
     virtual Status GetSecurityLevel(SecurityLevel &securityLevel);
     virtual Status Subscribe(const std::vector<std::string> &deviceIds, const std::string &query,
-                                      uint64_t sequenceId);
+                             uint64_t sequenceId);
     virtual Status UnSubscribe(const std::vector<std::string> &deviceIds, const std::string &query,
-                                        uint64_t sequenceId);
+                               uint64_t sequenceId);
 private:
     static inline BrokerDelegator<SingleKvStoreProxy> delegator_;
 };

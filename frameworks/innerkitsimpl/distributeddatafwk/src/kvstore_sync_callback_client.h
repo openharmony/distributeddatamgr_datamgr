@@ -36,7 +36,7 @@ public:
 
     void DeleteSyncCallback(uint64_t sequenceId);
 private:
-    std::map<uint64_t, std::shared_ptr<KvStoreSyncCallback>> SyncCallbackInfo_;
+    ConcurrentMap<uint64_t, std::shared_ptr<KvStoreSyncCallback>> SyncCallbackInfo_;
 };
 }  // namespace DistributedKv
 }  // namespace OHOS

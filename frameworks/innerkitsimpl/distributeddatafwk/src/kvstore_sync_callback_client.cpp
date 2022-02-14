@@ -24,7 +24,7 @@ namespace DistributedKv {
 KvStoreSyncCallbackClient::~KvStoreSyncCallbackClient() = default;
 void KvStoreSyncCallbackClient::SyncCompleted(const std::map<std::string, Status> &results, uint64_t sequenceId)
 {
-    if (SyncCallbackInfo_.find(sequenceId) != SyncCallbackInfo_.end()) {
+    if (SyncCallbackInfo_.Contains(sequenceId)) {
         ZLOGI("label = %{public}llu", sequenceId);
         SyncCallbackInfo_[sequenceId]->SyncCompleted(results);
         DeleteSyncCallback(sequenceId);
@@ -34,15 +34,15 @@ void KvStoreSyncCallbackClient::SyncCompleted(const std::map<std::string, Status
 void KvStoreSyncCallbackClient::AddSyncCallback(const std::shared_ptr<KvStoreSyncCallback> SyncCallback,
                                                 uint64_t sequenceId)
 {
-    if (SyncCallbackInfo_.find(sequenceId) == SyncCallbackInfo_.end()) {
-        SyncCallbackInfo_.insert( {sequenceId, SyncCallback} );
+    if (!SyncCallbackInfo_.Contains(sequenceId)) {
+        SyncCallbackInfo_.Insert(sequenceId, SyncCallback);
     }
 }
 
 void KvStoreSyncCallbackClient::DeleteSyncCallback(uint64_t sequenceId)
 {
-    if (SyncCallbackInfo_.find(sequenceId) != SyncCallbackInfo_.end()) {
-        SyncCallbackInfo_.erase(sequenceId);
+    if (SyncCallbackInfo_.Contains(sequenceId)) {
+        SyncCallbackInfo_.Erase(sequenceId);
     }
 }
 }  // namespace DistributedKv
