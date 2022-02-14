@@ -25,6 +25,7 @@ constexpr int32_t END_SIZE = 3;
 constexpr int32_t MIN_SIZE = HEAD_SIZE + END_SIZE + 3;
 constexpr const char *REPLACE_CHAIN = "***";
 constexpr const char *DEFAULT_ANONYMOUS = "******";
+std::atomic<uint64_t> KvStoreUtils::sequenceId_{0};
 std::string KvStoreUtils::ToBeAnonymous(const std::string &name)
 {
     if (name.length() <= HEAD_SIZE) {
@@ -45,6 +46,12 @@ AppDistributedKv::CommunicationProvider &KvStoreUtils::GetProviderInstance()
 #else
     return *(AppDistributedKv::CommunicationProvider::MakeCommunicationProvider().get());
 #endif
+}
+
+uint64_t KvStoreUtils::GenerateSequenceId()
+{
+    ++sequenceId_;
+    return sequenceId_;
 }
 } // namespace DistributedKv
 } // namespace OHOS

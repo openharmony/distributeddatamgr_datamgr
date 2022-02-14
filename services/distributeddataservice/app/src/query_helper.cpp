@@ -50,7 +50,6 @@ DistributedDB::Query QueryHelper::StringToDbQuery(const std::string &query, bool
     }
     deviceId_.clear();
     hasPrefixKey_ = (query.find(DataQuery::KEY_PREFIX) != std::string::npos);
-    hasInKeys_ = (query.find(DataQuery::IN_KEYS) != std::string::npos);
     size_t pos = query.find_first_not_of(DataQuery::SPACE);
     std::string inputTrim = (pos == std::string::npos) ? "" : query.substr(pos);
     std::regex regex(" ");
@@ -506,13 +505,15 @@ void QueryHelper::HandleKeyPrefix(const std::vector<std::string> &words, int &po
 void QueryHelper::HandleInKeys(const std::vector<std::string> &words, int &pointer,
                                const int &end, bool &isSuccess, DistributedDB::Query &dbQuery) {
     // pointer points at keyword "IN_KEYS", (pointer + 1) points at keyword "START_IN"
-    if (pointer + 2 > end || words.at(pointer + 1) != DataQuery::START_IN) { // This keyword has at least 2 params
+    int startInOffSet = pointer + 1;
+    int queryLen = end - pointer;
+    if (queryLen < 2 || words.at(startInOffSet) != DataQuery::START_IN) { // This keyword has at least 2 params
         ZLOGE("In not enough params.");
         isSuccess = false;
         return;
     }
-    int inkeyPointer = pointer + 2;  // inkeyPointer points at the first inkey value
-    const std::vector<std::string> inKeys = GetStringList(words, inkeyPointer, end);
+    int inkeyOffSet = startInOffSet + 1;  // inkeyOffSet points at the first inkey value
+    const std::vector<std::string> inKeys = GetStringList(words, inkeyOffSet, end);
     std::set<std::vector<uint8_t>> inDbKeys;
     for(const std::string &inKey : inKeys) {
         ZLOGI("inKey=%{public}s", inKey.c_str());
@@ -524,7 +525,8 @@ void QueryHelper::HandleInKeys(const std::vector<std::string> &words, int &point
     ZLOGI("size of inKeys=%{public}d", size);
     dbQuery.InKeys(inDbKeys);
     isSuccess = true;
-    pointer = inkeyPointer + 1; // inkeyPointer points at keyword "END", Pointer goes to next keyword
+    int endOffSet = inkeyOffSet;
+    pointer = endOffSet + 1; // endOffSet points at keyword "END", Pointer goes to next keyword
 }
 
 void QueryHelper::HandleSetSuggestIndex(const std::vector<std::string> &words, int &pointer,

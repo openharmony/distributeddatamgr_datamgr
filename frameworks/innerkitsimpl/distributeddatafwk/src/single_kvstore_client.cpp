@@ -22,6 +22,7 @@
 #include "kvstore_resultset_client.h"
 #include "kvstore_sync_callback_client.h"
 #include "log_print.h"
+#include "kvstore_utils.h"
 
 namespace OHOS::DistributedKv {
 SingleKvStoreClient::SingleKvStoreClient(sptr<ISingleKvStore> kvStoreProxy, const std::string &storeId)
@@ -176,7 +177,7 @@ Status SingleKvStoreClient::Sync(const std::vector<std::string> &deviceIds, Sync
         ZLOGW("deviceIds is empty.");
         return Status::INVALID_ARGUMENT;
     }
-    uint64_t sequenceId = UUIDGenerate::GenenrateSequenceId();
+    uint64_t sequenceId = KvStoreUtils::GenerateSequenceId();
     syncCallbackClient_.AddSyncCallback(syncObserver_, sequenceId);
     RegisterCallback();
     return kvStoreProxy_->Sync(deviceIds, mode, allowedDelayMs, sequenceId);
@@ -313,18 +314,19 @@ Status SingleKvStoreClient::RegisterSyncCallback(std::shared_ptr<KvStoreSyncCall
 
 Status SingleKvStoreClient::RegisterCallback()
 {
-    {
-        std::lock_guard lg(registerCallbackMutex_);
-        if (isRegisterSyncCallback_) {
-            return Status::SUCCESS;
-        }
-        isRegisterSyncCallback_ = true;
+    if (isRegisterSyncCallback_) {
+        return Status::SUCCESS;
+    }
+    std::lock_guard lg(registerCallbackMutex_);
+    if (isRegisterSyncCallback_) {
+        return Status::SUCCESS;
     }
     auto status = kvStoreProxy_->RegisterSyncCallback(&syncCallbackClient_);
     if (status != Status::SUCCESS) {
         ZLOGE("RegisterSyncCallback is not success.");
         return status;
     }
+    isRegisterSyncCallback_ = true;
     return Status::SUCCESS;
 }
 
@@ -475,7 +477,7 @@ Status SingleKvStoreClient::SyncWithCondition(const std::vector<std::string> &de
         ZLOGW("deviceIds is empty.");
         return Status::INVALID_ARGUMENT;
     }
-    uint64_t sequenceId = UUIDGenerate::GenenrateSequenceId();
+    uint64_t sequenceId = KvStoreUtils::GenerateSequenceId();
     if (callback != nullptr) {
         syncCallbackClient_.AddSyncCallback(callback, sequenceId);
         RegisterCallback();
@@ -495,7 +497,7 @@ Status SingleKvStoreClient::SubscribeWithQuery(const std::vector<std::string> &d
         ZLOGW("deviceIds is empty.");
         return Status::INVALID_ARGUMENT;
     }
-    uint64_t sequenceId = UUIDGenerate::GenenrateSequenceId();
+    uint64_t sequenceId = KvStoreUtils::GenerateSequenceId();
     syncCallbackClient_.AddSyncCallback(syncObserver_, sequenceId);
     RegisterCallback();
     return kvStoreProxy_->Subscribe(deviceIds, query.ToString(), sequenceId);
@@ -511,7 +513,7 @@ Status SingleKvStoreClient::UnsubscribeWithQuery(const std::vector<std::string> 
         ZLOGW("deviceIds is empty.");
         return Status::INVALID_ARGUMENT;
     }
-    uint64_t sequenceId = UUIDGenerate::GenenrateSequenceId();
+    uint64_t sequenceId = KvStoreUtils::GenerateSequenceId();
     syncCallbackClient_.AddSyncCallback(syncObserver_, sequenceId);
     return kvStoreProxy_->UnSubscribe(deviceIds, query.ToString(), sequenceId);
 }
@@ -530,15 +532,5 @@ Status SingleKvStoreClient::ReleaseKvStoreSnapshot(std::shared_ptr<KvStoreSnapsh
 Status SingleKvStoreClient::Clear()
 {
     return Status::NOT_SUPPORT;
-}
-
-std::atomic<uint64_t> UUIDGenerate::sequenceId_ = 0;
-
-UUIDGenerate::UUIDGenerate() {}
-
-uint64_t UUIDGenerate::GenenrateSequenceId()
-{
-    ++sequenceId_;
-    return sequenceId_;
 }
 } // namespace OHOS::DistributedKv
