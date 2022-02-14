@@ -48,6 +48,8 @@
         "ram": "",
         "deps": {
             "components": [
+                "ability_base",
+                "ability_runtime",
                 "libhilog",
                 "ipc_core",
                 "utils",
