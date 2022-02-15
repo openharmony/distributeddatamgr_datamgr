@@ -462,7 +462,7 @@ Status SingleKvStoreProxy::CloseResultSet(sptr<IKvStoreResultSet> resultSetPtr)
 }
 
 Status SingleKvStoreProxy::Sync(const std::vector<std::string> &deviceIds, SyncMode mode,
-                                uint32_t allowedDelayMs)
+                                uint32_t allowedDelayMs, uint64_t sequenceId)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -487,7 +487,9 @@ Status SingleKvStoreProxy::Sync(const std::vector<std::string> &deviceIds, SyncM
     }
     return static_cast<Status>(reply.ReadInt32());
 }
-Status SingleKvStoreProxy::Sync(const std::vector<std::string> &deviceIds, SyncMode mode, const std::string &query)
+
+Status SingleKvStoreProxy::Sync(const std::vector<std::string> &deviceIds, SyncMode mode,
+                                const std::string &query, uint64_t sequenceId)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(SingleKvStoreProxy::GetDescriptor())) {
@@ -502,6 +504,10 @@ Status SingleKvStoreProxy::Sync(const std::vector<std::string> &deviceIds, SyncM
     }
     if (!data.WriteString(query)) {
         ZLOGE("write query fail");
+        return Status::IPC_ERROR;
+    }
+    if (!data.WriteUint64(sequenceId)) {
+        ZLOGE("write label fail");
         return Status::IPC_ERROR;
     }
     MessageParcel reply;
@@ -848,7 +854,8 @@ Status SingleKvStoreProxy::GetSecurityLevel(SecurityLevel &securityLevel)
     return status;
 }
 
-Status SingleKvStoreProxy::SubscribeWithQuery(const std::vector<std::string> &deviceIds, const std::string &query)
+Status SingleKvStoreProxy::Subscribe(const std::vector<std::string> &deviceIds, const std::string &query,
+                                     uint64_t sequenceId)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(SingleKvStoreProxy::GetDescriptor())) {
@@ -863,9 +870,13 @@ Status SingleKvStoreProxy::SubscribeWithQuery(const std::vector<std::string> &de
         ZLOGE("write query fail");
         return Status::IPC_ERROR;
     }
+    if (!data.WriteUint64(sequenceId)) {
+        ZLOGE("write query fail");
+        return Status::IPC_ERROR;
+    }
     MessageParcel reply;
     MessageOption mo { MessageOption::TF_SYNC };
-    int32_t error = Remote()->SendRequest(SUBSCRIBE_WITH_QUERY, data, reply, mo);
+    int32_t error = Remote()->SendRequest(SUBSCRIBE, data, reply, mo);
     if (error != 0) {
         ZLOGE("SendRequest returned %d", error);
         return Status::IPC_ERROR;
@@ -873,7 +884,8 @@ Status SingleKvStoreProxy::SubscribeWithQuery(const std::vector<std::string> &de
     return static_cast<Status>(reply.ReadInt32());
 }
 
-Status SingleKvStoreProxy::UnSubscribeWithQuery(const std::vector<std::string> &deviceIds, const std::string &query)
+Status SingleKvStoreProxy::UnSubscribe(const std::vector<std::string> &deviceIds, const std::string &query,
+                                       uint64_t sequenceId)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(SingleKvStoreProxy::GetDescriptor())) {
@@ -888,9 +900,13 @@ Status SingleKvStoreProxy::UnSubscribeWithQuery(const std::vector<std::string> &
         ZLOGE("write query fail");
         return Status::IPC_ERROR;
     }
+    if (!data.WriteUint64(sequenceId)) {
+        ZLOGE("write query fail");
+        return Status::IPC_ERROR;
+    }
     MessageParcel reply;
     MessageOption mo { MessageOption::TF_SYNC };
-    int32_t error = Remote()->SendRequest(UNSUBSCRIBE_WITH_QUERY, data, reply, mo);
+    int32_t error = Remote()->SendRequest(UNSUBSCRIBE, data, reply, mo);
     if (error != 0) {
         ZLOGE("SendRequest returned %d", error);
         return Status::IPC_ERROR;
@@ -1218,7 +1234,8 @@ int SingleKvStoreStub::SyncOnRemote(MessageParcel &data, MessageParcel &reply)
     }
     auto mode = static_cast<SyncMode>(data.ReadInt32());
     auto allowedDelayMs = static_cast<uint32_t>(data.ReadInt32());
-    Status status = Sync(devices, mode, allowedDelayMs);
+    auto sequenceId = data.ReadUint64();
+    Status status = Sync(devices, mode, allowedDelayMs, sequenceId);
     if (!reply.WriteInt32(static_cast<int>(status))) {
         ZLOGW("write sync status fail");
         return -1;
@@ -1593,7 +1610,8 @@ int SingleKvStoreStub::OnSyncRequest(MessageParcel &data, MessageParcel &reply)
     }
     auto mode = static_cast<SyncMode>(data.ReadInt32());
     auto query = data.ReadString();
-    Status status = Sync(devices, mode, query);
+    auto sequenceId = data.ReadUint64();
+    Status status = Sync(devices, mode, query, sequenceId);
     if (!reply.WriteInt32(static_cast<int>(status))) {
         ZLOGE("write sync status fail");
         return -1;
@@ -1619,7 +1637,7 @@ int SingleKvStoreStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Messa
     }
 }
 
-int SingleKvStoreStub::OnSubscribeWithQueryRequest(MessageParcel &data, MessageParcel &reply)
+int SingleKvStoreStub::OnSubscribeRequest(MessageParcel &data, MessageParcel &reply)
 {
     std::vector<std::string> devices;
     if (!data.ReadStringVector(&devices) || devices.empty()) {
@@ -1631,7 +1649,8 @@ int SingleKvStoreStub::OnSubscribeWithQueryRequest(MessageParcel &data, MessageP
         return 0;
     }
     auto query = data.ReadString();
-    Status status = SubscribeWithQuery(devices, query);
+    auto sequenceId = data.ReadUint64();
+    Status status = Subscribe(devices, query, sequenceId);
     if (!reply.WriteInt32(static_cast<uint32_t>(status))) {
         ZLOGE("write sync status fail");
         return -1;
@@ -1639,7 +1658,7 @@ int SingleKvStoreStub::OnSubscribeWithQueryRequest(MessageParcel &data, MessageP
     return 0;
 }
 
-int SingleKvStoreStub::OnUnSubscribeWithQueryRequest(MessageParcel &data, MessageParcel &reply)
+int SingleKvStoreStub::OnUnSubscribeRequest(MessageParcel &data, MessageParcel &reply)
 {
     std::vector<std::string> devices;
     if (!data.ReadStringVector(&devices) || devices.empty()) {
@@ -1651,7 +1670,8 @@ int SingleKvStoreStub::OnUnSubscribeWithQueryRequest(MessageParcel &data, Messag
         return 0;
     }
     auto query = data.ReadString();
-    Status status = UnSubscribeWithQuery(devices, query);
+    auto sequenceId = data.ReadUint64();
+    Status status = UnSubscribe(devices, query, sequenceId);
     if (!reply.WriteInt32(static_cast<uint32_t>(status))) {
         ZLOGE("write sync status fail");
         return -1;

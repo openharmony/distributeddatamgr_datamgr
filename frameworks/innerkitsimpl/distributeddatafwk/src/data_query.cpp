@@ -56,6 +56,7 @@ const std::string DataQuery::TYPE_BOOLEAN = "BOOL";
 const std::string DataQuery::VALUE_TRUE = "true";
 const std::string DataQuery::VALUE_FALSE = "false";
 const std::string DataQuery::SUGGEST_INDEX = "^SUGGEST_INDEX";
+const std::string DataQuery::IN_KEYS = "^IN_KEYS";
 constexpr int MAX_QUERY_LENGTH = 5 * 1024; // Max query string length 5k
 
 DataQuery::DataQuery()
@@ -64,6 +65,7 @@ DataQuery::DataQuery()
 DataQuery& DataQuery::Reset()
 {
     str_ = "";
+    inkeysFlag_ = false;
     return *this;
 }
 
@@ -534,6 +536,33 @@ DataQuery& DataQuery::SetSuggestIndex(const std::string &index)
         EscapeSpace(suggestIndex);
         str_.append(suggestIndex);
     }
+    return *this;
+}
+
+DataQuery& DataQuery::InKeys(const std::vector<std::string> &keys)
+{
+    if (keys.empty()) {
+        ZLOGE("Invalid number param");
+        return *this;
+    }
+    if (inkeysFlag_) {
+        ZLOGE("cannot set inkeys more than once");
+        return *this;
+    }
+    inkeysFlag_ = true;
+    str_.append(SPACE);
+    str_.append(IN_KEYS);
+    str_.append(SPACE);
+    str_.append(START_IN);
+    str_.append(SPACE);
+    for (std::string key : keys) {
+        if (ValidateField(key)) {
+            EscapeSpace(key);
+            str_.append(key);
+            str_.append(SPACE);
+        }
+    }
+    str_.append(END_IN);
     return *this;
 }
 

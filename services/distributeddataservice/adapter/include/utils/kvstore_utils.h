@@ -17,6 +17,7 @@
 #define KVSTORE_UTILS_H
 
 #include <string>
+#include <atomic>
 #include "visibility.h"
 #include "communication_provider.h"
 
@@ -30,9 +31,12 @@ public:
     KVSTORE_API static std::string ToBeAnonymous(const std::string &name);
 
     KVSTORE_API static AppDistributedKv::CommunicationProvider &GetProviderInstance();
+
+    KVSTORE_API static uint64_t GenerateSequenceId();
 private:
     static constexpr int MAIN_USER_ID = 0;
     static constexpr int SYSTEM_UID = 1000;
+    static std::atomic<uint64_t> sequenceId_;
 };
 } // namespace DistributedKv
 } // namespace OHOS

@@ -16,7 +16,9 @@
 #ifndef QUERY_HELPER_H
 #define QUERY_HELPER_H
 
+#include <set>
 #include "query.h"
+#include "types.h"
 
 namespace OHOS::DistributedKv {
 class QueryHelper {
@@ -25,6 +27,7 @@ public:
 private:
     static std::string deviceId_;
     static bool hasPrefixKey_;
+    static bool hasInKeys_;
     static void Handle(const std::vector<std::string> &words, int &pointer,
                        const int &end, bool &isSuccess, DistributedDB::Query &dbQuery);
     static void HandleExtra(const std::vector<std::string> &words, int &pointer,
@@ -69,6 +72,8 @@ private:
                                const int &end, bool &isSuccess, DistributedDB::Query &dbQuery);
     static void HandleKeyPrefix(const std::vector<std::string> &words, int &pointer,
                                 const int &end, bool &isSuccess, DistributedDB::Query &dbQuery);
+    static void HandleInKeys(const std::vector<std::string> &words, int &pointer,
+                             const int &end, bool &isSuccess, DistributedDB::Query &dbQuery);
     static void HandleSetSuggestIndex(const std::vector<std::string> &words, int &pointer,
                                       const int &end, bool &isSuccess, DistributedDB::Query &dbQuery);
     static void HandleDeviceId(const std::vector<std::string> &words, int &pointer,
