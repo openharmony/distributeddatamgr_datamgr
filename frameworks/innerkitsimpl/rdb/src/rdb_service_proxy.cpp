@@ -346,7 +346,7 @@ int32_t RdbServiceProxy::UnSubscribe(const RdbSyncerParam &param, const Subscrib
     DoUnSubscribe(param);
     bool canErase = false;
     observers_.ComputeIfPresent(
-        param.storeName_, [observer , &canErase](const auto& key, ObserverMapValue& value) {
+        param.storeName_, [observer, &canErase](const auto& key, ObserverMapValue& value) {
             ZLOGI("before remove size=%{public}d", static_cast<int>(value.first.size()));
             value.first.remove(observer);
             ZLOGI("after  remove size=%{public}d", static_cast<int>(value.first.size()));
