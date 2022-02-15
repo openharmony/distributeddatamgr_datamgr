@@ -25,8 +25,9 @@ namespace DistributedKv {
 KvStoreSyncCallbackClient::~KvStoreSyncCallbackClient() = default;
 void KvStoreSyncCallbackClient::SyncCompleted(const std::map<std::string, Status> &results, uint64_t sequenceId)
 {
-    if (syncCallbackInfo_.Contains(sequenceId)) {
-        syncCallbackInfo_[sequenceId]->SyncCompleted(results);
+    auto finded = syncCallbackInfo_.Find(sequenceId);
+    if (finded.first) {
+        finded.second->SyncCompleted(results);
         DeleteSyncCallback(sequenceId);
     }
 }

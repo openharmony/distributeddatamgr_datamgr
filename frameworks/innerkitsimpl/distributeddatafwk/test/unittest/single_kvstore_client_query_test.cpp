@@ -599,9 +599,9 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC018, TestSize.Level1)
 */
 HWTEST_F(SingleKvStoreClientQueryTest, TestQueryC019, TestSize.Level1)
 {
-ZLOGD("TestQueryC019 start");
-DataQuery query;
-query.InKeys( {"test_field_name"} );
-EXPECT_TRUE(query.ToString().length() > 0);
-ZLOGD("TestQueryC019 end");
+    ZLOGD("TestQueryC019 start");
+    DataQuery query;
+    query.InKeys( {"test_field_name"} );
+    EXPECT_TRUE(query.ToString().length() > 0);
+    ZLOGD("TestQueryC019 end");
 }
