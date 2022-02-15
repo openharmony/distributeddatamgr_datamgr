@@ -273,3 +273,62 @@ HWTEST_F(DistributedDBMockSyncModuleTest, SyncDataSync002, TestSize.Level1)
     EXPECT_EQ(dataSync.CallPullRequestStart(&syncTaskContext), -E_BUSY);
     EXPECT_EQ(syncTaskContext.GetTaskErrCode(), -E_BUSY);
 }
+
+/**
+ * @tc.name: AbilitySync001
+ * @tc.desc: Test abilitySync abort when recv error.
+ * @tc.type: FUNC
+ * @tc.require: AR000CCPOM
+ * @tc.author: zhangqiquan
+ */
+HWTEST_F(DistributedDBMockSyncModuleTest, AbilitySync001, TestSize.Level1)
+{
+    MockSyncTaskContext syncTaskContext;
+    AbilitySync abilitySync;
+    
+    DistributedDB::Message *message = new(std::nothrow) DistributedDB::Message();
+    ASSERT_TRUE(message != nullptr);
+    AbilitySyncAckPacket packet;
+    packet.SetAckCode(-E_BUSY);
+    message->SetCopiedObject(packet);
+    EXPECT_EQ(abilitySync.AckRecv(message, &syncTaskContext), -E_BUSY);
+    delete message;
+    EXPECT_EQ(syncTaskContext.GetTaskErrCode(), -E_BUSY);
+}
+
+/**
+ * @tc.name: AbilitySync002
+ * @tc.desc: Test abilitySync abort when save meta failed.
+ * @tc.type: FUNC
+ * @tc.require: AR000CCPOM
+ * @tc.author: zhangqiquan
+ */
+HWTEST_F(DistributedDBMockSyncModuleTest, AbilitySync002, TestSize.Level1)
+{
+    MockSyncTaskContext syncTaskContext;
+    AbilitySync abilitySync;
+    MockCommunicator comunicator;
+    VirtualSingleVerSyncDBInterface syncDBInterface;
+    std::shared_ptr<Metadata> metaData = std::make_shared<Metadata>();
+    metaData->Initialize(&syncDBInterface);
+    abilitySync.Initialize(&comunicator, &syncDBInterface, metaData, "deviceId");
+    
+    /**
+     * @tc.steps: step1. set AbilitySyncAckPacket ackCode is E_OK for pass the ack check
+     */
+    DistributedDB::Message *message = new(std::nothrow) DistributedDB::Message();
+    ASSERT_TRUE(message != nullptr);
+    AbilitySyncAckPacket packet;
+    packet.SetAckCode(E_OK);
+    packet.SetSoftwareVersion(SOFTWARE_VERSION_CURRENT);
+    message->SetCopiedObject(packet);
+    /**
+     * @tc.steps: step1. set syncDBInterface busy for save data return -E_BUSY
+     */
+    syncDBInterface.SetBusy(true);
+    SyncStrategy mockStrategy = {true, false, false};
+    EXPECT_CALL(syncTaskContext, GetSyncStrategy(_)).WillOnce(Return(mockStrategy));
+    EXPECT_EQ(abilitySync.AckRecv(message, &syncTaskContext), -E_BUSY);
+    delete message;
+    EXPECT_EQ(syncTaskContext.GetTaskErrCode(), -E_BUSY);
+}

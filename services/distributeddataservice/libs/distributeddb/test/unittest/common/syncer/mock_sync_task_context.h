@@ -37,6 +37,8 @@ public:
     MOCK_METHOD0(Clear, void(void));
 
     MOCK_CONST_METHOD0(GetRequestSessionId, uint32_t(void));
+
+    MOCK_CONST_METHOD1(GetSyncStrategy, SyncStrategy(QuerySyncObject &));
 };
 } // namespace DistributedDB
 #endif  // #define MOCK_SINGLE_VER_STATE_MACHINE_H
