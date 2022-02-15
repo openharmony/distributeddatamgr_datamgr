@@ -40,6 +40,7 @@ ohos_shared_library("distributeddatasvcfwk") {
     "serializable/serializable.cpp",
     "utils/constant.cpp",
     "utils/crypto.cpp",
+    "utils/block_integer.cpp",
   ]
   cflags = [ "-Wno-multichar" ]
 
@@ -49,7 +50,6 @@ ohos_shared_library("distributeddatasvcfwk") {
 
   ldflags = [ "-Wl,--exclude-libs,libcrypto_static.a" ]
   deps = [
-    "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/distributeddata:distributeddata_inner",
     "//third_party/openssl:libcrypto_static",
     "//utils/native/base:utils",
   ]

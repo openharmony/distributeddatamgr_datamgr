@@ -12,10 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include "block_integer.h"
+#include "utils/block_integer.h"
 #include <unistd.h>
 
+namespace OHOS::DistributedData {
 BlockInteger &BlockInteger::operator++()
 {
     value_++;
@@ -36,4 +36,5 @@ BlockInteger &BlockInteger::operator=(int value)
 {
     value_ = value;
     return *this;
+}
 }

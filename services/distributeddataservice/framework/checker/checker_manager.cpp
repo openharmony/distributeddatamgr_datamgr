@@ -13,8 +13,6 @@
 * limitations under the License.
 */
 #include "checker/checker_manager.h"
-#include "account/account_delegate.h"
-using namespace OHOS::DistributedKv;
 namespace OHOS {
 namespace DistributedData {
 CheckerManager &CheckerManager::GetInstance()

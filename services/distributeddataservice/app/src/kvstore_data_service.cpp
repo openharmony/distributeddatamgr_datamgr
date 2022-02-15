@@ -16,12 +16,14 @@
 #define LOG_TAG "KvStoreDataService"
 
 #include "kvstore_data_service.h"
-#include <chrono>
+
 #include <directory_ex.h>
 #include <file_ex.h>
 #include <ipc_skeleton.h>
-#include <thread>
 #include <unistd.h>
+#include <chrono>
+#include <thread>
+
 #include "auto_launch_export.h"
 #include "bootstrap.h"
 #include "checker/checker_manager.h"
@@ -41,10 +43,11 @@
 #include "permission/permission_kit.h"
 #include "permission_validator.h"
 #include "process_communicator_impl.h"
-#include "reporter.h"
 #include "rdb_service_impl.h"
+#include "reporter.h"
 #include "system_ability_definition.h"
 #include "uninstaller/uninstaller.h"
+#include "utils/block_integer.h"
 #include "utils/crypto.h"
 
 namespace OHOS::DistributedKv {
@@ -812,6 +815,15 @@ void KvStoreDataService::OnStart()
 
 void KvStoreDataService::StartService()
 {
+    static constexpr int32_t RETRY_TIMES = 10;
+    static constexpr int32_t RETRY_INTERVAL = 500; // unit is ms
+    for (BlockInteger retry(RETRY_INTERVAL); retry < RETRY_TIMES; ++retry) {
+        if (!DeviceKvStoreImpl::GetLocalDeviceId().empty()) {
+            break;
+        }
+        ZLOGE("GetLocalDeviceId failed, reties: %{public}d", static_cast<int>(retry));
+    }
+
     // register this to ServiceManager.
     bool ret = SystemAbility::Publish(this);
     if (!ret) {
