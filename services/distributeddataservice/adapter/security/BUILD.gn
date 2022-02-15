@@ -15,7 +15,6 @@ import("//build/ohos.gni")
 
 ohos_static_library("distributeddata_security_static") {
   sources = [
-    "src/block_integer.cpp",
     "src/security.cpp",
     "src/security_adapter.cpp",
     "src/sensitive.cpp",
@@ -28,10 +27,13 @@ ohos_static_library("distributeddata_security_static") {
     "../include/log",
     "../include/security",
     "../include/communicator",
+    "//foundation/distributeddatamgr/distributeddatamgr/frameworks/common",
     "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/app_distributeddata/include",
+    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/framework/include",
   ]
 
   deps = [
+    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/framework:distributeddatasvcfwk",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/libs/distributeddb:distributeddb",
     "//utils/native/base:utils",
   ]
