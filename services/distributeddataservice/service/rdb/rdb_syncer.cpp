@@ -247,6 +247,12 @@ void RdbSyncer::Limit(const RdbPredicateOperation &operation, DistributedDB::Que
     char *end = nullptr;
     int limit = static_cast<int>(strtol(operation.field_.c_str(), &end, DECIMAL_BASE));
     int offset = static_cast<int>(strtol(operation.values_[0].c_str(), &end, DECIMAL_BASE));
+    if (limit < 0) {
+        limit = 0;
+    }
+    if (offset < 0) {
+        offset = 0;
+    }
     query.Limit(limit, offset);
     ZLOGI("limit=%{public}d offset=%{public}d", limit, offset);
 }
