@@ -14,19 +14,22 @@
  */
 
 #include "security.h"
+
 #include <unistd.h>
 #include <thread>
+
 #include "communication_provider.h"
 #include "constant.h"
-#include "sensitive.h"
 #include "log_print.h"
-#include "block_integer.h"
 #include "ohos_account_kits.h"
+#include "sensitive.h"
+#include "utils/block_integer.h"
 
 #undef LOG_TAG
 #define LOG_TAG "SecurityAdapter"
 namespace OHOS::DistributedKv {
 using namespace DistributedDB;
+using BlockInteger = OHOS::DistributedData::BlockInteger;
 std::atomic_bool Security::isInitialized_ = true;
 const char * const Security::LABEL_VALUES[S4 + 1] = {};
 const char * const Security::DATA_DE[] = { nullptr };
