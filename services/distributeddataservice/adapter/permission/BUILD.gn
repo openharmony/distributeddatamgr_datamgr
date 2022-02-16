@@ -15,6 +15,7 @@ import("//build/ohos.gni")
 ohos_static_library("distributeddata_permission_static") {
   sources = [
     "src/client_permission_validator.cpp",
+    "src/meida_lib_checker.cpp",
     "src/permission_validator.cpp",
   ]
 
@@ -24,8 +25,10 @@ ohos_static_library("distributeddata_permission_static") {
     "../include/permission",
     "../include/utils",
     "//utils/native/base/include",
+    "//foundation/distributeddatamgr/distributeddatamgr/frameworks/common",
     "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/distributeddata/include",
     "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/app_distributeddata/include",
+    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/framework/include",
   ]
 
   if (build_public_version) {
@@ -35,6 +38,7 @@ ohos_static_library("distributeddata_permission_static") {
   deps = [
     "../utils:distributeddata_utils_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter:distributeddata_adapter",
+    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/framework:distributeddatasvcfwk",
     "//utils/native/base:utils",
   ]
 
