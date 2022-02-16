@@ -347,7 +347,8 @@ namespace {
                 break;
             }
             case SQLITE_TEXT: {
-                dataValue.SetText(std::string(reinterpret_cast<const char *>(sqlite3_column_text(statement, col))));
+                const unsigned char *val = sqlite3_column_text(statement, col);
+                dataValue.SetText((val != nullptr) ? std::string(reinterpret_cast<const char *>(val)) : std::string());
                 break;
             }
             case SQLITE_BLOB: {

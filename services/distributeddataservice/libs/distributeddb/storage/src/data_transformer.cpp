@@ -278,19 +278,46 @@ int DeSerializeTextValue(DataValue &dataValue, Parcel &parcel)
     return DeSerializeBlobByType(dataValue, parcel, StorageType::STORAGE_TYPE_TEXT);
 }
 
-struct FunctionEntry {
-    std::function<int(const DataValue&, Parcel&)> serializeFunc;
-    std::function<int(DataValue&, Parcel&)> deSerializeFunc;
-};
+int SerializeDataValue(const DataValue &dataValue, Parcel &parcel)
+{
+    static const std::map<StorageType, std::function<int(const DataValue&, Parcel&)>> funcs = {
+        { StorageType::STORAGE_TYPE_NULL,    SerializeNullValue },
+        { StorageType::STORAGE_TYPE_BOOL,    SerializeBoolValue },
+        { StorageType::STORAGE_TYPE_INTEGER, SerializeIntValue },
+        { StorageType::STORAGE_TYPE_REAL,    SerializeDoubleValue },
+        { StorageType::STORAGE_TYPE_TEXT,    SerializeTextValue },
+        { StorageType::STORAGE_TYPE_BLOB,    SerializeBlobValue },
+    };
 
-std::map<StorageType, FunctionEntry> typeFuncMap = {
-    { StorageType::STORAGE_TYPE_NULL, {SerializeNullValue, DeSerializeNullValue}},
-    { StorageType::STORAGE_TYPE_BOOL, {SerializeBoolValue, DeSerializeBoolValue}},
-    { StorageType::STORAGE_TYPE_INTEGER, {SerializeIntValue, DeSerializeIntValue}},
-    { StorageType::STORAGE_TYPE_REAL, {SerializeDoubleValue, DeSerializeDoubleValue}},
-    { StorageType::STORAGE_TYPE_TEXT, {SerializeTextValue, DeSerializeTextValue}},
-    { StorageType::STORAGE_TYPE_BLOB, {SerializeBlobValue, DeSerializeBlobValue}},
-};
+    StorageType type = dataValue.GetType();
+    parcel.WriteUInt32(static_cast<uint32_t>(type));
+    auto iter = funcs.find(type);
+    if (iter == funcs.end()) {
+        LOGE("Cannot serialize %u", type);
+        return -E_NOT_SUPPORT;
+    }
+    return iter->second(dataValue, parcel);
+}
+
+int DeserializeDataValue(DataValue &dataValue, Parcel &parcel)
+{
+    static const std::map<StorageType, std::function<int(DataValue&, Parcel&)>> funcs = {
+        { StorageType::STORAGE_TYPE_NULL,    DeSerializeNullValue },
+        { StorageType::STORAGE_TYPE_BOOL,    DeSerializeBoolValue },
+        { StorageType::STORAGE_TYPE_INTEGER, DeSerializeIntValue },
+        { StorageType::STORAGE_TYPE_REAL,    DeSerializeDoubleValue },
+        { StorageType::STORAGE_TYPE_TEXT,    DeSerializeTextValue },
+        { StorageType::STORAGE_TYPE_BLOB,    DeSerializeBlobValue },
+    };
+    uint32_t type = 0;
+    parcel.ReadUInt32(type);
+    auto iter = funcs.find(static_cast<StorageType>(type));
+    if (iter == funcs.end()) {
+        LOGE("Cannot deserialize %u", dataValue.GetType());
+        return -E_PARSE_FAIL;
+    }
+    return iter->second(dataValue, parcel);
+}
 }
 
 int DataTransformer::SerializeValue(Value &value, const RowData &rowData, const std::vector<FieldInfo> &fieldInfoList)
@@ -303,9 +330,6 @@ int DataTransformer::SerializeValue(Value &value, const RowData &rowData, const 
     uint32_t totalLength = Parcel::GetUInt64Len(); // first record field count
     for (uint32_t i = 0; i < rowData.size(); ++i) {
         const auto &dataValue = rowData[i];
-        if (typeFuncMap.find(dataValue.GetType()) == typeFuncMap.end()) {
-            return -E_NOT_SUPPORT;
-        }
         totalLength += Parcel::GetUInt32Len(); // For save the dataValue's type.
         uint32_t dataLength = CalDataValueLength(dataValue);
         totalLength += dataLength;
@@ -317,9 +341,7 @@ int DataTransformer::SerializeValue(Value &value, const RowData &rowData, const 
     Parcel parcel(value.data(), value.size());
     (void)parcel.WriteUInt64(rowData.size());
     for (const auto &dataValue : rowData) {
-        StorageType type = dataValue.GetType();
-        parcel.WriteUInt32(static_cast<uint32_t>(type));
-        int errCode = typeFuncMap[type].serializeFunc(dataValue, parcel);
+        int errCode = SerializeDataValue(dataValue, parcel);
         if (errCode != E_OK) {
             value.clear();
             return errCode;
@@ -340,13 +362,7 @@ int DataTransformer::DeSerializeValue(const Value &value, OptRowData &optionalDa
     }
     for (size_t i = 0; i < fieldCount; ++i) {
         DataValue dataValue;
-        uint32_t type = 0;
-        parcel.ReadUInt32(type);
-        auto iter = typeFuncMap.find(static_cast<StorageType>(type));
-        if (iter == typeFuncMap.end()) {
-            return -E_PARSE_FAIL;
-        }
-        int errCode = iter->second.deSerializeFunc(dataValue, parcel);
+        int errCode = DeserializeDataValue(dataValue, parcel);
         if (errCode != E_OK) {
             LOGD("[DataTransformer][DeSerializeValue] deSerialize failed");
             return errCode;

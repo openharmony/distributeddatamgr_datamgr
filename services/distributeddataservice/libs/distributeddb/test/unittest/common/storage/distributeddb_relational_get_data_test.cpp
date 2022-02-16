@@ -1149,4 +1149,48 @@ HWTEST_F(DistributedDBRelationalGetDataTest, GetDataSortByTime1, TestSize.Level1
     sqlite3_close(db);
     RefObject::DecObjRef(g_store);
 }
+
+/**
+ * @tc.name: SameFieldWithLogTable1
+ * @tc.desc: Get query data OK when the table has same field with log table.
+ * @tc.type: FUNC
+ * @tc.require: AR000GK58H
+ * @tc.author: lidongwei
+  */
+HWTEST_F(DistributedDBRelationalGetDataTest, SameFieldWithLogTable1, TestSize.Level1)
+{
+    ASSERT_EQ(g_mgr.OpenStore(g_storePath, g_storeID, RelationalStoreDelegate::Option {}, g_delegate), DBStatus::OK);
+    ASSERT_NE(g_delegate, nullptr);
+    /**
+     * @tc.steps: step1. Create distributed table "dataPlus".
+     * @tc.expected: Succeed, return OK.
+     */
+    const string tableName = g_tableName + "Plus";
+    std::string sql = "CREATE TABLE " + tableName + "(key INTEGER, flag INTEGER NOT NULL, \
+        device TEXT NOT NULL DEFAULT 'default_value');";
+    sqlite3 *db = nullptr;
+    ASSERT_EQ(sqlite3_open(g_storePath.c_str(), &db), SQLITE_OK);
+    ASSERT_EQ(sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr), SQLITE_OK);
+    ASSERT_EQ(g_delegate->CreateDistributedTable(tableName), DBStatus::OK);
+    /**
+     * @tc.steps: step2. Put 1 record into dataPlus table.
+     * @tc.expected: Succeed, return OK.
+     */
+    sql = "INSERT INTO " + tableName + " VALUES(1, 101, 'f3');"; // k1v101
+    ASSERT_EQ(sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr), SQLITE_OK);
+    /**
+     * @tc.steps: step3. Get all data from dataPlus table.
+     * @tc.expected: Succeed and the count is right.
+     */
+    auto store = GetRelationalStore();
+    ASSERT_NE(store, nullptr);
+    ContinueToken token = nullptr;
+    QueryObject query(Query::Select(tableName).EqualTo("flag", 101).OrderBy("device", false));
+    std::vector<SingleVerKvEntry *> entries;
+    EXPECT_EQ(store->GetSyncData(query, SyncTimeRange {}, DataSizeSpecInfo {}, token, entries), E_OK);
+    EXPECT_EQ(entries.size(), 1UL);
+    SingleVerKvEntry::Release(entries);
+    sqlite3_close(db);
+    RefObject::DecObjRef(g_store);
+}
 #endif
