@@ -138,7 +138,7 @@ void Security::OnDeviceChanged(const AppDistributedKv::DeviceInfo &info,
         return;
     }
 
-    bool isOnline = type == AppDistributedKv::DeviceChangeType::DEVICE_ONLINE ? true : false;
+    bool isOnline = type == AppDistributedKv::DeviceChangeType::DEVICE_ONLINE;
     Sensitive sensitive = GetDeviceNodeByUuid(info.deviceId, isOnline, nullptr);
     ZLOGD("device is online:%d, deviceId:%{public}s", isOnline, KvStoreUtils::ToBeAnonymous(info.deviceId).c_str());
     if (isOnline) {
