@@ -26,7 +26,7 @@ namespace DistributedData {
 using namespace AppExecFwk;
 MeidaLibChecker MeidaLibChecker::instance_;
 constexpr pid_t MeidaLibChecker::SYSTEM_UID;
-MeidaLibChecker::MeidaLibChecker()
+MeidaLibChecker::MeidaLibChecker() noexcept
 {
     CheckerManager::GetInstance().RegisterPlugin(
         "MediaLibraryChecker", [this]() -> auto { return this; });
