@@ -25,7 +25,7 @@
 #include "frame_header.h"
 #include "iprocess_communicator.h"
 #include "communicator_aggregator.h"
-#include "types.h"
+#include "store_types.h"
 
 struct EnvHandle {
     DistributedDB::AdapterStub *adapterHandle = nullptr;
