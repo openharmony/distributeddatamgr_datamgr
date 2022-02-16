@@ -21,14 +21,14 @@ namespace OHOS {
 namespace DistributedData {
 class MeidaLibChecker : public CheckerManager::Checker {
 public:
-    MeidaLibChecker();
+    MeidaLibChecker() noexcept;
     ~MeidaLibChecker();
     void Initialize() override;
     bool SetTrustInfo(const DistributedData::CheckerManager::Trust &trust) override;
     std::string GetAppId(pid_t uid, const std::string &bundleName) override;
     bool IsValid(pid_t uid, const std::string &bundleName) override;
 private:
-    static MeidaLibChecker instance_ noexcept;
+    static MeidaLibChecker instance_;
     static constexpr pid_t SYSTEM_UID = 10000;
     std::map<std::string, std::string> trusts_;
 };
