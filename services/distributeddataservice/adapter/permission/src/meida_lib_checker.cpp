@@ -24,7 +24,7 @@
 namespace OHOS {
 namespace DistributedData {
 using namespace AppExecFwk;
-MeidaLibChecker MeidaLibChecker::instance_;
+MeidaLibChecker MeidaLibChecker::instance_ noexcept;
 constexpr pid_t MeidaLibChecker::SYSTEM_UID;
 MeidaLibChecker::MeidaLibChecker()
 {
