@@ -47,6 +47,7 @@ config("module_private_config") {
     "//foundation/distributeddatamgr/distributeddatamgr/frameworks/innerkitsimpl/rdb/src",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/service/rdb",
     "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/app_distributeddata/include",
+    "//foundation/filemanagement/file_api/interfaces/innerkits/include",
     "//utils/system/safwk/native/include",
     "../adapter/include/account",
     "../adapter/include/permission",
@@ -60,6 +61,7 @@ config("module_private_config") {
     "//utils/native/base/include",
     "include",
     "src",
+    "src/security",
     "//third_party/json/single_include",
     "//base/security/permission/interfaces/innerkits/permission_standard/permissionsdk/main/cpp/include",
     "//base/security/huks/interfaces/innerkits/huks_standard/main/include",
@@ -89,6 +91,8 @@ ohos_shared_library("distributeddataservice") {
     "src/kvstore_sync_manager.cpp",
     "src/kvstore_user_manager.cpp",
     "src/query_helper.cpp",
+    "src/security/security.cpp",
+    "src/security/sensitive.cpp",
     "src/single_kvstore_impl.cpp",
   ]
 
@@ -124,6 +128,7 @@ ohos_shared_library("distributeddataservice") {
     "battery_manager_native:batterysrv_client",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "dataclassification:data_transit_mgr",
     "hiviewdfx_hilog_native:libhilog",
     "huks:libhukssdk",
     "ipc:ipc_core",

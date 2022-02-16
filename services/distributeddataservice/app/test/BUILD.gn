@@ -31,10 +31,12 @@ config("module_private_config") {
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/service/bootstrap/include",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/service/config/include",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/service/directory/include",
+    "//foundation/filemanagement/file_api/interfaces/innerkits/include",
     "//utils/native/base/include",
     "//utils/system/safwk/native/include",
     "../include",
     "../src",
+    "../src/security",
     "unittest",
     "../src/uninstaller",
     "../src/flowctrl_manager",
@@ -64,6 +66,8 @@ ohos_unittest("KvStoreImplLogicalIsolationTest") {
     "../src/kvstore_sync_manager.cpp",
     "../src/kvstore_user_manager.cpp",
     "../src/query_helper.cpp",
+    "../src/security/security.cpp",
+    "../src/security/sensitive.cpp",
     "../src/single_kvstore_impl.cpp",
     "unittest/kvstore_impl_logical_isolation_test.cpp",
   ]
@@ -72,6 +76,7 @@ ohos_unittest("KvStoreImplLogicalIsolationTest") {
 
   external_deps = [
     "battery_manager_native:batterysrv_client",
+    "dataclassification:data_transit_mgr",
     "hiviewdfx_hilog_native:libhilog",
     "huks:libhukssdk",
     "ipc:ipc_core",
@@ -119,6 +124,8 @@ ohos_unittest("KvStoreImplPhysicalIsolationTest") {
     "../src/kvstore_sync_manager.cpp",
     "../src/kvstore_user_manager.cpp",
     "../src/query_helper.cpp",
+    "../src/security/security.cpp",
+    "../src/security/sensitive.cpp",
     "../src/single_kvstore_impl.cpp",
     "unittest/kvstore_impl_physical_isolation_test.cpp",
   ]
@@ -127,6 +134,7 @@ ohos_unittest("KvStoreImplPhysicalIsolationTest") {
 
   external_deps = [
     "battery_manager_native:batterysrv_client",
+    "dataclassification:data_transit_mgr",
     "hiviewdfx_hilog_native:libhilog",
     "huks:libhukssdk",
     "ipc:ipc_core",
@@ -174,6 +182,8 @@ ohos_unittest("KvStoreDataServiceTest") {
     "../src/kvstore_sync_manager.cpp",
     "../src/kvstore_user_manager.cpp",
     "../src/query_helper.cpp",
+    "../src/security/security.cpp",
+    "../src/security/sensitive.cpp",
     "../src/single_kvstore_impl.cpp",
     "unittest/kvstore_data_service_test.cpp",
   ]
@@ -182,6 +192,7 @@ ohos_unittest("KvStoreDataServiceTest") {
 
   external_deps = [
     "battery_manager_native:batterysrv_client",
+    "dataclassification:data_transit_mgr",
     "hiviewdfx_hilog_native:libhilog",
     "huks:libhukssdk",
     "ipc:ipc_core",
@@ -229,6 +240,8 @@ ohos_unittest("KvStoreBackupTest") {
     "../src/kvstore_sync_manager.cpp",
     "../src/kvstore_user_manager.cpp",
     "../src/query_helper.cpp",
+    "../src/security/security.cpp",
+    "../src/security/sensitive.cpp",
     "../src/single_kvstore_impl.cpp",
     "unittest/kvstore_backup_test.cpp",
   ]
@@ -238,6 +251,7 @@ ohos_unittest("KvStoreBackupTest") {
 
   external_deps = [
     "battery_manager_native:batterysrv_client",
+    "dataclassification:data_transit_mgr",
     "hiviewdfx_hilog_native:libhilog",
     "huks:libhukssdk",
     "ipc:ipc_core",
@@ -275,6 +289,7 @@ ohos_unittest("KvStoreFlowCtrlManagerTest") {
 
   external_deps = [
     "battery_manager_native:batterysrv_client",
+    "dataclassification:data_transit_mgr",
     "hiviewdfx_hilog_native:libhilog",
     "huks:libhukssdk",
     "ipc:ipc_core",
@@ -316,6 +331,8 @@ ohos_unittest("KvStoreSyncManagerTest") {
     "../src/kvstore_sync_manager.cpp",
     "../src/kvstore_user_manager.cpp",
     "../src/query_helper.cpp",
+    "../src/security/security.cpp",
+    "../src/security/sensitive.cpp",
     "../src/single_kvstore_impl.cpp",
   ]
 
@@ -323,6 +340,7 @@ ohos_unittest("KvStoreSyncManagerTest") {
 
   external_deps = [
     "battery_manager_native:batterysrv_client",
+    "dataclassification:data_transit_mgr",
     "hiviewdfx_hilog_native:libhilog",
     "huks:libhukssdk",
     "ipc:ipc_core",
@@ -370,6 +388,8 @@ ohos_unittest("KvStoreUninstallerTest") {
     "../src/kvstore_sync_manager.cpp",
     "../src/kvstore_user_manager.cpp",
     "../src/query_helper.cpp",
+    "../src/security/security.cpp",
+    "../src/security/sensitive.cpp",
     "../src/single_kvstore_impl.cpp",
     "unittest/uninstaller_test.cpp",
   ]
@@ -396,6 +416,7 @@ ohos_unittest("KvStoreUninstallerTest") {
     "ability_base:base",
     "ability_runtime:intent",
     "battery_manager_native:batterysrv_client",
+    "dataclassification:data_transit_mgr",
     "hiviewdfx_hilog_native:libhilog",
     "huks:libhukssdk",
     "ipc:ipc_core",
