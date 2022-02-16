@@ -481,7 +481,7 @@ Status SingleKvStoreProxy::Sync(const std::vector<std::string> &deviceIds, SyncM
         return Status::IPC_ERROR;
     }
     if (!data.WriteUint64(sequenceId)) {
-        ZLOGE("write label fail");
+        ZLOGE("write sequenceId fail");
         return Status::IPC_ERROR;
     }
     int32_t error = Remote()->SendRequest(SYNC, data, reply, mo);
