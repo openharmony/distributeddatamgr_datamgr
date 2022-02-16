@@ -53,13 +53,13 @@ config("module_private_config") {
     "../adapter/include/uninstaller",
     "../adapter/include/broadcaster",
     "../adapter/include/utils",
-    "../adapter/include/security",
     "../adapter/include",
 
     # for ipc_core interfaces.
     "//utils/native/base/include",
     "include",
     "src",
+    "src/security",
     "//third_party/json/single_include",
     "//base/security/permission/interfaces/innerkits/permission_standard/permissionsdk/main/cpp/include",
     "//base/security/huks/interfaces/innerkits/huks_standard/main/include",
@@ -89,6 +89,8 @@ ohos_shared_library("distributeddataservice") {
     "src/kvstore_sync_manager.cpp",
     "src/kvstore_user_manager.cpp",
     "src/query_helper.cpp",
+    "src/security/security.cpp",
+    "src/security/sensitive.cpp",
     "src/single_kvstore_impl.cpp",
   ]
 
@@ -124,6 +126,7 @@ ohos_shared_library("distributeddataservice") {
     "battery_manager_native:batterysrv_client",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "dataclassification:data_transit_mgr",
     "hiviewdfx_hilog_native:libhilog",
     "huks:libhukssdk",
     "ipc:ipc_core",
