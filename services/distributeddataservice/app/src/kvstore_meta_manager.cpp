@@ -21,7 +21,6 @@
 #include <file_ex.h>
 #include <thread>
 #include <unistd.h>
-#include "security_adapter.h"
 #include "hks_api.h"
 #include "hks_param.h"
 #include "account_delegate.h"

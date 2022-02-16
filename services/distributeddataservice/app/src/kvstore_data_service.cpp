@@ -93,6 +93,7 @@ void KvStoreDataService::Initialize()
 #ifndef UT_TEST
     KvStoreDelegateManager::SetProcessLabel(Bootstrap::GetInstance().GetProcessLabel(), "default");
 #endif
+    InitSecurityAdapter();
     KvStoreMetaManager::GetInstance().InitMetaParameter();
     std::thread th = std::thread([]() {
         auto communicator = std::make_shared<AppDistributedKv::ProcessCommunicatorImpl>();
@@ -1125,6 +1126,25 @@ Status KvStoreDataService::GetDeviceList(std::vector<DeviceInfo> &deviceInfoList
     }
     ZLOGD("strategy is %d.", strategy);
     return Status::SUCCESS;
+}
+
+void KvStoreDataService::InitSecurityAdapter()
+{
+    auto ret = DATASL_OnStart();
+    ZLOGI("datasl on start ret:%d", ret);
+    security_ = std::make_shared<Security>();
+    if (security_ == nullptr) {
+        ZLOGD("Security is nullptr.");
+        return;
+    }
+
+    auto dbStatus = DistributedDB::KvStoreDelegateManager::SetProcessSystemAPIAdapter(security_);
+    ZLOGD("set distributed db system api adapter: %d.", static_cast<int>(dbStatus));
+
+    auto status = KvStoreUtils::GetProviderInstance().StartWatchDeviceChange(security_.get(), {"security"});
+    if (status != AppDistributedKv::Status::SUCCESS) {
+        ZLOGD("security register device change failed, status:%d", static_cast<int>(status));
+    }
 }
 
 Status KvStoreDataService::StartWatchDeviceChange(sptr<IDeviceStatusChangeListener> observer,

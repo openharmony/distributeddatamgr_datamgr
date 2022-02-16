@@ -30,6 +30,7 @@
 #include "account_delegate.h"
 #include "backup_handler.h"
 #include "device_change_listener_impl.h"
+#include "security/security.h"
 
 namespace OHOS::DistributedRdb {
 class IRdbService;
@@ -134,6 +135,8 @@ private:
 
     void StartService();
 
+    void InitSecurityAdapter();
+
     Status DeleteKvStore(const std::string &bundleName, const StoreId &storeId);
 
     template<class T>
@@ -174,7 +177,8 @@ private:
     std::map<IRemoteObject *, sptr<IDeviceStatusChangeListener>> deviceListeners_;
     std::mutex deviceListenerMutex_;
     std::shared_ptr<DeviceChangeListenerImpl> deviceListener_;
-    
+
+    std::shared_ptr<Security> security_;
     sptr<DistributedRdb::RdbServiceImpl> rdbService_;
 };
 
