@@ -280,7 +280,7 @@ int DeSerializeTextValue(DataValue &dataValue, Parcel &parcel)
 
 int SerializeDataValue(const DataValue &dataValue, Parcel &parcel)
 {
-    static const std::vector<std::function<int(const DataValue&, Parcel&)>> funcs {
+    static const std::function<int(const DataValue&, Parcel&)> funcs[] = {
         SerializeNullValue, SerializeBoolValue, SerializeIntValue,
         SerializeDoubleValue, SerializeTextValue, SerializeBlobValue,
     };
@@ -295,7 +295,7 @@ int SerializeDataValue(const DataValue &dataValue, Parcel &parcel)
 
 int DeserializeDataValue(DataValue &dataValue, Parcel &parcel)
 {
-    static const std::vector<std::function<int(DataValue&, Parcel&)>> funcs {
+    static const std::function<int(DataValue&, Parcel&)> funcs[] = {
         DeSerializeNullValue, DeSerializeBoolValue, DeSerializeIntValue,
         DeSerializeDoubleValue, DeSerializeTextValue, DeSerializeBlobValue,
     };
