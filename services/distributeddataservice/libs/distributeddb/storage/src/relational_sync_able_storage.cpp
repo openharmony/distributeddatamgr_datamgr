@@ -335,7 +335,12 @@ int RelationalSyncAbleStorage::GetSyncDataNext(std::vector<SingleVerKvEntry *> &
     if (!token->CheckValid()) {
         return -E_INVALID_ARGS;
     }
-    token->SetFieldNames(storageEngine_->GetSchemaRef().GetTable(token->GetQuery().GetTableName()).GetFieldNames());
+    const auto &fieldInfos = storageEngine_->GetSchemaRef().GetTable(token->GetQuery().GetTableName()).GetFieldInfos();
+    std::vector<std::string> fieldNames;
+    for (const auto &fieldInfo : fieldInfos) {
+        fieldNames.push_back(fieldInfo.GetFieldName());
+    }
+    token->SetFieldNames(fieldNames);
 
     std::vector<DataItem> dataItems;
     int errCode = GetSyncDataForQuerySync(dataItems, token, dataSizeInfo);
