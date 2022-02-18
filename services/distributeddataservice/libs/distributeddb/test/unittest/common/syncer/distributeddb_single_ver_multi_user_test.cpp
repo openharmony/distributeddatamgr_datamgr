@@ -154,19 +154,19 @@ void DistributedDBSingleVerMultiUserTest::TearDown(void)
 }
 
 namespace {
-void OpenStore1()
+void OpenStore1(bool syncDualTupleMode = true)
 {
     KvStoreNbDelegate::Option option;
-    option.syncDualTupleMode = true;
+    option.syncDualTupleMode = syncDualTupleMode;
     g_mgr1.GetKvStore(STORE_ID, option, g_kvDelegateCallback1);
     ASSERT_TRUE(g_kvDelegateStatus1 == OK);
     ASSERT_TRUE(g_kvDelegatePtr1 != nullptr);
 }
 
-void OpenStore2()
+void OpenStore2(bool syncDualTupleMode = true)
 {
     KvStoreNbDelegate::Option option;
-    option.syncDualTupleMode = true;
+    option.syncDualTupleMode = syncDualTupleMode;
     g_mgr2.GetKvStore(STORE_ID, option, g_kvDelegateCallback2);
     ASSERT_TRUE(g_kvDelegateStatus2 == OK);
     ASSERT_TRUE(g_kvDelegatePtr2 != nullptr);
@@ -513,4 +513,40 @@ HWTEST_F(DistributedDBSingleVerMultiUserTest, MultiUser004, TestSize.Level0)
     EXPECT_TRUE(g_mgr1.DisableKvStoreAutoLaunch(USER_ID_1, APP_ID, STORE_ID) == OK);
     CloseStore();
     delete observer;
+}
+
+/**
+ * @tc.name: MultiUser005
+ * @tc.desc: test NotifyUserChanged func when all db in normal sync mode
+ * @tc.type: FUNC
+ * @tc.require: AR000E8S2T
+ * @tc.author: zhuwentao
+ */
+HWTEST_F(DistributedDBSingleVerMultiUserTest, MultiUser005, TestSize.Level0)
+{
+    /**
+     * @tc.steps: step1. openstore1 and openstore2 in normal sync mode
+     * @tc.expected: step1. only user2 sync mode is active
+     */
+
+    OpenStore1(false);
+    OpenStore2(false);
+    /**
+     * @tc.steps: step2. call NotifyUSerChanged
+     * @tc.expected: step2. return OK
+     */
+    EXPECT_TRUE(KvStoreDelegateManager::NotifyUSerChanged() == OK);
+    CloseStore();
+    /**
+     * @tc.steps: step3. openstore1 open normal sync mode and and openstore2 in dual tuple
+     * @tc.expected: step3. only user2 sync mode is active
+     */
+    OpenStore1(false);
+    OpenStore2();
+    /**
+     * @tc.steps: step4. call NotifyUSerChanged
+     * @tc.expected: step4. return OK
+     */
+    EXPECT_TRUE(KvStoreDelegateManager::NotifyUSerChanged() == OK);
+    CloseStore();
 }
