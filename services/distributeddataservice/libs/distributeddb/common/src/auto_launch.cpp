@@ -196,8 +196,7 @@ int AutoLaunch::GetKVConnectionInEnable(AutoLaunchItem &autoLaunchItem, const st
 {
     LOGI("[AutoLaunch] GetKVConnectionInEnable");
     int errCode;
-    std::shared_ptr<KvDBProperties> properties =
-        std::static_pointer_cast<KvDBProperties>(autoLaunchItem.propertiesPtr);
+    std::shared_ptr<KvDBProperties> properties = std::static_pointer_cast<KvDBProperties>(autoLaunchItem.propertiesPtr);
     std::string userId = properties->GetStringProp(KvDBProperties::USER_ID, "");
     autoLaunchItem.conn = KvDBManager::GetDatabaseConnection(*properties, errCode, false);
     if (errCode == -E_ALREADY_OPENED) {
@@ -209,10 +208,7 @@ int AutoLaunch::GetKVConnectionInEnable(AutoLaunchItem &autoLaunchItem, const st
     if (autoLaunchItem.conn == nullptr) {
         LOGE("[AutoLaunch] GetKVConnectionInEnable GetDatabaseConnection errCode:%d", errCode);
         std::lock_guard<std::mutex> autoLock(dataLock_);
-        autoLaunchItemMap_[identifier].erase(userId);
-        if (autoLaunchItemMap_[identifier].size() == 0) {
-            autoLaunchItemMap_.erase(identifier);
-        }
+        EraseAutoLauchItem(identifier, userId);
         return errCode;
     }
     bool isEmpty = false;
@@ -227,10 +223,7 @@ int AutoLaunch::GetKVConnectionInEnable(AutoLaunchItem &autoLaunchItem, const st
         if (errCode != E_OK) {
             LOGE("[AutoLaunch] GetKVConnectionInEnable ReleaseDatabaseConnection failed errCode:%d", errCode);
             std::lock_guard<std::mutex> autoLock(dataLock_);
-            autoLaunchItemMap_[identifier].erase(userId);
-            if (autoLaunchItemMap_[identifier].size() == 0) {
-                autoLaunchItemMap_.erase(identifier);
-            }
+            EraseAutoLauchItem(identifier, userId);
             return errCode;
         }
         std::lock_guard<std::mutex> autoLock(dataLock_);
@@ -248,10 +241,7 @@ int AutoLaunch::GetKVConnectionInEnable(AutoLaunchItem &autoLaunchItem, const st
         LOGE("[AutoLaunch] GetKVConnectionInEnable RegisterObserverAndLifeCycleCallback err, do CloseConnection");
         TryCloseConnection(autoLaunchItem); // do nothing if failed
         std::lock_guard<std::mutex> autoLock(dataLock_);
-        autoLaunchItemMap_[identifier].erase(userId);
-        if (autoLaunchItemMap_[identifier].size() == 0) {
-            autoLaunchItemMap_.erase(identifier);
-        }
+        EraseAutoLauchItem(identifier, userId);
     }
     return errCode;
 }
@@ -431,12 +421,7 @@ void AutoLaunch::ObserverFunc(const KvDBCommitNotifyData &notifyData, const std:
 int AutoLaunch::DisableKvStoreAutoLaunch(const std::string &normalIdentifier, const std::string &dualTupleIdentifier,
     const std::string &userId)
 {
-    std::string identifier;
-    if (autoLaunchItemMap_.count(normalIdentifier) == 0) {
-        identifier = dualTupleIdentifier;
-    } else {
-        identifier = normalIdentifier;
-    }
+    std::string identifier = (autoLaunchItemMap_.count(normalIdentifier) == 0) ? dualTupleIdentifier : normalIdentifier;
     LOGI("[AutoLaunch] DisableKvStoreAutoLaunch identifier=%0.6s", STR_TO_HEX(identifier));
     AutoLaunchItem autoLaunchItem;
     {
@@ -468,10 +453,7 @@ int AutoLaunch::DisableKvStoreAutoLaunch(const std::string &normalIdentifier, co
     int errCode = CloseConnectionStrict(autoLaunchItem);
     if (errCode == E_OK) {
         std::unique_lock<std::mutex> autoLock(dataLock_);
-        autoLaunchItemMap_[identifier].erase(userId);
-        if (autoLaunchItemMap_[identifier].size() == 0) {
-            autoLaunchItemMap_.erase(identifier);
-        }
+        EraseAutoLauchItem(identifier, userId);
         cv_.notify_all();
         LOGI("[AutoLaunch] DisableKvStoreAutoLaunch CloseConnection ok");
     } else {
@@ -1210,6 +1192,14 @@ void AutoLaunch::TryCloseRelationConnection(AutoLaunchItem &autoLaunchItem)
     errCode = rdbConn->Close();
     if (errCode != E_OK) {
         LOGE("[AutoLaunch] TryCloseRelationConnection close connection failed errCode:%d", errCode);
+    }
+}
+
+void AutoLaunch::EraseAutoLauchItem(const std::string &identifier, const std::string &userId)
+{
+    autoLaunchItemMap_[identifier].erase(userId);
+    if (autoLaunchItemMap_[identifier].size() == 0) {
+        autoLaunchItemMap_.erase(identifier);
     }
 }
 } // namespace DistributedDB

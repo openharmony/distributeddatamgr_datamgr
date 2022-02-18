@@ -162,6 +162,8 @@ protected:
 
     void TryCloseRelationConnection(AutoLaunchItem &autoLaunchItem);
 
+    void EraseAutoLauchItem(const std::string &identifier, const std::string &userId);
+
     mutable std::mutex dataLock_;
     mutable std::mutex communicatorLock_;
     std::set<std::string> onlineDevices_;

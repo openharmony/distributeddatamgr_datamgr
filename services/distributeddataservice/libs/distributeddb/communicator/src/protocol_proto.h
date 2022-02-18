@@ -126,6 +126,9 @@ private:
     static int FillFragmentPacket(const CommPhyHeader &phyHeader, const CommPhyOptHeader &phyOptHeader,
         const uint8_t *fragBytes, uint32_t fragLen, FragmentPacket &outPacket);
     static int FillFragmentPacketExtendHead(uint8_t *headBytesAddr, uint32_t headLen, FragmentPacket &outPacket);
+    static int GetExtendHeadDataSize(std::shared_ptr<ExtendHeaderHandle> &extendHandle, uint32_t &headSize);
+    static int FillExtendHeadDataIfNeed(std::shared_ptr<ExtendHeaderHandle> &extendHandle, SerialBuffer *buffer,
+        uint32_t headSize);
 
     static std::map<uint32_t, TransformFunc> msgIdMapFunc_;
 };

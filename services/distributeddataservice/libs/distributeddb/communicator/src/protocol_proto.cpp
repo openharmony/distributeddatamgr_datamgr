@@ -96,18 +96,10 @@ SerialBuffer *ProtocolProto::ToSerialBuffer(const Message *inMsg, int &outErrorN
         }
     }
     uint32_t headSize = 0;
-    if (extendHandle != nullptr) {
-        DBStatus status = extendHandle->GetHeadDataSize(headSize);
-        if (status != DBStatus::OK) {
-            LOGI("[Proto][ToSerial] get head data size failed,not permit to send");
-            outErrorNo = -E_FEEDBACK_COMMUNICATOR_NOT_FOUND;
-            return nullptr;
-        }
-        if (headSize > SerialBuffer::MAX_EXTEND_HEAD_LENGTH || headSize != BYTE_8_ALIGN(headSize)) {
-            LOGI("[Proto][ToSerial] head data size is larger than 512 or not 8 byte align");
-            outErrorNo = -E_FEEDBACK_COMMUNICATOR_NOT_FOUND;
-            return nullptr;
-        }
+    int errCode = GetExtendHeadDataSize(extendHandle, headSize);
+    if (errCode != E_OK) {
+        outErrorNo = errCode;
+        return nullptr;
     }
 
     SerialBuffer *buffer = new (std::nothrow) SerialBuffer();
@@ -120,35 +112,29 @@ SerialBuffer *ProtocolProto::ToSerialBuffer(const Message *inMsg, int &outErrorN
     }
     // serializeLen maybe not 8-bytes aligned, let SerialBuffer deal with the padding.
     uint32_t payLoadLength = serializeLen + sizeof(MessageHeader);
-    int errCode = buffer->AllocBufferByPayloadLength(payLoadLength, GetAppLayerFrameHeaderLength());
+    errCode = buffer->AllocBufferByPayloadLength(payLoadLength, GetAppLayerFrameHeaderLength());
     if (errCode != E_OK) {
         LOGE("[Proto][ToSerial] Alloc Fail, errCode=%d.", errCode);
-        outErrorNo = errCode;
-        delete buffer;
-        buffer = nullptr;
-        return nullptr;
+        goto ERROR_HANDLE;
     }
-    if (extendHandle != nullptr && headSize > 0) {
-        DBStatus status = extendHandle->FillHeadData(buffer->GetOringinalAddr(), headSize,
-            buffer->GetSize() + headSize);
-        if (status != DBStatus::OK) {
-            LOGI("[Proto][ToSerial] fill head data failed");
-            outErrorNo = -E_FEEDBACK_COMMUNICATOR_NOT_FOUND;
-            return nullptr;
-        }
+    errCode = FillExtendHeadDataIfNeed(extendHandle, buffer, headSize);
+    if (errCode != E_OK) {
+        goto ERROR_HANDLE;
     }
 
     // Serialize the MessageHeader and data if need
     errCode = SerializeMessage(buffer, inMsg);
     if (errCode != E_OK) {
         LOGE("[Proto][ToSerial] Serialize Fail, errCode=%d.", errCode);
-        outErrorNo = errCode;
-        delete buffer;
-        buffer = nullptr;
-        return nullptr;
+        goto ERROR_HANDLE;
     }
     outErrorNo = E_OK;
     return buffer;
+ERROR_HANDLE:
+    outErrorNo = errCode;
+    delete buffer;
+    buffer = nullptr;
+    return nullptr;
 }
 
 Message *ProtocolProto::ToMessage(const SerialBuffer *inBuff, int &outErrorNo, bool onlyMsgHeader)
@@ -1054,6 +1040,41 @@ int ProtocolProto::FillFragmentPacket(const CommPhyHeader &phyHeader, const Comm
     auto ptrPhyHeader = reinterpret_cast<CommPhyHeader *>(outPacket.ptrPacket);
     ptrPhyHeader->checkSum = HostToNet(sumResult);
 
+    return E_OK;
+}
+
+int ProtocolProto::GetExtendHeadDataSize(std::shared_ptr<ExtendHeaderHandle> &extendHandle, uint32_t &headSize)
+{
+    if (extendHandle != nullptr) {
+        DBStatus status = extendHandle->GetHeadDataSize(headSize);
+        if (status != DBStatus::OK) {
+            LOGI("[Proto][ToSerial] get head data size failed,not permit to send");
+            return -E_FEEDBACK_COMMUNICATOR_NOT_FOUND;
+        }
+        if (headSize > SerialBuffer::MAX_EXTEND_HEAD_LENGTH || headSize != BYTE_8_ALIGN(headSize)) {
+            LOGI("[Proto][ToSerial] head data size is larger than 512 or not 8 byte align");
+            return -E_FEEDBACK_COMMUNICATOR_NOT_FOUND;
+        }
+        return E_OK;
+    }
+    return E_OK;
+}
+
+int ProtocolProto::FillExtendHeadDataIfNeed(std::shared_ptr<ExtendHeaderHandle> &extendHandle, SerialBuffer *buffer,
+    uint32_t headSize)
+{
+    if (extendHandle != nullptr && headSize > 0) {
+        if (buffer == nullptr) {
+            return -E_INVALID_ARGS;
+        }
+        DBStatus status = extendHandle->FillHeadData(buffer->GetOringinalAddr(), headSize,
+            buffer->GetSize() + headSize);
+        if (status != DBStatus::OK) {
+            LOGI("[Proto][ToSerial] fill head data failed");
+            return -E_FEEDBACK_COMMUNICATOR_NOT_FOUND;
+        }
+        return E_OK;
+    }
     return E_OK;
 }
 } // namespace DistributedDB
