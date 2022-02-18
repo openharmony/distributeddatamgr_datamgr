@@ -165,6 +165,22 @@ int GetCount(sqlite3 *db, const string &sql, size_t &count)
     return errCode;
 }
 
+std::string GetOneText(sqlite3 *db, const string &sql)
+{
+    std::string result;
+    sqlite3_stmt *stmt = nullptr;
+    int errCode = SQLiteUtils::GetStatement(db, sql, stmt);
+    if (errCode != E_OK) {
+        return result;
+    }
+    errCode = SQLiteUtils::StepWithRetry(stmt, false);
+    if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_ROW)) {
+        SQLiteUtils::GetColumnTextValue(stmt, 0, result);
+    }
+    SQLiteUtils::ResetStatement(stmt, true, errCode);
+    return result;
+}
+
 int PutBatchData(uint32_t totalCount, uint32_t valueSize)
 {
     sqlite3 *db = nullptr;
@@ -1190,6 +1206,59 @@ HWTEST_F(DistributedDBRelationalGetDataTest, SameFieldWithLogTable1, TestSize.Le
     EXPECT_EQ(store->GetSyncData(query, SyncTimeRange {}, DataSizeSpecInfo {}, token, entries), E_OK);
     EXPECT_EQ(entries.size(), 1UL);
     SingleVerKvEntry::Release(entries);
+    sqlite3_close(db);
+    RefObject::DecObjRef(g_store);
+}
+
+/**
+ * @tc.name: CompatibleData2
+ * @tc.desc: Check compatibility.
+ * @tc.type: FUNC
+ * @tc.require: AR000GK58H
+ * @tc.author: lidongwei
+  */
+HWTEST_F(DistributedDBRelationalGetDataTest, CompatibleData2, TestSize.Level1)
+{
+    ASSERT_EQ(g_mgr.OpenStore(g_storePath, g_storeID, RelationalStoreDelegate::Option {}, g_delegate), DBStatus::OK);
+    ASSERT_NE(g_delegate, nullptr);
+    ASSERT_EQ(g_delegate->CreateDistributedTable(g_tableName), DBStatus::OK);
+ 
+    sqlite3 *db = nullptr;
+    ASSERT_EQ(sqlite3_open(g_storePath.c_str(), &db), SQLITE_OK);
+ 
+    auto store = GetRelationalStore();
+    ASSERT_NE(store, nullptr);
+ 
+    /**
+     * @tc.steps: step1. Create distributed table from deviceA.
+     * @tc.expected: Succeed, return OK.
+     */
+    const DeviceID deviceID = "deviceA";
+    ASSERT_EQ(E_OK, SQLiteUtils::CreateSameStuTable(db, store->GetSchemaInfo().GetTable(g_tableName),
+        DBCommon::GetDistributedTableName(deviceID, g_tableName)));
+ 
+    /**
+     * @tc.steps: step2. Alter "data" table and create distributed table again.
+     * @tc.expected: Succeed.
+     */
+    std::string sql = "ALTER TABLE " + g_tableName + " ADD COLUMN integer_type INTEGER DEFAULT 123 not null;"
+        "ALTER TABLE " + g_tableName + " ADD COLUMN text_type TEXT DEFAULT 'high_version' not null;"
+        "ALTER TABLE " + g_tableName + " ADD COLUMN real_type REAL DEFAULT 123.123456 not null;"
+        "ALTER TABLE " + g_tableName + " ADD COLUMN blob_type BLOB DEFAULT 123 not null;";
+    ASSERT_EQ(sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr), SQLITE_OK);
+    ASSERT_EQ(g_delegate->CreateDistributedTable(g_tableName), DBStatus::OK);
+ 
+    /**
+     * @tc.steps: step3. Check deviceA's distributed table.
+     * @tc.expected: The create sql is correct.
+     */
+    std::string expectSql = "CREATE TABLE naturalbase_rdb_aux_data_"
+        "265a9c8c3c690cdfdac72acfe7a50f748811802635d987bb7d69dc602ed3794f(key integer NOT NULL PRIMARY KEY,"
+        "value integer, integer_type integer, text_type text, real_type real, blob_type blob)";
+    sql = "SELECT sql FROM sqlite_master WHERE tbl_name='" + DBConstant::RELATIONAL_PREFIX + g_tableName + "_" +
+        DBCommon::TransferStringToHex(DBCommon::TransferHashString(deviceID)) + "';";
+    EXPECT_EQ(GetOneText(db, sql), expectSql);
+ 
     sqlite3_close(db);
     RefObject::DecObjRef(g_store);
 }

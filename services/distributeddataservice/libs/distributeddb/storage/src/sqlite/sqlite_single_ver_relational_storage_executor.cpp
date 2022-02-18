@@ -14,6 +14,7 @@
  */
 #ifdef RELATIONAL_STORE
 #include "sqlite_single_ver_relational_storage_executor.h"
+#include <algorithm>
 #include "data_transformer.h"
 #include "db_common.h"
 
@@ -161,12 +162,15 @@ std::vector<FieldInfo> GetUpgradeFields(const TableInfo &oldTableInfo, const Tab
     return fields;
 }
 
-int UpgradeFields(sqlite3 *db, const std::vector<std::string> &tables, const std::vector<FieldInfo> &fields)
+int UpgradeFields(sqlite3 *db, const std::vector<std::string> &tables, std::vector<FieldInfo> &fields)
 {
     if (db == nullptr) {
         return -E_INVALID_ARGS;
     }
 
+    std::sort(fields.begin(), fields.end(), [] (const FieldInfo &a, const FieldInfo &b) {
+        return a.GetColumnId()< b.GetColumnId();
+    });
     int errCode = E_OK;
     for (auto table : tables) {
         for (auto field : fields) {
