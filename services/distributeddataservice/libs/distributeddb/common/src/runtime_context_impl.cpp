@@ -648,8 +648,8 @@ NotificationChain::Listener *RuntimeContextImpl::RegisterUserChangedListerner(co
 int RuntimeContextImpl::NotifyUserChanged() const
 {
     if (userChangeMonitor_ == nullptr) {
-        LOGD("NotifyUserChanged fail, userChangeMonitor is null");
-        return -E_NOT_SUPPORT;
+        LOGD("userChangeMonitor is null, all db is in normal synd mode");
+        return E_OK;
     }
     userChangeMonitor_->NotifyUserChanged();
     return E_OK;
