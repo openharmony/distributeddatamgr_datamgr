@@ -290,7 +290,7 @@ HWTEST_F(DistributedDBSingleVerMultiUserTest, MultiUser001, TestSize.Level0)
      * @tc.expected: step7. user change
      */
     g_mgr1.SetSyncActivationCheckCallback(g_syncActivationCheckCallback2);
-    KvStoreDelegateManager::NotifyUSerChanged();
+    KvStoreDelegateManager::NotifyUserChanged();
     /**
      * @tc.steps: step8. g_kvDelegatePtr1 and g_kvDelegatePtr2 call sync
      * @tc.expected: step8. g_kvDelegatePtr1 call success
@@ -337,9 +337,9 @@ HWTEST_F(DistributedDBSingleVerMultiUserTest, MultiUser002, TestSize.Level0)
      * @tc.steps: step4. GetKvStoreIdentifier success when userId is invalid
      */
     std::string userId;
-    ASSERT_TRUE(g_mgr1.GetKvStoreIdentifier(userId, APP_ID, USER_ID_2, true) == OK);
+    ASSERT_TRUE(g_mgr1.GetKvStoreIdentifier(userId, APP_ID, USER_ID_2, true) != "");
     userId.resize(130);
-    ASSERT_TRUE(g_mgr1.GetKvStoreIdentifier(userId, APP_ID, USER_ID_2, true) == OK);
+    ASSERT_TRUE(g_mgr1.GetKvStoreIdentifier(userId, APP_ID, USER_ID_2, true) != "");
     /**
      * @tc.steps: step5. g_kvDelegatePtr1 and g_kvDelegatePtr2 call sync
      * @tc.expected: step5. g_kvDelegatePtr2 call success
@@ -356,7 +356,7 @@ HWTEST_F(DistributedDBSingleVerMultiUserTest, MultiUser002, TestSize.Level0)
     /**
      * @tc.expected: step7. user change
      */
-    KvStoreDelegateManager::NotifyUSerChanged();
+    KvStoreDelegateManager::NotifyUserChanged();
     /**
      * @tc.steps: step8. g_kvDelegatePtr1 and g_kvDelegatePtr2 put {k2, v2}
      */
