@@ -129,6 +129,7 @@ struct SyncTimeRange {
     TimeStamp deleteBeginTime = 0;
     TimeStamp endTime = static_cast<TimeStamp>(INT64_MAX);
     TimeStamp deleteEndTime = static_cast<TimeStamp>(INT64_MAX);
+    TimeStamp lastQueryTime = 0;
     bool IsValid() const
     {
         return (beginTime <= endTime && deleteBeginTime <= deleteEndTime);

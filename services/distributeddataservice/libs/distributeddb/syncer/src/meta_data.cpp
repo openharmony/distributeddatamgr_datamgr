@@ -428,6 +428,23 @@ int Metadata::SetSendQueryWaterMark(const std::string &queryIdentify,
     return querySyncWaterMarkHelper_.SetSendQueryWaterMark(queryIdentify, deviceId, waterMark);
 }
 
+int Metadata::GetLastQueryTime(const std::string &queryIdentify, const std::string &deviceId, TimeStamp &timeStamp)
+{
+    QueryWaterMark queryWaterMark;
+    int errCode = querySyncWaterMarkHelper_.GetQueryWaterMark(queryIdentify, deviceId, queryWaterMark);
+    if (errCode != E_OK) {
+        return errCode;
+    }
+    timeStamp = queryWaterMark.lastQueryTime;
+    return E_OK;
+}
+
+int Metadata::SetLastQueryTime(const std::string &queryIdentify, const std::string &deviceId,
+    const TimeStamp &timeStamp)
+{
+    return querySyncWaterMarkHelper_.SetLastQueryTime(queryIdentify, deviceId, timeStamp);
+}
+
 int Metadata::GetSendDeleteSyncWaterMark(const DeviceID &deviceId, WaterMark &waterMark, bool isAutoLift)
 {
     DeleteWaterMark deleteWaterMark;

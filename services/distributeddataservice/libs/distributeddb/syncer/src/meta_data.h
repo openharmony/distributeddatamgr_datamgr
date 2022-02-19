@@ -82,6 +82,10 @@ public:
     int GetRecvQueryWaterMark(const std::string &queryIdentify,
         const std::string &deviceId, WaterMark &waterMark);
 
+    int SetLastQueryTime(const std::string &queryIdentify, const std::string &deviceId, const TimeStamp &timeStamp);
+    
+    int GetLastQueryTime(const std::string &queryIdentify, const std::string &deviceId, TimeStamp &timeStamp);
+
     int SetSendDeleteSyncWaterMark(const std::string &deviceId, const WaterMark &waterMark);
 
     // the deleteSync's sendWatermark will increase by the device watermark
