@@ -222,7 +222,7 @@ int AutoLaunch::GetKVConnectionInEnable(AutoLaunchItem &autoLaunchItem, const st
     }
     if (isEmpty) {
         LOGI("[AutoLaunch] GetKVConnectionInEnable no online device, ReleaseDatabaseConnection");
-        IKvDBConnection *kvConn = static_cast<IKvDBConnection*>(autoLaunchItem.conn);
+        IKvDBConnection *kvConn = static_cast<IKvDBConnection *>(autoLaunchItem.conn);
         errCode = KvDBManager::ReleaseDatabaseConnection(kvConn);
         if (errCode != E_OK) {
             LOGE("[AutoLaunch] GetKVConnectionInEnable ReleaseDatabaseConnection failed errCode:%d", errCode);
@@ -264,7 +264,7 @@ int AutoLaunch::CloseConnectionStrict(AutoLaunchItem &autoLaunchItem)
         LOGI("[AutoLaunch] CloseConnectionStrict conn is nullptr, do nothing");
         return E_OK;
     }
-    IKvDBConnection *kvConn = static_cast<IKvDBConnection*>(autoLaunchItem.conn);
+    IKvDBConnection *kvConn = static_cast<IKvDBConnection *>(autoLaunchItem.conn);
     int errCode = kvConn->RegisterLifeCycleCallback(nullptr);
     if (errCode != E_OK) {
         LOGE("[AutoLaunch] CloseConnectionStrict RegisterLifeCycleCallback failed errCode:%d", errCode);
@@ -358,7 +358,7 @@ int AutoLaunch::RegisterObserver(AutoLaunchItem &autoLaunchItem, const std::stri
     int errCode;
     Key key;
     KvDBObserverHandle *observerHandle = nullptr;
-    IKvDBConnection *kvConn = static_cast<IKvDBConnection*>(autoLaunchItem.conn);
+    IKvDBConnection *kvConn = static_cast<IKvDBConnection *>(autoLaunchItem.conn);
     if (isExt) {
         observerHandle = kvConn->RegisterObserver(OBSERVER_CHANGES_FOREIGN, key,
             std::bind(&AutoLaunch::ExtObserverFunc, this, std::placeholders::_1, identifier, userId), errCode);
@@ -426,7 +426,6 @@ void AutoLaunch::ObserverFunc(const KvDBCommitNotifyData &notifyData, const std:
     std::lock_guard<std::mutex> autoLock(dataLock_);
     autoLaunchItemMap_[identifier][userId].inObserver = false;
     cv_.notify_all();
-    LOGI("[AutoLaunch] ObserverFunc finished identifier=%0.6s", STR_TO_HEX(identifier));
 }
 
 int AutoLaunch::DisableKvStoreAutoLaunch(const std::string &normalIdentifier, const std::string &dualTupleIdentifier,
@@ -956,7 +955,7 @@ int AutoLaunch::SetConflictNotifier(AutoLaunchItem &autoLaunchItem)
         return E_OK;
     }
 
-    IKvDBConnection *kvConn = static_cast<IKvDBConnection*>(autoLaunchItem.conn);
+    IKvDBConnection *kvConn = static_cast<IKvDBConnection *>(autoLaunchItem.conn);
     int conflictType = autoLaunchItem.conflictType;
     const KvStoreNbConflictNotifier &notifier = autoLaunchItem.conflictNotifier;
     if (conflictType == 0) {
@@ -1135,11 +1134,11 @@ int AutoLaunch::RegisterLifeCycleCallback(AutoLaunchItem &autoLaunchItem, const 
     }
     switch (autoLaunchItem.type) {
         case DBType::DB_KV:
-            errCode = static_cast<IKvDBConnection*>(autoLaunchItem.conn)->RegisterLifeCycleCallback(notifier);
+            errCode = static_cast<IKvDBConnection *>(autoLaunchItem.conn)->RegisterLifeCycleCallback(notifier);
             break;
         case DBType::DB_RELATION:
             errCode =
-                static_cast<RelationalStoreConnection*>(autoLaunchItem.conn)->RegisterLifeCycleCallback(notifier);
+                static_cast<RelationalStoreConnection *>(autoLaunchItem.conn)->RegisterLifeCycleCallback(notifier);
             break;
         default:
             LOGD("[AutoLaunch] Unknown Type[%d]", autoLaunchItem.type);
@@ -1174,7 +1173,7 @@ void AutoLaunch::TryCloseKvConnection(AutoLaunchItem &autoLaunchItem)
         LOGI("[AutoLaunch] TryCloseKvConnection conn is nullptr, do nothing");
         return;
     }
-    IKvDBConnection *kvConn = static_cast<IKvDBConnection*>(autoLaunchItem.conn);
+    IKvDBConnection *kvConn = static_cast<IKvDBConnection *>(autoLaunchItem.conn);
     int errCode = kvConn->RegisterLifeCycleCallback(nullptr);
     if (errCode != E_OK) {
         LOGE("[AutoLaunch] TryCloseKvConnection RegisterLifeCycleCallback failed errCode:%d", errCode);
@@ -1199,7 +1198,7 @@ void AutoLaunch::TryCloseRelationConnection(AutoLaunchItem &autoLaunchItem)
         LOGI("[AutoLaunch] TryCloseRelationConnection conn is nullptr, do nothing");
         return;
     }
-    RelationalStoreConnection *rdbConn = static_cast<RelationalStoreConnection*>(autoLaunchItem.conn);
+    RelationalStoreConnection *rdbConn = static_cast<RelationalStoreConnection *>(autoLaunchItem.conn);
     int errCode = rdbConn->RegisterLifeCycleCallback(nullptr);
     if (errCode != E_OK) {
         LOGE("[AutoLaunch] TryCloseRelationConnection RegisterLifeCycleCallback failed errCode:%d", errCode);

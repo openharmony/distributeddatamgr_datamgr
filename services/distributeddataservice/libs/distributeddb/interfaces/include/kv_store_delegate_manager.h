@@ -106,7 +106,7 @@ public:
 
     DB_API static DBStatus SetSyncActivationCheckCallback(const SyncActivationCheckCallback &callback);
 
-    DB_API static DBStatus NotifyUSerChanged();
+    DB_API static DBStatus NotifyUserChanged();
 private:
 
     // Check if the dataDir is safe arg.

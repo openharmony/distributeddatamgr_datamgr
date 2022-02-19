@@ -596,7 +596,7 @@ DBStatus KvStoreDelegateManager::SetSyncActivationCheckCallback(const SyncActiva
     return TransferDBErrno(errCode);
 }
 
-DBStatus KvStoreDelegateManager::NotifyUSerChanged()
+DBStatus KvStoreDelegateManager::NotifyUserChanged()
 {
     int errCode = RuntimeContext::GetInstance()->NotifyUserChanged();
     return TransferDBErrno(errCode);
