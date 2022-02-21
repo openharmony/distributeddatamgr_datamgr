@@ -921,20 +921,19 @@ int ProtocolProto::ParseLabelExchangeAck(const uint8_t *bytes, uint32_t length, 
 int ProtocolProto::FrameFragmentation(const uint8_t *splitStartBytes, const FrameFragmentInfo &fragmentInfo,
     const CommPhyHeader &framePhyHeader, std::vector<std::pair<std::vector<uint8_t>, uint32_t>> &outPieces)
 {
-    uint32_t splitLength = fragmentInfo.splitLength;
-    uint16_t fragCount = fragmentInfo.fragCount;
     // It can be guaranteed that fragCount >= 2 and also won't be too large
-    if (fragCount < 2) {
+    if (fragmentInfo.fragCount < 2) {
         return -E_INVALID_ARGS;
     }
-    outPieces.resize(fragCount); // Note: should use resize other than reserve
-    uint32_t quotient = splitLength / fragCount;
-    uint16_t remainder = splitLength % fragCount;
+    outPieces.resize(fragmentInfo.fragCount); // Note: should use resize other than reserve
+    uint32_t quotient = fragmentInfo.splitLength / fragmentInfo.fragCount;
+    uint16_t remainder = fragmentInfo.splitLength % fragmentInfo.fragCount;
     uint16_t fragNo = 0; // Fragment index start from 0
     uint32_t byteOffset = 0;
 
     for (auto &entry : outPieces) {
-        uint32_t pieceFragLen = (fragNo != fragCount - 1) ? quotient : (quotient + remainder); // subtract 1 for index
+        // subtract 1 for index
+        uint32_t pieceFragLen = (fragNo != fragmentInfo.fragCount - 1) ? quotient : (quotient + remainder);
         uint32_t alignedPieceFragLen = BYTE_8_ALIGN(pieceFragLen); // Add padding length
         uint32_t pieceTotalLen = alignedPieceFragLen + sizeof(CommPhyHeader) + sizeof(CommPhyOptHeader);
 
@@ -953,10 +952,8 @@ int ProtocolProto::FrameFragmentation(const uint8_t *splitStartBytes, const Fram
         pktPhyHeader.paddingLen = alignedPieceFragLen - pieceFragLen; // The former is always larger than latter
         HeaderConverter::ConvertHostToNet(pktPhyHeader, pktPhyHeader);
 
-        CommPhyOptHeader pktPhyOptHeader;
-        pktPhyOptHeader.frameLen = splitLength + sizeof(CommPhyHeader);
-        pktPhyOptHeader.fragCount = fragCount;
-        pktPhyOptHeader.fragNo = fragNo;
+        CommPhyOptHeader pktPhyOptHeader = {static_cast<uint32_t>(fragmentInfo.splitLength + sizeof(CommPhyHeader)),
+            fragmentInfo.fragCount, fragNo};
         HeaderConverter::ConvertHostToNet(pktPhyOptHeader, pktPhyOptHeader);
         int err;
         FragmentPacket packet;
@@ -965,7 +962,6 @@ int ProtocolProto::FrameFragmentation(const uint8_t *splitStartBytes, const Fram
             packet = {ptrPacket, fragmentInfo.extendHeadSize};
             err = FillFragmentPacketExtendHead(fragmentInfo.oringinalBytesAddr, fragmentInfo.extendHeadSize, packet);
             if (err != E_OK) {
-                LOGE("[Proto][FrameFrag] Fill extend head packet fail, fragCount=%u, fragNo=%u", fragCount, fragNo);
                 return err;
             }
             ptrPacket += fragmentInfo.extendHeadSize;
@@ -975,7 +971,7 @@ int ProtocolProto::FrameFragmentation(const uint8_t *splitStartBytes, const Fram
             pieceFragLen, packet);
         entry.second = fragmentInfo.extendHeadSize;
         if (err != E_OK) {
-            LOGE("[Proto][FrameFrag] Fill packet fail, fragCount=%u, fragNo=%u", fragCount, fragNo);
+            LOGE("[Proto][FrameFrag] Fill packet fail, fragCount=%u, fragNo=%u", fragmentInfo.fragCount, fragNo);
             return err;
         }
 
@@ -994,6 +990,7 @@ int ProtocolProto::FillFragmentPacketExtendHead(uint8_t *headBytesAddr, uint32_t
     }
     errno_t retCode = memcpy_s(outPacket.ptrPacket, outPacket.leftLength, headBytesAddr, headLen);
     if (retCode != EOK) {
+        LOGE("memcpy error:%d", retCode);
         return -E_SECUREC_ERROR;
     }
     return E_OK;
