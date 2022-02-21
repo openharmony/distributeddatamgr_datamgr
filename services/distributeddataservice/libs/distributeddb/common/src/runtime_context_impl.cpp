@@ -647,9 +647,12 @@ NotificationChain::Listener *RuntimeContextImpl::RegisterUserChangedListerner(co
 
 int RuntimeContextImpl::NotifyUserChanged() const
 {
-    if (userChangeMonitor_ == nullptr) {
-        LOGD("userChangeMonitor is null, all db is in normal synd mode");
-        return E_OK;
+    {
+        std::lock_guard<std::mutex> autoLock(userChangeMonitorLock_);
+        if (userChangeMonitor_ == nullptr) {
+            LOGD("userChangeMonitor is null, all db is in normal sync mode");
+            return E_OK;
+        }
     }
     userChangeMonitor_->NotifyUserChanged();
     return E_OK;
