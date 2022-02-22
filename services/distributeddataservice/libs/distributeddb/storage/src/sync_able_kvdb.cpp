@@ -26,6 +26,7 @@ const EventType SyncAbleKvDB::REMOTE_PUSH_FINISHED = 1;
 
 SyncAbleKvDB::SyncAbleKvDB()
     : started_(false),
+      closed_(false),
       isSyncModuleActiveCheck_(false),
       isSyncNeedActive_(true),
       notifyChain_(nullptr),
@@ -73,7 +74,7 @@ void SyncAbleKvDB::CommitNotify(int notifyEvent, KvDBCommitNotifyFilterAbleData 
 
 void SyncAbleKvDB::Close()
 {
-    StopSyncer();
+    StopSyncer(true);
 }
 
 // Start a sync action.
@@ -150,12 +151,18 @@ void SyncAbleKvDB::ReSetSyncModuleActive()
 // Start syncer
 void SyncAbleKvDB::StartSyncer(bool isCheckSyncActive, bool isNeedActive)
 {
+    std::unique_lock<std::mutex> lock(syncerOperateLock_);
+    StartSyncerWithNoLock(isCheckSyncActive, isNeedActive);
+    closed_ = false;
+}
+
+void SyncAbleKvDB::StartSyncerWithNoLock(bool isCheckSyncActive, bool isNeedActive)
+{
     IKvDBSyncInterface *syncInterface = GetSyncInterface();
     if (syncInterface == nullptr) {
         LOGF("KvDB got null sync interface.");
         return;
     }
-    std::unique_lock<std::mutex> lock(syncerOperateLock_);
     if (!isCheckSyncActive) {
         SetSyncModuleActive();
         isNeedActive = GetSyncModuleActive();
@@ -181,16 +188,22 @@ void SyncAbleKvDB::StartSyncer(bool isCheckSyncActive, bool isNeedActive)
 }
 
 // Stop syncer
-void SyncAbleKvDB::StopSyncer()
+void SyncAbleKvDB::StopSyncer(bool isClosed)
 {
     std::unique_lock<std::mutex> lock(syncerOperateLock_);
+    StopSyncerWithNoLock(isClosed);
+}
+
+void SyncAbleKvDB::StopSyncerWithNoLock(bool isClosed)
+{
     ReSetSyncModuleActive();
     syncer_.Close();
     if (started_) {
         started_ = false;
     }
+    closed_ = isClosed;
     if (userChangeListerner_ != nullptr) {
-        userChangeListerner_->Drop(true);
+        userChangeListerner_->Drop(false);
         userChangeListerner_ = nullptr;
     }
 }
@@ -199,28 +212,27 @@ void SyncAbleKvDB::UserChangeHandle()
 {
     bool isNeedChange;
     bool isNeedActive = true;
-    {
-        IKvDBSyncInterface *syncInterface = GetSyncInterface();
-        if (syncInterface == nullptr) {
-            LOGF("KvDB got null sync interface.");
-            return;
-        }
-        std::unique_lock<std::mutex> lock(syncerOperateLock_);
-        std::string userId = syncInterface->GetDbProperties().GetStringProp(KvDBProperties::USER_ID, "");
-        std::string appId = syncInterface->GetDbProperties().GetStringProp(KvDBProperties::APP_ID, "");
-        std::string storeId = syncInterface->GetDbProperties().GetStringProp(KvDBProperties::STORE_ID, "");
-        isNeedActive = RuntimeContext::GetInstance()->IsSyncerNeedActive(userId, appId, storeId);
-        isNeedChange = (isNeedActive != isSyncNeedActive_) ? true : false;
+    IKvDBSyncInterface *syncInterface = GetSyncInterface();
+    if (syncInterface == nullptr) {
+        LOGF("KvDB got null sync interface.");
+        return;
     }
+    std::unique_lock<std::mutex> lock(syncerOperateLock_);
+    if (closed_) {
+        LOGI("kvDB is already closed");
+        return;
+    }
+    std::string userId = syncInterface->GetDbProperties().GetStringProp(KvDBProperties::USER_ID, "");
+    std::string appId = syncInterface->GetDbProperties().GetStringProp(KvDBProperties::APP_ID, "");
+    std::string storeId = syncInterface->GetDbProperties().GetStringProp(KvDBProperties::STORE_ID, "");
+    isNeedActive = RuntimeContext::GetInstance()->IsSyncerNeedActive(userId, appId, storeId);
+    isNeedChange = (isNeedActive != isSyncNeedActive_) ? true : false;
     // non_active to active or active to non_active
     if (isNeedChange) {
-        StopSyncer(); // will drop userChangeListerner;
-        {
-            std::unique_lock<std::mutex> lock(syncerOperateLock_);
-            isSyncModuleActiveCheck_ = true;
-            isSyncNeedActive_ = isNeedActive;
-        }
-        StartSyncer(true, isNeedActive);
+        StopSyncerWithNoLock(); // will drop userChangeListerner;
+        isSyncModuleActiveCheck_ = true;
+        isSyncNeedActive_ = isNeedActive;
+        StartSyncerWithNoLock(true, isNeedActive);
     }
 }
 
@@ -228,7 +240,7 @@ void SyncAbleKvDB::ChangeUserListerner()
 {
     // only active to non_active call, put into USER_NON_ACTIVE_EVENT listerner from USER_ACTIVE_TO_NON_ACTIVE_EVENT
     if (userChangeListerner_ != nullptr) {
-        userChangeListerner_->Drop(true);
+        userChangeListerner_->Drop(false);
         userChangeListerner_ = nullptr;
     }
     if (userChangeListerner_ == nullptr) {

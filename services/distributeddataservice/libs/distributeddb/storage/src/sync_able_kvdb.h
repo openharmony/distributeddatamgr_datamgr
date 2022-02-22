@@ -94,8 +94,12 @@ protected:
     // Start syncer
     void StartSyncer(bool isCheckSyncActive = false, bool isNeedActive = true);
 
+    void StartSyncerWithNoLock(bool isCheckSyncActive, bool isNeedActive);
+
     // Stop syncer
-    void StopSyncer();
+    void StopSyncer(bool isClosed = false);
+
+    void StopSyncerWithNoLock(bool isClosed = false);
 
     void UserChangeHandle();
 
@@ -113,6 +117,7 @@ private:
 
     SyncerProxy syncer_;
     std::atomic<bool> started_;
+    std::atomic<bool> closed_;
     std::atomic<bool> isSyncModuleActiveCheck_;
     std::atomic<bool> isSyncNeedActive_;
     mutable std::shared_mutex notifyChainLock_;
