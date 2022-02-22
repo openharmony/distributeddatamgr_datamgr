@@ -61,7 +61,6 @@ napi_value JsFieldNode::Constructor(napi_env env)
 {
     const napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("appendChild", JsFieldNode::AppendChild),
-        DECLARE_NAPI_FUNCTION("toJson", JsFieldNode::ToJson),
         DECLARE_NAPI_GETTER_SETTER("default", JsFieldNode::GetDefaultValue, JsFieldNode::SetDefaultValue),
         DECLARE_NAPI_GETTER_SETTER("nullable", JsFieldNode::GetNullable, JsFieldNode::SetNullable),
         DECLARE_NAPI_GETTER_SETTER("type", JsFieldNode::GetValueType, JsFieldNode::SetValueType)
