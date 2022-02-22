@@ -165,6 +165,32 @@ HWTEST_F(DistributedDBMockSyncModuleTest, StateMachineCheck004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: StateMachineCheck005
+ * @tc.desc: Test machine recv errCode.
+ * @tc.type: FUNC
+ * @tc.require: AR000CCPOM
+ * @tc.author: zhangqiquan
+ */
+HWTEST_F(DistributedDBMockSyncModuleTest, StateMachineCheck005, TestSize.Level1)
+{
+    MockSingleVerStateMachine stateMachine;
+    MockSyncTaskContext syncTaskContext;
+    MockCommunicator communicator;
+    VirtualSingleVerSyncDBInterface dbSyncInterface;
+    Init(stateMachine, syncTaskContext, communicator, dbSyncInterface);
+    EXPECT_CALL(stateMachine, SwitchStateAndStep(_)).WillRepeatedly(Return());
+    EXPECT_CALL(syncTaskContext, GetRequestSessionId()).WillRepeatedly(Return(0u));
+
+    std::initializer_list<int> testCode = {-E_DISTRIBUTED_SCHEMA_CHANGED, -E_DISTRIBUTED_SCHEMA_NOT_FOUND};
+    for (int errCode : testCode) {
+        stateMachine.DataRecvErrCodeHandle(0, errCode);
+        EXPECT_EQ(syncTaskContext.GetTaskErrCode(), errCode);
+        stateMachine.CallDataAckRecvErrCodeHandle(errCode, true);
+        EXPECT_EQ(syncTaskContext.GetTaskErrCode(), errCode);
+    }
+}
+
+/**
  * @tc.name: DataSyncCheck001
  * @tc.desc: Test dataSync recv error ack.
  * @tc.type: FUNC
