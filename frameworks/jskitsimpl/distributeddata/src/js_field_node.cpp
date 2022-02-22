@@ -120,19 +120,6 @@ napi_value JsFieldNode::AppendChild(napi_env env, napi_callback_info info)
     return ctxt->output;
 }
 
-napi_value JsFieldNode::ToJson(napi_env env, napi_callback_info info)
-{
-    ZLOGD("FieldNode::ToJson");
-    auto ctxt = std::make_shared<ContextBase>();
-    ctxt->GetCbInfoSync(env, info);
-    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
-
-    auto fieldNode = reinterpret_cast<JsFieldNode*>(ctxt->native);
-    std::string js = fieldNode->Dump();
-    JSUtil::SetValue(env, js, ctxt->output);
-    return ctxt->output;
-}
-
 napi_value JsFieldNode::GetDefaultValue(napi_env env, napi_callback_info info)
 {
     ZLOGD("FieldNode::GetDefaultValue");

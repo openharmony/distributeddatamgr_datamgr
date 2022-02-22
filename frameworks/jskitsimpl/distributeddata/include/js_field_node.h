@@ -36,7 +36,6 @@ public:
 
 private:
     static napi_value AppendChild(napi_env env, napi_callback_info info);
-    static napi_value ToJson(napi_env env, napi_callback_info info);
     static napi_value GetDefaultValue(napi_env env, napi_callback_info info);
     static napi_value SetDefaultValue(napi_env env, napi_callback_info info);
     static napi_value GetNullable(napi_env env, napi_callback_info info);
