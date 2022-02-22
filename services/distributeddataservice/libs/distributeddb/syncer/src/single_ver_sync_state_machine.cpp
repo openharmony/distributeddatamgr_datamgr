@@ -29,6 +29,7 @@
 #include "performance_analysis.h"
 #include "single_ver_sync_target.h"
 #include "single_ver_data_sync.h"
+#include "single_ver_data_sync_utils.h"
 
 namespace DistributedDB {
 namespace {
@@ -463,6 +464,7 @@ Event SingleVerSyncStateMachine::DoTimeSync()
         if (errCode == E_OK) {
             return Event::WAIT_ACK_EVENT;
         }
+        context_->SetTaskErrCode(errCode);
         return TransformErrCodeToEvent(errCode);
     }
 
@@ -958,7 +960,7 @@ int SingleVerSyncStateMachine::MessageCallbackPre(const Message *inMsg)
 
 void SingleVerSyncStateMachine::AddPullResponseTarget(const Message *inMsg, WaterMark pullEndWatermark)
 {
-    int messageType = inMsg->GetMessageId();
+    int messageType = static_cast<int>(inMsg->GetMessageId());
     uint32_t sessionId = inMsg->GetSessionId();
     if (pullEndWatermark == 0) {
         LOGE("[StateMachine][AddPullResponseTarget] pullEndWatermark is 0!");
@@ -1155,7 +1157,7 @@ void SingleVerSyncStateMachine::DataAckRecvErrCodeHandle(int errCode, bool handl
 
 bool SingleVerSyncStateMachine::IsNeedTriggerQueryAutoSync(Message *inMsg, QuerySyncObject &query)
 {
-    return dataSync_->IsNeedTriggerQueryAutoSync(inMsg, query);
+    return SingleVerDataSyncUtils::IsNeedTriggerQueryAutoSync(inMsg, query);
 }
 
 void SingleVerSyncStateMachine::JumpStatusAfterAbilitySync(int mode)

@@ -42,7 +42,7 @@ public:
     virtual ~ISyncer() {};
 
     // Init the Syncer modules
-    virtual int Initialize(ISyncInterface *syncInterface)
+    virtual int Initialize(ISyncInterface *syncInterface, bool isNeedActive)
     {
         return -E_NOT_SUPPORT;
     }
@@ -75,8 +75,11 @@ public:
     virtual void EnableAutoSync(bool enable) = 0;
 
     // delete specified device's watermark
+    virtual int EraseDeviceWaterMark(const std::string &deviceId, bool isNeedHash) = 0;
+        
+    // delete specified device's and table's watermark
     virtual int EraseDeviceWaterMark(const std::string &deviceId, bool isNeedHash,
-        const std::string &tableName = "") = 0;
+        const std::string &tableName) = 0;
 
     // Local data changed callback
     virtual void LocalDataChanged(int notifyEvent) = 0;

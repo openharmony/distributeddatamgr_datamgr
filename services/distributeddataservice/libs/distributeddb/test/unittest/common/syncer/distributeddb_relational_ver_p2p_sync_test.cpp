@@ -347,7 +347,9 @@ namespace {
                 break;
             }
             case SQLITE_TEXT: {
-                dataValue.SetText(std::string(reinterpret_cast<const char *>(sqlite3_column_text(statement, col))));
+                std::string str;
+                SQLiteUtils::GetColumnTextValue(statement, col, str);
+                dataValue.SetText(str);
                 break;
             }
             case SQLITE_BLOB: {

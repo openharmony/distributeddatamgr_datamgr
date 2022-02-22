@@ -377,7 +377,7 @@ void SQLiteRelationalStore::RegisterObserverAction(const RelationalObserverActio
     storageEngine_->RegisterObserverAction(action);
 }
 
-int SQLiteRelationalStore::StopLifeCycleTimer() const
+int SQLiteRelationalStore::StopLifeCycleTimer()
 {
     auto runtimeCxt = RuntimeContext::GetInstance();
     if (runtimeCxt == nullptr) {
@@ -391,7 +391,7 @@ int SQLiteRelationalStore::StopLifeCycleTimer() const
     return E_OK;
 }
 
-int SQLiteRelationalStore::StartLifeCycleTimer(const DatabaseLifeCycleNotifier &notifier) const
+int SQLiteRelationalStore::StartLifeCycleTimer(const DatabaseLifeCycleNotifier &notifier)
 {
     auto runtimeCxt = RuntimeContext::GetInstance();
     if (runtimeCxt == nullptr) {
@@ -403,8 +403,10 @@ int SQLiteRelationalStore::StartLifeCycleTimer(const DatabaseLifeCycleNotifier &
         [this](TimerId id) -> int {
             std::lock_guard<std::mutex> lock(lifeCycleMutex_);
             if (lifeCycleNotifier_) {
+                // normal identifier mode
                 auto identifier = properties_.GetStringProp(DBProperties::IDENTIFIER_DATA, "");
-                lifeCycleNotifier_(identifier);
+                auto userId = properties_.GetStringProp(DBProperties::USER_ID, "");
+                lifeCycleNotifier_(identifier, userId);
             }
             return 0;
         },
@@ -456,7 +458,7 @@ int SQLiteRelationalStore::RegisterLifeCycleCallback(const DatabaseLifeCycleNoti
     return errCode;
 }
 
-void SQLiteRelationalStore::HeartBeat() const
+void SQLiteRelationalStore::HeartBeat()
 {
     std::lock_guard<std::mutex> lock(lifeCycleMutex_);
     int errCode = ResetLifeCycleTimer();
@@ -465,7 +467,7 @@ void SQLiteRelationalStore::HeartBeat() const
     }
 }
 
-int SQLiteRelationalStore::ResetLifeCycleTimer() const
+int SQLiteRelationalStore::ResetLifeCycleTimer()
 {
     if (lifeTimerId_ == 0) {
         return E_OK;
@@ -482,6 +484,11 @@ int SQLiteRelationalStore::ResetLifeCycleTimer() const
 std::string SQLiteRelationalStore::GetStorePath() const
 {
     return properties_.GetStringProp(DBProperties::DATA_DIR, "");
+}
+
+RelationalDBProperties SQLiteRelationalStore::GetProperties() const
+{
+    return properties_;
 }
 }
 #endif

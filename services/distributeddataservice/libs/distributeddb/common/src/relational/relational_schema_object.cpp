@@ -163,33 +163,33 @@ const std::map<std::string, FieldInfo> &TableInfo::GetFields() const
     return fields_;
 }
 
-const std::vector<std::string> &TableInfo::GetFieldNames() const
+const std::vector<FieldInfo> &TableInfo::GetFieldInfos() const
 {
-    if (!fieldNames_.empty() && fieldNames_.size() == fields_.size()) {
-        return fieldNames_;
+    if (!fieldInfos_.empty() && fieldInfos_.size() == fields_.size()) {
+        return fieldInfos_;
     }
-    fieldNames_.resize(fields_.size());
-    if (fieldNames_.size() != fields_.size()) {
+    fieldInfos_.resize(fields_.size());
+    if (fieldInfos_.size() != fields_.size()) {
         LOGE("GetField error, alloc memory failed.");
-        return fieldNames_;
+        return fieldInfos_;
     }
-    for (const auto &[fieldName, fieldInfo] : fields_) {
-        if (fieldInfo.GetColumnId() >= fieldNames_.size()) {
+    for (const auto &entry : fields_) {
+        if (static_cast<size_t>(entry.second.GetColumnId()) >= fieldInfos_.size()) {
             LOGE("Cid is over field size.");
-            fieldNames_.clear();
-            return fieldNames_;
+            fieldInfos_.clear();
+            return fieldInfos_;
         }
-        fieldNames_.at(fieldInfo.GetColumnId()) = fieldName;
+        fieldInfos_.at(entry.second.GetColumnId()) = entry.second;
     }
-    return fieldNames_;
+    return fieldInfos_;
 }
 
 std::string TableInfo::GetFieldName(uint32_t cid) const
 {
-    if (cid >= fields_.size() || GetFieldNames().empty()) {
+    if (cid >= fields_.size() || GetFieldInfos().empty()) {
         return {};
     }
-    return GetFieldNames().at(cid);
+    return GetFieldInfos().at(cid).GetFieldName();
 }
 
 bool TableInfo::IsValid() const

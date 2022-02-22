@@ -14,16 +14,19 @@
  */
 
 #include "adapter_stub.h"
+#include <memory>
 #include "db_errno.h"
 #include "endian_convert.h"
 #include "frame_header.h"
+#include "iprocess_communicator.h"
 #include "log_print.h"
+#include "distributeddb_communicator_common.h"
 
 using namespace DistributedDB;
 
 namespace {
-    const uint32_t MTU_SIZE = 5 * 1024 * 1024; // 5 M, 1024 is scale
-    const uint32_t TIME_OUT = 5 * 1000; // 5 S, 1000 is scale
+    const uint32_t STUB_MTU_SIZE = 5 * 1024 * 1024; // 5 M, 1024 is scale
+    const uint32_t STUB_TIME_OUT = 5 * 1000; // 5 S, 1000 is scale
 }
 
 /*
@@ -46,7 +49,7 @@ void AdapterStub::StopAdapter()
 
 uint32_t AdapterStub::GetMtuSize()
 {
-    return MTU_SIZE;
+    return STUB_MTU_SIZE;
 }
 
 uint32_t AdapterStub::GetMtuSize(const std::string &target)
@@ -56,7 +59,7 @@ uint32_t AdapterStub::GetMtuSize(const std::string &target)
 
 uint32_t AdapterStub::GetTimeout()
 {
-    return TIME_OUT;
+    return STUB_TIME_OUT;
 }
 
 uint32_t AdapterStub::GetTimeout(const std::string &target)
@@ -127,6 +130,12 @@ bool AdapterStub::IsDeviceOnline(const std::string &device)
 {
     return true;
 }
+
+std::shared_ptr<ExtendHeaderHandle> AdapterStub::GetExtendHeaderHandle(const ExtendInfo &paramInfo)
+{
+    std::shared_ptr<ExtendHeaderHandle> handle = std::make_shared<ExtendHeaderHandleTest>(paramInfo);
+    return handle;
+}
 /*
  * Extended Part
  */
@@ -180,7 +189,29 @@ void AdapterStub::DeliverBytes(const std::string &srcTarget, const uint8_t *byte
 {
     std::lock_guard<std::mutex> onReceiveLockGuard(onReceiveMutex_);
     if (onReceiveHandle_) {
-        onReceiveHandle_(srcTarget, bytes, length);
+        uint32_t headLength = 0;
+        std::string userId;
+        CheckAndGetDataHeadInfo(bytes, length, headLength, userId);
+        onReceiveHandle_(srcTarget, bytes + headLength, length - headLength, userId);
+    }
+}
+
+void AdapterStub::CheckAndGetDataHeadInfo(const uint8_t *data, uint32_t totalLen, uint32_t &headLength,
+    std::string &userId)
+{
+    auto info = reinterpret_cast<const ExtendHeadInfo *>(data);
+    NetToHost(info->magic);
+    if (info->magic == ExtendHeaderHandleTest::MAGIC_NUM) {
+        NetToHost(info->length);
+        NetToHost(info->version);
+        headLength = info->length;
+        std::string tmpUserId(BUFF_LEN, 0);
+        for (uint8_t i = 0; i < BUFF_LEN; i++) {
+            tmpUserId[i] = info->userId[i];
+        }
+        userId = tmpUserId;
+    } else {
+        headLength = 0;
     }
 }
 

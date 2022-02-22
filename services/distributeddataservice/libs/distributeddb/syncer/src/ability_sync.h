@@ -235,6 +235,10 @@ private:
     RelationalSyncOpinion MakeRelationSyncOpnion(const AbilitySyncRequestPacket *packet,
         const std::string &remoteSchema) const;
 
+    void SetSendConfig(const std::string &dstTarget, bool nonBlock, uint32_t timeout, SendConfig &sendConf);
+
+    int AckRecvWithHighVersion(const Message *message, ISyncTaskContext *context, const AbilitySyncAckPacket *packet);
+
     ICommunicator *communicator_;
     ISyncInterface *storageInterface_;
     std::shared_ptr<Metadata> metadata_;

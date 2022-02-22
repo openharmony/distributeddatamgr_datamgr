@@ -28,8 +28,11 @@ public:
     int SetStaleDataWipePolicy(WipePolicy policy) override;
 
     // delete specified device's watermark
+    int EraseDeviceWaterMark(const std::string &deviceId, bool isNeedHash) override;
+
+    // delete specified device's and table's watermark
     int EraseDeviceWaterMark(const std::string &deviceId, bool isNeedHash,
-        const std::string &tableName = "") override;
+        const std::string &tableName) override;
 
 protected:
     // Create a sync engine, if has memory error, will return nullptr.

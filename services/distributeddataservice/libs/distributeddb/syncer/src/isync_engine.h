@@ -52,9 +52,6 @@ public:
     // Register the device connect callback, this function must be called after Engine initted
     virtual void RegConnectCallback() = 0;
 
-    // Get local deviceId, is hashed
-    virtual int GetLocalIdentity(std::string &outTarget) const = 0;
-
     // Get the database identifier
     virtual std::string GetLabel() const = 0;
 
@@ -63,6 +60,11 @@ public:
 
     // Set an equal identifier for this database, After this called, send msg to the target will use this identifier
     virtual int SetEqualIdentifier(const std::string &identifier, const std::vector<std::string> &targets) = 0;
+
+    // Set record device equal identifier when called in import/rekey scene when restart syncer
+    virtual void SetEqualIdentifier() = 0;
+
+    virtual void SetEqualIdentifierMap(const std::string &identifier, const std::vector<std::string> &targets) = 0;
 
     // Add auto subscribe timer when start sync engine, used for auto subscribe failed subscribe task when db online
     virtual int StartAutoSubscribeTimer() = 0;

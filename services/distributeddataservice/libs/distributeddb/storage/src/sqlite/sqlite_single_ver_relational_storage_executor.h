@@ -79,13 +79,15 @@ private:
     int SaveSyncDataItems(const QueryObject &object, std::vector<DataItem> &dataItems,
         const std::string &deviceName, TimeStamp &timeStamp);
     int SaveSyncDataItem(const DataItem &dataItem, sqlite3_stmt *&saveDataStmt, sqlite3_stmt *&rmDataStmt,
-        int64_t &rowid);
+        const std::vector<FieldInfo> &fieldInfos, int64_t &rowid);
 
     int DeleteSyncDataItem(const DataItem &dataItem, sqlite3_stmt *&rmDataStmt);
 
-    int SaveSyncLog(sqlite3_stmt *statement, const DataItem &dataItem, TimeStamp &maxTimestamp, int64_t rowid);
+    int SaveSyncLog(sqlite3_stmt *statement, sqlite3_stmt *queryStmt, const DataItem &dataItem,
+        TimeStamp &maxTimestamp, int64_t rowid);
     int PrepareForSavingData(const QueryObject &object, sqlite3_stmt *&statement) const;
-    int PrepareForSavingLog(const QueryObject &object, const std::string &deviceName, sqlite3_stmt *&statement) const;
+    int PrepareForSavingLog(const QueryObject &object, const std::string &deviceName,
+        sqlite3_stmt *&statement,  sqlite3_stmt *&queryStmt) const;
 
     int AlterAuxTableForUpgrade(const TableInfo &oldTableInfo, const TableInfo &newTableInfo);
 

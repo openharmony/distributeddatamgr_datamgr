@@ -754,7 +754,7 @@ std::string SqliteQueryHelper::GetFieldShape(const QueryObjNode &queryNode, cons
 {
     if (isRelationalQuery_) {
         // For relational query, $. prefix is not permitted, so need not extract json. Return directly will be OK.
-        return queryNode.fieldName + " ";
+        return "a." + queryNode.fieldName + " ";
     }
     return MapCastFuncSql(queryNode, accessStr);
 }

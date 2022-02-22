@@ -40,6 +40,7 @@ struct AutoLaunchOption {
     uint8_t compressionRate = 100; // valid in [1, 100].
     bool isAutoSync = true;
     StoreObserver *storeObserver = nullptr;
+    bool syncDualTupleMode = false; // communicator label use dualTuple hash or not
 };
 
 struct AutoLaunchParam {

@@ -28,6 +28,20 @@
 #include "performance_analysis.h"
 
 namespace DistributedDB {
+namespace {
+void ChangeEntriesTimeStamp(std::vector<MultiVerKvEntry *> &entries, TimeOffset outOffset, TimeOffset timefixOffset)
+{
+    for (MultiVerKvEntry *entry : entries) {
+        if (entry == nullptr) {
+            continue;
+        }
+        TimeStamp timeStamp;
+        entry->GetTimestamp(timeStamp);
+        timeStamp = timeStamp - static_cast<TimeStamp>(outOffset + timefixOffset);
+        entry->SetTimestamp(timeStamp);
+    }
+}
+}
 std::vector<StateSwitchTable> MultiVerSyncStateMachine::stateSwitchTables_;
 MultiVerSyncStateMachine::MultiVerSyncStateMachine()
     : context_(nullptr),
@@ -131,7 +145,7 @@ int MultiVerSyncStateMachine::ReceiveMessageCallback(Message *inMsg)
     }
     if (inMsg->IsFeedbackError()) {
         LOGE("[MultiVerSyncStateMachine] Feedback Message with errorNo=%u.", inMsg->GetErrorNo());
-        return -(inMsg->GetErrorNo());
+        return -static_cast<int>(inMsg->GetErrorNo());
     }
     if (inMsg->GetMessageId() == TIME_SYNC_MESSAGE) {
         return TimeSyncPacketRecvCallback(context_, inMsg);
@@ -453,13 +467,15 @@ int MultiVerSyncStateMachine::OneCommitSyncFinish()
             return errCode;
         }
         TimeStamp currentLocalTime = context_->GetCurrentLocalTime();
-        commit.timestamp -= outOffset;
+        commit.timestamp -= static_cast<TimeStamp>(outOffset);
 
         // Due to time sync error, commit timestamp may bigger than currentLocalTime, we need to fix the timestamp
-        TimeOffset timefixOffset = (commit.timestamp < currentLocalTime) ? 0 : (commit.timestamp - currentLocalTime);
+        TimeOffset timefixOffset = (commit.timestamp < currentLocalTime) ? 0 : (commit.timestamp -
+            static_cast<TimeStamp>(currentLocalTime));
+        ChangeEntriesTimeStamp(entries, outOffset, timefixOffset);
         LOGD("MultiVerSyncStateMachine::OneCommitSyncFinish src=%s, timefixOffset = %lld",
             STR_MASK(context_->GetDeviceId()), timefixOffset);
-        commit.timestamp -= timefixOffset;
+        commit.timestamp -= static_cast<TimeStamp>(timefixOffset);
         for (MultiVerKvEntry *entry : entries) {
             TimeStamp timeStamp;
             entry->GetTimestamp(timeStamp);

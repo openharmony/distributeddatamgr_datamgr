@@ -86,11 +86,20 @@ public:
 protected:
     virtual IKvDBSyncInterface *GetSyncInterface() = 0;
 
+    void SetSyncModuleActive();
+
+    bool GetSyncModuleActive();
+
+    void ReSetSyncModuleActive();
     // Start syncer
-    void StartSyncer();
+    void StartSyncer(bool isCheckSyncActive = false, bool isNeedActive = true);
 
     // Stop syncer
     void StopSyncer();
+
+    void UserChangeHandle();
+
+    void ChangeUserListerner();
 
     // Get the dataItem's append length, the append length = after-serialized-len - original-dataItem-len
     uint32_t GetAppendedLen() const;
@@ -104,8 +113,13 @@ private:
 
     SyncerProxy syncer_;
     std::atomic<bool> started_;
+    std::atomic<bool> isSyncModuleActiveCheck_;
+    std::atomic<bool> isSyncNeedActive_;
     mutable std::shared_mutex notifyChainLock_;
     NotificationChain *notifyChain_;
+
+    mutable std::mutex syncerOperateLock_;
+    NotificationChain::Listener *userChangeListerner_;
 
     static const EventType REMOTE_PUSH_FINISHED;
 };

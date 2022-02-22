@@ -72,9 +72,6 @@ public:
     // Set the maximum of queue cache memory size
     void SetMaxQueueCacheSize(int value);
 
-    // Get local deviceId, is hashed
-    int GetLocalIdentity(std::string &outTarget) const override;
-
     std::string GetLabel() const override;
 
     bool GetSyncRetry() const;
@@ -82,6 +79,10 @@ public:
 
     // Set an equal identifier for this database, After this called, send msg to the target will use this identifier
     int SetEqualIdentifier(const std::string &identifier, const std::vector<std::string> &targets) override;
+
+    void SetEqualIdentifier() override;
+
+    void SetEqualIdentifierMap(const std::string &identifier, const std::vector<std::string> &targets) override;
 
     void OfflineHandleByDevice(const std::string &deviceId);
 
@@ -209,6 +210,9 @@ private:
     static constexpr int DEFAULT_CACHE_SIZE = 160 * 1024 * 1024; // Initial the default cache size of queue as 160MB
     static std::mutex queueLock_;
     std::atomic<bool> isActive_;
+
+    // key: device value: equalIdentifier
+    std::map<std::string, std::string> equalIdentifierMap_;
 };
 } // namespace DistributedDB
 

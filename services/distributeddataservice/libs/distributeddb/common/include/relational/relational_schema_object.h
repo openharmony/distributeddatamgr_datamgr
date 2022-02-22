@@ -84,7 +84,7 @@ public:
     int CompareWithTable(const TableInfo &inTableInfo) const;
     std::map<FieldPath, SchemaAttribute> GetSchemaDefine() const;
     std::string GetFieldName(uint32_t cid) const;  // cid begin with 0
-    const std::vector<std::string> &GetFieldNames() const;  // Sort by cid
+    const std::vector<FieldInfo> &GetFieldInfos() const;  // Sort by cid
     bool IsValid() const;
 
 private:
@@ -105,7 +105,7 @@ private:
     std::map<std::string, CompositeFields> indexDefines_;
     std::vector<std::string> triggers_;
     JsonObject ToJsonObject() const;
-    mutable std::vector<std::string> fieldNames_;
+    mutable std::vector<FieldInfo> fieldInfos_;
 };
 
 class RelationalSyncOpinion {

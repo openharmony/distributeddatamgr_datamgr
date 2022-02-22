@@ -60,6 +60,7 @@ SyncEngine::~SyncEngine()
 {
     LOGD("[SyncEngine] ~SyncEngine!");
     ClearInnerResource();
+    equalIdentifierMap_.clear();
     subManager_ = nullptr;
     LOGD("[SyncEngine] ~SyncEngine ok!");
 }
@@ -112,7 +113,7 @@ int SyncEngine::Initialize(ISyncInterface *syncInterface, std::shared_ptr<Metada
 
 int SyncEngine::Close()
 {
-    LOGI("[SyncEngine] SyncEngine close enter!");
+    LOGI("[SyncEngine] SyncEngine[%s] close enter!", label_.c_str());
     isActive_ = false;
     UnRegCommunicatorsCallback();
     StopAutoSubscribeTimer();
@@ -143,7 +144,9 @@ int SyncEngine::Close()
     }
     // close db, rekey or import scene, need clear all remote query info
     // local query info will destroy with syncEngine destruct
-    subManager_->ClearAllRemoteQuery();
+    if (subManager_ != nullptr) {
+        subManager_->ClearAllRemoteQuery();
+    }
     ClearInnerResource();
     LOGI("[SyncEngine] SyncEngine closed!");
     return E_OK;
@@ -241,9 +244,17 @@ int SyncEngine::InitComunicator(const ISyncInterface *syncInterface)
         LOGE("[SyncEngine] Get ICommunicatorAggregator error when init the sync engine err = %d", errCode);
         return errCode;
     }
-
     std::vector<uint8_t> label = syncInterface->GetIdentifier();
-    communicator_ = communicatorAggregator->AllocCommunicator(label, errCode);
+    bool isSyncDualTupleMode = syncInterface->GetDbProperties().GetBoolProp(KvDBProperties::SYNC_DUAL_TUPLE_MODE,
+        false);
+    if (isSyncDualTupleMode) {
+        std::vector<uint8_t> dualTuplelabel = syncInterface->GetDualTupleIdentifier();
+        LOGI("[SyncEngine] dual tuple mode, original identifier=%0.6s, target identifier=%0.6s", VEC_TO_STR(label),
+            VEC_TO_STR(dualTuplelabel));
+        communicator_ = communicatorAggregator->AllocCommunicator(dualTuplelabel, errCode);
+    } else {
+        communicator_ = communicatorAggregator->AllocCommunicator(label, errCode);
+    }
     if (communicator_ == nullptr) {
         LOGE("[SyncEngine] AllocCommunicator error when init the sync engine! err = %d", errCode);
         return errCode;
@@ -650,22 +661,6 @@ void SyncEngine::SetMaxQueueCacheSize(int value)
     maxQueueCacheSize_ = value;
 }
 
-int SyncEngine::GetLocalIdentity(std::string &outTarget) const
-{
-    if (communicatorProxy_ == nullptr) {
-        LOGE("[SyncEngine]  communicatorProxy_ is nullptr, return!");
-        return -E_NOT_INIT;
-    }
-    std::string deviceId;
-    int errCode = communicatorProxy_->GetLocalIdentity(deviceId);
-    if (errCode != E_OK) {
-        LOGE("[SyncEngine]  communicatorProxy_ GetLocalIdentity fail errCode:%d", errCode);
-        return errCode;
-    }
-    outTarget = DBCommon::TransferHashString(deviceId);
-    return E_OK;
-}
-
 uint8_t SyncEngine::GetPermissionCheckFlag(bool isAutoSync, int syncMode)
 {
     uint8_t flag = 0;
@@ -717,6 +712,7 @@ void SyncEngine::SetSyncRetry(bool isRetry)
         return;
     }
     isSyncRetry_ = isRetry;
+    LOGI("[SyncEngine] SetSyncRetry:%d ok", isRetry);
     std::lock_guard<std::mutex> lock(contextMapLock_);
     for (auto &iter : syncTaskContextMap_) {
         ISyncTaskContext *context = iter.second;
@@ -728,6 +724,10 @@ void SyncEngine::SetSyncRetry(bool isRetry)
 
 int SyncEngine::SetEqualIdentifier(const std::string &identifier, const std::vector<std::string> &targets)
 {
+    if (!isActive_) {
+        LOGI("[SyncEngine] engine is closed, just put into map");
+        return E_OK;
+    }
     ICommunicator *communicator = nullptr;
     {
         std::lock_guard<std::mutex> lock(equalCommunicatorsLock_);
@@ -742,11 +742,38 @@ int SyncEngine::SetEqualIdentifier(const std::string &identifier, const std::vec
             equalCommunicators_[identifier] = communicator;
         }
     }
-    LOGI("[SyncEngine] set equal identifier %s, original %s",
-        DBCommon::TransferStringToHex(identifier).c_str(), label_.c_str());
+    std::string targetDevices;
+    for (const auto &dev : targets) {
+        targetDevices += DBCommon::StringMasking(dev) + ",";
+    }
+    LOGI("[SyncEngine] set equal identifier=%s, original=%s, targetDevices=%s",
+        DBCommon::TransferStringToHex(identifier).c_str(), label_.c_str(),
+        targetDevices.substr(0, targetDevices.size() - 1).c_str());
     communicatorProxy_->SetEqualCommunicator(communicator, targets);
     communicator->Activate();
     return E_OK;
+}
+
+void SyncEngine::SetEqualIdentifier()
+{
+    std::map<std::string, std::vector<std::string>> equalIdentifier; // key: equalIdentifier value: devices
+    for (auto &item : equalIdentifierMap_) {
+        if (equalIdentifier.find(item.second) == equalIdentifier.end()) {
+            equalIdentifier[item.second] = {item.first};
+        } else {
+            equalIdentifier[item.second].push_back(item.first);
+        }
+    }
+    for (auto &item : equalIdentifier) {
+        SetEqualIdentifier(item.first, item.second);
+    }
+}
+
+void SyncEngine::SetEqualIdentifierMap(const std::string &identifier, const std::vector<std::string> &targets)
+{
+    for (auto &device : targets) {
+        equalIdentifierMap_[device] = identifier;
+    }
 }
 
 void SyncEngine::OfflineHandleByDevice(const std::string &deviceId)
@@ -848,7 +875,6 @@ void SyncEngine::UnRegCommunicatorsCallback()
         communicator_->RegOnConnectCallback(nullptr, nullptr);
         communicator_->RegOnSendableCallback(nullptr, nullptr);
     }
-
     std::lock_guard<std::mutex> lock(equalCommunicatorsLock_);
     for (const auto &iter : equalCommunicators_) {
         iter.second->RegOnMessageCallback(nullptr, nullptr);
@@ -930,8 +956,8 @@ int SyncEngine::InitTimeChangedListener()
             TimeStamp currentSysTime = TimeHelper::GetSysCurrentTime();
             TimeStamp maxItemTime = 0;
             this->syncInterface_->GetMaxTimeStamp(maxItemTime);
-            if ((currentSysTime + orgOffset) <= maxItemTime) {
-                orgOffset = maxItemTime - currentSysTime + TimeHelper::MS_TO_100_NS; // 1ms
+            if ((currentSysTime + static_cast<TimeStamp>(orgOffset)) <= maxItemTime) {
+                orgOffset = static_cast<TimeOffset>(maxItemTime - currentSysTime + TimeHelper::MS_TO_100_NS); // 1ms
             }
             this->metadata_->SaveLocalTimeOffset(orgOffset);
         }, errCode);

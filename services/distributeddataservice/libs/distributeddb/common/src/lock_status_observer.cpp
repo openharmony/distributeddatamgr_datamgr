@@ -95,7 +95,6 @@ NotificationChain::Listener *LockStatusObserver::RegisterLockStatusChangedLister
         errCode = -E_INVALID_ARGS;
         return nullptr;
     }
-
     return lockStatusChangedNotifier_->RegisterListener(LOCK_STATUS_CHANGE_EVENT, action, nullptr, errCode);
 }
 
