@@ -424,7 +424,6 @@ void TableModifyTest(const std::string &modifySql, DBStatus expect)
     RelationalTestUtils::CreateDeviceTable(db, "sync_data", "DEVICE_B");
     RelationalTestUtils::CreateDeviceTable(db, "sync_data", "DEVICE_C");
 
-
     /**
      * @tc.steps:step2. Open store
      * @tc.expected: step2. return OK

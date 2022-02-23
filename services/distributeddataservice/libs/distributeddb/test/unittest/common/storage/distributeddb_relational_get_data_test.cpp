@@ -1324,7 +1324,6 @@ HWTEST_F(DistributedDBRelationalGetDataTest, PutSyncDataConflictDataTest001, Tes
     std::vector<SingleVerKvEntry *> entries2;
     store->GetSyncData(query2, {}, sizeInfo, token, entries2);
 
-    // query = QueryObject(Query::Select(g_tableName));
     errCode = store->PutSyncDataWithQuery(query, entries2, deviceID_B);
     EXPECT_EQ(errCode, E_OK);
     GenericSingleVerKvEntry::Release(entries2);
