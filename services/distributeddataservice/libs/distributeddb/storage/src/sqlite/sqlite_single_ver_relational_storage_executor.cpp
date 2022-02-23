@@ -175,7 +175,7 @@ int UpgradeFields(sqlite3 *db, const std::vector<std::string> &tables, std::vect
     for (const auto &table : tables) {
         for (const auto &field : fields) {
             std::string alterSql = "ALTER TABLE " + table + " ADD " + field.GetFieldName() + " " + field.GetDataType();
-            alterSql += field.IsNotNull() ? "NOT NULL" : "";
+            alterSql += field.IsNotNull() ? " NOT NULL" : "";
             alterSql += field.HasDefaultValue() ? " DEFAULT " + field.GetDefaultValue() : "";
             alterSql += ";";
             errCode = SQLiteUtils::ExecuteRawSQL(db, alterSql);
