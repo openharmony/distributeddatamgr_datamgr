@@ -1352,7 +1352,7 @@ int SQLiteSingleVerNaturalStore::Rekey(const CipherPassword &passwd)
         return errCode;
     }
     LOGI("Stop the syncer for rekey");
-    StopSyncer();
+    StopSyncer(true);
     std::this_thread::sleep_for(std::chrono::milliseconds(5));  // wait for 5 ms
     errCode = storageEngine_->TryToDisable(true, OperatePerm::REKEY_MONOPOLIZE_PERM);
     if (errCode != E_OK) {
@@ -1439,7 +1439,7 @@ int SQLiteSingleVerNaturalStore::Import(const std::string &filePath, const Ciphe
     if (errCode != E_OK) {
         return errCode;
     }
-    StopSyncer();
+    StopSyncer(true);
     std::this_thread::sleep_for(std::chrono::milliseconds(5)); // wait for 5 ms
     std::unique_ptr<SingleVerDatabaseOper> operation;
 

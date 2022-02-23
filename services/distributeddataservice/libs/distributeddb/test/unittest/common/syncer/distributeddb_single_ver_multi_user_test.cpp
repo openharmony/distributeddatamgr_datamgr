@@ -561,21 +561,28 @@ HWTEST_F(DistributedDBSingleVerMultiUserTest, MultiUser005, TestSize.Level0)
 HWTEST_F(DistributedDBSingleVerMultiUserTest, MultiUser006, TestSize.Level0)
 {
     /**
-     * @tc.steps: step1. openstore1 and openstore2 in normal sync mode
-     * @tc.expected: step1. only user2 sync mode is active
+     * @tc.steps: step1. set SyncActivationCheckCallback and only userId1 can active
+     */
+    g_mgr1.SetSyncActivationCheckCallback(g_syncActivationCheckCallback2);
+    /**
+     * @tc.steps: step2. openstore1 in dual tuple sync mode and openstore2 in normal sync mode
+     * @tc.expected: step2. only user2 sync mode is active
      */
 
     OpenStore1(true);
     OpenStore2(false);
     /**
-     * @tc.steps: step2. call NotifyUserChanged and close db concurrently
-     * @tc.expected: step2. return OK
+     * @tc.steps: step3. set SyncActivationCheckCallback and only userId2 can active
+     */
+    g_mgr1.SetSyncActivationCheckCallback(g_syncActivationCheckCallback1);
+    /**
+     * @tc.steps: step4. call NotifyUserChanged and close db concurrently
+     * @tc.expected: step4. return OK
      */
     thread subThread([&]() {
         EXPECT_TRUE(KvStoreDelegateManager::NotifyUserChanged() == OK);
     });
     subThread.detach();
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
     ASSERT_EQ(g_mgr1.CloseKvStore(g_kvDelegatePtr1), OK);
     g_kvDelegatePtr1 = nullptr;
     CloseStore();
@@ -591,12 +598,20 @@ HWTEST_F(DistributedDBSingleVerMultiUserTest, MultiUser006, TestSize.Level0)
 HWTEST_F(DistributedDBSingleVerMultiUserTest, MultiUser007, TestSize.Level0)
 {
     /**
-     * @tc.steps: step1. openstore1 and openstore2 in normal sync mode
-     * @tc.expected: step1. only user2 sync mode is active
+     * @tc.steps: step1. set SyncActivationCheckCallback and only userId1 can active
+     */
+    g_mgr1.SetSyncActivationCheckCallback(g_syncActivationCheckCallback2);
+    /**
+     * @tc.steps: step2. openstore1 in dual tuple sync mode and openstore2 in normal sync mode
+     * @tc.expected: step2. only user2 sync mode is active
      */
 
     OpenStore1(true);
     OpenStore2(false);
+    /**
+     * @tc.steps: step3. set SyncActivationCheckCallback and only userId2 can active
+     */
+    g_mgr1.SetSyncActivationCheckCallback(g_syncActivationCheckCallback1);
     /**
      * @tc.steps: step2. call NotifyUserChanged and close db concurrently
      * @tc.expected: step2. return OK
