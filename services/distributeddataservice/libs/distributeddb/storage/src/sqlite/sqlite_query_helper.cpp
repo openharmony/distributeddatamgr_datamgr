@@ -902,7 +902,7 @@ int SqliteQueryHelper::GetSubscribeSql(const std::string &subscribeId, TriggerMo
     return errCode;
 }
 
-int SqliteQueryHelper::GetRelationalMissQuerySql(std::string &sql, const std::vector<std::string> &fieldNames)
+int SqliteQueryHelper::GetRelationalMissQuerySql(const std::vector<std::string> &fieldNames, std::string &sql)
 {
     if (!isValid_) {
         return -E_INVALID_QUERY_FORMAT;
@@ -955,7 +955,7 @@ int SqliteQueryHelper::GetRelationalMissQueryStatement(sqlite3 *dbHandle, uint64
     const std::vector<std::string> &fieldNames, sqlite3_stmt *&statement)
 {
     std::string sql;
-    int errCode = GetRelationalMissQuerySql(sql, fieldNames);
+    int errCode = GetRelationalMissQuerySql(fieldNames, sql);
     if (errCode != E_OK) {
         LOGE("[Query] Get SQL fail!");
         return -E_INVALID_QUERY_FORMAT;

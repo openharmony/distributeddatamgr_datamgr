@@ -457,6 +457,7 @@ static int GetLogData(sqlite3_stmt *logStatement, LogInfo &logInfo)
     logInfo.wTimeStamp = static_cast<uint64_t>(sqlite3_column_int64(logStatement, 4));  // 4 means w_timestamp index
     logInfo.flag = static_cast<uint64_t>(sqlite3_column_int64(logStatement, 5));  // 5 means flag index
     logInfo.flag &= (~DataItem::LOCAL_FLAG);
+    logInfo.flag &= (~DataItem::UPDATE_FLAG);
     return SQLiteUtils::GetColumnBlobValue(logStatement, 6, logInfo.hashKey);  // 6 means hashKey index
 }
 
@@ -986,26 +987,22 @@ int SQLiteSingleVerRelationalStorageExecutor::GetMissQueryData(sqlite3_stmt *ful
         return errCode;
     }
     item.value = {};
-    item.flag &= (~DataItem::CHECK_MISS_QUERY_FLAG);
     item.flag |= DataItem::REMOTE_DEVICE_DATA_MISS_QUERY;
     return errCode;
 }
 
 namespace {
-uint64_t GetTimeStamp(sqlite3_stmt *statement)
-{
-    return statement == nullptr ? INT64_MAX :
-        static_cast<uint64_t>(sqlite3_column_int64(statement, 3));  // 3 means timestamp index
-}
-
 int StepNext(bool isMemDB, sqlite3_stmt *&stmt, TimeStamp &timestamp)
 {
+    if (stmt == nullptr) {
+        return -E_INVALID_ARGS;
+    }
     int errCode = SQLiteUtils::StepWithRetry(stmt, isMemDB);
     if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_DONE)) {
         timestamp = INT64_MAX;
         errCode = E_OK;
     } else if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_ROW)) {
-        timestamp = GetTimeStamp(stmt);
+        timestamp = static_cast<uint64_t>(sqlite3_column_int64(stmt, 3));  // 3 means timestamp index
         errCode = E_OK;
     }
     return errCode;
@@ -1085,8 +1082,8 @@ int SQLiteSingleVerRelationalStorageExecutor::GetSyncDataByQuery(std::vector<Dat
             }
         }
 
-        isFirstTime = (queryTime == INT64_MAX && missQueryTime == INT64_MAX);
-        if (isFirstTime) {
+        isFirstTime = false;
+        if (queryTime == INT64_MAX && missQueryTime == INT64_MAX) {
             errCode = -E_FINISHED;
             break;
         }
