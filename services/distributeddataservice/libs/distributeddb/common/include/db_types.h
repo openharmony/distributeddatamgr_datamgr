@@ -53,6 +53,7 @@ struct DataItem {
     // Only use for query sync and subscribe. ATTENTION!!! this flag should not write into mainDB.
     // Mark the changed row data does not match with query sync(or subscribe) condition.
     static constexpr uint64_t REMOTE_DEVICE_DATA_MISS_QUERY = 0x10;
+    static constexpr uint64_t CHECK_MISS_QUERY_FLAG = 0X20;
 };
 
 struct PragmaPublishInfo {

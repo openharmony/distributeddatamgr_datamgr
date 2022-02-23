@@ -979,42 +979,55 @@ int SQLiteSingleVerRelationalStorageExecutor::GetDataItemForSync(sqlite3_stmt *s
     return errCode;
 }
 
-int SQLiteSingleVerRelationalStorageExecutor::GetMissQueryData(std::vector<DataItem> &dataItems, size_t &dataTotalSize,
-    const Key &cursorHashKey, sqlite3_stmt *fullStmt, size_t appendLength, const DataSizeSpecInfo &dataSizeInfo)
+int SQLiteSingleVerRelationalStorageExecutor::GetMissQueryData(sqlite3_stmt *fullStmt, DataItem &item)
 {
-    int errCode = E_OK;
-    while (true) {
-        DataItem item;
-        errCode = SQLiteUtils::StepWithRetry(fullStmt, isMemDb_);
-        if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_ROW)) {
-            errCode = GetDataItemForSync(fullStmt, item, false);
-            if (errCode != E_OK) {
-                break;
-            }
-        } else if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_DONE)) {
-            errCode = -E_FINISHED;
-            break;
-        } else {
-            LOGE("Get full data failed:%d.", errCode);
-            break;
-        }
-        if (item.hashKey == cursorHashKey) {
-            break;
-        }
-        item.value = {};
-        item.flag |= DataItem::REMOTE_DEVICE_DATA_MISS_QUERY;
+    int errCode = GetDataItemForSync(fullStmt, item, false);
+    if (errCode != E_OK) {
+        return errCode;
+    }
+    item.value = {};
+    item.flag &= (~DataItem::CHECK_MISS_QUERY_FLAG);
+    item.flag |= DataItem::REMOTE_DEVICE_DATA_MISS_QUERY;
+    return errCode;
+}
 
-        // If dataTotalSize value is bigger than blockSize value , reserve the surplus data item.
-        dataTotalSize += GetDataItemSerialSize(item, appendLength);
-        if ((dataTotalSize > dataSizeInfo.blockSize && !dataItems.empty()) ||
-            dataItems.size() >= dataSizeInfo.packetSize) {
-            errCode = -E_UNFINISHED;
-            break;
-        } else {
-            dataItems.push_back(std::move(item));
-        }
+namespace {
+uint64_t GetTimeStamp(sqlite3_stmt *statement)
+{
+    return statement == nullptr ? INT64_MAX :
+        static_cast<uint64_t>(sqlite3_column_int64(statement, 3));  // 3 means timestamp index
+}
+
+int StepNext(bool isMemDB, sqlite3_stmt *&stmt, TimeStamp &timestamp)
+{
+    int errCode = SQLiteUtils::StepWithRetry(stmt, isMemDB);
+    if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_DONE)) {
+        timestamp = INT64_MAX;
+        errCode = E_OK;
+    } else if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_ROW)) {
+        timestamp = GetTimeStamp(stmt);
+        errCode = E_OK;
     }
     return errCode;
+}
+
+int AppendData(const DataSizeSpecInfo &sizeInfo, size_t appendLength, size_t &overLongSize, size_t &dataTotalSize,
+    std::vector<DataItem> &dataItems, DataItem &&item)
+{
+    // If one record is over 4M, ignore it.
+    if (item.value.size() > DBConstant::MAX_VALUE_SIZE) {
+        overLongSize++;
+    } else {
+        // If dataTotalSize value is bigger than blockSize value , reserve the surplus data item.
+        dataTotalSize += GetDataItemSerialSize(item, appendLength);
+        if ((dataTotalSize > sizeInfo.blockSize && !dataItems.empty()) || dataItems.size() >= sizeInfo.packetSize) {
+            return -E_UNFINISHED;
+        } else {
+            dataItems.push_back(item);
+        }
+    }
+    return E_OK;
+}
 }
 
 int SQLiteSingleVerRelationalStorageExecutor::GetSyncDataByQuery(std::vector<DataItem> &dataItems, size_t appendLength,
@@ -1031,45 +1044,51 @@ int SQLiteSingleVerRelationalStorageExecutor::GetSyncDataByQuery(std::vector<Dat
         return errCode;
     }
 
+    TimeStamp queryTime = 0;
+    TimeStamp missQueryTime = (fullStmt == nullptr ? INT64_MAX : 0);
+
+    bool isFirstTime = true;
     size_t dataTotalSize = 0;
     size_t overLongSize = 0;
     do {
         DataItem item;
-        errCode = SQLiteUtils::StepWithRetry(queryStmt, isMemDb_);
-        if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_ROW)) {
-            errCode = GetDataItemForSync(queryStmt, item, isGettingDeletedData);
-            if (errCode != E_OK) {
+        if (queryTime <= missQueryTime) {
+            if (!isFirstTime) { // For the first time, never step before, can get nothing
+                errCode = GetDataItemForSync(queryStmt, item, isGettingDeletedData);
+                if (errCode != E_OK) {
+                    break;
+                }
+            }
+            if (queryTime == missQueryTime) {
+                errCode = StepNext(isMemDb_, fullStmt, missQueryTime);
+                if (errCode != E_OK) {
+                    break;
+                }
+            }
+            errCode = StepNext(isMemDb_, queryStmt, queryTime);
+        } else {  // queryTime > missQuery
+            errCode = GetMissQueryData(fullStmt, item);
+            if (errCode != E_OK){
                 break;
             }
-        } else if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_DONE)) {
-            LOGD("Get sync data finished, size of packet:%zu, number of item:%zu", dataTotalSize, dataItems.size());
-            errCode = -E_FINISHED;
-        } else {
-            LOGE("Get sync data error:%d", errCode);
-            break;
+            errCode = StepNext(isMemDb_, fullStmt, missQueryTime);
         }
 
-        // Get REMOTE_DEVICE_DATA_MISS_QUERY data.
-        if (fullStmt != nullptr) {
-            errCode = GetMissQueryData(dataItems, dataTotalSize, item.hashKey, fullStmt, appendLength, sizeInfo);
-        }
         if (errCode != E_OK) {
             break;
         }
 
-        // If one record is over 4M, ignore it.
-        if (item.value.size() > DBConstant::MAX_VALUE_SIZE) {
-            overLongSize++;
-            continue;
+        if (!isFirstTime) {
+            errCode = AppendData(sizeInfo, appendLength, overLongSize, dataTotalSize, dataItems, std::move(item));
+            if (errCode != E_OK) {
+                break;
+            }
         }
 
-        // If dataTotalSize value is bigger than blockSize value , reserve the surplus data item.
-        dataTotalSize += GetDataItemSerialSize(item, appendLength);
-        if ((dataTotalSize > sizeInfo.blockSize && !dataItems.empty()) || dataItems.size() >= sizeInfo.packetSize) {
-            errCode = -E_UNFINISHED;
+        isFirstTime = (queryTime == INT64_MAX && missQueryTime == INT64_MAX);
+        if (isFirstTime) {
+            errCode = -E_FINISHED;
             break;
-        } else {
-            dataItems.push_back(std::move(item));
         }
     } while (true);
     if (overLongSize != 0) {

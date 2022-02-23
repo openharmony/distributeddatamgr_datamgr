@@ -190,6 +190,7 @@ int PutBatchData(uint32_t totalCount, uint32_t valueSize)
     if (errCode != SQLITE_OK) {
         goto ERROR;
     }
+    EXPECT_EQ(sqlite3_exec(db, "BEGIN IMMEDIATE TRANSACTION", nullptr, nullptr, nullptr), SQLITE_OK);
     errCode = SQLiteUtils::GetStatement(db, sql, stmt);
     if (errCode != E_OK) {
         goto ERROR;
@@ -208,6 +209,11 @@ int PutBatchData(uint32_t totalCount, uint32_t valueSize)
     }
 
 ERROR:
+    if (errCode == E_OK) {
+        EXPECT_EQ(sqlite3_exec(db, "COMMIT TRANSACTION", nullptr, nullptr, nullptr), SQLITE_OK);
+    } else {
+        EXPECT_EQ(sqlite3_exec(db, "ROLLBACK TRANSACTION", nullptr, nullptr, nullptr), SQLITE_OK);
+    }
     SQLiteUtils::ResetStatement(stmt, true, errCode);
     errCode = SQLiteUtils::MapSQLiteErrno(errCode);
     sqlite3_close(db);
@@ -564,19 +570,14 @@ HWTEST_F(DistributedDBRelationalGetDataTest, GetQuerySyncData2, TestSize.Level1)
     std::vector<SingleVerKvEntry *> entries;
     EXPECT_EQ(store->GetSyncData(queryObj, SyncTimeRange {}, DataSizeSpecInfo {}, token, entries), E_OK);
     EXPECT_EQ(token, nullptr);
-    EXPECT_EQ(entries.size(), RECORD_COUNT);  // expect 98 records. in addition to that, there are 2 miss query data.
     size_t expectCount = 98;  // expect 98 records.
-    size_t count = 0;
+    EXPECT_EQ(entries.size(), expectCount);
     for (auto iter = entries.begin(); iter != entries.end(); ++iter) {
-        if (((*iter)->GetFlag() & DataItem::REMOTE_DEVICE_DATA_MISS_QUERY) == 0) {
-            count++;
-        }
         auto nextOne = std::next(iter, 1);
         if (nextOne != entries.end()) {
             EXPECT_LT((*iter)->GetTimestamp(), (*nextOne)->GetTimestamp());
         }
     }
-    EXPECT_EQ(count, expectCount);
     SingleVerKvEntry::Release(entries);
 
     /**
@@ -588,14 +589,10 @@ HWTEST_F(DistributedDBRelationalGetDataTest, GetQuerySyncData2, TestSize.Level1)
     queryObj.SetSchema(store->GetSchemaInfo());
 
     EXPECT_EQ(store->GetSyncData(queryObj, SyncTimeRange {}, DataSizeSpecInfo {}, token, entries), E_OK);
-    EXPECT_EQ(entries.size(), RECORD_COUNT);  // expect 2 records. in addition to that, there are 98 miss query data.
     EXPECT_EQ(token, nullptr);
     expectCount = 2;  // expect 2 records.
-    count = 0;
+    EXPECT_EQ(entries.size(), expectCount);
     for (auto iter = entries.begin(); iter != entries.end(); ++iter) {
-        if (((*iter)->GetFlag() & DataItem::REMOTE_DEVICE_DATA_MISS_QUERY) == 0) {
-            count++;
-        }
         auto nextOne = std::next(iter, 1);
         if (nextOne != entries.end()) {
             EXPECT_LT((*iter)->GetTimestamp(), (*nextOne)->GetTimestamp());
@@ -884,7 +881,6 @@ HWTEST_F(DistributedDBRelationalGetDataTest, MissQuery1, TestSize.Level1)
         "INSERT INTO " + tableName + " VALUES(NULL, 4);",
         "INSERT INTO " + tableName + " VALUES(NULL, 5);",
     };
-    const size_t RECORD_COUNT = sqls.size();
     for (const auto &sql : sqls) {
         ASSERT_EQ(sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr), SQLITE_OK);
     }
@@ -896,10 +892,12 @@ HWTEST_F(DistributedDBRelationalGetDataTest, MissQuery1, TestSize.Level1)
     auto store = GetRelationalStore();
     ASSERT_NE(store, nullptr);
     ContinueToken token = nullptr;
+    SyncTimeRange timeRange;
     QueryObject query(Query::Select(tableName).EqualTo("value", 2).Or().EqualTo("value", 3).Or().EqualTo("value", 4));
     std::vector<SingleVerKvEntry *> entries;
-    EXPECT_EQ(store->GetSyncData(query, SyncTimeRange {}, DataSizeSpecInfo {}, token, entries), E_OK);
-    EXPECT_EQ(entries.size(), RECORD_COUNT);
+    EXPECT_EQ(store->GetSyncData(query, timeRange, DataSizeSpecInfo {}, token, entries), E_OK);
+    timeRange.lastQueryTime = (*(entries.rbegin()))->GetTimestamp();
+    EXPECT_EQ(entries.size(), 3U);  // 3 for test
 
     /**
      * @tc.steps: step4. Put data into "data" table from deviceA for 10 times.
@@ -944,8 +942,8 @@ HWTEST_F(DistributedDBRelationalGetDataTest, MissQuery1, TestSize.Level1)
      * @tc.expected: Succeed and the count is right.
      */
     query = QueryObject(Query::Select(tableName).EqualTo("value", 2).Or().EqualTo("value", 3).Or().EqualTo("value", 4));
-    EXPECT_EQ(store->GetSyncData(query, SyncTimeRange {}, DataSizeSpecInfo {}, token, entries), E_OK);
-    EXPECT_EQ(entries.size(), RECORD_COUNT);
+    EXPECT_EQ(store->GetSyncData(query, timeRange, DataSizeSpecInfo {}, token, entries), E_OK);
+    EXPECT_EQ(entries.size(), 3U);  // 3 for test, 1 query data and 2 miss query data.
 
     /**
      * @tc.steps: step8. Put data into "data" table from deviceA for 10 times.

@@ -1361,7 +1361,7 @@ std::string GetUpdateTrigger(const TableInfo table)
     updateTrigger += "ON " + table.GetTableName() + "\n";
     updateTrigger += "BEGIN\n";
     updateTrigger += "\t UPDATE " + DBConstant::RELATIONAL_PREFIX + table.GetTableName() + "_log";
-    updateTrigger += " SET timestamp=get_sys_time(0), device='" + table.GetDevId() + "'";
+    updateTrigger += " SET timestamp=get_sys_time(0), device='" + table.GetDevId() + "', flag=0x22";
     updateTrigger += " where hash_key=calc_hash(old." + table.GetPrimaryKey() + ") and flag&0x02=0x02;\n";
     updateTrigger += "END;";
     return updateTrigger;
