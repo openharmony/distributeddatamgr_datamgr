@@ -286,7 +286,7 @@ DistributedDB::Query RdbSyncer::MakeQuery(const RdbPredicates &predicates)
     return query;
 }
 
-int32_t RdbSyncer::DoSync(const SyncOption &option, RdbPredicates &predicates, SyncResult &result)
+int32_t RdbSyncer::DoSync(const SyncOption &option, const RdbPredicates &predicates, SyncResult &result)
 {
     ZLOGI("enter");
     auto* delegate = GetDelegate();
@@ -295,10 +295,12 @@ int32_t RdbSyncer::DoSync(const SyncOption &option, RdbPredicates &predicates, S
         return RDB_ERROR;
     }
 
+    std::vector<std::string> devices;
     if (predicates.devices_.empty()) {
-        predicates.devices_ = GetConnectDevices();
+        devices = NetworkIdToUUID(GetConnectDevices());
+    } else {
+        devices = NetworkIdToUUID(predicates.devices_);
     }
-    auto devices = NetworkIdToUUID(predicates.devices_);
 
     ZLOGI("delegate sync");
     return delegate->Sync(devices, static_cast<DistributedDB::SyncMode>(option.mode),
@@ -307,7 +309,7 @@ int32_t RdbSyncer::DoSync(const SyncOption &option, RdbPredicates &predicates, S
                           }, true);
 }
 
-int32_t RdbSyncer::DoAsync(const SyncOption &option, RdbPredicates &predicates, const SyncCallback& callback)
+int32_t RdbSyncer::DoAsync(const SyncOption &option, const RdbPredicates &predicates, const SyncCallback& callback)
 {
     auto* delegate = GetDelegate();
     if (delegate == nullptr) {
@@ -315,10 +317,12 @@ int32_t RdbSyncer::DoAsync(const SyncOption &option, RdbPredicates &predicates, 
         return RDB_ERROR;
     }
 
+    std::vector<std::string> devices;
     if (predicates.devices_.empty()) {
-        predicates.devices_ = GetConnectDevices();
+        devices = NetworkIdToUUID(GetConnectDevices());
+    } else {
+        devices = NetworkIdToUUID(predicates.devices_);
     }
-    auto devices = NetworkIdToUUID(predicates.devices_);
 
     ZLOGI("delegate sync");
     return delegate->Sync(devices, static_cast<DistributedDB::SyncMode>(option.mode),

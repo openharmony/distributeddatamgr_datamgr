@@ -45,9 +45,9 @@ public:
 
     int32_t SetDistributedTables(const std::vector<std::string>& tables);
     
-    int32_t DoSync(const SyncOption& option, RdbPredicates& predicates, SyncResult& result);
+    int32_t DoSync(const SyncOption& option, const RdbPredicates& predicates, SyncResult& result);
     
-    int32_t DoAsync(const SyncOption& option, RdbPredicates& predicates, const SyncCallback& callback);
+    int32_t DoAsync(const SyncOption& option, const RdbPredicates& predicates, const SyncCallback& callback);
 
 private:
     std::string GetUserId() const;
