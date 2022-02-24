@@ -93,12 +93,12 @@ void KvStoreDataService::Initialize()
 #ifndef UT_TEST
     KvStoreDelegateManager::SetProcessLabel(Bootstrap::GetInstance().GetProcessLabel(), "default");
 #endif
+    auto communicator = std::make_shared<AppDistributedKv::ProcessCommunicatorImpl>();
+    auto ret = KvStoreDelegateManager::SetProcessCommunicator(communicator);
+    ZLOGI("set communicator ret:%d.", static_cast<int>(ret));
     InitSecurityAdapter();
     KvStoreMetaManager::GetInstance().InitMetaParameter();
     std::thread th = std::thread([]() {
-        auto communicator = std::make_shared<AppDistributedKv::ProcessCommunicatorImpl>();
-        auto ret = KvStoreDelegateManager::SetProcessCommunicator(communicator);
-        ZLOGI("set communicator ret:%d.", static_cast<int>(ret));
         if (KvStoreMetaManager::GetInstance().CheckRootKeyExist() == Status::SUCCESS) {
             return;
         }

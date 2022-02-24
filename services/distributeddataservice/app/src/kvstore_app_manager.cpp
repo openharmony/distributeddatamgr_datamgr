@@ -32,7 +32,6 @@
 #include "kvstore_app_accessor.h"
 #include "kvstore_utils.h"
 #include "log_print.h"
-#include "process_communicator_impl.h"
 #include "permission_validator.h"
 #include "reporter.h"
 #include "types.h"
@@ -473,9 +472,6 @@ DistributedDB::KvStoreDelegateManager *KvStoreAppManager::GetDelegateManager(Pat
     DistributedDB::KvStoreConfig kvStoreConfig;
     kvStoreConfig.dataDir = directory;
     delegateManagers_[type]->SetKvStoreConfig(kvStoreConfig);
-    auto communicator = std::make_shared<AppDistributedKv::ProcessCommunicatorImpl>();
-    auto result = DistributedDB::KvStoreDelegateManager::SetProcessCommunicator(communicator);
-    ZLOGI("app set communicator result:%d.", static_cast<int>(result));
     return delegateManagers_[type];
 }
 

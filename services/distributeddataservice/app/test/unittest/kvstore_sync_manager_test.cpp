@@ -40,6 +40,8 @@ public:
     void CreateKvStorePair(bool isAutoSync, const std::string &storeId,
         std::shared_ptr<SingleKvStoreImpl> &kvStore, std::shared_ptr<UtKvStoreNbDelegateImpl> &kvNb,
         std::shared_ptr<SingleKvStoreImpl> &kvStore2, std::shared_ptr<UtKvStoreNbDelegateImpl> &kvNb2);
+protected:
+    uint64_t seqId_ = 0;
 };
 
 void KvStoreSyncManagerTest::SetUpTestCase(void)
@@ -97,7 +99,7 @@ HWTEST_F(KvStoreSyncManagerTest, KvStoreSyncManagerTest001, TestSize.Level1)
     Value value1("value1");
     Value value1Tmp;
     kvStore->Put(key1, value1);
-    kvStore->Sync(syncDevices, SyncMode::PUSH, syncDelayMs);
+    kvStore->Sync(syncDevices, SyncMode::PUSH, syncDelayMs, ++seqId_);
     usleep(CHECK_WAITING_TIME);
     kvStore2->Get(key1, value1Tmp);
     EXPECT_EQ(value1.ToString(), value1Tmp.ToString());
@@ -106,13 +108,13 @@ HWTEST_F(KvStoreSyncManagerTest, KvStoreSyncManagerTest001, TestSize.Level1)
     Value value2("value2");
     Value value2Tmp;
     kvStore->Put(key2, value2);
-    kvStore->Sync(syncDevices, SyncMode::PUSH, syncDelayMs);
+    kvStore->Sync(syncDevices, SyncMode::PUSH, syncDelayMs, ++seqId_);
     usleep(CHECK_WAITING_TIME);
     kvStore2->Get(key2, value2Tmp);
     EXPECT_EQ(value2.ToString(), value2Tmp.ToString());
 
     kvStore->Delete(key2);
-    kvStore->Sync(syncDevices, SyncMode::PUSH, syncDelayMs);
+    kvStore->Sync(syncDevices, SyncMode::PUSH, syncDelayMs, ++seqId_);
     usleep(CHECK_WAITING_TIME);
     Status ret = kvStore2->Get(key2, value2Tmp);
     EXPECT_EQ(ret, Status::KEY_NOT_FOUND);
@@ -145,7 +147,7 @@ HWTEST_F(KvStoreSyncManagerTest, KvStoreSyncManagerTest002, TestSize.Level1)
     Value value1("value1");
     Value value1Tmp;
     kvStore->Put(key1, value1);
-    kvStore->Sync(syncDevices, SyncMode::PUSH, syncDelayMs);
+    kvStore->Sync(syncDevices, SyncMode::PUSH, syncDelayMs, ++seqId_);
     usleep(CHECK_WAITING_TIME);
     Status ret = kvStore2->Get(key1, value1Tmp);
     EXPECT_EQ(ret, Status::KEY_NOT_FOUND);
@@ -154,13 +156,13 @@ HWTEST_F(KvStoreSyncManagerTest, KvStoreSyncManagerTest002, TestSize.Level1)
     Value value2("value2");
     Value value2Tmp;
     kvStore->Put(key2, value2);
-    kvStore->Sync(syncDevices, SyncMode::PUSH, syncDelayMs);
+    kvStore->Sync(syncDevices, SyncMode::PUSH, syncDelayMs, ++seqId_);
     usleep(CHECK_WAITING_TIME);
     ret = kvStore2->Get(key2, value2Tmp);
     EXPECT_EQ(ret, Status::KEY_NOT_FOUND);
 
     kvStore->Delete(key2);
-    kvStore->Sync(syncDevices, SyncMode::PUSH, syncDelayMs);
+    kvStore->Sync(syncDevices, SyncMode::PUSH, syncDelayMs, ++seqId_);
     usleep(CHECK_WAITING_TIME);
     ret = kvStore2->Get(key2, value2Tmp);
     EXPECT_EQ(ret, Status::KEY_NOT_FOUND);
@@ -294,9 +296,9 @@ HWTEST_F(KvStoreSyncManagerTest, KvStoreSyncManagerTest005, TestSize.Level1)
     Value value1("value1");
     Value value1Tmp;
     kvStore3->Put(key1, value1);
-    kvStore3->Sync(syncDevices, SyncMode::PUSH, sync3DelayMs);
+    kvStore3->Sync(syncDevices, SyncMode::PUSH, sync3DelayMs, ++seqId_);
     kvStore->Put(key1, value1);
-    kvStore->Sync(syncDevices, SyncMode::PUSH, sync1DelayMs);
+    kvStore->Sync(syncDevices, SyncMode::PUSH, sync1DelayMs, ++seqId_);
 
     usleep(CHECK_WAITING_TIME);
     Status ret = kvStore2->Get(key1, value1Tmp);
@@ -385,9 +387,9 @@ HWTEST_F(KvStoreSyncManagerTest, KvStoreSyncManagerTest007, TestSize.Level1)
     Value value1Tmp;
     kvStore->Put(key1, value1);
     kvNb->SetSyncStatus(DistributedDB::TIME_OUT);
-    kvStore->Sync(syncDevices, SyncMode::PUSH, sync1DelayMs);
+    kvStore->Sync(syncDevices, SyncMode::PUSH, sync1DelayMs, ++seqId_);
     kvStore3->Put(key1, value1);
-    kvStore3->Sync(syncDevices, SyncMode::PUSH, sync3DelayMs);
+    kvStore3->Sync(syncDevices, SyncMode::PUSH, sync3DelayMs, ++seqId_);
 
     usleep(CHECK_WAITING_TIME);
     Status ret = kvStore2->Get(key1, value1Tmp);

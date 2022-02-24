@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,15 +13,16 @@
  * limitations under the License.
  */
 
+#ifndef OHOS_DISTRIBUTED_DATA_SERVICES_FRAMEWORK_UTILS_ANONYMOUS_H
+#define OHOS_DISTRIBUTED_DATA_SERVICES_FRAMEWORK_UTILS_ANONYMOUS_H
 #include <string>
-
-#ifndef SDB_KVSTORE_CONTEXT_H
-#define SDB_KVSTORE_CONTEXT_H
-namespace OHOS::DistributedData {
-struct ClientContext {
-    std::string userId {};
-    std::string bundleName {};
-    std::string dataDir {};
+#include "visibility.h"
+namespace OHOS {
+namespace DistributedData {
+class Anonymous {
+public:
+    API_EXPORT static std::string Change(const std::string &name);
 };
 }
-#endif // SDB_KVSTORE_CONTEXT_H
+}
+#endif // OHOS_DISTRIBUTED_DATA_SERVICES_FRAMEWORK_UTILS_ANONYMOUS_H

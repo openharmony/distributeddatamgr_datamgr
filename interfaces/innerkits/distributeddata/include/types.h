@@ -91,7 +91,7 @@ struct AppThreadInfo {
 
 // distributed_data_manager using sub error code 3
 constexpr ErrCode DISTRIBUTEDDATAMGR_ERR_OFFSET = ErrCodeOffset(SUBSYS_DISTRIBUTEDDATAMNG, 3);
-enum class Status {
+enum Status : int32_t {
     SUCCESS = ERR_OK,
     ERROR = DISTRIBUTEDDATAMGR_ERR_OFFSET,
     INVALID_ARGUMENT = DISTRIBUTEDDATAMGR_ERR_OFFSET + 1,

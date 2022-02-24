@@ -102,15 +102,17 @@ public:
         return DBStatus::NOT_SUPPORT;
     };
     DBStatus Sync(const std::vector<std::string> &devices, SyncMode mode,
-        const std::function<void(const std::map<std::string, DBStatus> &)> &onComplete, Query &query,
-        bool wait) override;
+                  const std::function<void(const std::map<std::string, DBStatus> &)> &onComplete, const Query &query,
+                  bool wait) override;
+    DBStatus CheckIntegrity() const override;
+    DBStatus SetEqualIdentifier(const std::string &identifier, const std::vector<std::string> &targets) override;
+    DBStatus SetPushDataInterceptor(const PushDataInterceptor &interceptor) override;
     DBStatus SubscribeRemoteQuery(const std::vector<std::string> &devices,
-        const std::function<void(const std::map<std::string, DBStatus> &)> &onComplete, Query &query,
-        bool wait) override;
+                                  const std::function<void(const std::map<std::string, DBStatus> &)> &onComplete,
+                                  const Query &query, bool wait) override;
     DBStatus UnSubscribeRemoteQuery(const std::vector<std::string> &devices,
-        const std::function<void(const std::map<std::string, DBStatus> &)> &onComplete, Query &query,
-        bool wait) override;
-
+                                    const std::function<void(const std::map<std::string, DBStatus> &)> &onComplete,
+                                    const Query &query, bool wait) override;
 private:
     static constexpr size_t MAX_KEY_SIZE = 1024; // 1KB
     static constexpr size_t MAX_VALUE_SIZE = 4 * 1024 * 1024; // 4MB
