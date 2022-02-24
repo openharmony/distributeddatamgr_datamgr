@@ -381,7 +381,7 @@ Status KvStoreDataService::GetKvStoreFailDo(const Options &options, const KvStor
             return Status::CRYPT_ERROR;
         }
         // remove damaged database
-        if (DeleteKvStoreOnly(kvParas.storeId, kvParas.userId, kvParas.bundleName) != Status::SUCCESS) {
+        if (DeleteKvStoreOnly(kvParas.storeId, kvParas.uid, kvParas.bundleName) != Status::SUCCESS) {
             ZLOGE("DeleteKvStoreOnly failed.");
             return Status::DB_ERROR;
         }
@@ -426,7 +426,7 @@ Status KvStoreDataService::GetSingleKvStoreFailDo(const Options &options, const 
             return Status::CRYPT_ERROR;
         }
         // remove damaged database
-        if (DeleteKvStoreOnly(kvParas.storeId, kvParas.userId, kvParas.bundleName) != Status::SUCCESS) {
+        if (DeleteKvStoreOnly(kvParas.storeId, kvParas.uid, kvParas.bundleName) != Status::SUCCESS) {
             ZLOGE("DeleteKvStoreOnly failed.");
             return Status::DB_ERROR;
         }
@@ -490,7 +490,6 @@ Status KvStoreDataService::RecoverKvStore(const Options &options, const std::str
     Options optionsTmp = options;
     optionsTmp.createIfMissing = true;
     const int32_t uid = IPCSkeleton::GetCallingUid();
-    std::string trueAppId = CheckerManager::GetInstance().GetAppId(bundleName, uid);
     const std::string deviceAccountId = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(uid);
     auto it = deviceAccountMap_.find(deviceAccountId);
     if (it == deviceAccountMap_.end()) {
@@ -578,7 +577,7 @@ Status KvStoreDataService::CloseKvStore(const AppId &appId, const StoreId &store
     const int32_t uid = IPCSkeleton::GetCallingUid();
     std::string trueAppId = CheckerManager::GetInstance().GetAppId(appId.appId, uid);
     if (trueAppId.empty()) {
-        ZLOGE("get appId failed.");
+        ZLOGW("check appId:%{public}s uid:%{public}d failed.", appId.appId.c_str(), uid);
         return Status::PERMISSION_DENIED;
     }
     const std::string userId = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(uid);
@@ -608,7 +607,7 @@ Status KvStoreDataService::CloseAllKvStore(const AppId &appId)
     const int32_t uid = IPCSkeleton::GetCallingUid();
     std::string trueAppId = CheckerManager::GetInstance().GetAppId(appId.appId, uid);
     if (trueAppId.empty()) {
-        ZLOGE("get appId failed.");
+        ZLOGW("check appId:%{public}s uid:%{public}d failed.", appId.appId.c_str(), uid);
         return Status::PERMISSION_DENIED;
     }
 
@@ -667,7 +666,7 @@ Status KvStoreDataService::DeleteAllKvStore(const AppId &appId)
 
     int32_t uid = IPCSkeleton::GetCallingUid();
     if (!CheckerManager::GetInstance().IsValid(appId.appId, uid)) {
-        ZLOGE("get appId failed.");
+        ZLOGE("check appId:%{public}s uid:%{public}d failed.", appId.appId.c_str(), uid);
         return Status::PERMISSION_DENIED;
     }
 
@@ -712,7 +711,7 @@ Status KvStoreDataService::RegisterClientDeathObserver(const AppId &appId, sptr<
 
     std::lock_guard<std::mutex> lg(clientDeathObserverMutex_);
     auto it = clientDeathObserverMap_.emplace(std::piecewise_construct, std::forward_as_tuple(appId.appId),
-        std::forward_as_tuple(appId, *this, std::move(observer)));
+        std::forward_as_tuple(appId, uid, *this, std::move(observer)));
     ZLOGI("map size: %{public}zu.", clientDeathObserverMap_.size());
     if (!it.second) {
         ZLOGI("insert failed");
@@ -726,7 +725,7 @@ Status KvStoreDataService::RegisterClientDeathObserver(const AppId &appId, sptr<
     return Status::SUCCESS;
 }
 
-Status KvStoreDataService::AppExit(const AppId &appId)
+Status KvStoreDataService::AppExit(const AppId &appId, pid_t uid)
 {
     ZLOGI("AppExit");
     // memory of parameter appId locates in a member of clientDeathObserverMap_ and will be freed after
@@ -738,9 +737,9 @@ Status KvStoreDataService::AppExit(const AppId &appId)
         ZLOGI("map size: %zu.", clientDeathObserverMap_.size());
     }
 
-    std::string trueAppId = CheckerManager::GetInstance().GetAppId(appId.appId, CheckerManager::INVALID_UID);
+    std::string trueAppId = CheckerManager::GetInstance().GetAppId(appId.appId, uid);
     if (trueAppId.empty()) {
-        ZLOGE("get appid for KvStore failed because of permission denied.");
+        ZLOGW("check appId:%{public}s uid:%{public}d failed.", appId.appId.c_str(), uid);
         return Status::PERMISSION_DENIED;
     }
     const std::string userId = AccountDelegate::GetInstance()->GetCurrentAccountId(appIdTmp.appId);
@@ -975,8 +974,8 @@ void KvStoreDataService::OnStop()
 }
 
 KvStoreDataService::KvStoreClientDeathObserverImpl::KvStoreClientDeathObserverImpl(
-    const AppId &appId, KvStoreDataService &service, sptr<IRemoteObject> observer)
-    : appId_(appId), dataService_(service), observerProxy_(std::move(observer)),
+    const AppId &appId, pid_t uid, KvStoreDataService &service, sptr<IRemoteObject> observer)
+    : appId_(appId), uid_(uid), dataService_(service), observerProxy_(std::move(observer)),
     deathRecipient_(new KvStoreDeathRecipient(*this))
 {
     ZLOGI("KvStoreClientDeathObserverImpl");
@@ -1000,8 +999,8 @@ KvStoreDataService::KvStoreClientDeathObserverImpl::~KvStoreClientDeathObserverI
 
 void KvStoreDataService::KvStoreClientDeathObserverImpl::NotifyClientDie()
 {
-    ZLOGI("appId: %s", appId_.appId.c_str());
-    dataService_.AppExit(appId_);
+    ZLOGI("appId: %{public}s uid:%{public}d", appId_.appId.c_str(), uid_);
+    dataService_.AppExit(appId_, uid_);
 }
 
 KvStoreDataService::KvStoreClientDeathObserverImpl::KvStoreDeathRecipient::KvStoreDeathRecipient(
@@ -1037,10 +1036,10 @@ Status KvStoreDataService::DeleteKvStore(const std::string &bundleName, const St
     Status status;
     auto it = deviceAccountMap_.find(userId);
     if (it != deviceAccountMap_.end()) {
-        status = (it->second).DeleteKvStore(bundleName, storeId.storeId);
+        status = (it->second).DeleteKvStore(bundleName, uid, storeId.storeId);
     } else {
         KvStoreUserManager kvStoreUserManager(userId);
-        status = kvStoreUserManager.DeleteKvStore(bundleName, storeId.storeId);
+        status = kvStoreUserManager.DeleteKvStore(bundleName, uid, storeId.storeId);
     }
 
     if (status == Status::SUCCESS) {
@@ -1055,17 +1054,16 @@ Status KvStoreDataService::DeleteKvStore(const std::string &bundleName, const St
     return status;
 }
 
-
-Status KvStoreDataService::DeleteKvStoreOnly(const std::string &storeId, const std::string &userId,
-                                             const std::string &bundleName)
+Status KvStoreDataService::DeleteKvStoreOnly(const std::string &bundleName, pid_t uid, const std::string &storeId)
 {
     ZLOGI("DeleteKvStoreOnly begin.");
+    auto userId = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(uid);
     auto it = deviceAccountMap_.find(userId);
     if (it != deviceAccountMap_.end()) {
-        return (it->second).DeleteKvStore(bundleName, storeId);
+        return (it->second).DeleteKvStore(bundleName, uid, storeId);
     }
     KvStoreUserManager kvStoreUserManager(userId);
-    return kvStoreUserManager.DeleteKvStore(bundleName, storeId);
+    return kvStoreUserManager.DeleteKvStore(bundleName, uid, storeId);
 }
 
 void KvStoreDataService::AccountEventChanged(const AccountEventInfo &eventInfo)

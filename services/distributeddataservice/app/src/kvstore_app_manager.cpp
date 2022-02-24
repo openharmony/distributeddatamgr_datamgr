@@ -457,7 +457,7 @@ DistributedDB::KvStoreDelegateManager *KvStoreAppManager::GetDelegateManager(Pat
     trueAppId_ = CheckerManager::GetInstance().GetAppId(bundleName_, uid_);
     if (trueAppId_.empty()) {
         delegateManagers_[type] = nullptr;
-        ZLOGW("trueAppId_ empty(permission issues?)");
+        ZLOGW("check bundleName:%{public}s uid:%{public}d failed.", bundleName_.c_str(), uid_);
         return nullptr;
     }
 

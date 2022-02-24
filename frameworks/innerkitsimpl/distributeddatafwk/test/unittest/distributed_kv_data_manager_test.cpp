@@ -716,6 +716,34 @@ HWTEST_F(DistributedKvDataManagerTest, DeleteAllKvStore003, TestSize.Level1)
 }
 
 /**
+* @tc.name: DeleteAllKvStore004
+* @tc.desc: when delete the last active kvstore, the system will remove the app manager scene
+* @tc.type: FUNC
+* @tc.require: bugs
+* @tc.author: Sven Wang
+*/
+HWTEST_F(DistributedKvDataManagerTest, DeleteAllKvStore004, TestSize.Level1)
+{
+    ZLOGI("DeleteAllKvStore004 begin.");
+    std::shared_ptr<KvStore> kvStorePtr1;
+    Status status = manager.GetKvStore(create, appId, storeId64, kvStorePtr1);
+    ASSERT_EQ(status, Status::SUCCESS);
+    ASSERT_NE(kvStorePtr1, nullptr);
+    std::shared_ptr<KvStore> kvStorePtr2;
+    status = manager.GetKvStore(create, appId, storeIdTest, kvStorePtr2);
+    ASSERT_EQ(status, Status::SUCCESS);
+    ASSERT_NE(kvStorePtr2, nullptr);
+    Status stat = manager.CloseKvStore(appId, storeId64);
+    EXPECT_EQ(stat, Status::SUCCESS);
+    stat = manager.CloseKvStore(appId, storeIdTest);
+    EXPECT_EQ(stat, Status::SUCCESS);
+    stat = manager.DeleteKvStore(appId, storeIdTest);
+    EXPECT_EQ(stat, Status::SUCCESS);
+    stat = manager.DeleteAllKvStore(appId);
+    EXPECT_EQ(stat, Status::SUCCESS);
+}
+
+/**
 * @tc.name: RegisterKvStoreServiceDeathRecipient001
 * @tc.desc: Register a callback called when the service dies.
 * @tc.type: FUNC

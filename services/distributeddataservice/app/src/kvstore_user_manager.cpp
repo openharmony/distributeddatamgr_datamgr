@@ -26,10 +26,10 @@
 namespace OHOS {
 namespace DistributedKv {
 using namespace DistributedData;
-KvStoreUserManager::KvStoreUserManager(const std::string &deviceAccountId)
+KvStoreUserManager::KvStoreUserManager(const std::string &userId)
     : appMutex_(),
       appMap_(),
-      deviceAccountId_(deviceAccountId)
+      userId_(userId)
 {
     ZLOGI("begin.");
 }
@@ -75,7 +75,7 @@ void KvStoreUserManager::CloseAllKvStore()
     }
 }
 
-Status KvStoreUserManager::DeleteKvStore(const std::string &bundleName, const std::string &storeId)
+Status KvStoreUserManager::DeleteKvStore(const std::string &bundleName, pid_t uid, const std::string &storeId)
 {
     ZLOGI("begin.");
     std::lock_guard<std::mutex> lg(appMutex_);
@@ -88,7 +88,7 @@ Status KvStoreUserManager::DeleteKvStore(const std::string &bundleName, const st
         }
         return status;
     }
-    KvStoreAppManager kvStoreAppManager(bundleName, CheckerManager::INVALID_UID);
+    KvStoreAppManager kvStoreAppManager(bundleName, uid);
     return kvStoreAppManager.DeleteKvStore(storeId);
 }
 
