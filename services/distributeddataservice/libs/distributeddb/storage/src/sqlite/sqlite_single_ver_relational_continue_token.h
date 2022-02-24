@@ -41,7 +41,7 @@ private:
     std::string GetDeletedDataSQL() const;
     int GetQuerySyncStatement(sqlite3 *db, sqlite3_stmt *&stmt);
     int GetDeletedDataStmt(sqlite3 *db, sqlite3_stmt *&stmt) const;
-    int GetFullStatement(sqlite3 *db, sqlite3_stmt *&stmt);
+    int GetMissQueryStatement(sqlite3 *db, sqlite3_stmt *&stmt);
 
     static const unsigned int MAGIC_BEGIN = 0x600D0AC7;  // for token guard
     static const unsigned int MAGIC_END = 0x0AC7600D;    // for token guard

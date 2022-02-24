@@ -123,6 +123,11 @@ std::string GetFlagClauseForRDB()
 {
     return "WHERE (b.flag&0x03=0x02)";
 }
+
+std::string GetMissQueryFlagClauseForRDB()
+{
+    return "WHERE (b.flag&0x23=0x22)";
+}
 }
 
 SqliteQueryHelper::SqliteQueryHelper(const QueryObjInfo &info)
@@ -897,7 +902,7 @@ int SqliteQueryHelper::GetSubscribeSql(const std::string &subscribeId, TriggerMo
     return errCode;
 }
 
-int SqliteQueryHelper::GetRelationalSyncDataFullSql(std::string &sql, const std::vector<std::string> &fieldNames)
+int SqliteQueryHelper::GetRelationalMissQuerySql(const std::vector<std::string> &fieldNames, std::string &sql)
 {
     if (!isValid_) {
         return -E_INVALID_QUERY_FORMAT;
@@ -909,7 +914,7 @@ int SqliteQueryHelper::GetRelationalSyncDataFullSql(std::string &sql, const std:
     }
 
     sql = GetSelectAndFromClauseForRDB(tableName_, fieldNames);
-    sql += GetFlagClauseForRDB();
+    sql += GetMissQueryFlagClauseForRDB();
     sql += GetTimeRangeClauseForRDB();
     sql += "ORDER BY " + DBConstant::TIMESTAMP_ALIAS + " ASC;";
     return E_OK;
@@ -946,11 +951,11 @@ int SqliteQueryHelper::GetRelationalSyncDataQuerySql(std::string &sql, bool hasS
     return errCode;
 }
 
-int SqliteQueryHelper::GetRelationalFullStatement(sqlite3 *dbHandle, uint64_t beginTime, uint64_t endTime,
+int SqliteQueryHelper::GetRelationalMissQueryStatement(sqlite3 *dbHandle, uint64_t beginTime, uint64_t endTime,
     const std::vector<std::string> &fieldNames, sqlite3_stmt *&statement)
 {
     std::string sql;
-    int errCode = GetRelationalSyncDataFullSql(sql, fieldNames);
+    int errCode = GetRelationalMissQuerySql(fieldNames, sql);
     if (errCode != E_OK) {
         LOGE("[Query] Get SQL fail!");
         return -E_INVALID_QUERY_FORMAT;

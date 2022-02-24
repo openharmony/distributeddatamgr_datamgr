@@ -28,7 +28,7 @@ namespace {
     const int MAX_CACHE_ITEMS = 200;
     const uint32_t MAX_STORE_ITEMS = 100000;
     // WaterMark Version
-    constexpr uint32_t QUERY_WATERMARK_VERSION_CURRENT = SOFTWARE_VERSION_RELEASE_3_0;
+    constexpr uint32_t QUERY_WATERMARK_VERSION_CURRENT = SOFTWARE_VERSION_RELEASE_6_0;
     constexpr uint32_t DELETE_WATERMARK_VERSION_CURRENT = SOFTWARE_VERSION_RELEASE_3_0;
     // Prefix Key in db
     const std::string QUERY_SYNC_PREFIX_KEY = "querySync";
@@ -193,6 +193,21 @@ int QuerySyncWaterMarkHelper::SetRecvQueryWaterMark(const std::string &queryIden
     return SetRecvQueryWaterMarkWithoutLock(deviceId, cacheKey, waterMark);
 }
 
+int QuerySyncWaterMarkHelper::SetLastQueryTime(const std::string &queryIdentify,
+    const std::string &deviceId, const TimeStamp &timeStamp)
+{
+    std::string cacheKey;
+    GetHashQuerySyncDeviceId(deviceId, queryIdentify, cacheKey);
+    std::lock_guard<std::mutex> autoLock(queryWaterMarkLock_);
+    QueryWaterMark queryWaterMark;
+    int errCode = GetQueryWaterMarkInCacheAndDb(cacheKey, queryWaterMark);
+    if (errCode != E_OK) {
+        return errCode;
+    }
+    queryWaterMark.lastQueryTime = timeStamp;
+    return UpdateCacheAndSave(cacheKey, deviceId, queryWaterMark);
+}
+
 int QuerySyncWaterMarkHelper::SetRecvQueryWaterMarkWithoutLock(const std::string &deviceId,
     const std::string &cacheKey, const WaterMark &waterMark)
 {
@@ -291,6 +306,7 @@ int QuerySyncWaterMarkHelper::SerializeQueryWaterMark(const QueryWaterMark &quer
     parcel.WriteUInt64(queryWaterMark.recvWaterMark);
     parcel.WriteUInt64(queryWaterMark.lastUsedTime);
     parcel.WriteString(queryWaterMark.sql);
+    parcel.WriteUInt64(queryWaterMark.lastQueryTime);
     if (parcel.IsError()) {
         LOGE("[Meta] Parcel error when serialize queryWaterMark");
         return -E_PARSE_FAIL;
@@ -307,6 +323,9 @@ int QuerySyncWaterMarkHelper::DeSerializeQueryWaterMark(const Value &dbQueryWate
     parcel.ReadUInt64(queryWaterMark.recvWaterMark);
     parcel.ReadUInt64(queryWaterMark.lastUsedTime);
     parcel.ReadString(queryWaterMark.sql);
+    if (queryWaterMark.version >= SOFTWARE_VERSION_RELEASE_6_0) {
+        parcel.ReadUInt64(queryWaterMark.lastQueryTime);
+    }
     if (parcel.IsError()) {
         LOGE("[Meta] Parcel error when deserialize queryWaterMark");
         return -E_PARSE_FAIL;
@@ -322,6 +341,7 @@ uint64_t QuerySyncWaterMarkHelper::CalculateQueryWaterMarkSize(const QueryWaterM
     length += Parcel::GetUInt64Len(); // recvWaterMark
     length += Parcel::GetUInt64Len(); // lastUsedTime
     length += Parcel::GetStringLen(queryWaterMark.sql);
+    length += Parcel::GetUInt64Len(); // lastQueryTime
     return length;
 }
 

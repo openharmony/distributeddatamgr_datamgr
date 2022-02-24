@@ -550,3 +550,78 @@ HWTEST_F(DistributedDBSingleVerMultiUserTest, MultiUser005, TestSize.Level0)
     EXPECT_TRUE(KvStoreDelegateManager::NotifyUserChanged() == OK);
     CloseStore();
 }
+
+/**
+ * @tc.name: MultiUser006
+ * @tc.desc: test NotifyUserChanged and close db concurrently
+ * @tc.type: FUNC
+ * @tc.require: AR000E8S2T
+ * @tc.author: zhuwentao
+ */
+HWTEST_F(DistributedDBSingleVerMultiUserTest, MultiUser006, TestSize.Level0)
+{
+    /**
+     * @tc.steps: step1. set SyncActivationCheckCallback and only userId1 can active
+     */
+    g_mgr1.SetSyncActivationCheckCallback(g_syncActivationCheckCallback2);
+    /**
+     * @tc.steps: step2. openstore1 in dual tuple sync mode and openstore2 in normal sync mode
+     * @tc.expected: step2. only user2 sync mode is active
+     */
+
+    OpenStore1(true);
+    OpenStore2(false);
+    /**
+     * @tc.steps: step3. set SyncActivationCheckCallback and only userId2 can active
+     */
+    g_mgr1.SetSyncActivationCheckCallback(g_syncActivationCheckCallback1);
+    /**
+     * @tc.steps: step4. call NotifyUserChanged and close db concurrently
+     * @tc.expected: step4. return OK
+     */
+    thread subThread([&]() {
+        EXPECT_TRUE(KvStoreDelegateManager::NotifyUserChanged() == OK);
+    });
+    subThread.detach();
+    ASSERT_EQ(g_mgr1.CloseKvStore(g_kvDelegatePtr1), OK);
+    g_kvDelegatePtr1 = nullptr;
+    CloseStore();
+}
+
+/**
+ * @tc.name: MultiUser007
+ * @tc.desc: test NotifyUserChanged and rekey db concurrently
+ * @tc.type: FUNC
+ * @tc.require: AR000E8S2T
+ * @tc.author: zhuwentao
+ */
+HWTEST_F(DistributedDBSingleVerMultiUserTest, MultiUser007, TestSize.Level0)
+{
+    /**
+     * @tc.steps: step1. set SyncActivationCheckCallback and only userId1 can active
+     */
+    g_mgr1.SetSyncActivationCheckCallback(g_syncActivationCheckCallback2);
+    /**
+     * @tc.steps: step2. openstore1 in dual tuple sync mode and openstore2 in normal sync mode
+     * @tc.expected: step2. only user2 sync mode is active
+     */
+
+    OpenStore1(true);
+    OpenStore2(false);
+    /**
+     * @tc.steps: step3. set SyncActivationCheckCallback and only userId2 can active
+     */
+    g_mgr1.SetSyncActivationCheckCallback(g_syncActivationCheckCallback1);
+    /**
+     * @tc.steps: step2. call NotifyUserChanged and close db concurrently
+     * @tc.expected: step2. return OK
+     */
+    CipherPassword passwd;
+    thread subThread([&]() {
+        EXPECT_TRUE(KvStoreDelegateManager::NotifyUserChanged() == OK);
+    });
+    subThread.detach();
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    EXPECT_TRUE(g_kvDelegatePtr1->Rekey(passwd) == OK);
+    CloseStore();
+}

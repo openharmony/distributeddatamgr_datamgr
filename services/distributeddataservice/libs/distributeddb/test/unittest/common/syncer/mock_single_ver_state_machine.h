@@ -37,6 +37,11 @@ public:
         return SingleVerSyncStateMachine::TimeMarkSyncRecv(inMsg);
     }
 
+    void CallDataAckRecvErrCodeHandle(int errCode, bool handleError)
+    {
+        SingleVerSyncStateMachine::DataAckRecvErrCodeHandle(errCode, handleError);
+    }
+
     MOCK_METHOD1(SwitchStateAndStep, void(uint8_t));
 
     MOCK_METHOD0(PrepareNextSyncTask, int(void));

@@ -26,11 +26,12 @@
 
 namespace DistributedDB {
 struct QueryWaterMark {
-    uint32_t version = 0;
+    uint32_t version = 0; // start with 103
     WaterMark sendWaterMark = 0;
     WaterMark recvWaterMark = 0;
     TimeStamp lastUsedTime = 0; // use for delete data
     std::string sql; // for analyze sql from logs
+    TimeStamp lastQueryTime = 0; // use for miss query scene add in 106
 };
 
 struct DeleteWaterMark {
@@ -75,6 +76,9 @@ public:
 
     int SetRecvQueryWaterMark(const std::string &queryIdentify,
         const std::string &deviceId, const WaterMark &waterMark);
+
+    int SetLastQueryTime(const std::string &queryIdentify,
+        const std::string &deviceId, const TimeStamp &timeStamp);
 
     int GetDeleteSyncWaterMark(const std::string &deviceId, DeleteWaterMark &deleteWaterMark);
 
