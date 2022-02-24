@@ -24,7 +24,9 @@
 #include "mock_single_ver_state_machine.h"
 #include "mock_sync_task_context.h"
 #include "virtual_single_ver_sync_db_Interface.h"
+#ifdef DATA_SYNC_CHECK_003
 #include "virtual_relational_ver_sync_db_interface.h"
+#endif
 
 using namespace testing::ext;
 using namespace testing;
@@ -225,7 +227,7 @@ HWTEST_F(DistributedDBMockSyncModuleTest, DataSyncCheck002, TestSize.Level1)
     EXPECT_EQ(dataSync.AckPacketIdCheck(message), true);
     delete message;
 }
-
+#ifdef DATA_SYNC_CHECK_003
 /**
  * @tc.name: DataSyncCheck003
  * @tc.desc: Test dataSync recv notify ack.
@@ -263,7 +265,7 @@ HWTEST_F(DistributedDBMockSyncModuleTest, DataSyncCheck003, TestSize.Level1)
     EXPECT_EQ(mockDataSync.TryContinueSync(&mockSyncTaskContext, message), -E_FINISHED);
     delete message;
 }
-
+#endif
 /**
  * @tc.name: AutoLaunchCheck001
  * @tc.desc: Test autoLaunch close connection.
