@@ -71,10 +71,27 @@ public:
     int CheckQueryObjectLegal(const TableInfo &table, QueryObject &query);
 
 private:
+    struct SaveSyncDataStmt {
+        sqlite3_stmt *saveDataStmt = nullptr;
+        sqlite3_stmt *saveLogStmt = nullptr;
+        sqlite3_stmt *queryStmt = nullptr;
+        sqlite3_stmt *rmDataStmt = nullptr;
+        sqlite3_stmt *rmLogStmt = nullptr;
+
+        int ResetStatements(bool isNeedFinalize);
+    };
+
     int PrepareForSyncDataByTime(TimeStamp begin, TimeStamp end,
         sqlite3_stmt *&statement, bool getDeletedData) const;
 
     int GetDataItemForSync(sqlite3_stmt *statement, DataItem &dataItem, bool isGettingDeletedData) const;
+
+    int GetSyncDataPre(const DataItem &dataItem, DataItem &itemGet);
+
+    int CheckDataConflictDefeated(const DataItem &item, bool &isDefeated);
+
+    int SaveSyncDataItem(const std::vector<FieldInfo> &fieldInfos, const std::string &deviceName, DataItem &item,
+        TimeStamp &maxTimestamp);
 
     int SaveSyncDataItems(const QueryObject &object, std::vector<DataItem> &dataItems,
         const std::string &deviceName, TimeStamp &timeStamp);
@@ -93,12 +110,16 @@ private:
 
     int DeleteSyncLog(const DataItem &item, sqlite3_stmt *&rmLogStmt);
     int ProcessMissQueryData(const DataItem &item, sqlite3_stmt *&rmDataStmt, sqlite3_stmt *&rmLogStmt);
-    int GetMissQueryData(std::vector<DataItem> &dataItems, size_t &dataTotalSize, const Key &cursorHashKey,
-        sqlite3_stmt *fullStmt, size_t appendLength, const DataSizeSpecInfo &dataSizeInfo);
+    int GetMissQueryData(sqlite3_stmt *fullStmt, DataItem &item);
+    int GetQueryDataAndStepNext(bool isFirstTime, bool isGettingDeletedData, sqlite3_stmt *queryStmt, DataItem &item,
+        TimeStamp &queryTime);
+    int GetMissQueryDataAndStepNext(sqlite3_stmt *fullStmt, DataItem &item, TimeStamp &missQueryTime);
 
     void SetTableInfo(const TableInfo &tableInfo);  // When put or get sync data, must call the func first.
     std::string baseTblName_;
     TableInfo table_;  // Always operating table, user table when get, device table when put.
+
+    SaveSyncDataStmt saveStmt_;
 };
 } // namespace DistributedDB
 #endif

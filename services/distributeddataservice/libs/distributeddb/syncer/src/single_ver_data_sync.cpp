@@ -166,12 +166,24 @@ int SingleVerDataSync::TryContinueSync(SingleVerSyncTaskContext *context, const 
         LOGI("[DataSync] ignore ack,sessionId is different");
         return E_OK;
     }
+    TimeStamp lastQueryTime = 0;
     if (reSendMap_.count(sequenceId) != 0) {
+        lastQueryTime = reSendMap_[sequenceId].end;
         reSendMap_.erase(sequenceId);
         windowSize_++;
     } else {
         LOGI("[DataSync] ack seqId not in map");
         return E_OK;
+    }
+    if (context->IsQuerySync() && storage_->GetInterfaceType() == ISyncInterface::SYNC_RELATION) {
+        TimeStamp dbLastQueryTime = 0;
+        int errCode = metadata_->GetLastQueryTime(context->GetQuerySyncId(), context->GetDeviceId(), dbLastQueryTime);
+        if (errCode == E_OK && dbLastQueryTime < lastQueryTime) {
+            errCode = metadata_->SetLastQueryTime(context->GetQuerySyncId(), context->GetDeviceId(), lastQueryTime);
+        }
+        if (errCode != E_OK) {
+            return errCode;
+        }
     }
     if (!isAllDataHasSent_) {
         return InnerSyncStart(context);
@@ -324,10 +336,15 @@ int SingleVerDataSync::GetUnsyncData(SingleVerSyncTaskContext *context, std::vec
     } else {
         WaterMark deletedStartMark = 0;
         GetLocalDeleteSyncWaterMark(context, deletedStartMark);
-
-        QuerySyncObject queryObj = context->GetQuery();
-        errCode = storage_->GetSyncData(queryObj, SyncTimeRange{ startMark, deletedStartMark, endMark, endMark},
-            syncDataSizeInfo, token, outData);
+        TimeStamp lastQueryTimeStamp = 0;
+        errCode = metadata_->GetLastQueryTime(context->GetQuerySyncId(),
+            context->GetDeleteSyncId(), lastQueryTimeStamp);
+        if (errCode == E_OK) {
+            QuerySyncObject queryObj = context->GetQuery();
+            errCode = storage_->GetSyncData(queryObj,
+                SyncTimeRange{ startMark, deletedStartMark, endMark, endMark, lastQueryTimeStamp},
+                syncDataSizeInfo, token, outData);
+        }
     }
     context->SetContinueToken(token);
     if (!SingleVerDataSyncUtils::IsGetDataSuccessfully(errCode)) {

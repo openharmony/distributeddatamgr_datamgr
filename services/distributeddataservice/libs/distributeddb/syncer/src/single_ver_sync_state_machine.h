@@ -129,6 +129,8 @@ protected:
 
     int TimeMarkSyncRecv(const Message *inMsg);
 
+    void DataAckRecvErrCodeHandle(int errCode, bool handleError);
+
 private:
     // Used to init sync state machine switchbables
     static void InitStateSwitchTables();
@@ -205,8 +207,6 @@ private:
     bool AbilityMsgSessionIdCheck(const Message *inMsg);
 
     SyncType GetSyncType(uint32_t messageId) const;
-
-    void DataAckRecvErrCodeHandle(int errCode, bool handleError);
 
     void JumpStatusAfterAbilitySync(int mode);
 

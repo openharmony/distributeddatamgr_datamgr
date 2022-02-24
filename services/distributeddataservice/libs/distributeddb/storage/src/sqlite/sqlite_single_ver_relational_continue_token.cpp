@@ -44,8 +44,10 @@ int SQLiteSingleVerRelationalContinueToken::GetStatement(sqlite3 *db, sqlite3_st
         return errCode;
     }
 
-    if (!queryObj_.IsQueryOnlyByKey()) { // If query only by key, no need to deal with REMOTE_DEVICE_DATA_MISS_QUERY.
-        errCode = GetFullStatement(db, fullStmt);
+    // if lastQueryTime equals 0, that means never sync before, need not to send miss query data.
+    // if queryObj is empty, that means to send all data now, need not to send miss query data.
+    if (timeRange_.lastQueryTime != 0 && !queryObj_.Empty()) {
+        errCode = GetMissQueryStatement(db, fullStmt);
     }
     if (errCode != E_OK) {
         SQLiteUtils::ResetStatement(queryStmt, true, errCode);
@@ -61,6 +63,7 @@ void SQLiteSingleVerRelationalContinueToken::SetNextBeginTime(const DataItem &th
     }
     if (!isGettingDeletedData_) {
         timeRange_.beginTime = nextBeginTime;
+        timeRange_.lastQueryTime = std::max(nextBeginTime, timeRange_.lastQueryTime);
         return;
     }
     if ((theLastItem.flag & DataItem::DELETE_FLAG) != 0) {  // The last one could be non-deleted.
@@ -98,14 +101,14 @@ int SQLiteSingleVerRelationalContinueToken::GetQuerySyncStatement(sqlite3 *db, s
     return helper.GetRelationalQueryStatement(db, timeRange_.beginTime, timeRange_.endTime, fieldNames_, stmt);
 }
 
-int SQLiteSingleVerRelationalContinueToken::GetFullStatement(sqlite3 *db, sqlite3_stmt *&stmt)
+int SQLiteSingleVerRelationalContinueToken::GetMissQueryStatement(sqlite3 *db, sqlite3_stmt *&stmt)
 {
     int errCode = E_OK;
     SqliteQueryHelper helper = queryObj_.GetQueryHelper(errCode);
     if (errCode != E_OK) {
         return errCode;
     }
-    return helper.GetRelationalFullStatement(db, timeRange_.beginTime, timeRange_.endTime, fieldNames_, stmt);
+    return helper.GetRelationalMissQueryStatement(db, timeRange_.lastQueryTime + 1, INT64_MAX, fieldNames_, stmt);
 }
 
 int SQLiteSingleVerRelationalContinueToken::GetDeletedDataStmt(sqlite3 *db, sqlite3_stmt *&stmt) const

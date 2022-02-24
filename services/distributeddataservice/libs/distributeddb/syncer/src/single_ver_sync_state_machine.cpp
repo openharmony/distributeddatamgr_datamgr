@@ -1093,10 +1093,17 @@ void SingleVerSyncStateMachine::DataRecvErrCodeHandle(uint32_t sessionId, int er
                 PushPullDataRequestEvokeErrHandle();
                 break;
             case -E_BUSY:
-            case -E_SECURITY_OPTION_CHECK_ERROR:
-            case -E_INVALID_QUERY_FORMAT:
-            case -E_INVALID_QUERY_FIELD:
+            case -E_DISTRIBUTED_SCHEMA_CHANGED:
+            case -E_DISTRIBUTED_SCHEMA_NOT_FOUND:
+            case -E_FEEDBACK_COMMUNICATOR_NOT_FOUND:
+            case -E_FEEDBACK_UNKNOWN_MESSAGE:
             case -E_INTERCEPT_DATA_FAIL:
+            case -E_INVALID_QUERY_FIELD:
+            case -E_INVALID_QUERY_FORMAT:
+            case -E_MAX_LIMITS:
+            case -E_NOT_REGISTER:
+            case -E_NOT_SUPPORT:
+            case -E_SECURITY_OPTION_CHECK_ERROR:
                 context_->SetTaskErrCode(errCode);
                 SwitchStateAndStep(Event::INNER_ERR_EVENT);
                 break;
@@ -1135,17 +1142,19 @@ void SingleVerSyncStateMachine::DataAckRecvErrCodeHandle(int errCode, bool handl
                 context_->SetOperationStatus(SyncOperation::OP_PERMISSION_CHECK_FAILED);
             }
             break;
-        case -E_EKEYREVOKED:
-        case -E_SECURITY_OPTION_CHECK_ERROR:
         case -E_BUSY:
-        case -E_INVALID_QUERY_FORMAT:
-        case -E_INVALID_QUERY_FIELD:
-        case -E_FEEDBACK_UNKNOWN_MESSAGE:
+        case -E_DISTRIBUTED_SCHEMA_CHANGED:
+        case -E_DISTRIBUTED_SCHEMA_NOT_FOUND:
+        case -E_EKEYREVOKED:
         case -E_FEEDBACK_COMMUNICATOR_NOT_FOUND:
-        case -E_NOT_SUPPORT:
+        case -E_FEEDBACK_UNKNOWN_MESSAGE:
         case -E_INTERCEPT_DATA_FAIL:
-        case -E_NOT_REGISTER:
+        case -E_INVALID_QUERY_FIELD:
+        case -E_INVALID_QUERY_FORMAT:
         case -E_MAX_LIMITS:
+        case -E_NOT_REGISTER:
+        case -E_NOT_SUPPORT:
+        case -E_SECURITY_OPTION_CHECK_ERROR:
             if (handleError) {
                 context_->SetTaskErrCode(errCode);
             }
