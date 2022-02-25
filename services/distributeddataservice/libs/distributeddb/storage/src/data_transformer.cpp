@@ -101,7 +101,6 @@ uint32_t DataTransformer::CalDataValueLength(const DataValue &dataValue)
 {
     static std::map<StorageType, uint32_t> lengthMap = {
         { StorageType::STORAGE_TYPE_NULL, Parcel::GetUInt32Len()},
-        { StorageType::STORAGE_TYPE_BOOL, Parcel::GetBoolLen()},
         { StorageType::STORAGE_TYPE_INTEGER, Parcel::GetInt64Len()},
         { StorageType::STORAGE_TYPE_REAL, Parcel::GetDoubleLen()}
     };
@@ -157,24 +156,6 @@ int DeSerializeNullValue(DataValue &dataValue, Parcel &parcel)
         return -E_PARSE_FAIL;
     }
     dataValue.ResetValue();
-    return E_OK;
-}
-
-int SerializeBoolValue(const DataValue &dataValue, Parcel &parcel)
-{
-    bool val = false;
-    (void)dataValue.GetBool(val);
-    return parcel.WriteBool(val);
-}
-
-int DeSerializeBoolValue(DataValue &dataValue, Parcel &parcel)
-{
-    bool val = false;
-    (void)parcel.ReadBool(val);
-    if (parcel.IsError()) {
-        return -E_PARSE_FAIL;
-    }
-    dataValue = val;
     return E_OK;
 }
 

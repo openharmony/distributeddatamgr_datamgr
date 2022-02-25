@@ -389,13 +389,6 @@ static int BindDataValueByType(sqlite3_stmt *statement, const std::optional<Data
     int errCode = E_OK;
     StorageType type = data.value().GetType();
     switch (type) {
-        case StorageType::STORAGE_TYPE_BOOL: {
-            bool boolData = false;
-            (void)data.value().GetBool(boolData);
-            errCode = SQLiteUtils::MapSQLiteErrno(sqlite3_bind_int(statement, cid, boolData));
-            break;
-        }
-
         case StorageType::STORAGE_TYPE_INTEGER: {
             int64_t intData = 0;
             (void)data.value().GetInt64(intData);
@@ -1102,6 +1095,8 @@ int SQLiteSingleVerRelationalStorageExecutor::GetSyncDataByQuery(std::vector<Dat
     if (overLongSize != 0) {
         LOGW("Over 4M records:%zu.", overLongSize);
     }
+    LOGI("Get sync data finished, rc:%d, record size:%zu, overlong size:%zu, isDeleted:%d",
+        errCode, dataItems.size(), overLongSize, isGettingDeletedData);
     SQLiteUtils::ResetStatement(queryStmt, true, errCode);
     SQLiteUtils::ResetStatement(fullStmt, true, errCode);
     return errCode;

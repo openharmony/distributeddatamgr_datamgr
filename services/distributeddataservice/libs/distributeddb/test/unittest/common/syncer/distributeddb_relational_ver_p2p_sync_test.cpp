@@ -91,7 +91,6 @@ namespace {
     {
         static std::map<StorageType, std::string> typeMap = {
             {StorageType::STORAGE_TYPE_INTEGER, "INT"},
-            {StorageType::STORAGE_TYPE_BOOL, "BOOL"},
             {StorageType::STORAGE_TYPE_REAL, "DOUBLE"},
             {StorageType::STORAGE_TYPE_TEXT, "TEXT"},
             {StorageType::STORAGE_TYPE_BLOB, "BLOB"}
@@ -166,13 +165,6 @@ namespace {
     void BindValue(const DataValue &item, sqlite3_stmt *stmt, int col)
     {
         switch (item.GetType()) {
-            case StorageType::STORAGE_TYPE_BOOL: {
-                bool boolData = false;
-                (void)item.GetBool(boolData);
-                EXPECT_EQ(sqlite3_bind_int(stmt, col, boolData), SQLITE_OK);
-                break;
-            }
-
             case StorageType::STORAGE_TYPE_INTEGER: {
                 int64_t intData = 0;
                 (void)item.GetInt64(intData);
@@ -238,11 +230,6 @@ namespace {
         dataValue.ResetValue();
     }
 
-    void SetBool(DataValue &dataValue)
-    {
-        dataValue = false;
-    }
-
     void SetInt64(DataValue &dataValue)
     {
         dataValue = INT64_MAX;
@@ -269,7 +256,6 @@ namespace {
     {
         static std::map<StorageType, void(*)(DataValue&)> typeMapFunction = {
             {StorageType::STORAGE_TYPE_NULL,    &SetNull},
-            {StorageType::STORAGE_TYPE_BOOL,    &SetBool},
             {StorageType::STORAGE_TYPE_INTEGER, &SetInt64},
             {StorageType::STORAGE_TYPE_REAL,    &SetDouble},
             {StorageType::STORAGE_TYPE_TEXT,    &SetText},
@@ -1002,7 +988,7 @@ HWTEST_F(DistributedDBRelationalVerP2PSyncTest, AbilitySync003, TestSize.Level1)
      * @tc.steps: step2. create table and insert data
      */
     PrepareEnvironment(dataMap, schema, schema, {g_deviceB});
-    
+
     /**
      * @tc.steps: step3. change local table to (BOOL, INTEGER, REAL, TEXT, BLOB)
      * @tc.expected: sync fail

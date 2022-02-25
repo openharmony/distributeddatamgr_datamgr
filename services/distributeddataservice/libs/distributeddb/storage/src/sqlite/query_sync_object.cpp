@@ -246,7 +246,7 @@ int DeSerializeVersion1Data(uint32_t version, Parcel &parcel, std::string &table
         }
         uint32_t keysSize = 0;
         (void)parcel.ReadUInt32(keysSize);
-        if (keysSize > DBConstant::MAX_BATCH_SIZE) {
+        if (keysSize > DBConstant::MAX_INKEYS_SIZE) {
             return -E_PARSE_FAIL;
         }
         for (uint32_t i = 0; i < keysSize; ++i) {
