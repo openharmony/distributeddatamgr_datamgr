@@ -338,19 +338,6 @@ int TableInfo::CompareWithTableIndex(const std::map<std::string, CompositeFields
         -E_RELATIONAL_TABLE_COMPATIBLE;
 }
 
-namespace {
-    std::string VectorJoin(const CompositeFields &fields, char con)
-    {
-        std::string res;
-        auto it = fields.begin();
-        res += *it++;
-        for (; it != fields.end(); ++it) {
-            res += con + *it;
-        }
-        return res;
-    }
-}
-
 std::string TableInfo::ToTableInfoString() const
 {
     std::string attrStr;

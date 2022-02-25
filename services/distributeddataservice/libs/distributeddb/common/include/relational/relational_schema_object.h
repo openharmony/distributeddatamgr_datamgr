@@ -93,7 +93,7 @@ private:
     std::map<std::string, FieldInfo> fields_;
     FieldName primaryKey_;
     std::map<std::string, CompositeFields> indexDefines_;
-    mutable std::vector<std::string> fieldNames_;
+    mutable std::vector<FieldInfo> fieldInfos_;
 };
 
 class RelationalSyncOpinion {
