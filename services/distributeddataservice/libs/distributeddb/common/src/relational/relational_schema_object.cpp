@@ -610,8 +610,8 @@ int RelationalSchemaObject::ParseFromSchemaString(const std::string &inSchemaStr
         return -E_NOT_PERMIT;
     }
 
-    if (inSchemaString.size() > SchemaConstant::SCHEMA_STRING_SIZE_LIMIT) {
-        LOGE("[RelationalSchema][Parse] SchemaSize=%zu Too Large.", inSchemaString.size());
+    if (inSchemaString.empty() || inSchemaString.size() > SchemaConstant::SCHEMA_STRING_SIZE_LIMIT) {
+        LOGE("[RelationalSchema][Parse] SchemaSize=%zu is invalid.", inSchemaString.size());
         return -E_INVALID_ARGS;
     }
     JsonObject schemaObj;

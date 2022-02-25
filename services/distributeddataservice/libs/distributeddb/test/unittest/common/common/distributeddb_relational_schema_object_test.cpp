@@ -312,6 +312,9 @@ HWTEST_F(DistributedDBRelationalSchemaObjectTest, RelationalSchemaParseTest003, 
         TABLE_DEFINE_STR_KEY_INVALID + "}";
     errCode = schemaObj.ParseFromSchemaString(GenerateFromTableStr("[" + invalidTableStr05 + "]"));
     EXPECT_EQ(errCode, -E_SCHEMA_PARSE_FAIL);
+
+    errCode = schemaObj.ParseFromSchemaString("");
+    EXPECT_EQ(errCode, -E_INVALID_ARGS);
 }
 
 /**
