@@ -61,7 +61,6 @@ napi_value JsFieldNode::Constructor(napi_env env)
 {
     const napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("appendChild", JsFieldNode::AppendChild),
-        DECLARE_NAPI_FUNCTION("toJson", JsFieldNode::ToJson),
         DECLARE_NAPI_GETTER_SETTER("default", JsFieldNode::GetDefaultValue, JsFieldNode::SetDefaultValue),
         DECLARE_NAPI_GETTER_SETTER("nullable", JsFieldNode::GetNullable, JsFieldNode::SetNullable),
         DECLARE_NAPI_GETTER_SETTER("type", JsFieldNode::GetValueType, JsFieldNode::SetValueType)
@@ -117,19 +116,6 @@ napi_value JsFieldNode::AppendChild(napi_env env, napi_callback_info info)
     fieldNode->fields.push_back(child);
 
     napi_get_boolean(env, true, &ctxt->output);
-    return ctxt->output;
-}
-
-napi_value JsFieldNode::ToJson(napi_env env, napi_callback_info info)
-{
-    ZLOGD("FieldNode::ToJson");
-    auto ctxt = std::make_shared<ContextBase>();
-    ctxt->GetCbInfoSync(env, info);
-    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
-
-    auto fieldNode = reinterpret_cast<JsFieldNode*>(ctxt->native);
-    std::string js = fieldNode->Dump();
-    JSUtil::SetValue(env, js, ctxt->output);
     return ctxt->output;
 }
 
