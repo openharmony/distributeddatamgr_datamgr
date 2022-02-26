@@ -59,7 +59,7 @@ bool Sensitive::InitDEVSLQueryParams(DEVSLQueryParams *params, const std::string
 
 Sensitive::operator bool() const
 {
-    return (!deviceId.empty()) || (securityLevel > DATA_SEC_LEVEL1);
+    return (!deviceId.empty()) && (securityLevel > DATA_SEC_LEVEL1);
 }
 
 bool Sensitive::operator >= (const DistributedDB::SecurityOption &option)
