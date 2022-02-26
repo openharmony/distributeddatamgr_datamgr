@@ -82,7 +82,7 @@ public:
 
     void OnStop() override;
 
-    Status DeleteKvStoreOnly(const std::string &storeId, const std::string &userId, const std::string &bundleName);
+    Status DeleteKvStoreOnly(const std::string &bundleName, pid_t uid, const std::string &storeId);
 
     void AccountEventChanged(const AccountEventInfo &eventInfo);
 
@@ -108,7 +108,8 @@ public:
 private:
     class KvStoreClientDeathObserverImpl {
     public:
-        KvStoreClientDeathObserverImpl(const AppId &appId, KvStoreDataService &service, sptr<IRemoteObject> observer);
+        KvStoreClientDeathObserverImpl(const AppId &appId, pid_t uid,
+                                       KvStoreDataService &service, sptr<IRemoteObject> observer);
 
         virtual ~KvStoreClientDeathObserverImpl();
 
@@ -124,6 +125,7 @@ private:
         };
         void NotifyClientDie();
         AppId appId_;
+        pid_t uid_;
         KvStoreDataService &dataService_;
         sptr<IRemoteObject> observerProxy_;
         sptr<KvStoreDeathRecipient> deathRecipient_;
@@ -156,7 +158,7 @@ private:
     Status GetSingleKvStoreFailDo(const Options &options, const KvStoreParam &kvParas, SecretKeyPara &secKeyParas,
         KvStoreUserManager &kvUserManager, sptr<SingleKvStoreImpl> &kvStore);
 
-    Status AppExit(const AppId &appId);
+    Status AppExit(const AppId &appId, pid_t uid);
 
     bool CheckPermissions(const std::string &userId, const std::string &appId, const std::string &storeId,
                           const std::string &deviceId, uint8_t flag) const;

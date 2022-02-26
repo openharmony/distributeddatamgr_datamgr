@@ -26,7 +26,7 @@ namespace OHOS {
 namespace DistributedKv {
 class KvStoreUserManager {
 public:
-    explicit KvStoreUserManager(const std::string &deviceAccountId);
+    explicit KvStoreUserManager(const std::string &userId);
 
     virtual ~KvStoreUserManager();
 
@@ -56,7 +56,7 @@ public:
 
     void CloseAllKvStore();
 
-    Status DeleteKvStore(const std::string &bundleName, const std::string &storeId);
+    Status DeleteKvStore(const std::string &bundleName, pid_t uid, const std::string &storeId);
 
     void DeleteAllKvStore();
 
@@ -69,7 +69,6 @@ public:
 private:
     std::mutex appMutex_;
     std::map<std::string, KvStoreAppManager> appMap_;
-    std::string deviceAccountId_;
     std::string userId_;
 };
 }  // namespace DistributedKv
