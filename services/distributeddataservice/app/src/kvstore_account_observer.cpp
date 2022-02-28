@@ -26,7 +26,10 @@ std::atomic<int> g_kvStoreAccountEventStatus {0};
 void KvStoreAccountObserver::OnAccountChanged(const AccountEventInfo &eventInfo)
 {
     ZLOGI("account event %d, begin.", eventInfo.status);
-    kvStoreDataService_.AccountEventChanged(eventInfo);
+    std::thread([this, eventInfo]() {
+        ZLOGI("account event processing in thread");
+        kvStoreDataService_.AccountEventChanged(eventInfo);
+    }).detach();
     ZLOGI("account event %d, end.", eventInfo.status);
 }
 }  // namespace DistributedKv

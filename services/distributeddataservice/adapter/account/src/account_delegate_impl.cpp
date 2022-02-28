@@ -24,6 +24,7 @@
 #include <vector>
 #include "constant.h"
 #include "ohos_account_kits.h"
+#include "os_account_manager.h"
 #include "permission_validator.h"
 #include "utils/crypto.h"
 
@@ -42,19 +43,17 @@ void EventSubscriber::OnReceiveEvent(const CommonEventData &event)
     std::string action = want.GetAction();
     ZLOGI("Want Action is %s", action.c_str());
 
-    if (action == CommonEventSupport::COMMON_EVENT_HWID_LOGIN) {
-        accountEventInfo.status = AccountStatus::HARMONY_ACCOUNT_LOGIN;
-    } else if (action == CommonEventSupport::COMMON_EVENT_HWID_LOGOUT) {
-        accountEventInfo.status = AccountStatus::HARMONY_ACCOUNT_LOGOUT;
-    } else if (action == CommonEventSupport::COMMON_EVENT_HWID_TOKEN_INVALID) {
-        accountEventInfo.status = AccountStatus::HARMONY_ACCOUNT_DELETE;
-    } else if (action == CommonEventSupport::COMMON_EVENT_USER_REMOVED) {
+    if (action == CommonEventSupport::COMMON_EVENT_USER_REMOVED) {
         accountEventInfo.status = AccountStatus::DEVICE_ACCOUNT_DELETE;
         accountEventInfo.deviceAccountId =
             std::to_string(want.GetIntParam(CommonEventSupport::COMMON_EVENT_USER_REMOVED, -1));
         if (accountEventInfo.deviceAccountId == "-1") {
             return;
         }
+    } else if (action == CommonEventSupport::COMMON_EVENT_USER_SWITCHED) {
+        accountEventInfo.status = AccountStatus::DEVICE_ACCOUNT_SWITCHED;
+        accountEventInfo.deviceAccountId =
+                std::to_string(want.GetIntParam(CommonEventSupport::COMMON_EVENT_USER_SWITCHED, -1));
     } else {
         return;
     }
@@ -93,10 +92,8 @@ void AccountDelegateImpl::SubscribeAccountEvent()
 {
     ZLOGI("Subscribe account event listener start.");
     MatchingSkills matchingSkills;
-    matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_HWID_LOGIN);
-    matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_HWID_LOGOUT);
-    matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_HWID_TOKEN_INVALID);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_USER_REMOVED);
+    matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_USER_SWITCHED);
     CommonEventSubscribeInfo info(matchingSkills);
     eventSubscriber_ = std::make_shared<EventSubscriber>(info);
     eventSubscriber_->SetEventCallback([&](AccountEventInfo &account) {
@@ -149,7 +146,13 @@ std::string AccountDelegateImpl::GetCurrentAccountId(const std::string &bundleNa
 
 std::string AccountDelegateImpl::GetDeviceAccountIdByUID(int32_t uid) const
 {
-    return std::to_string(AccountSA::OhosAccountKits::GetInstance().GetDeviceAccountIdByUID(uid));
+    int userId = 0;
+    auto ret = AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, userId);
+    if (ret != 0) {
+        ZLOGE("failed get os account local id from uid, ret:%{public}d", ret);
+        return {};
+    }
+    return std::to_string(userId);
 }
 
 void AccountDelegateImpl::NotifyAccountChanged(const AccountEventInfo &accountEventInfo)

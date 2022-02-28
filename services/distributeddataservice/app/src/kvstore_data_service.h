@@ -39,7 +39,10 @@ class RdbServiceImpl;
 
 namespace OHOS::DistributedKv {
 class KvStoreAccountObserver;
-class KvStoreDataService : public SystemAbility, public KvStoreDataServiceStub {
+class KvStoreDataService
+    : public SystemAbility
+    , public KvStoreDataServiceStub
+    , public AppDistributedKv::AppDeviceStatusChangeListener {
     DECLARE_SYSTEM_ABILITY(KvStoreDataService);
 
 public:
@@ -152,6 +155,8 @@ private:
     Status UpdateMetaData(const Options &options, const KvStoreParam &kvParas,
         const std::vector<uint8_t> &metaKey, KvStoreUserManager &kvStoreUserManager);
 
+    void OnStoreMetaChanged(const std::vector<uint8_t> &key, const std::vector<uint8_t> &value, CHANGE_FLAG flag);
+
     Status GetKvStoreFailDo(const Options &options, const KvStoreParam &kvParas, SecretKeyPara &secKeyParas,
         KvStoreUserManager &kvUserManager, sptr<KvStoreImpl> &kvStore);
 
@@ -163,10 +168,14 @@ private:
     bool CheckPermissions(const std::string &userId, const std::string &appId, const std::string &storeId,
                           const std::string &deviceId, uint8_t flag) const;
     bool ResolveAutoLaunchParamByIdentifier(const std::string &identifier, DistributedDB::AutoLaunchParam &param);
+    static void ResolveAutoLaunchCompatible(const MetaData &meta, const std::string &identifier);
+    bool CheckSyncActivation(const std::string &userId, const std::string &appId, const std::string &storeId);
 
     bool CheckOptions(const Options &options, const std::vector<uint8_t> &metaKey) const;
-    
+    void OnDeviceChanged(
+            const AppDistributedKv::DeviceInfo &info, const AppDistributedKv::DeviceChangeType &type) const override;
     void CreateRdbService();
+    bool IsStoreOpened(const std::string &userId, const std::string &appId, const std::string &storeId);
 
     static constexpr int TEN_SEC = 10;
 

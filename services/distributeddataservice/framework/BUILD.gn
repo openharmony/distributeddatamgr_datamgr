@@ -23,6 +23,7 @@ config("module_public_config") {
     "//third_party/json/single_include",
     "//third_party/openssl/include/",
     "//foundation/distributeddatamgr/distributeddatamgr/frameworks/common",
+    "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/distributeddata/include",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/include",
   ]
 }
@@ -34,9 +35,12 @@ ohos_shared_library("distributeddatasvcfwk") {
     "checker/default/system_checker.cpp",
     "eventcenter/event.cpp",
     "eventcenter/event_center.cpp",
+    "metadata/capability_meta_data.cpp",
     "metadata/meta_data.cpp",
     "metadata/secret_key_meta_data.cpp",
     "metadata/store_meta_data.cpp",
+    "metadata/strategy_meta_data.cpp",
+    "metadata/user_meta_data.cpp",
     "serializable/serializable.cpp",
     "utils/anonymous.cpp",
     "utils/block_integer.cpp",

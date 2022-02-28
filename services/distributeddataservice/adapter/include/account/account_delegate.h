@@ -28,6 +28,7 @@ enum class AccountStatus {
     HARMONY_ACCOUNT_LOGOUT, // the openHarmony account is logged out
     HARMONY_ACCOUNT_DELETE, // the openHarmony account is deleted
     DEVICE_ACCOUNT_DELETE, // the device account is deleted
+    DEVICE_ACCOUNT_SWITCHED, // the device account is switched
 };
 
 struct AccountEventInfo {
@@ -53,6 +54,7 @@ public:
     KVSTORE_API virtual std::string GetDeviceAccountIdByUID(int32_t uid) const = 0;
     KVSTORE_API virtual void SubscribeAccountEvent() = 0;
     KVSTORE_API static AccountDelegate *GetInstance();
+
 private:
     using BaseInstance = AccountDelegate *(*)();
     static BaseInstance getInstance_;

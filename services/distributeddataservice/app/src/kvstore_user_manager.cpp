@@ -143,5 +143,19 @@ void KvStoreUserManager::Dump(int fd) const
         pair.second.Dump(fd);
     }
 }
+
+bool KvStoreUserManager::IsStoreOpened(const std::string &appId, const std::string &storeId)
+{
+//    std::lock_guard<std::mutex> lg(appMutex_);
+    auto it = appMap_.find(appId);
+    return it != appMap_.end() && it->second.IsStoreOpened(storeId);
+}
+
+void KvStoreUserManager::SetCompatibleIdentify(const std::string &deviceId) const
+{
+    for (const auto &item : appMap_) {
+        item.second.SetCompatibleIdentify(deviceId);
+    }
+}
 }  // namespace DistributedKv
 }  // namespace OHOS
