@@ -20,6 +20,8 @@ namespace AppDistributedKv {
 DataBuffer::DataBuffer() : buf_(nullptr), size_(0), used_(0)
 {}
 
+int DataBuffer::g_sequence = 0;
+
 DataBuffer::~DataBuffer()
 {
     if (buf_ != nullptr) {

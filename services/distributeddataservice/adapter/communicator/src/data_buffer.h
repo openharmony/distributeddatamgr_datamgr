@@ -63,7 +63,6 @@ private:
     size_t size_;
     size_t used_;
 };
-int DataBuffer::g_sequence = 0;
 
 union Head {
     HeaderInfo headerInfo;
