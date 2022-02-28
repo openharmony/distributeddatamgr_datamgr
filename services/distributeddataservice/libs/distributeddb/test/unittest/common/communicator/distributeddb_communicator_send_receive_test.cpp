@@ -134,15 +134,15 @@ HWTEST_F(DistributedDBCommunicatorSendReceiveTest, SendAndReceive001, TestSize.L
     Message *recvMsgForBA = nullptr;
     string srcTargetForBB;
     Message *recvMsgForBB = nullptr;
-    g_commAA->RegOnMessageCallback([&srcTargetForAA, &recvMsgForAA](const std::string &srcTarget, Message *inMsg){
+    g_commAA->RegOnMessageCallback([&srcTargetForAA, &recvMsgForAA](const std::string &srcTarget, Message *inMsg) {
         srcTargetForAA = srcTarget;
         recvMsgForAA = inMsg;
     }, nullptr);
-    g_commBA->RegOnMessageCallback([&srcTargetForBA, &recvMsgForBA](const std::string &srcTarget, Message *inMsg){
+    g_commBA->RegOnMessageCallback([&srcTargetForBA, &recvMsgForBA](const std::string &srcTarget, Message *inMsg) {
         srcTargetForBA = srcTarget;
         recvMsgForBA = inMsg;
     }, nullptr);
-    g_commBB->RegOnMessageCallback([&srcTargetForBB, &recvMsgForBB](const std::string &srcTarget, Message *inMsg){
+    g_commBB->RegOnMessageCallback([&srcTargetForBB, &recvMsgForBB](const std::string &srcTarget, Message *inMsg) {
         srcTargetForBB = srcTarget;
         recvMsgForBB = inMsg;
     }, nullptr);
@@ -261,8 +261,8 @@ HWTEST_F(DistributedDBCommunicatorSendReceiveTest, SendFlowControl001, TestSize.
     // Preset
     int countForBA = 0;
     int countForBB = 0;
-    g_commBA->RegOnSendableCallback([&countForBA](){countForBA++;}, nullptr);
-    g_commBB->RegOnSendableCallback([&countForBB](){countForBB++;}, nullptr);
+    g_commBA->RegOnSendableCallback([&countForBA](){ countForBA++; }, nullptr);
+    g_commBB->RegOnSendableCallback([&countForBB](){ countForBB++; }, nullptr);
 
     /**
      * @tc.steps: step1. connect device A with device B
@@ -325,8 +325,8 @@ HWTEST_F(DistributedDBCommunicatorSendReceiveTest, SendFlowControl002, TestSize.
     // Preset
     int cntForBA = 0;
     int cntForBB = 0;
-    g_commBA->RegOnSendableCallback([&cntForBA](){cntForBA++;}, nullptr);
-    g_commBB->RegOnSendableCallback([&cntForBB](){cntForBB++;}, nullptr);
+    g_commBA->RegOnSendableCallback([&cntForBA](){ cntForBA++; }, nullptr);
+    g_commBB->RegOnSendableCallback([&cntForBB](){ cntForBB++; }, nullptr);
 
     /**
      * @tc.steps: step1. connect device A with device B
@@ -347,7 +347,7 @@ HWTEST_F(DistributedDBCommunicatorSendReceiveTest, SendFlowControl002, TestSize.
      */
     int sendCount = 0;
     int sendFailCount = 0;
-    std::thread sendThread([&sendCount, &sendFailCount](){
+    std::thread sendThread([&sendCount, &sendFailCount]() {
         while (sendCount < SEND_COUNT_GOAL) {
             Message *msgForBA = BuildRegedHugeMessage();
             ASSERT_NE(msgForBA, nullptr);
@@ -391,8 +391,8 @@ HWTEST_F(DistributedDBCommunicatorSendReceiveTest, SendFlowControl003, TestSize.
     // Preset
     int cntsForBA = 0;
     int cntsForBB = 0;
-    g_commBA->RegOnSendableCallback([&cntsForBA](){cntsForBA++;}, nullptr);
-    g_commBB->RegOnSendableCallback([&cntsForBB](){cntsForBB++;}, nullptr);
+    g_commBA->RegOnSendableCallback([&cntsForBA](){ cntsForBA++; }, nullptr);
+    g_commBB->RegOnSendableCallback([&cntsForBB](){ cntsForBB++; }, nullptr);
 
     /**
      * @tc.steps: step1. connect device A with device B
@@ -413,7 +413,7 @@ HWTEST_F(DistributedDBCommunicatorSendReceiveTest, SendFlowControl003, TestSize.
      */
     int sendCnt = 0;
     int sendFailCnt = 0;
-    std::thread sendThread([&sendCnt, &sendFailCnt](){
+    std::thread sendThread([&sendCnt, &sendFailCnt]() {
         while (sendCnt < SEND_COUNT_GOAL) {
             Message *msgForBA = BuildRegedHugeMessage();
             ASSERT_NE(msgForBA, nullptr);
@@ -456,7 +456,7 @@ HWTEST_F(DistributedDBCommunicatorSendReceiveTest, ReceiveCheck001, TestSize.Lev
 {
     // Preset
     int recvCount = 0;
-    g_commAA->RegOnMessageCallback([&recvCount](const std::string &srcTarget, Message *inMsg){
+    g_commAA->RegOnMessageCallback([&recvCount](const std::string &srcTarget, Message *inMsg) {
         recvCount++;
         if (inMsg != nullptr) {
             delete inMsg;
@@ -517,7 +517,7 @@ HWTEST_F(DistributedDBCommunicatorSendReceiveTest, ReceiveCheck002, TestSize.Lev
 {
     // Preset
     int recvCount = 0;
-    g_commAA->RegOnMessageCallback([&recvCount](const std::string &srcTarget, Message *inMsg){
+    g_commAA->RegOnMessageCallback([&recvCount](const std::string &srcTarget, Message *inMsg) {
         recvCount++;
         if (inMsg != nullptr) {
             delete inMsg;
@@ -714,11 +714,11 @@ HWTEST_F(DistributedDBCommunicatorSendReceiveTest, SendAndReceiveWithExtendHead0
     string srcTargetForBA;
     Message *recvMsgForBA = nullptr;
     TimeSync::RegisterTransformFunc();
-    g_commAA->RegOnMessageCallback([&srcTargetForAA, &recvMsgForAA](const std::string &srcTarget, Message *inMsg){
+    g_commAA->RegOnMessageCallback([&srcTargetForAA, &recvMsgForAA](const std::string &srcTarget, Message *inMsg) {
         srcTargetForAA = srcTarget;
         recvMsgForAA = inMsg;
     }, nullptr);
-    g_commBA->RegOnMessageCallback([&srcTargetForBA, &recvMsgForBA](const std::string &srcTarget, Message *inMsg){
+    g_commBA->RegOnMessageCallback([&srcTargetForBA, &recvMsgForBA](const std::string &srcTarget, Message *inMsg) {
         srcTargetForBA = srcTarget;
         recvMsgForBA = inMsg;
     }, nullptr);

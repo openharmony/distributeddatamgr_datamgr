@@ -140,7 +140,7 @@ HWTEST_F(DistributedDBCommunicatorDeepTest, WaitAndRetrySend001, TestSize.Level2
 {
     // Preset
     Message *msgForBB = nullptr;
-    g_commBB->RegOnMessageCallback([&msgForBB](const std::string &srcTarget, Message *inMsg){
+    g_commBB->RegOnMessageCallback([&msgForBB](const std::string &srcTarget, Message *inMsg) {
         msgForBB = inMsg;
     }, nullptr);
 
@@ -312,7 +312,7 @@ HWTEST_F(DistributedDBCommunicatorDeepTest, Fragment001, TestSize.Level2)
 {
     // Preset
     Message *recvMsgForBB = nullptr;
-    g_commBB->RegOnMessageCallback([&recvMsgForBB](const std::string &srcTarget, Message *inMsg){
+    g_commBB->RegOnMessageCallback([&recvMsgForBB](const std::string &srcTarget, Message *inMsg) {
         recvMsgForBB = inMsg;
     }, nullptr);
 
@@ -367,7 +367,7 @@ HWTEST_F(DistributedDBCommunicatorDeepTest, Fragment002, TestSize.Level2)
 {
     // Preset
     Message *recvMsgForCC = nullptr;
-    g_commCC->RegOnMessageCallback([&recvMsgForCC](const std::string &srcTarget, Message *inMsg){
+    g_commCC->RegOnMessageCallback([&recvMsgForCC](const std::string &srcTarget, Message *inMsg) {
         recvMsgForCC = inMsg;
     }, nullptr);
 

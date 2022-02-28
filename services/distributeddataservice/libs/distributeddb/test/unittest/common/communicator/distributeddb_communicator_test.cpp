@@ -175,7 +175,7 @@ HWTEST_F(DistributedDBCommunicatorTest, OnlineAndOffline001, TestSize.Level1)
     ICommunicator *commAA = g_envDeviceA.commAggrHandle->AllocCommunicator(LABEL_A, errorNo);
     ASSERT_NOT_NULL_AND_ACTIVATE(commAA);
     OnOfflineDevice onlineForAA;
-    commAA->RegOnConnectCallback([&onlineForAA](const std::string &target, bool isConnect){
+    commAA->RegOnConnectCallback([&onlineForAA](const std::string &target, bool isConnect) {
         HandleConnectChange(onlineForAA, target, isConnect);}, nullptr);
     EXPECT_EQ(onlineForAA.onlineDevices.size(), static_cast<size_t>(0));
 
@@ -193,7 +193,7 @@ HWTEST_F(DistributedDBCommunicatorTest, OnlineAndOffline001, TestSize.Level1)
     ICommunicator *commBB = g_envDeviceB.commAggrHandle->AllocCommunicator(LABEL_B, errorNo);
     ASSERT_NOT_NULL_AND_ACTIVATE(commBB);
     OnOfflineDevice onlineForBB;
-    commBB->RegOnConnectCallback([&onlineForBB](const std::string &target, bool isConnect){
+    commBB->RegOnConnectCallback([&onlineForBB](const std::string &target, bool isConnect) {
         HandleConnectChange(onlineForBB, target, isConnect);}, nullptr);
     EXPECT_EQ(onlineForAA.onlineDevices.size(), static_cast<size_t>(0));
     EXPECT_EQ(onlineForBB.onlineDevices.size(), static_cast<size_t>(0));
@@ -213,7 +213,7 @@ HWTEST_F(DistributedDBCommunicatorTest, OnlineAndOffline001, TestSize.Level1)
     ICommunicator *commBA = g_envDeviceB.commAggrHandle->AllocCommunicator(LABEL_A, errorNo);
     ASSERT_NOT_NULL_AND_ACTIVATE(commBA);
     OnOfflineDevice onlineForBA;
-    commBA->RegOnConnectCallback([&onlineForBA](const std::string &target, bool isConnect){
+    commBA->RegOnConnectCallback([&onlineForBA](const std::string &target, bool isConnect) {
         HandleConnectChange(onlineForBA, target, isConnect);}, nullptr);
     EXPECT_EQ(onlineForAA.onlineDevices.size(), static_cast<size_t>(0));
     EXPECT_EQ(onlineForBB.onlineDevices.size(), static_cast<size_t>(0));
