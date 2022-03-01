@@ -1001,7 +1001,7 @@ bool SyncEngine::IsEngineActive() const
     return isActive_;
 }
 
-void SyncEngine::ResetAbilitySync()
+void SyncEngine::SchemaChange()
 {
     std::lock_guard<std::mutex> lock(contextMapLock_);
     for (auto &enrty : syncTaskContextMap_) {
@@ -1010,9 +1010,7 @@ void SyncEngine::ResetAbilitySync()
             continue;
         }
         // IncRef for SyncEngine to make sure context is valid, to avoid a big lock
-        RefObject::IncObjRef(context);
-        context->SetIsNeedResetAbilitySync(true);
-        RefObject::DecObjRef(context);
+        context->SchemaChange();
     }
 }
 } // namespace DistributedDB

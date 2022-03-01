@@ -70,6 +70,11 @@ void SingleVerRelationalSyncTaskContext::SetIsNeedResetAbilitySync(bool isNeedRe
     if (isNeedResetAbilitySync_) {
         SetIsSchemaSync(false);
     }
+}
+
+void SingleVerRelationalSyncTaskContext::SchemaChange()
+{
+    SetIsNeedResetAbilitySync(true);
     std::lock_guard<std::mutex> autoLock(syncStrategyMutex_);
     relationalSyncStrategy_ = {};
 }
