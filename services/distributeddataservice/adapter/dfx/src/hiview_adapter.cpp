@@ -242,7 +242,7 @@ void HiViewAdapter::StartTimerThread()
     auto fun = [=]() {
         while (true) {
             time_t current = time(nullptr);
-            tm *localTime = localtime(&current);
+            tm *localTime = localtime_r(&current);
             if (localTime == nullptr) {
                 continue;
             }

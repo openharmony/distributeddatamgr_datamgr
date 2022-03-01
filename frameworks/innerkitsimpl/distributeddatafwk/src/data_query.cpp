@@ -59,7 +59,9 @@ const std::string DataQuery::SUGGEST_INDEX = "^SUGGEST_INDEX";
 constexpr int MAX_QUERY_LENGTH = 5 * 1024; // Max query string length 5k
 
 DataQuery::DataQuery()
-{}
+{
+    inkeysFlag_ = false;
+}
 
 DataQuery& DataQuery::Reset()
 {
