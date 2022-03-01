@@ -86,6 +86,20 @@ namespace {
             LOGE("[SQLite] Error[%d], sys[%d]", err, errno);
         }
     }
+
+    // statement must not be null
+    std::string GetColString(sqlite3_stmt *statement, int nCol)
+    {
+        std::string rowString;
+        for (int i = 0; i < nCol; i++) {
+            if (sqlite3_column_name(statement, i) != nullptr) {
+                rowString += sqlite3_column_name(statement, i);
+            }
+            int blankFill = (i + 1) * 16 - rowString.size(); // each column width 16
+            rowString.append(static_cast<std::string::size_type>((blankFill > 0) ? blankFill : 0), ' ');
+        }
+        return rowString;
+    }
 }
 
 namespace TriggerMode {
@@ -1888,15 +1902,7 @@ int SQLiteUtils::ExplainPlan(sqlite3 *db, const std::string &execSql, bool isQue
         nCol = std::min(nCol, 8); // Read 8 column at most
 
         if (isFirst) {
-            std::string rowString;
-            for (int i = 0; i < nCol; i++) {
-                if (sqlite3_column_name(statement, i) != nullptr) {
-                    rowString += sqlite3_column_name(statement, i);
-                }
-                int blankFill = (i + 1) * 16 - rowString.size(); // each column width 16
-                rowString.append(static_cast<std::string::size_type>((blankFill > 0) ? blankFill : 0), ' ');
-            }
-            LOGD("#### %s", rowString.c_str());
+            LOGD("#### %s", GetColString(statement, nCol).c_str());
             isFirst = false;
         }
 

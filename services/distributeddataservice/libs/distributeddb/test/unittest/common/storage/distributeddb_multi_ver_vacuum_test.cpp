@@ -559,7 +559,7 @@ HWTEST_F(DistributedDBMultiVerVacuumTest, SingleTaskWriteHandleOccupy001, TestSi
     EXPECT_EQ(errCode, E_OK);
     bool stepOne = CheckVacuumTaskStatus(vacuum, DB_IDENTITY_A, VacuumTaskStatus::RUN_NING);
     EXPECT_EQ(stepOne, true);
-    stepOne = RepeatCheckAsyncResult([&databaseA]()->bool{
+    stepOne = RepeatCheckAsyncResult([&databaseA]()->bool {
         return databaseA.IsTransactionOccupied() == true;
     }, 5, 100); // 5 times, 100 ms
     EXPECT_EQ(stepOne, true);
@@ -582,7 +582,7 @@ HWTEST_F(DistributedDBMultiVerVacuumTest, SingleTaskWriteHandleOccupy001, TestSi
     EXPECT_EQ(errCode, E_OK);
     bool stepThree = CheckVacuumTaskStatus(vacuum, DB_IDENTITY_A, VacuumTaskStatus::RUN_NING);
     EXPECT_EQ(stepThree, true);
-    stepThree = RepeatCheckAsyncResult([&databaseA]()->bool{
+    stepThree = RepeatCheckAsyncResult([&databaseA]()->bool {
         return databaseA.IsTransactionOccupied() == true;
     }, 5, 100); // 5 times, 100 ms
     EXPECT_EQ(stepThree, true);

@@ -138,7 +138,10 @@ int GetRealPath(const std::string &inOriPath, std::string &outRealPath)
     if (realPath == nullptr) {
         return -E_OUT_OF_MEMORY;
     }
-    (void)memset_s(realPath, MAX_PATH_LENGTH + 1, 0, MAX_PATH_LENGTH + 1);
+    if (memset_s(realPath, MAX_PATH_LENGTH + 1, 0, MAX_PATH_LENGTH + 1) != EOK) {
+        return -E_SECUREC_ERROR;
+    }
+
     if (realpath(inOriPath.c_str(), realPath) == nullptr) {
         LOGE("[RealPath] Get realpath for inOriPath fail:%d.", errno);
         delete []realPath;
