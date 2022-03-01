@@ -55,7 +55,7 @@ std::vector<UserStatus> UserDelegate::GetUsers(const std::string &deviceId)
     for (const auto &entry : deviceUserMap_[deviceId]) {
         userStatus.emplace_back(entry.first, entry.second);
     }
-    ZLOGI("device:%{public}s, users:%{public}s", deviceId.c_str(), Serializable::Marshall(userStatus).c_str());
+    ZLOGI("device:%{public}.10s, users:%{public}s", deviceId.c_str(), Serializable::Marshall(userStatus).c_str());
     return userStatus;
 }
 
@@ -66,7 +66,7 @@ void UserDelegate::DeleteUsers(const std::string &deviceId)
 
 void UserDelegate::UpdateUsers(const std::string &deviceId, const std::vector<UserStatus> &userStatus)
 {
-    ZLOGI("begin, device:%{public}s, users:%{public}u", deviceId.c_str(), userStatus.size());
+    ZLOGI("begin, device:%{public}.10s, users:%{public}u", deviceId.c_str(), userStatus.size());
     deviceUserMap_.ComputeIfPresent(deviceId, [](const auto &key, std::map<int, bool> &userMap) {
         for (auto &user : userMap) {
             user.second = false;
@@ -75,7 +75,7 @@ void UserDelegate::UpdateUsers(const std::string &deviceId, const std::vector<Us
     for (auto &user : userStatus) {
         deviceUserMap_[deviceId][user.id] = user.isActive;
     }
-    ZLOGI("end, device:%{public}s, users:%{public}u", deviceId.c_str(), deviceUserMap_[deviceId].size());
+    ZLOGI("end, device:%{public}.10s, users:%{public}u", deviceId.c_str(), deviceUserMap_[deviceId].size());
 }
 
 bool UserDelegate::InitLocalUserMeta()
@@ -130,8 +130,7 @@ void UserDelegate::Init()
         ZLOGI("update user meta ok");
     });
     ExecutorFactory::GetInstance().Execute(std::move(retryTask));
-    auto ret = AccountDelegate::GetInstance()->Subscribe(
-        std::make_shared<LocalUserObserver>(std::shared_ptr<UserDelegate>(this)));
+    auto ret = AccountDelegate::GetInstance()->Subscribe(std::make_shared<LocalUserObserver>(*this));
     // subscribe user meta in other devices
     KvStoreMetaManager::GetInstance().SubscribeMeta(UserMetaRow::KEY_PREFIX,
         [this](const std::vector<uint8_t> &key, const std::vector<uint8_t> &value, CHANGE_FLAG flag) {
@@ -158,15 +157,15 @@ bool UserDelegate::NotifyUserEvent(const UserDelegate::UserEvent &userEvent)
     return InitLocalUserMeta();
 }
 
-UserDelegate::LocalUserObserver::LocalUserObserver(const std::shared_ptr<UserDelegate> &userDelegate)
-    : userDelegate_(std::move(userDelegate))
+UserDelegate::LocalUserObserver::LocalUserObserver(UserDelegate &userDelegate)
+    : userDelegate_(userDelegate)
 {
 }
 
 void UserDelegate::LocalUserObserver::OnAccountChanged(const DistributedKv::AccountEventInfo &eventInfo)
 {
     ZLOGI("event info:%{public}s, %{public}d", eventInfo.deviceAccountId.c_str(), eventInfo.status);
-    userDelegate_->NotifyUserEvent({}); // just notify
+    userDelegate_.NotifyUserEvent({}); // just notify
 }
 
 std::string UserDelegate::LocalUserObserver::Name()

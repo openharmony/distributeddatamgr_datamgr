@@ -42,12 +42,12 @@ public:
 private:
     class LocalUserObserver : public AccountDelegate::Observer {
     public:
-        explicit LocalUserObserver(const std::shared_ptr<UserDelegate> &userDelegate);
+        explicit LocalUserObserver(UserDelegate &userDelegate);
         void OnAccountChanged(const DistributedKv::AccountEventInfo &eventInfo) override;
         std::string Name() override;
 
     private:
-        std::shared_ptr<UserDelegate> userDelegate_;
+        UserDelegate &userDelegate_;
     };
     std::vector<UserStatus> GetUsers(const std::string &deviceId);
     void UpdateUsers(const std::string &deviceId, const std::vector<UserStatus> &userStatus);
