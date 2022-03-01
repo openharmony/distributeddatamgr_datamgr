@@ -55,7 +55,7 @@ AuthHandler::RelatedGroup AuthHandler::GetGroupInfo(
     int32_t localUserId, const std::string &appId, const std::string &peerDeviceId)
 {
     auto groupManager = GetGmInstance();
-    if (groupManager == nullptr || groupManager->getRelatedGroups == nullptr) {
+    if (groupManager == nullptr || groupManager->getRelatedGroups == nullptr || groupManager->destroyInfo == nullptr) {
         ZLOGE("failed to get group manager");
         return {};
     }
@@ -70,7 +70,7 @@ AuthHandler::RelatedGroup AuthHandler::GetGroupInfo(
     ZLOGI("get related group json :%{public}s", groupInfo);
     std::vector<RelatedGroup> groups;
     RelatedGroup::Unmarshall(groupInfo, groups);
-    free(groupInfo);
+    groupManager->destroyInfo(&groupInfo);
 
     // same account has priority
     std::sort(groups.begin(), groups.end(),
@@ -88,7 +88,7 @@ std::vector<std::string> AuthHandler::GetTrustedDevicesByType(
 {
     auto groupManager = GetGmInstance();
     if (groupManager == nullptr || groupManager->getRelatedGroups == nullptr
-        || groupManager->getTrustedDevices == nullptr) {
+        || groupManager->getTrustedDevices == nullptr || groupManager->destroyInfo == nullptr) {
         ZLOGE("failed to get group manager");
         return {};
     }
@@ -104,7 +104,7 @@ std::vector<std::string> AuthHandler::GetTrustedDevicesByType(
     ZLOGI("get joined group json :%{public}s", groupsJson);
     std::vector<RelatedGroup> groups;
     RelatedGroup::Unmarshall(groupsJson, groups);
-    free(groupsJson);
+    groupManager->destroyInfo(&groupsJson);
 
     std::vector<std::string> trustedDevices;
     for (const auto &group : groups) {
@@ -121,7 +121,7 @@ std::vector<std::string> AuthHandler::GetTrustedDevicesByType(
         ZLOGI("get trusted device json:%{public}s", devicesJson);
         std::vector<TrustDevice> devices;
         TrustDevice::Unmarshall(devicesJson, devices);
-        free(devicesJson);
+        groupManager->destroyInfo(&devicesJson);
         for (const auto &item : devices) {
             auto &provider = AppDistributedKv::CommunicationProvider::GetInstance();
             auto networkId = provider.ToNodeId(item.authId);
