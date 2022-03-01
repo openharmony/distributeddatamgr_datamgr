@@ -52,6 +52,9 @@ std::vector<DistributedData::UserStatus> UserDelegate::GetRemoteUserStatus(const
 std::vector<UserStatus> UserDelegate::GetUsers(const std::string &deviceId)
 {
     std::vector<UserStatus> userStatus;
+    if (!deviceUserMap_.Contains(deviceId)) {
+        LoadFromMeta(deviceId);
+    }
     for (const auto &entry : deviceUserMap_[deviceId]) {
         userStatus.emplace_back(entry.first, entry.second);
     }
@@ -110,6 +113,30 @@ bool UserDelegate::InitLocalUserMeta()
     return ret == DistributedDB::DBStatus::OK;
 }
 
+void UserDelegate::LoadFromMeta(const std::string &deviceId)
+{
+    auto &metaDelegate = KvStoreMetaManager::GetInstance().GetMetaKvStore();
+    if (metaDelegate == nullptr) {
+        ZLOGE("GetMetaKvStore return nullptr.");
+        return;
+    }
+
+    auto dbKey = UserMetaRow::GetKeyFor(deviceId);
+    DistributedDB::Value dbValue;
+    auto ret = metaDelegate->Get(dbKey, dbValue);
+    UserMetaData userMetaData;
+    ZLOGI("get user meta data ret %{public}d", ret);
+    if (ret != DistributedDB::DBStatus::OK) {
+        return;
+    }
+    userMetaData.Unmarshall({ dbValue.begin(), dbValue.end() });
+    std::map<int, bool> userMap;
+    for (const auto &user : userMetaData.users) {
+        userMap[user.id] = user.isActive;
+    }
+    deviceUserMap_[deviceId] = userMap;
+}
+
 UserDelegate &UserDelegate::GetInstance()
 {
     static UserDelegate instance;
@@ -136,6 +163,7 @@ void UserDelegate::Init()
         [this](const std::vector<uint8_t> &key, const std::vector<uint8_t> &value, CHANGE_FLAG flag) {
             UserMetaData metaData;
             metaData.Unmarshall({ value.begin(), value.end() });
+            ZLOGD("flag:%{public}d, value:%{public}.10s", flag, metaData.deviceId.c_str());
             if (metaData.deviceId == DeviceKvStoreImpl::GetLocalDeviceId()) {
                 ZLOGD("ignore local device user meta change");
                 return;
@@ -157,8 +185,7 @@ bool UserDelegate::NotifyUserEvent(const UserDelegate::UserEvent &userEvent)
     return InitLocalUserMeta();
 }
 
-UserDelegate::LocalUserObserver::LocalUserObserver(UserDelegate &userDelegate)
-    : userDelegate_(userDelegate)
+UserDelegate::LocalUserObserver::LocalUserObserver(UserDelegate &userDelegate) : userDelegate_(userDelegate)
 {
 }
 

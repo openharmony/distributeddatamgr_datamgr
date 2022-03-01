@@ -984,6 +984,7 @@ void KvStoreMetaManager::KvStoreMetaObserver::HandleChanges(
     for (const auto &entry : entries) {
         std::string key(entry.key.begin(), entry.key.end());
         for (const auto &item : handlerMap_) {
+            ZLOGI("flag:%{public}d, key:%{public}s", flag, key.c_str());
             if (key.find(item.first) == 0) {
                 item.second(entry.key, entry.value, flag);
             }
