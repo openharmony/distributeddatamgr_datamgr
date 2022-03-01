@@ -118,7 +118,7 @@ UserDelegate &UserDelegate::GetInstance()
 
 void UserDelegate::Init()
 {
-    KvStoreTask retryTask([&]() {
+    KvStoreTask retryTask([this]() {
         do {
             static constexpr int RETRY_INTERVAL = 500; // millisecond
             std::this_thread::sleep_for(std::chrono::milliseconds(RETRY_INTERVAL));
