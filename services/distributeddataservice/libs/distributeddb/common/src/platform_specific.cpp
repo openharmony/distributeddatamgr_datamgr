@@ -139,6 +139,7 @@ int GetRealPath(const std::string &inOriPath, std::string &outRealPath)
         return -E_OUT_OF_MEMORY;
     }
     if (memset_s(realPath, MAX_PATH_LENGTH + 1, 0, MAX_PATH_LENGTH + 1) != EOK) {
+        delete []realPath;
         return -E_SECUREC_ERROR;
     }
 

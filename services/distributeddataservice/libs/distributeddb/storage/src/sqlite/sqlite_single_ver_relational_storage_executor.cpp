@@ -662,11 +662,11 @@ int SQLiteSingleVerRelationalStorageExecutor::PrepareForSavingData(const QueryOb
 int SQLiteSingleVerRelationalStorageExecutor::SaveSyncLog(sqlite3_stmt *statement, sqlite3_stmt *queryStmt,
     const DataItem &dataItem, TimeStamp &maxTimestamp, int64_t rowid)
 {
-    int errCode = SQLiteUtils::BindBlobToStatement(queryStmt, 1, dataItem.hashKey);
+    int errCode = SQLiteUtils::BindBlobToStatement(queryStmt, 1, dataItem.hashKey);  // 1 means hashkey index.
     if (errCode != E_OK) {
         return errCode;
     }
-    errCode = SQLiteUtils::BindTextToStatement(queryStmt, 2, dataItem.dev);
+    errCode = SQLiteUtils::BindTextToStatement(queryStmt, 2, dataItem.dev);  // 2 means device index.
     if (errCode != E_OK) {
         return errCode;
     }
@@ -1092,9 +1092,6 @@ int SQLiteSingleVerRelationalStorageExecutor::GetSyncDataByQuery(std::vector<Dat
             break;
         }
     } while (true);
-    if (overLongSize != 0) {
-        LOGW("Over 4M records:%zu.", overLongSize);
-    }
     LOGI("Get sync data finished, rc:%d, record size:%zu, overlong size:%zu, isDeleted:%d",
         errCode, dataItems.size(), overLongSize, isGettingDeletedData);
     SQLiteUtils::ResetStatement(queryStmt, true, errCode);

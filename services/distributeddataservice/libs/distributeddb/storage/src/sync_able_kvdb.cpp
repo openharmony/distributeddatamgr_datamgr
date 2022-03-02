@@ -180,7 +180,7 @@ void SyncAbleKvDB::StartSyncerWithNoLock(bool isCheckSyncActive, bool isNeedActi
         userChangeListerner_ = RuntimeContext::GetInstance()->RegisterUserChangedListerner(
             std::bind(&SyncAbleKvDB::ChangeUserListerner, this), UserChangeMonitor::USER_ACTIVE_TO_NON_ACTIVE_EVENT);
     } else if (isSyncDualTupleMode && (userChangeListerner_ == nullptr)) {
-        EventType event = started_?
+        EventType event = started_ ?
             UserChangeMonitor::USER_ACTIVE_EVENT : UserChangeMonitor::USER_NON_ACTIVE_EVENT;
         userChangeListerner_ = RuntimeContext::GetInstance()->RegisterUserChangedListerner(
             std::bind(&SyncAbleKvDB::UserChangeHandle, this), event);

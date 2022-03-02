@@ -515,8 +515,8 @@ int SQLiteUtils::AttachNewDatabase(sqlite3 *db, CipherType type, const CipherPas
         goto END;
     }
     // Passwords do not allow vector operations, so we can not use function BindBlobToStatement here.
-    errCode = sqlite3_bind_blob(statement, 2, static_cast<const void *>(password.GetData()),
-        password.GetSize(), SQLITE_TRANSIENT); // 2nd para is password.
+    errCode = sqlite3_bind_blob(statement, 2, static_cast<const void *>(password.GetData()),  // 2 means password index.
+        password.GetSize(), SQLITE_TRANSIENT);
     if (errCode != SQLITE_OK) {
         LOGE("Bind the attached key failed:%d", errCode);
         errCode = SQLiteUtils::MapSQLiteErrno(errCode);
