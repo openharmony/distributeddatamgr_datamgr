@@ -15,6 +15,9 @@
 #include "metadata/secret_key_meta_data.h"
 namespace OHOS {
 namespace DistributedData {
+SecretKeyMetaData::SecretKeyMetaData()
+{
+}
 SecretKeyMetaData::~SecretKeyMetaData()
 {
     sKey.assign(sKey.size(), 0);

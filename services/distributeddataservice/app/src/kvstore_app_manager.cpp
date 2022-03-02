@@ -16,17 +16,20 @@
 #define LOG_TAG "KvStoreAppManager"
 
 #include "kvstore_app_manager.h"
+
 #include <directory_ex.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+
 #include <thread>
+
 #include "account_delegate.h"
 #include "broadcast_sender.h"
 #include "checker/checker_manager.h"
 #include "constant.h"
-#include "directory_utils.h"
 #include "device_kvstore_impl.h"
+#include "directory_utils.h"
 #include "ikvstore.h"
 #include "kv_store_delegate.h"
 #include "kvstore_app_accessor.h"
@@ -34,6 +37,7 @@
 #include "log_print.h"
 #include "permission_validator.h"
 #include "reporter.h"
+#include "route_head_handler_impl.h"
 #include "types.h"
 
 namespace OHOS {
@@ -228,6 +232,7 @@ Status KvStoreAppManager::GetKvStore(const Options &options, const std::string &
         kvStore = nullptr;
         return Status::ERROR;
     }
+    kvStore->SetCompatibleIdentify();
     auto result = singleStores_[type].emplace(storeId, kvStore);
     if (!result.second) {
         ZLOGE("emplace failed.");
@@ -388,6 +393,7 @@ Status KvStoreAppManager::InitNbDbOption(const Options &options, const std::vect
         return Status::DB_ERROR;
     }
 
+    dbOption.syncDualTupleMode = true; // tuple of (appid+storeid)
     dbOption.createIfNecessary = options.createIfMissing;
     dbOption.isEncryptedDb = options.encrypt;
     if (options.encrypt) {
@@ -462,8 +468,8 @@ DistributedDB::KvStoreDelegateManager *KvStoreAppManager::GetDelegateManager(Pat
     }
 
     userId_ = AccountDelegate::GetInstance()->GetCurrentAccountId(bundleName_);
-    ZLOGD("accountId: %s bundleName: %s", KvStoreUtils::ToBeAnonymous(userId_).c_str(), bundleName_.c_str());
-    delegateManagers_[type] = new (std::nothrow) DistributedDB::KvStoreDelegateManager(trueAppId_, userId_);
+    ZLOGD("accountId: %{public}s bundleName: %{public}s", deviceAccountId_.c_str(), bundleName_.c_str());
+    delegateManagers_[type] = new (std::nothrow) DistributedDB::KvStoreDelegateManager(trueAppId_, deviceAccountId_);
     if (delegateManagers_[type] == nullptr) {
         ZLOGE("delegateManagers_[%d] is nullptr.", type);
         return nullptr;
@@ -726,6 +732,24 @@ void KvStoreAppManager::Dump(int fd) const
     for (const auto &singleStoreMap : singleStores_) {
         for (const auto &pair : singleStoreMap) {
             pair.second->OnDump(fd);
+        }
+    }
+}
+
+bool KvStoreAppManager::IsStoreOpened(const std::string &storeId) const
+{
+    return (!singleStores_[PATH_DE].empty() && singleStores_->find(storeId) != singleStores_->end())
+           || (!singleStores_[PATH_CE].empty() && singleStores_->find(storeId) != singleStores_->end());
+}
+
+void KvStoreAppManager::SetCompatibleIdentify(const std::string &deviceId) const
+{
+    for (const auto &storeType : singleStores_) {
+        for (const auto &item : storeType) {
+            if (item.second == nullptr) {
+                continue;
+            }
+            item.second->SetCompatibleIdentify(deviceId);
         }
     }
 }

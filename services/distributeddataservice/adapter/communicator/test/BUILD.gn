@@ -29,9 +29,9 @@ ohos_unittest("CommunicationProviderTest") {
     "../src",
   ]
   external_deps = [
+    "dsoftbus_standard:softbus_client",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
-    "dsoftbus_standard:softbus_client",
   ]
   deps = [
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/communicator:distributeddata_communicator_static",
@@ -61,8 +61,6 @@ group("unittest") {
 
   deps = []
 
-  deps += [
-    ":CommunicationProviderTest",
-  ]
+  deps += [ ":CommunicationProviderTest" ]
 }
 ###############################################################################

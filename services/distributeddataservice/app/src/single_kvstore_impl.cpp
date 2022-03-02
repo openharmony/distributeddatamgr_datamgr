@@ -23,6 +23,7 @@
 #include "constant.h"
 #include "dds_trace.h"
 #include "device_kvstore_impl.h"
+#include "auth/auth_delegate.h"
 #include "kvstore_data_service.h"
 #include "kvstore_utils.h"
 #include "ipc_skeleton.h"
@@ -30,6 +31,7 @@
 #include "permission_validator.h"
 #include "query_helper.h"
 #include "reporter.h"
+#include "upgrade_manager.h"
 
 namespace OHOS::DistributedKv {
 using namespace OHOS::DistributedData;
@@ -1609,5 +1611,37 @@ void SingleKvStoreImpl::OnDump(int fd) const
 std::string SingleKvStoreImpl::GetStoreId()
 {
     return storeId_;
+}
+
+void SingleKvStoreImpl::SetCompatibleIdentify(const std::string &changedDevice)
+{
+    bool flag = false;
+    auto capability = UpgradeManager::GetInstance().GetCapability(changedDevice, flag);
+    if (!flag || capability.version >= CapMetaData::CURRENT_VERSION) {
+        ZLOGE("get peer capability %{public}d, or not older version", flag);
+        return;
+    }
+
+    auto peerUserId = 0; // peer user id reversed here
+    auto groupType =
+        AuthDelegate::GetInstance()->GetGroupType(std::stoi(deviceAccountId_), peerUserId, changedDevice, appId_);
+    flag = false;
+    std::string compatibleUserId = UpgradeManager::GetIdentifierByType(groupType, flag);
+    if (!flag) {
+        ZLOGE("failed to get identifier by group type %{public}d", groupType);
+        return;
+    }
+    // older version use bound account syncIdentifier instead of user syncIdentifier
+    ZLOGI("compatible user:%{public}s", compatibleUserId.c_str());
+    auto syncIdentifier =
+        DistributedDB::KvStoreDelegateManager::GetKvStoreIdentifier(compatibleUserId, appId_, storeId_);
+    kvStoreNbDelegate_->SetEqualIdentifier(syncIdentifier, { changedDevice });
+}
+
+void SingleKvStoreImpl::SetCompatibleIdentify()
+{
+    KvStoreTuple tuple = { deviceAccountId_, appId_, storeId_ };
+    UpgradeManager::SetCompatibleIdentifyByType(kvStoreNbDelegate_, tuple, IDENTICAL_ACCOUNT_GROUP);
+    UpgradeManager::SetCompatibleIdentifyByType(kvStoreNbDelegate_, tuple, PEER_TO_PEER_GROUP);
 }
 }  // namespace OHOS::DistributedKv

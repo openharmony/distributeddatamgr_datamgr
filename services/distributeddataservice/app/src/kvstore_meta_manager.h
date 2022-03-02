@@ -19,12 +19,13 @@
 #include <nlohmann/json.hpp>
 
 #include "app_device_status_change_listener.h"
-#include "types.h"
-#include "system_ability.h"
 #include "kv_store_delegate.h"
 #include "kv_store_delegate_manager.h"
+#include "kv_store_task.h"
 #include "kvstore_impl.h"
 #include "single_kvstore_impl.h"
+#include "system_ability.h"
+#include "types.h"
 
 namespace OHOS {
 namespace DistributedKv {
@@ -35,6 +36,12 @@ enum FLAG {
     UPDATE_LOCAL,
     DELETE_LOCAL,
     CHECK_EXIST_LOCAL,
+};
+
+enum class CHANGE_FLAG {
+    INSERT,
+    UPDATE,
+    DELETE
 };
 
 struct Serializable {
@@ -146,12 +153,14 @@ private:
 class KvStoreMetaManager {
 public:
     static constexpr uint32_t META_STORE_VERSION = 0x03000001;
+    static const inline std::string META_DB_APP_ID = "distributeddata";
     enum DatabaseType {
         KVDB,
         RDB,
     };
     using NbDelegate = std::unique_ptr<DistributedDB::KvStoreNbDelegate,
         std::function<void(DistributedDB::KvStoreNbDelegate *)>>;
+    using ChangeObserver = std::function<void(const std::vector<uint8_t> &, const std::vector<uint8_t> &, CHANGE_FLAG)>;
 
     class MetaDeviceChangeListenerImpl : public AppDistributedKv::AppDeviceStatusChangeListener {
         void OnDeviceChanged(const AppDistributedKv::DeviceInfo &info,
@@ -165,9 +174,8 @@ public:
     static KvStoreMetaManager &GetInstance();
 
     void InitMetaParameter();
-
-    void InitMetaListener(std::function<void(const KvStoreMetaData &metaData)> observer);
-
+    void InitMetaListener();
+    void SubscribeMeta(const std::string &keyPrefix, const ChangeObserver &observer);
     const NbDelegate &GetMetaKvStore();
 
     Status CheckUpdateServiceMeta(const std::vector<uint8_t> &metaKey, FLAG flag, const std::vector<uint8_t> &val = {});
@@ -256,10 +264,11 @@ private:
 
         // Database change callback
         void OnChange(const DistributedDB::KvStoreChangedData &data) override;
-        std::function<void(const KvStoreMetaData &)> notify_ = nullptr;
+        std::map<std::string, ChangeObserver> handlerMap_;
+    private:
+        void HandleChanges(CHANGE_FLAG flag, const std::list<DistributedDB::Entry> &list);
     };
 
-    static const inline std::string META_DB_APP_ID = "distributeddata";
     static constexpr const char *ROOT_KEY_ALIAS = "distributed_db_root_key";
     static constexpr const char *STRATEGY_META_PREFIX = "StrategyMetaData";
     static constexpr const char *CAPABILITY_ENABLED = "capabilityEnabled";

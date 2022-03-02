@@ -19,6 +19,7 @@ ohos_static_library("distributeddata_account_static") {
   ]
 
   include_dirs = [
+    "../include/log",
     "../include/account",
     "../include/permission",
     "../include/utils",
@@ -37,7 +38,6 @@ ohos_static_library("distributeddata_account_static") {
 
   deps = [
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter:distributeddata_adapter",
-    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/framework:distributeddatasvcfwk",
     "//utils/native/base:utils",
   ]
 
@@ -50,5 +50,6 @@ ohos_static_library("distributeddata_account_static") {
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "os_account_standard:libaccountkits",
+    "os_account_standard:os_account_innerkits",
   ]
 }

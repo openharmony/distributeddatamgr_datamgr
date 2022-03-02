@@ -22,9 +22,10 @@ struct SecretKeyMetaData final : public Serializable {
     std::vector<uint8_t> time {};
     std::vector<uint8_t> sKey {};
     int32_t kvStoreType = 0;
-    ~SecretKeyMetaData();
-    bool Marshal(json &node) const override;
-    bool Unmarshal(const json &node) override;
+    API_EXPORT SecretKeyMetaData();
+    API_EXPORT ~SecretKeyMetaData();
+    API_EXPORT bool Marshal(json &node) const override;
+    API_EXPORT bool Unmarshal(const json &node) override;
 };
 }
 }

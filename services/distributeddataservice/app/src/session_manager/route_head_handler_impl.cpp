@@ -1,0 +1,269 @@
+/*
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+#include "route_head_handler_impl.h"
+
+#define LOG_TAG "RouteHeadHandler"
+
+#include "auth/auth_delegate.h"
+#include "device_kvstore_impl.h"
+#include "kvstore_meta_manager.h"
+#include "log_print.h"
+#include "securec.h"
+#include "upgrade_manager.h"
+
+namespace OHOS::DistributedData {
+using namespace OHOS::DistributedKv;
+constexpr const int ALIGN_WIDTH = 8;
+std::shared_ptr<RouteHeadHandler> RouteHeadHandlerImpl::Create(const ExtendInfo &info)
+{
+    auto handler = std::make_shared<RouteHeadHandlerImpl>(info);
+    if (handler == nullptr) {
+        ZLOGE("new instance failed");
+        return nullptr;
+    }
+    handler->Init();
+    return handler;
+}
+
+RouteHeadHandlerImpl::RouteHeadHandlerImpl(const ExtendInfo &info)
+    : userId_(info.userId), appId_(info.appId), storeId_(info.storeId), deviceId_(info.dstTarget), headSize_(0)
+{
+    ZLOGI("init route handler, app:%{public}s, user:%{public}s, peer:%{public}s", appId_.c_str(), userId_.c_str(),
+        deviceId_.c_str());
+}
+
+void RouteHeadHandlerImpl::Init()
+{
+    ZLOGD("begin");
+    if (deviceId_.empty()) {
+        return;
+    }
+    SessionPoint localPoint { DeviceKvStoreImpl::GetLocalDeviceId(), std::stoi(userId_), appId_ };
+    session_ = SessionManager::GetInstance().GetSession(localPoint, deviceId_);
+    ZLOGD("valid session:%{public}s", Serializable::Marshall(session_).c_str());
+}
+
+DistributedDB::DBStatus RouteHeadHandlerImpl::GetHeadDataSize(uint32_t &headSize)
+{
+    ZLOGD("begin");
+    headSize = 0;
+    if (appId_ == DistributedKv::KvStoreMetaManager::META_DB_APP_ID) {
+        ZLOGI("meta data permitted");
+        return DistributedDB::OK;
+    }
+    bool flag = false;
+    auto peerCap = UpgradeManager::GetInstance().GetCapability(session_.targetDeviceId, flag);
+    if (!flag) {
+        ZLOGI("get peer cap failed");
+        return DistributedDB::DB_ERROR;
+    }
+    if (peerCap.version == CapMetaData::INVALID_VERSION) {
+        // older versions ignore pack extend head
+        ZLOGI("ignore older version device");
+        return DistributedDB::OK;
+    }
+    if (!session_.IsValid()) {
+        ZLOGI("no valid session to peer device");
+        return DistributedDB::DB_ERROR;
+    }
+    size_t expectSize = sizeof(RouteHead) + sizeof(SessionDevicePair) + sizeof(SessionUserPair)
+                        + session_.targetUserIds.size() * sizeof(int) + sizeof(SessionAppId) + session_.appId.size();
+
+    // align message uint width
+    headSize = GET_ALIGNED_SIZE(expectSize, ALIGN_WIDTH);
+    ZLOGI("packed size:%{public}u", headSize);
+    headSize_ = headSize;
+    return DistributedDB::OK;
+}
+
+DistributedDB::DBStatus RouteHeadHandlerImpl::FillHeadData(uint8_t *data, uint32_t headSize, uint32_t totalLen)
+{
+    ZLOGD("begin");
+    if (headSize != headSize_) {
+        ZLOGI("size not match");
+        return DistributedDB::DB_ERROR;
+    }
+    if (headSize_ == 0) {
+        ZLOGI("ignore older version device");
+        return DistributedDB::OK;
+    }
+    auto packRet = PackData(data, headSize);
+    ZLOGD("pack result:%{public}d", packRet);
+    return packRet ? DistributedDB::OK : DistributedDB::DB_ERROR;
+}
+
+bool RouteHeadHandlerImpl::PackData(uint8_t *data, uint32_t totalLen)
+{
+    if (headSize_ > totalLen) {
+        ZLOGE("the buffer size is not enough");
+        return false;
+    }
+
+    auto isOk = PackDataHead(data, headSize_);
+    if (isOk) {
+        return PackDataBody(data + sizeof(RouteHead), headSize_ - sizeof(RouteHead));
+    }
+    return false;
+}
+
+bool RouteHeadHandlerImpl::PackDataHead(uint8_t *data, uint32_t totalLen)
+{
+    uint8_t *ptr = data;
+    if (headSize_ < sizeof(RouteHead)) {
+        return false;
+    }
+    RouteHead *head = reinterpret_cast<RouteHead *>(ptr);
+    head->magic = RouteHead::MAGIC_NUMBER;
+    head->version = RouteHead::VERSION;
+    head->checkSum = 0;
+    head->dataLen = static_cast<uint32_t>(totalLen - sizeof(RouteHead));
+    return true;
+}
+
+bool RouteHeadHandlerImpl::PackDataBody(uint8_t *data, uint32_t totalLen)
+{
+    uint8_t *ptr = data;
+    SessionDevicePair *devicePair = reinterpret_cast<SessionDevicePair *>(ptr);
+    auto ret = strcpy_s(devicePair->sourceDeviceId, DEVICE_ID_SIZE_MAX, session_.sourceDeviceId.c_str());
+    if (ret != 0) {
+        ZLOGE("strcpy for source device id failed");
+        return false;
+    }
+    ret = strcpy_s(devicePair->targetDeviceId, DEVICE_ID_SIZE_MAX, session_.targetDeviceId.c_str());
+    if (ret != 0) {
+        ZLOGE("strcpy for target device id failed");
+        return false;
+    }
+    ptr += sizeof(SessionDevicePair);
+
+    SessionUserPair *userPair = reinterpret_cast<SessionUserPair *>(ptr);
+    userPair->sourceUserId = session_.sourceUserId;
+    userPair->targetUserCount = session_.targetUserIds.size();
+    for (size_t i = 0; i < session_.targetUserIds.size(); ++i) {
+        *(userPair->targetUserIds + i) = session_.targetUserIds[i];
+    }
+    ptr += (sizeof(SessionUserPair) + session_.targetUserIds.size() * sizeof(int));
+
+    SessionAppId *appPair = reinterpret_cast<SessionAppId *>(ptr);
+    appPair->len = data + totalLen - ptr; // left size
+    ret = strcpy_s(appPair->appId, data + totalLen - ptr, session_.appId.c_str());
+    if (ret != 0) {
+        ZLOGE("strcpy for app id failed");
+        return false;
+    }
+    return true;
+}
+
+bool RouteHeadHandlerImpl::ParseHeadData(
+    const uint8_t *data, uint32_t len, uint32_t &headSize, std::vector<std::string> &users)
+{
+    auto ret = UnPackData(data, len, headSize);
+    if (!ret) {
+        headSize = 0;
+        ZLOGE("unpack data head failed");
+        return false;
+    }
+    ZLOGI("unpacked size:%{public}u", headSize);
+    // flip the local and peer ends
+    SessionPoint local { .deviceId = session_.targetDeviceId, .appId = session_.appId };
+    SessionPoint peer { .deviceId = session_.sourceDeviceId, .userId = session_.sourceUserId, .appId = session_.appId };
+    ZLOGI("validSession:%{public}s", Serializable::Marshall(session_).c_str());
+    for (const auto &item : session_.targetUserIds) {
+        local.userId = item;
+        if (SessionManager::GetInstance().CheckSession(local, peer)) {
+            users.emplace_back(std::to_string(item));
+        }
+    }
+    return true;
+}
+
+bool RouteHeadHandlerImpl::UnPackData(const uint8_t *data, uint32_t totalLen, uint32_t &unpackedSize)
+{
+    if (data == nullptr || totalLen < sizeof(RouteHead)) {
+        ZLOGE("invalid input data");
+        return false;
+    }
+    unpackedSize = 0;
+    const RouteHead *head = UnPackHeadHead(data, totalLen);
+    if (head != nullptr && head->version == RouteHead::VERSION) {
+        auto isOk = UnPackHeadBody(data + sizeof(RouteHead), totalLen - sizeof(RouteHead));
+        if (isOk) {
+            unpackedSize = sizeof(RouteHead) + head->dataLen;
+        }
+        return isOk;
+    }
+    return false;
+}
+
+const RouteHead *RouteHeadHandlerImpl::UnPackHeadHead(const uint8_t *data, uint32_t totalLen)
+{
+    const uint8_t *ptr = data;
+    const RouteHead *head = reinterpret_cast<const RouteHead *>(ptr);
+    if (head->magic != RouteHead::MAGIC_NUMBER) {
+        ZLOGW("not route head data");
+        return nullptr;
+    }
+    if (head->dataLen + sizeof(RouteHead) > totalLen) {
+        ZLOGE("invalid route head len");
+        return nullptr;
+    }
+    return head;
+}
+
+bool RouteHeadHandlerImpl::UnPackHeadBody(const uint8_t *data, uint32_t totalLen)
+{
+    const uint8_t *ptr = data;
+    uint32_t leftSize = totalLen;
+
+    if (leftSize < sizeof(SessionDevicePair)) {
+        ZLOGE("failed to parse device pair");
+        return false;
+    }
+    const SessionDevicePair *devicePair = reinterpret_cast<const SessionDevicePair *>(ptr);
+    session_.sourceDeviceId.append(devicePair->sourceDeviceId, DEVICE_ID_SIZE_MAX);
+    session_.targetDeviceId.append(devicePair->targetDeviceId, DEVICE_ID_SIZE_MAX);
+    ptr += sizeof(SessionDevicePair);
+    leftSize -= sizeof(SessionDevicePair);
+
+    if (leftSize < sizeof(SessionUserPair)) {
+        ZLOGE("failed to parse user pair");
+        return false;
+    }
+    const SessionUserPair *userPair = reinterpret_cast<const SessionUserPair *>(ptr);
+    session_.sourceUserId = userPair->sourceUserId;
+
+    if (leftSize < sizeof(SessionUserPair) + userPair->targetUserCount * sizeof(int)) {
+        ZLOGE("failed to parse user pair, target user");
+        return false;
+    }
+    for (int i = 0; i < userPair->targetUserCount; ++i) {
+        session_.targetUserIds.push_back(*(userPair->targetUserIds + i));
+    }
+    ptr += sizeof(SessionUserPair) + userPair->targetUserCount * sizeof(int);
+
+    if (leftSize < sizeof(SessionAppId)) {
+        ZLOGE("failed to parse app id len");
+        return false;
+    }
+    const SessionAppId *appId = reinterpret_cast<const SessionAppId *>(ptr);
+
+    if (leftSize < sizeof(SessionAppId) + appId->len) {
+        ZLOGE("failed to parse app id");
+        return false;
+    }
+    session_.appId.append(appId->appId, appId->len);
+    return true;
+}
+} // namespace OHOS::DistributedData

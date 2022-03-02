@@ -14,10 +14,16 @@
  */
 #ifndef OHOS_DISTRIBUTED_DATA_SERVICES_FRAMEWORK_METADATA_STORE_META_DATA_H
 #define OHOS_DISTRIBUTED_DATA_SERVICES_FRAMEWORK_METADATA_STORE_META_DATA_H
+
+#include <vector>
+
 #include "serializable/serializable.h"
-namespace OHOS {
-namespace DistributedData {
+
+namespace OHOS::DistributedData {
 struct StoreMetaData final : public Serializable {
+    // record kvstore meta version for compatible, should update when modify kvstore meta structure.
+    static constexpr uint32_t META_VERSION_SUPPORT_MULTIUSER = 0x03000002;
+    static constexpr uint32_t META_VERSION_SUPPORT_MULTIUSER_HOS = 0x03000001;
     bool isAutoSync = false;
     bool isBackup = false;
     bool isDirty = false;
@@ -34,11 +40,26 @@ struct StoreMetaData final : public Serializable {
     std::string schema = "";
     std::string storeId = "";
     std::string userId = "";
-    uint32_t version = 0;
+    uint32_t version = META_VERSION_SUPPORT_MULTIUSER;
 
-    bool Marshal(json &node) const override;
-    bool Unmarshal(const json &node) override;
+    API_EXPORT ~StoreMetaData();
+    API_EXPORT StoreMetaData();
+    API_EXPORT StoreMetaData(const std::string &appId, const std::string &storeId, const std::string &userId);
+    API_EXPORT bool Marshal(json &node) const override;
+    API_EXPORT bool Unmarshal(const json &node) override;
 };
-}
-}
+class KvStoreMetaRow {
+public:
+    KVSTORE_API static const std::string KEY_PREFIX;
+
+    KVSTORE_API static std::vector<uint8_t> GetKeyFor(const std::string &key);
+};
+
+class SecretMetaRow {
+public:
+    KVSTORE_API static const std::string KEY_PREFIX;
+
+    KVSTORE_API static std::vector<uint8_t> GetKeyFor(const std::string &key);
+};
+} // namespace OHOS::DistributedData
 #endif // OHOS_DISTRIBUTED_DATA_SERVICES_FRAMEWORK_METADATA_STORE_META_DATA_H
