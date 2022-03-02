@@ -30,4 +30,4 @@ private:
     KvStoreDataService &kvStoreDataService_;
 };
 } // namespace OHOS::DistributedKv
-#endif //DISTRIBUTEDDATAMGR_KVSTORE_DEVICE_LISTENER_H
+#endif // DISTRIBUTEDDATAMGR_KVSTORE_DEVICE_LISTENER_H
