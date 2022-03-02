@@ -20,6 +20,5 @@ namespace DistributedKv {
 KvStoreClientDeathObserverProxy::KvStoreClientDeathObserverProxy(const sptr<IRemoteObject> &impl)
     : IRemoteProxy<IKvStoreClientDeathObserver>(impl)
 {}
-
 }  // namespace DistributedKv
 }  // namespace OHOS
