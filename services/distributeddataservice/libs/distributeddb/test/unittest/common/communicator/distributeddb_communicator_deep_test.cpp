@@ -432,7 +432,7 @@ HWTEST_F(DistributedDBCommunicatorDeepTest, Fragment002, TestSize.Level2)
 HWTEST_F(DistributedDBCommunicatorDeepTest, Fragment003, TestSize.Level3)
 {
     // Preset
-    std::atomic<int> count{0};
+    std::atomic<int> count {0};
     OnMessageCallback callback = [&count](const std::string &srcTarget, Message *inMsg) {
         delete inMsg;
         inMsg = nullptr;

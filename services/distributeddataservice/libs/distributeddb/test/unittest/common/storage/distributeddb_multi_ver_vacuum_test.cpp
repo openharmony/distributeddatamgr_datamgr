@@ -96,7 +96,7 @@ HWTEST_F(DistributedDBMultiVerVacuumTest, SingleTaskNormalStatusSwitch001, TestS
 {
     // Preset
     MultiVerVacuum vacuum;
-    MultiVerVacuumExecutorStub databaseA(DbScale{1, 1, 2, 2}, 100); // 1, 2 For Scale, 100 For TimeCost, 1.7s in Total
+    MultiVerVacuumExecutorStub databaseA(DbScale {1, 1, 2, 2}, 100); // 1, 2 For Scale, 100 For TimeCost, 1.7s in Total
 
     /**
      * @tc.steps: step1. launch dbTaskA for databaseA
@@ -493,7 +493,7 @@ HWTEST_F(DistributedDBMultiVerVacuumTest, SingleTaskConcurrentStatusSwitch001, T
 {
     // Preset
     MultiVerVacuum vacuum;
-    MultiVerVacuumExecutorStub databaseC(DbScale{1, 1, 1, 1}, 1000); // 1 For Scale, 1000 For TimeCost, 11s in Total
+    MultiVerVacuumExecutorStub databaseC(DbScale {1, 1, 1, 1}, 1000); // 1 For Scale, 1000 For TimeCost, 11s in Total
 
     /**
      * @tc.steps: step1. launch dbTaskC for databaseC, databaseC is timecost

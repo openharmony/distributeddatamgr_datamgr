@@ -459,7 +459,7 @@ void GenericSyncer::ClearSyncOperations(bool isClosed)
 
 void GenericSyncer::TriggerSyncFinished(SyncOperation *operation)
 {
-    if(operation != nullptr && operation->CheckIsAllFinished()) {
+    if (operation != nullptr && operation->CheckIsAllFinished()) {
         operation->Finished();
     }
 }
