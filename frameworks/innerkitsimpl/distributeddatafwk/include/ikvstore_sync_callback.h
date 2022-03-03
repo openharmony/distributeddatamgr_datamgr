@@ -24,7 +24,6 @@
 
 namespace OHOS {
 namespace DistributedKv {
-
 class IKvStoreSyncCallback : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.DistributedKv.IKvStoreSyncCallback");

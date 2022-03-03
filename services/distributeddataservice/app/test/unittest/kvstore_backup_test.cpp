@@ -113,7 +113,7 @@ HWTEST_F(KvStoreBackupTest, KvStoreBackupTest002, TestSize.Level1)
 
     auto trueAppId = CheckerManager::GetInstance().GetAppId(appId.appId, CheckerManager::INVALID_UID);
     auto backupHandler = std::make_unique<BackupHandler>();
-    MetaData metaData{0};
+    MetaData metaData;
     metaData.kvStoreMetaData.deviceAccountId = "0";
     metaData.kvStoreMetaData.userId = AccountDelegate::GetInstance()->GetCurrentAccountId();
     metaData.kvStoreMetaData.appId = trueAppId;
@@ -166,7 +166,7 @@ HWTEST_F(KvStoreBackupTest, KvStoreBackupTest003, TestSize.Level1)
 
     auto trueAppId = CheckerManager::GetInstance().GetAppId(appId.appId, CheckerManager::INVALID_UID);
     auto backupHandler = std::make_unique<BackupHandler>();
-    MetaData metaData{0};
+    MetaData metaData;
     metaData.kvStoreMetaData.deviceAccountId = "0";
     metaData.kvStoreMetaData.userId = AccountDelegate::GetInstance()->GetCurrentAccountId();
     metaData.kvStoreMetaData.appId = trueAppId;
@@ -228,7 +228,7 @@ HWTEST_F(KvStoreBackupTest, KvStoreBackupTest004, TestSize.Level1)
 
     auto trueAppId = CheckerManager::GetInstance().GetAppId(appId.appId, CheckerManager::INVALID_UID);
     auto backupHandler = std::make_unique<BackupHandler>();
-    MetaData metaData{0};
+    MetaData metaData;
     metaData.kvStoreMetaData.deviceAccountId = "0";
     metaData.kvStoreMetaData.userId = AccountDelegate::GetInstance()->GetCurrentAccountId();
     metaData.kvStoreMetaData.appId = trueAppId;
@@ -285,7 +285,7 @@ HWTEST_F(KvStoreBackupTest, KvStoreBackupTest005, TestSize.Level1)
 
     auto trueAppId = CheckerManager::GetInstance().GetAppId(appId.appId, CheckerManager::INVALID_UID);
     auto backupHandler = std::make_unique<BackupHandler>();
-    MetaData metaData{0};
+    MetaData metaData;
     metaData.kvStoreMetaData.deviceAccountId = "0";
     metaData.kvStoreMetaData.userId = AccountDelegate::GetInstance()->GetCurrentAccountId();
     metaData.kvStoreMetaData.appId = trueAppId;
@@ -338,7 +338,7 @@ HWTEST_F(KvStoreBackupTest, KvStoreBackupTest006, TestSize.Level1)
 
     auto trueAppId = CheckerManager::GetInstance().GetAppId(appId.appId, CheckerManager::INVALID_UID);
     auto backupHandler = std::make_unique<BackupHandler>();
-    MetaData metaData{0};
+    MetaData metaData;
     metaData.kvStoreMetaData.deviceAccountId = "0";
     metaData.kvStoreMetaData.userId = AccountDelegate::GetInstance()->GetCurrentAccountId();
     metaData.kvStoreMetaData.appId = trueAppId;
@@ -391,7 +391,7 @@ HWTEST_F(KvStoreBackupTest, KvStoreBackupTest007, TestSize.Level1)
 
     auto trueAppId = CheckerManager::GetInstance().GetAppId(appId.appId, CheckerManager::INVALID_UID);
     auto backupHandler = std::make_unique<BackupHandler>();
-    MetaData metaData{0};
+    MetaData metaData;
     metaData.kvStoreMetaData.deviceAccountId = "0";
     metaData.kvStoreMetaData.userId = AccountDelegate::GetInstance()->GetCurrentAccountId();
     metaData.kvStoreMetaData.appId = trueAppId;

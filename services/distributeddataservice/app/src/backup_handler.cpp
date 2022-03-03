@@ -246,10 +246,9 @@ bool BackupHandler::SingleKvStoreRecover(MetaData &metaData, DistributedDB::KvSt
     std::string backupName = Constant::Concatenate(
         {metaData.kvStoreMetaData.userId, "_", metaData.kvStoreMetaData.appId, "_",
          metaData.kvStoreMetaData.storeId});
-    auto backupFullName = Constant::Concatenate({
-        BackupHandler::GetBackupPath(metaData.kvStoreMetaData.deviceAccountId, pathType), "/",
-        GetHashedBackupName(backupName)
-    });
+    auto backupFullName = Constant::Concatenate(
+        {BackupHandler::GetBackupPath(metaData.kvStoreMetaData.deviceAccountId, pathType), "/",
+         GetHashedBackupName(backupName)});
     DistributedDB::DBStatus dbStatus = delegate->Import(backupFullName, password);
     if (dbStatus == DistributedDB::DBStatus::OK) {
         ZLOGI("SingleKvStoreRecover success.");
@@ -283,12 +282,11 @@ bool BackupHandler::MultiKvStoreRecover(MetaData &metaData,
     }
 
     std::string backupName = Constant::Concatenate(
-        {metaData.kvStoreMetaData.userId, "_", metaData.kvStoreMetaData.appId, "_",
-         metaData.kvStoreMetaData.storeId});
-    auto backupFullName = Constant::Concatenate({
-        BackupHandler::GetBackupPath(metaData.kvStoreMetaData.deviceAccountId, pathType), "/",
-        GetHashedBackupName(backupName)
-    });
+            {metaData.kvStoreMetaData.userId, "_", metaData.kvStoreMetaData.appId, "_",
+             metaData.kvStoreMetaData.storeId});
+    auto backupFullName = Constant::Concatenate(
+            {BackupHandler::GetBackupPath(metaData.kvStoreMetaData.deviceAccountId, pathType), "/",
+             GetHashedBackupName(backupName)});
     DistributedDB::DBStatus dbStatus = delegate->Import(backupFullName, password);
     if (dbStatus == DistributedDB::DBStatus::OK) {
         ZLOGI("MultiKvStoreRecover success.");
@@ -304,16 +302,16 @@ const std::string &BackupHandler::GetBackupPath(const std::string &deviceAccount
 {
     if (pathType == KvStoreAppManager::PATH_DE) {
         if (backupDirDe_.empty()) {
-            backupDirDe_ = Constant::Concatenate({ Constant::ROOT_PATH_DE, "/", Constant::SERVICE_NAME, "/",
-                                                   deviceAccountId, "/", Constant::GetDefaultHarmonyAccountName(),
-                                                   "/", "backup" });
+            backupDirDe_ = Constant::Concatenate({Constant::ROOT_PATH_DE, "/", Constant::SERVICE_NAME, "/",
+                                                  deviceAccountId, "/", Constant::GetDefaultHarmonyAccountName(),
+                                                  "/", "backup"});
         }
         return backupDirDe_;
     } else {
         if (backupDirCe_.empty()) {
-            backupDirCe_ = Constant::Concatenate({ Constant::ROOT_PATH_CE, "/", Constant::SERVICE_NAME, "/",
-                                                   deviceAccountId, "/", Constant::GetDefaultHarmonyAccountName(),
-                                                   "/", "backup" });
+            backupDirCe_ = Constant::Concatenate({Constant::ROOT_PATH_CE, "/", Constant::SERVICE_NAME, "/",
+                                                  deviceAccountId, "/", Constant::GetDefaultHarmonyAccountName(),
+                                                  "/", "backup"});
         }
         return backupDirCe_;
     }

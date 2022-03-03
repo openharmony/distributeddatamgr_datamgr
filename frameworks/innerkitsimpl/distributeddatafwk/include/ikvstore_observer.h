@@ -25,7 +25,6 @@
 
 namespace OHOS {
 namespace DistributedKv {
-
 class IKvStoreObserver : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.DistributedKv.IKvStoreObserver");

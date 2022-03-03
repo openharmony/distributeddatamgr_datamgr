@@ -25,7 +25,6 @@
 
 namespace OHOS {
 namespace DistributedKv {
-
 class KvStoreClient final : public KvStore {
 public:
     explicit KvStoreClient(sptr<IKvStoreImpl> kvStoreProxy, const std::string &storeId);

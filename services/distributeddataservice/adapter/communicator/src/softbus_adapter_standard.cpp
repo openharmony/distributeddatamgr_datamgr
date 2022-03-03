@@ -306,7 +306,7 @@ std::string SoftBusAdapter::GetUdidByNodeId(const std::string &nodeId) const
 {
     char udid[ID_BUF_LEN] = {0};
     int32_t ret = GetNodeKeyInfo("ohos.distributeddata", nodeId.c_str(),
-        NodeDeivceInfoKey::NODE_KEY_UDID, reinterpret_cast<uint8_t *>(udid), ID_BUF_LEN);
+        NodeDeviceInfoKey::NODE_KEY_UDID, reinterpret_cast<uint8_t *>(udid), ID_BUF_LEN);
     if (ret != SOFTBUS_OK) {
         ZLOGW("GetNodeKeyInfo error, nodeId:%{public}s", ToBeAnonymous(nodeId).c_str());
         return "";
@@ -347,7 +347,7 @@ std::vector<DeviceInfo> SoftBusAdapter::GetRemoteNodesBasicInfo() const
 
     for (int i = 0; i < infoNum; i++) {
         dis.push_back({std::string(info[i].networkId), std::string(info[i].deviceName),
-            std::to_string(info[i].deviceTypeId)});
+                       std::to_string(info[i].deviceTypeId)});
     }
     if (info != NULL) {
         FreeNodeInfo(info);
@@ -600,7 +600,7 @@ int SoftBusAdapter::RemoveSessionServerAdapter(const std::string &sessionName) c
 
 void SoftBusAdapter::InsertSession(const std::string &sessionName)
 {
-    lock_guard<mutex> lock(busSessionMutex_);
+    lock_guard <mutex> lock(busSessionMutex_);
     busSessionMap_.insert({sessionName, true});
 }
 

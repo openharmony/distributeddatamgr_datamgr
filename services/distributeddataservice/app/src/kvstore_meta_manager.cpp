@@ -939,7 +939,7 @@ Status KvStoreMetaManager::GetStategyMeta(const std::string &key,
     if (local != range->end()) {
         json obj = *local;
         if (obj.is_array()) {
-            std::vector<std::string> v;
+            std::vector <std::string> v;
             obj.get_to(v);
             strategies.insert({LOCAL_LABEL, v});
         }
@@ -948,7 +948,7 @@ Status KvStoreMetaManager::GetStategyMeta(const std::string &key,
     if (remote != range->end()) {
         json obj = *remote;
         if (obj.is_array()) {
-            std::vector<std::string> v;
+            std::vector <std::string> v;
             obj.get_to(v);
             strategies.insert({REMOTE_LABEL, v});
         }
