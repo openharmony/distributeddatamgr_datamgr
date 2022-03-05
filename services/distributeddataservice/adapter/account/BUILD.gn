@@ -52,4 +52,6 @@ ohos_static_library("distributeddata_account_static") {
     "os_account_standard:libaccountkits",
     "os_account_standard:os_account_innerkits",
   ]
+  subsystem_name = "distributeddatamgr"
+  part_name = "distributeddatamgr"
 }
