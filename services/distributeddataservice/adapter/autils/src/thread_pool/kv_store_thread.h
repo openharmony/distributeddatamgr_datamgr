@@ -24,7 +24,6 @@ namespace DistributedKv {
 class KvStoreThread {
 public:
     explicit KvStoreThread(KvStoreThreadPool *threadPool);
-    KvStoreThread(KvStoreThread &&thread) = delete;
     KvStoreThread(const KvStoreThread &) = delete;
     KvStoreThread &operator=(KvStoreThread &&) = delete;
     KvStoreThread &operator=(const KvStoreThread &) = delete;
