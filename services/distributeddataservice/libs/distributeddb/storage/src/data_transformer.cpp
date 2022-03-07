@@ -79,7 +79,8 @@ int DataTransformer::SerializeDataItem(const RowDataWithLog &data,
 int DataTransformer::DeSerializeDataItem(const DataItem &dataItem, OptRowDataWithLog &data,
     const std::vector<FieldInfo> &remoteFieldInfo)
 {
-    if ((dataItem.flag & DataItem::DELETE_FLAG) == 0) {
+    if ((dataItem.flag & DataItem::DELETE_FLAG) == 0 &&
+        (dataItem.flag & DataItem::REMOTE_DEVICE_DATA_MISS_QUERY) == 0) {
         int errCode = DeSerializeValue(dataItem.value, data.optionalData, remoteFieldInfo);
         if (errCode != E_OK) {
             return errCode;

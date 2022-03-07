@@ -291,10 +291,9 @@ namespace {
         fieldInfoList.push_back(columnThird);
     }
 
-    void BlockSync(const std::string &tableName, SyncMode syncMode, DBStatus exceptStatus,
+    void BlockSync(const Query &query, SyncMode syncMode, DBStatus exceptStatus,
         const std::vector<std::string> &devices)
     {
-        Query query = Query::Select(tableName);
         std::map<std::string, std::vector<TableStatus>> statusMap;
         SyncStatusCallback callBack = [&statusMap](
             const std::map<std::string, std::vector<TableStatus>> &devicesMap) {
@@ -307,6 +306,13 @@ namespace {
                 EXPECT_EQ(tableStatus.status, exceptStatus);
             }
         }
+    }
+
+    void BlockSync(const std::string &tableName, SyncMode syncMode, DBStatus exceptStatus,
+        const std::vector<std::string> &devices)
+    {
+        Query query = Query::Select(tableName);
+        BlockSync(query, syncMode, exceptStatus, devices);
     }
 
     void BlockSync(SyncMode syncMode, DBStatus exceptStatus, const std::vector<std::string> &devices)
@@ -753,6 +759,39 @@ HWTEST_F(DistributedDBRelationalVerP2PSyncTest, NormalSync005, TestSize.Level0)
     g_deviceB->GenericVirtualDevice::Sync(SYNC_MODE_PUSH_ONLY, query, true);
 
     CheckData(dataMap);
+}
+
+/**
+* @tc.name: Normal Sync 007
+* @tc.desc: Test normal sync for miss query data.
+* @tc.type: FUNC
+* @tc.require: AR000GK58N
+* @tc.author: zhangqiquan
+*/
+HWTEST_F(DistributedDBRelationalVerP2PSyncTest, NormalSync007, TestSize.Level1)
+{
+    std::map<std::string, DataValue> dataMap;
+    PrepareEnvironment(dataMap, {g_deviceB});
+
+    Query query = Query::Select(g_tableName).EqualTo("NAME", DEFAULT_TEXT);
+    BlockSync(query, SyncMode::SYNC_MODE_PUSH_ONLY, OK, {DEVICE_B});
+
+    CheckVirtualData(dataMap);
+
+    sqlite3 *db = nullptr;
+    EXPECT_EQ(GetDB(db), SQLITE_OK);
+    std::string sql = "UPDATE TEST_TABLE SET NAME = '' WHERE 1 = 1";
+    EXPECT_EQ(SQLiteUtils::ExecuteRawSQL(db, sql), E_OK);
+    sqlite3_close(db);
+
+    BlockSync(query, SyncMode::SYNC_MODE_PUSH_ONLY, OK, {DEVICE_B});
+
+    std::vector<VirtualRowData> dataList;
+    EXPECT_EQ(g_deviceB->GetAllSyncData(g_tableName, dataList), E_OK);
+    EXPECT_EQ(static_cast<int>(dataList.size()), 1);
+    for (const auto &item : dataList) {
+        EXPECT_EQ(item.logInfo.flag, DataItem::REMOTE_DEVICE_DATA_MISS_QUERY);
+    }
 }
 
 /**
