@@ -202,27 +202,16 @@ Status KvStoreDataService::GetSingleKvStore(const Options &options, const AppId 
 {
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     ZLOGI("begin.");
-    if (!appId.IsValid() || !storeId.IsValid() || !options.IsValidType()
-        || options.kvStoreType == KvStoreType::MULTI_VERSION) {
-        ZLOGE("invalid argument type.");
-        return Status::INVALID_ARGUMENT;
-    }
-
     KVSTORE_ACCOUNT_EVENT_PROCESSING_CHECKER(Status::SYSTEM_ACCOUNT_EVENT_PROCESSING);
     KvStoreParam param;
-    param.bundleName = appId.appId;
-    param.storeId = storeId.storeId;
-    const int32_t uid = IPCSkeleton::GetCallingUid();
-    param.trueAppId = CheckerManager::GetInstance().GetAppId(appId.appId, uid);
-    ZLOGI("%{public}s, %{public}s", param.trueAppId.c_str(), param.bundleName.c_str());
-    if (param.trueAppId.empty()) {
-        ZLOGW("appId:%{public}s, uid:%{public}d, PERMISSION_DENIED", appId.appId.c_str(), uid);
-        return Status::PERMISSION_DENIED;
+    Status status = FillStoreParam(options, appId, storeId, param);
+    if (status != Status::SUCCESS) {
+        callback(nullptr);
+        return status;
     }
 
-    param.userId = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(uid);
     SecretKeyPara keyPara;
-    Status status = KvStoreDataService::GetSecretKey(options, param, keyPara);
+    status = KvStoreDataService::GetSecretKey(options, param, keyPara);
     if (status != Status::SUCCESS) {
         callback(nullptr);
         return status;
@@ -240,7 +229,8 @@ Status KvStoreDataService::GetSingleKvStore(const Options &options, const AppId 
         it = result.first;
     }
     sptr<SingleKvStoreImpl> store;
-    param.status = (it->second).GetKvStore(options, param.bundleName, param.storeId, uid, keyPara.secretKey, store);
+    param.status =
+        (it->second).GetKvStore(options, param.bundleName, param.storeId, param.uid, keyPara.secretKey, store);
     if (keyPara.outdated) {
         KvStoreMetaManager::GetInstance().ReKey(param.userId, param.bundleName, param.storeId,
             KvStoreAppManager::ConvertPathType(param.uid, param.bundleName, options.securityLevel), store);
@@ -259,6 +249,28 @@ Status KvStoreDataService::GetSingleKvStore(const Options &options, const AppId 
     param.status =  GetSingleKvStoreFailDo(options, param, keyPara, it->second, store);
     callback(std::move(store));
     return param.status;
+}
+
+Status KvStoreDataService::FillStoreParam(
+    const Options &options, const AppId &appId, const StoreId &storeId, KvStoreParam &param)
+{
+    if (!appId.IsValid() || !storeId.IsValid() || !options.IsValidType()
+        || options.kvStoreType == KvStoreType::MULTI_VERSION) {
+        ZLOGE("invalid argument type.");
+        return Status::INVALID_ARGUMENT;
+    }
+    param.bundleName = appId.appId;
+    param.storeId = storeId.storeId;
+    param.uid = IPCSkeleton::GetCallingUid();
+    param.trueAppId = CheckerManager::GetInstance().GetAppId(appId.appId, param.uid);
+    ZLOGI("%{public}s, %{public}s", param.trueAppId.c_str(), param.bundleName.c_str());
+    if (param.trueAppId.empty()) {
+        ZLOGW("appId:%{public}s, uid:%{public}d, PERMISSION_DENIED", appId.appId.c_str(), param.uid);
+        return PERMISSION_DENIED;
+    }
+
+    param.userId = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(param.uid);
+    return SUCCESS;
 }
 
 Status KvStoreDataService::GetSecretKey(const Options &options, const KvStoreParam &kvParas,
@@ -849,7 +861,7 @@ void KvStoreDataService::StartService()
         if (!DeviceKvStoreImpl::GetLocalDeviceId().empty()) {
             break;
         }
-        ZLOGE("GetLocalDeviceId failed, reties: %{public}d", static_cast<int>(retry));
+        ZLOGE("GetLocalDeviceId failed, retry count:%{public}d", static_cast<int>(retry));
     }
 
     // register this to ServiceManager.
