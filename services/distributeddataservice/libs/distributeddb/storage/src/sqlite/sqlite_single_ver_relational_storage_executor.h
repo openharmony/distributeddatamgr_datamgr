@@ -33,17 +33,17 @@ public:
     // Delete the copy and assign constructors
     DISABLE_COPY_ASSIGN_MOVE(SQLiteSingleVerRelationalStorageExecutor);
 
-    int CreateDistributedTable(const std::string &tableName, TableInfo &table);
+    int CreateDistributedTable(const std::string &tableName, TableInfo &table, bool isUpgrade);
+
+    int UpgradeDistributedTable(const TableInfo &tableInfo, TableInfo &newTableInfo);
 
     int StartTransaction(TransactType type);
     int Commit();
     int Rollback();
 
-    int SetTableInfo(const QueryObject &query);
-
     // For Get sync data
-    int GetSyncDataByQuery(std::vector<DataItem> &dataItems, size_t appendLength,
-        const DataSizeSpecInfo &dataSizeInfo, std::function<int(sqlite3 *, sqlite3_stmt *&, bool &)> getStmt);
+    int GetSyncDataByQuery(std::vector<DataItem> &dataItems, size_t appendLength, const DataSizeSpecInfo &sizeInfo,
+        std::function<int(sqlite3 *, sqlite3_stmt *&, sqlite3_stmt *&, bool &)> getStmt, const TableInfo &tableInfo);
 
     // operation of meta data
     int GetKvData(const Key &key, Value &value) const;
@@ -54,29 +54,72 @@ public:
 
     // For Put sync data
     int SaveSyncItems(const QueryObject &object, std::vector<DataItem> &dataItems,
-        const std::string &deviceName, TimeStamp &timeStamp);
+        const std::string &deviceName, const TableInfo &table, TimeStamp &timeStamp);
 
     int AnalysisRelationalSchema(const std::string &tableName, TableInfo &tableInfo);
 
     int CheckDBModeForRelational();
 
+    int DeleteDistributedDeviceTable(const std::string &device, const std::string &tableName);
+    int DeleteDistributedLogTable(const std::string &tableName);
+
+    int CheckAndCleanDistributedTable(const std::vector<std::string> &tableNames,
+        std::vector<std::string> &missingTables);
+
+    int CreateDistributedDeviceTable(const std::string &device, const TableInfo &baseTbl);
+
+    int CheckQueryObjectLegal(const TableInfo &table, QueryObject &query);
+
 private:
+    struct SaveSyncDataStmt {
+        sqlite3_stmt *saveDataStmt = nullptr;
+        sqlite3_stmt *saveLogStmt = nullptr;
+        sqlite3_stmt *queryStmt = nullptr;
+        sqlite3_stmt *rmDataStmt = nullptr;
+        sqlite3_stmt *rmLogStmt = nullptr;
+
+        int ResetStatements(bool isNeedFinalize);
+    };
+
     int PrepareForSyncDataByTime(TimeStamp begin, TimeStamp end,
         sqlite3_stmt *&statement, bool getDeletedData) const;
 
     int GetDataItemForSync(sqlite3_stmt *statement, DataItem &dataItem, bool isGettingDeletedData) const;
 
+    int GetSyncDataPre(const DataItem &dataItem, DataItem &itemGet);
+
+    int CheckDataConflictDefeated(const DataItem &item, bool &isDefeated);
+
+    int SaveSyncDataItem(const std::vector<FieldInfo> &fieldInfos, const std::string &deviceName, DataItem &item,
+        TimeStamp &maxTimestamp);
+
     int SaveSyncDataItems(const QueryObject &object, std::vector<DataItem> &dataItems,
         const std::string &deviceName, TimeStamp &timeStamp);
-    int SaveSyncDataItem(sqlite3_stmt *statement, const DataItem &dataItem);
+    int SaveSyncDataItem(const DataItem &dataItem, sqlite3_stmt *&saveDataStmt, sqlite3_stmt *&rmDataStmt,
+        const std::vector<FieldInfo> &fieldInfos, int64_t &rowid);
 
-    int DeleteSyncDataItem(const DataItem &dataItem);
+    int DeleteSyncDataItem(const DataItem &dataItem, sqlite3_stmt *&rmDataStmt);
 
-    int SaveSyncLog(sqlite3_stmt *statement, const DataItem &dataItem, TimeStamp &maxTimestamp);
-    int PrepareForSavingData(const QueryObject &object, const std::string &deviceName, sqlite3_stmt *&statement) const;
-    int PrepareForSavingLog(const QueryObject &object, const std::string &deviceName, sqlite3_stmt *&statement) const;
+    int SaveSyncLog(sqlite3_stmt *statement, sqlite3_stmt *queryStmt, const DataItem &dataItem,
+        TimeStamp &maxTimestamp, int64_t rowid);
+    int PrepareForSavingData(const QueryObject &object, sqlite3_stmt *&statement) const;
+    int PrepareForSavingLog(const QueryObject &object, const std::string &deviceName,
+        sqlite3_stmt *&statement,  sqlite3_stmt *&queryStmt) const;
 
-    TableInfo table_;
+    int AlterAuxTableForUpgrade(const TableInfo &oldTableInfo, const TableInfo &newTableInfo);
+
+    int DeleteSyncLog(const DataItem &item, sqlite3_stmt *&rmLogStmt);
+    int ProcessMissQueryData(const DataItem &item, sqlite3_stmt *&rmDataStmt, sqlite3_stmt *&rmLogStmt);
+    int GetMissQueryData(sqlite3_stmt *fullStmt, DataItem &item);
+    int GetQueryDataAndStepNext(bool isFirstTime, bool isGettingDeletedData, sqlite3_stmt *queryStmt, DataItem &item,
+        TimeStamp &queryTime);
+    int GetMissQueryDataAndStepNext(sqlite3_stmt *fullStmt, DataItem &item, TimeStamp &missQueryTime);
+
+    void SetTableInfo(const TableInfo &tableInfo);  // When put or get sync data, must call the func first.
+    std::string baseTblName_;
+    TableInfo table_;  // Always operating table, user table when get, device table when put.
+
+    SaveSyncDataStmt saveStmt_;
 };
 } // namespace DistributedDB
 #endif

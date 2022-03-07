@@ -35,7 +35,7 @@ public:
     ~GenericSyncer() override;
 
     // Init the Syncer modules
-    int Initialize(ISyncInterface *syncInterface) override;
+    int Initialize(ISyncInterface *syncInterface, bool isNeedActive) override;
 
     // Close
     int Close() override;
@@ -88,11 +88,12 @@ public:
     // Inner function, Used for subscribe sync
     int Sync(const InternalSyncParma &param);
 
-protected:
     // Remote data changed callback
     virtual void RemoteDataChanged(const std::string &device) = 0;
 
     virtual void RemoteDeviceOffline(const std::string &device) = 0;
+
+protected:
 
     // trigger query auto sync or auto subscribe
     // trigger auto subscribe only when subscribe task is failed triggered by remote db opened
@@ -121,6 +122,8 @@ protected:
 
     // Init the Sync engine
     int InitSyncEngine(ISyncInterface *syncInterface);
+
+    int CheckSyncActive(ISyncInterface *syncInterface, bool isNeedActive);
 
     // Used to general a sync id, maybe it is currentSyncId++;
     // The return value is sync id.

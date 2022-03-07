@@ -25,8 +25,10 @@
 #include "isyncer.h"
 #include "sync_able_engine.h"
 #include "relational_sync_able_storage.h"
+#include "runtime_context.h"
 
 namespace DistributedDB {
+using RelationalObserverAction = std::function<void(const std::string &device)>;
 class SQLiteRelationalStore : public IRelationalStore {
 public:
     SQLiteRelationalStore() = default;
@@ -52,6 +54,16 @@ public:
     }
 
     int CreateDistributedTable(const std::string &tableName);
+
+    int RemoveDeviceData(const std::string &device, const std::string &tableName);
+
+    void RegisterObserverAction(const RelationalObserverAction &action);
+    int RegisterLifeCycleCallback(const DatabaseLifeCycleNotifier &notifier);
+
+    std::string GetStorePath() const override;
+
+    RelationalDBProperties GetProperties() const override;
+
 private:
     void ReleaseResources();
 
@@ -65,8 +77,13 @@ private:
 
     int CleanDistributedDeviceTable();
 
+    int StopLifeCycleTimer();
+    int StartLifeCycleTimer(const DatabaseLifeCycleNotifier &notifier);
+    void HeartBeat();
+    int ResetLifeCycleTimer();
+
     // use for sync Interactive
-    std::unique_ptr<SyncAbleEngine> syncEngine_ = nullptr; // For storage operate sync function
+    std::unique_ptr<SyncAbleEngine> syncAbleEngine_ = nullptr; // For storage operate sync function
     // use ref obj same as kv
     RelationalSyncAbleStorage *storageEngine_ = nullptr; // For storage operate data
     SQLiteSingleRelationalStorageEngine *sqliteStorageEngine_ = nullptr;
@@ -77,12 +94,16 @@ private:
     std::atomic<int> connectionCount_ = 0;
     std::vector<std::function<void(void)>> closeNotifiers_;
 
+    mutable std::mutex schemaMutex_;
     RelationalDBProperties properties_;
 
     mutable std::mutex initalMutex_;
     bool isInitialized_ = false;
 
-    mutable std::mutex schemaMutex_;
+    // lifeCycle
+    std::mutex lifeCycleMutex_;
+    DatabaseLifeCycleNotifier lifeCycleNotifier_;
+    TimerId lifeTimerId_;
 };
 }  // namespace DistributedDB
 #endif

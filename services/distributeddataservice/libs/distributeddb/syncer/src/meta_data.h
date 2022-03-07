@@ -38,7 +38,7 @@ struct MetaDataValue {
 class Metadata {
 public:
     Metadata();
-    ~Metadata();
+    virtual ~Metadata();
 
     int Initialize(ISyncInterface *storage);
 
@@ -60,6 +60,8 @@ public:
 
     int EraseDeviceWaterMark(const std::string &deviceId, bool isNeedHash);
 
+    int EraseDeviceWaterMark(const std::string &deviceId, bool isNeedHash, const std::string &tableName);
+
     void SetLastLocalTime(TimeStamp lastLocalTime);
 
     TimeStamp GetLastLocalTime() const;
@@ -79,6 +81,11 @@ public:
     // if the watermark less than device watermark
     int GetRecvQueryWaterMark(const std::string &queryIdentify,
         const std::string &deviceId, WaterMark &waterMark);
+
+    virtual int SetLastQueryTime(const std::string &queryIdentify, const std::string &deviceId,
+        const TimeStamp &timeStamp);
+
+    virtual int GetLastQueryTime(const std::string &queryIdentify, const std::string &deviceId, TimeStamp &timeStamp);
 
     int SetSendDeleteSyncWaterMark(const std::string &deviceId, const WaterMark &waterMark);
 
@@ -141,7 +148,7 @@ private:
     int LoadDeviceIdDataToMap(const Key &key);
 
     // reset the waterMark to zero
-    int ResetRecvQueryWaterMark(const DeviceID &deviceId);
+    int ResetRecvQueryWaterMark(const DeviceID &deviceId, const std::string &tableName = "");
 
     // store localTimeOffset in ram; if change, should add a lock first, change here and metadata,
     // then release lock

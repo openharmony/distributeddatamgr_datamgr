@@ -42,7 +42,6 @@ namespace DistributedDB {
 } while (0)
 
 namespace {
-    constexpr int DEF_LIFE_CYCLE_TIME = 60000; // 60s
     constexpr int WAIT_DELEGATE_CALLBACK_TIME = 100;
 
     const std::string CREATE_DB_TIME = "createDBTime";
@@ -172,7 +171,7 @@ SQLiteSingleVerNaturalStore::SQLiteSingleVerNaturalStore()
       isReadOnly_(false),
       lifeCycleNotifier_(nullptr),
       lifeTimerId_(0),
-      autoLifeTime_(DEF_LIFE_CYCLE_TIME),
+      autoLifeTime_(DBConstant::DEF_LIFE_CYCLE_TIME),
       createDBTime_(0),
       dataInterceptor_(nullptr),
       maxLogSize_(DBConstant::MAX_LOG_SIZE_DEFAULT)
@@ -527,6 +526,13 @@ void SQLiteSingleVerNaturalStore::DecRefCount()
 std::vector<uint8_t> SQLiteSingleVerNaturalStore::GetIdentifier() const
 {
     std::string identifier = MyProp().GetStringProp(KvDBProperties::IDENTIFIER_DATA, "");
+    std::vector<uint8_t> identifierVect(identifier.begin(), identifier.end());
+    return identifierVect;
+}
+
+std::vector<uint8_t> SQLiteSingleVerNaturalStore::GetDualTupleIdentifier() const
+{
+    std::string identifier = MyProp().GetStringProp(KvDBProperties::DUAL_TUPLE_IDENTIFIER_DATA, "");
     std::vector<uint8_t> identifierVect(identifier.begin(), identifier.end());
     return identifierVect;
 }
@@ -1346,7 +1352,7 @@ int SQLiteSingleVerNaturalStore::Rekey(const CipherPassword &passwd)
         return errCode;
     }
     LOGI("Stop the syncer for rekey");
-    StopSyncer();
+    StopSyncer(true);
     std::this_thread::sleep_for(std::chrono::milliseconds(5));  // wait for 5 ms
     errCode = storageEngine_->TryToDisable(true, OperatePerm::REKEY_MONOPOLIZE_PERM);
     if (errCode != E_OK) {
@@ -1433,7 +1439,7 @@ int SQLiteSingleVerNaturalStore::Import(const std::string &filePath, const Ciphe
     if (errCode != E_OK) {
         return errCode;
     }
-    StopSyncer();
+    StopSyncer(true);
     std::this_thread::sleep_for(std::chrono::milliseconds(5)); // wait for 5 ms
     std::unique_ptr<SingleVerDatabaseOper> operation;
 
@@ -1744,8 +1750,14 @@ int SQLiteSingleVerNaturalStore::StartLifeCycleTimer(const DatabaseLifeCycleNoti
         [this](TimerId id) -> int {
             std::lock_guard<std::mutex> lock(lifeCycleMutex_);
             if (lifeCycleNotifier_) {
-                auto identifier = GetMyProperties().GetStringProp(KvDBProperties::IDENTIFIER_DATA, "");
-                lifeCycleNotifier_(identifier);
+                std::string identifier;
+                if (GetMyProperties().GetBoolProp(KvDBProperties::SYNC_DUAL_TUPLE_MODE, false)) {
+                    identifier = GetMyProperties().GetStringProp(KvDBProperties::DUAL_TUPLE_IDENTIFIER_DATA, "");
+                } else {
+                    identifier = GetMyProperties().GetStringProp(KvDBProperties::IDENTIFIER_DATA, "");
+                }
+                auto userId = GetMyProperties().GetStringProp(DBProperties::USER_ID, "");
+                lifeCycleNotifier_(identifier, userId);
             }
             return 0;
         },

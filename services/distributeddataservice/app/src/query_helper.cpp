@@ -15,25 +15,26 @@
 
 #define LOG_TAG "QueryHelper"
 
-#include "query_helper.h"
 #include <regex>
 #include <sstream>
 #include <string>
 #include "kvstore_utils.h"
 #include "data_query.h"
 #include "log_print.h"
+#include "types.h"
+#include "query_helper.h"
 
 namespace OHOS::DistributedKv {
 constexpr int QUERY_SKIP_SIZE = 1;
 constexpr int QUERY_WORD_SIZE = 2;
 constexpr int MAX_QUERY_LENGTH = 5 * 1024; // Max query string length 5k
 constexpr int MAX_QUERY_COMPLEXITY = 500; // Max query complexity 500
-bool QueryHelper::hasPrefixKey_{};
+bool QueryHelper::hasPrefixKey_{ };
 std::string QueryHelper::deviceId_{};
 
 DistributedDB::Query QueryHelper::StringToDbQuery(const std::string &query, bool &isSuccess)
 {
-    ZLOGI("query string length:%zu", query.length());
+    ZLOGI("query string length:%{public}zu", query.length());
     DistributedDB::Query dbQuery = DistributedDB::Query::Select();
     if (query.size() == 0) {
         ZLOGI("Query string is empty.");
@@ -127,6 +128,8 @@ void QueryHelper::HandleExtra(const std::vector<std::string> &words, int &pointe
         HandleDeviceId(words, pointer, end, isSuccess, dbQuery);
     } else if (keyword == DataQuery::SUGGEST_INDEX) {
         HandleSetSuggestIndex(words, pointer, end, isSuccess, dbQuery);
+    } else if (keyword == DataQuery::IN_KEYS) {
+        HandleInKeys(words, pointer, end, isSuccess, dbQuery);
     } else {
         ZLOGE("Invalid keyword.");
         isSuccess = false;
@@ -495,6 +498,33 @@ void QueryHelper::HandleKeyPrefix(const std::vector<std::string> &words, int &po
     dbQuery.PrefixKey(prefixVector);
     isSuccess = true;
     pointer += 2; // Pointer goes to next keyword
+}
+
+void QueryHelper::HandleInKeys(const std::vector<std::string> &words, int &pointer,
+                               const int &end, bool &isSuccess, DistributedDB::Query &dbQuery) {
+    // pointer points at keyword "IN_KEYS", (pointer + 1) points at keyword "START_IN"
+    int startInOffSet = pointer + 1;
+    int queryLen = end - pointer;
+    if (queryLen < 2 || words.at(startInOffSet) != DataQuery::START_IN) { // This keyword has at least 2 params
+        ZLOGE("In not enough params.");
+        isSuccess = false;
+        return;
+    }
+    int inkeyOffSet = startInOffSet + 1;  // inkeyOffSet points at the first inkey value
+    const std::vector<std::string> inKeys = GetStringList(words, inkeyOffSet, end);
+    std::set<std::vector<uint8_t>> inDbKeys;
+    for (const std::string &inKey : inKeys) {
+        ZLOGI("inKey=%{public}s", inKey.c_str());
+        std::vector<uint8_t> dbKey;
+        dbKey.assign(inKey.begin(), inKey.end());
+        inDbKeys.insert(dbKey);
+    }
+    int size = inDbKeys.size();
+    ZLOGI("size of inKeys=%{public}d", size);
+    dbQuery.InKeys(inDbKeys);
+    isSuccess = true;
+    int endOffSet = inkeyOffSet;
+    pointer = endOffSet + 1; // endOffSet points at keyword "END", Pointer goes to next keyword
 }
 
 void QueryHelper::HandleSetSuggestIndex(const std::vector<std::string> &words, int &pointer,

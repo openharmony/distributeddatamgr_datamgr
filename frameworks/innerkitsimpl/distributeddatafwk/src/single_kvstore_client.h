@@ -16,17 +16,19 @@
 #ifndef DISTRIBUTEDDATAMGR2_SINGLE_KVSTORE_CLIENT_H
 #define DISTRIBUTEDDATAMGR2_SINGLE_KVSTORE_CLIENT_H
 
+#include <atomic>
 #include "data_query.h"
 #include "ikvstore_single.h"
 #include "single_kvstore.h"
+#include "kvstore_sync_callback_client.h"
+#include "sync_observer.h"
 
 namespace OHOS::DistributedKv {
 class SingleKvStoreClient : public SingleKvStore {
 public:
     explicit SingleKvStoreClient(sptr<ISingleKvStore> kvStoreProxy, const std::string &storeId);
 
-    ~SingleKvStoreClient()
-    {}
+    ~SingleKvStoreClient();
 
     StoreId GetStoreId() const override;
 
@@ -64,6 +66,8 @@ public:
 
     Status RegisterSyncCallback(std::shared_ptr<KvStoreSyncCallback> callback) override;
 
+    Status RegisterCallback();
+
     Status UnRegisterSyncCallback() override;
 
     Status PutBatch(const std::vector<Entry> &entries) override;
@@ -84,11 +88,11 @@ public:
                               const std::vector<std::string> &remoteSupportLabels) const override;
 
     Status GetSecurityLevel(SecurityLevel &securityLevel) const override;
-    Status SyncWithCondition(const std::vector<std::string> &deviceIds, SyncMode mode,
-                             const DataQuery &query) override;
+    Status SyncWithCondition(const std::vector<std::string> &deviceIds, SyncMode mode, const DataQuery &query,
+                             std::shared_ptr<KvStoreSyncCallback> syncCallback = nullptr) override;
 
     Status SubscribeWithQuery(const std::vector<std::string> &deviceIds, const DataQuery &query) override;
-    Status UnSubscribeWithQuery(const std::vector<std::string> &deviceIds, const DataQuery &query) override;
+    Status UnsubscribeWithQuery(const std::vector<std::string> &deviceIds, const DataQuery &query) override;
     Status GetKvStoreSnapshot(std::shared_ptr<KvStoreObserver> observer,
                               std::shared_ptr<KvStoreSnapshot> &snapshot) const override;
     Status ReleaseKvStoreSnapshot(std::shared_ptr<KvStoreSnapshot> &snapshot) override;
@@ -101,6 +105,10 @@ private:
     std::map<KvStoreObserver *, sptr<IKvStoreObserver>> registeredObservers_;
     std::mutex observerMapMutex_;
     std::string storeId_;
+    sptr<KvStoreSyncCallbackClient> syncCallbackClient_;
+    std::shared_ptr<SyncObserver> syncObserver_;
+    bool isRegisterSyncCallback_ = false;
+    std::mutex registerCallbackMutex_;
 };
 } // namespace OHOS::DistributedKv
 #endif // DISTRIBUTEDDATAMGR2_SINGLE_KVSTORE_CLIENT_H

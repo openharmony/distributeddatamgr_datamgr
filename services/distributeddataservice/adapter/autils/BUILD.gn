@@ -32,12 +32,12 @@ ohos_static_library("distributeddata_autils_static") {
 
   cflags_cc = [ "-fvisibility=hidden" ]
 
-  deps = [
-    "//utils/native/base:utils",
-  ]
+  deps = [ "//utils/native/base:utils" ]
 
   external_deps = [
     "bytrace_standard:bytrace_core",
     "hiviewdfx_hilog_native:libhilog",
   ]
+  subsystem_name = "distributeddatamgr"
+  part_name = "distributeddatamgr"
 }

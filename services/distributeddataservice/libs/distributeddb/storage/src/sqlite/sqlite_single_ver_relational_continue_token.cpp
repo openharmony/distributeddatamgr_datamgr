@@ -31,13 +31,28 @@ bool SQLiteSingleVerRelationalContinueToken::CheckValid() const
     return isValid;
 }
 
-int SQLiteSingleVerRelationalContinueToken::GetStatement(sqlite3 *db, sqlite3_stmt *&stmt, bool &isGettingDeletedData)
+int SQLiteSingleVerRelationalContinueToken::GetStatement(sqlite3 *db, sqlite3_stmt *&queryStmt, sqlite3_stmt *&fullStmt,
+    bool &isGettingDeletedData)
 {
     isGettingDeletedData = isGettingDeletedData_;
     if (isGettingDeletedData) {
-        return GetDeletedDataStmt(db, stmt);
+        return GetDeletedDataStmt(db, queryStmt);
     }
-    return GetQuerySyncStatement(db, stmt);
+
+    int errCode = GetQuerySyncStatement(db, queryStmt);
+    if (errCode != E_OK) {
+        return errCode;
+    }
+
+    // if lastQueryTime equals 0, that means never sync before, need not to send miss query data.
+    // if queryObj is empty, that means to send all data now, need not to send miss query data.
+    if (timeRange_.lastQueryTime != 0 && !queryObj_.Empty()) {
+        errCode = GetMissQueryStatement(db, fullStmt);
+    }
+    if (errCode != E_OK) {
+        SQLiteUtils::ResetStatement(queryStmt, true, errCode);
+    }
+    return errCode;
 }
 
 void SQLiteSingleVerRelationalContinueToken::SetNextBeginTime(const DataItem &theLastItem)
@@ -48,6 +63,7 @@ void SQLiteSingleVerRelationalContinueToken::SetNextBeginTime(const DataItem &th
     }
     if (!isGettingDeletedData_) {
         timeRange_.beginTime = nextBeginTime;
+        timeRange_.lastQueryTime = std::max(nextBeginTime, timeRange_.lastQueryTime);
         return;
     }
     if ((theLastItem.flag & DataItem::DELETE_FLAG) != 0) {  // The last one could be non-deleted.
@@ -78,7 +94,21 @@ int SQLiteSingleVerRelationalContinueToken::GetQuerySyncStatement(sqlite3 *db, s
     if (errCode != E_OK) {
         return errCode;
     }
-    return helper.GetRelationalQueryStatement(db, timeRange_.beginTime, timeRange_.endTime, stmt);
+    if (fieldNames_.empty()) {
+        LOGE("field names cannot be empty.");
+        return -E_INTERNAL_ERROR;
+    }
+    return helper.GetRelationalQueryStatement(db, timeRange_.beginTime, timeRange_.endTime, fieldNames_, stmt);
+}
+
+int SQLiteSingleVerRelationalContinueToken::GetMissQueryStatement(sqlite3 *db, sqlite3_stmt *&stmt)
+{
+    int errCode = E_OK;
+    SqliteQueryHelper helper = queryObj_.GetQueryHelper(errCode);
+    if (errCode != E_OK) {
+        return errCode;
+    }
+    return helper.GetRelationalMissQueryStatement(db, timeRange_.lastQueryTime + 1, INT64_MAX, fieldNames_, stmt);
 }
 
 int SQLiteSingleVerRelationalContinueToken::GetDeletedDataStmt(sqlite3 *db, sqlite3_stmt *&stmt) const
@@ -116,6 +146,11 @@ std::string SQLiteSingleVerRelationalContinueToken::GetDeletedDataSQL() const
     std::string tableName = DBConstant::RELATIONAL_PREFIX + tableName_ + "_log";
     return "SELECT * FROM " + tableName +
         " WHERE timestamp >= ? AND timestamp < ? AND (flag&0x03 = 0x03) ORDER BY timestamp ASC;";
+}
+
+void SQLiteSingleVerRelationalContinueToken::SetFieldNames(const std::vector<std::string> &fieldNames)
+{
+    fieldNames_ = fieldNames;
 }
 }  // namespace DistributedDB
 #endif

@@ -20,19 +20,11 @@
 #include <cctype>
 #include "db_errno.h"
 #include "log_print.h"
+#include "schema_constant.h"
 
 namespace DistributedDB {
 namespace
 {
-    // Currently supported types
-    const std::map<std::string, FieldType> FIELD_TYPE_DIC = {
-        {KEYWORD_TYPE_BOOL, FieldType::LEAF_FIELD_BOOL},
-        {KEYWORD_TYPE_INTEGER, FieldType::LEAF_FIELD_INTEGER},
-        {KEYWORD_TYPE_LONG, FieldType::LEAF_FIELD_LONG},
-        {KEYWORD_TYPE_DOUBLE, FieldType::LEAF_FIELD_DOUBLE},
-        {KEYWORD_TYPE_STRING, FieldType::LEAF_FIELD_STRING},
-    };
-
     bool IsLegalFieldCharacter(char character)
     {
         return (std::isalnum(character) || character == '_');
@@ -76,11 +68,13 @@ int SchemaUtils::MakeTrans(const std::string &oriContent, size_t &pos)
 {
     if (isspace(oriContent[pos])) {
         return COLUMN_BLANK;
-    } else if (oriContent.compare(pos, KEYWORD_ATTR_NOT_NULL.size(), KEYWORD_ATTR_NOT_NULL) == 0) {
-        pos = pos + KEYWORD_ATTR_NOT_NULL.size() - 1;
+    } else if (oriContent.compare(pos, SchemaConstant::KEYWORD_ATTR_NOT_NULL.size(),
+        SchemaConstant::KEYWORD_ATTR_NOT_NULL) == 0) {
+        pos = pos + SchemaConstant::KEYWORD_ATTR_NOT_NULL.size() - 1;
         return COLUMN_NOT_NULL;
-    } else if (oriContent.compare(pos, KEYWORD_ATTR_DEFAULT.size(), KEYWORD_ATTR_DEFAULT) == 0) {
-        pos = pos + KEYWORD_ATTR_DEFAULT.size() - 1;
+    } else if (oriContent.compare(pos, SchemaConstant::KEYWORD_ATTR_DEFAULT.size(),
+        SchemaConstant::KEYWORD_ATTR_DEFAULT) == 0) {
+        pos = pos + SchemaConstant::KEYWORD_ATTR_DEFAULT.size() - 1;
         return COLUMN_DEFAULT;
     } else if (std::isalnum(oriContent[pos]) || oriContent[pos] == '\'' ||
         oriContent[pos] == '+' || oriContent[pos] == '-') {
@@ -108,9 +102,13 @@ int SchemaUtils::SplitSchemaAttribute(const std::string &inAttrString, std::vect
         if (state == 1) { // state 1 :Indicates that only type information is currently available
             outAttrString[0].push_back(inAttrString[i]);
         } else if (state == 3) { // state 3 :Gets the NOT_NULL keyword
-            outAttrString[1] = KEYWORD_ATTR_NOT_NULL;
+            outAttrString[1] = SchemaConstant::KEYWORD_ATTR_NOT_NULL;
         } else if (state == 7) { // state 7 :Contains complete information
             // Get default string. Now transfer matrix can ensure > 1, but you should pay attention when fix it
+            if (i <= 1) {
+                LOGE("default string size must be over 1.");
+                return -E_SCHEMA_PARSE_FAIL;
+            }
             outAttrString[2] = inAttrString.substr(i - 1);
             break;
         } else if (state < 0) {
@@ -129,10 +127,10 @@ int SchemaUtils::SplitSchemaAttribute(const std::string &inAttrString, std::vect
 int SchemaUtils::TransToBool(const std::string &defaultContent, SchemaAttribute &outAttr)
 {
     // Have been trim
-    if (defaultContent.compare(KEYWORD_ATTR_VALUE_TRUE) == 0) {
+    if (defaultContent.compare(SchemaConstant::KEYWORD_ATTR_VALUE_TRUE) == 0) {
         outAttr.defaultValue.boolValue = true;
         return E_OK;
-    } else if (defaultContent.compare(KEYWORD_ATTR_VALUE_FALSE) == 0) {
+    } else if (defaultContent.compare(SchemaConstant::KEYWORD_ATTR_VALUE_FALSE) == 0) {
         outAttr.defaultValue.boolValue = false;
         return E_OK;
     }
@@ -145,7 +143,7 @@ int SchemaUtils::TransToString(const std::string &defaultContent, SchemaAttribut
     // Have been trim, Strip leading and trailing '
     if (defaultContent.size() > 1 && defaultContent.front() == '\'' && defaultContent.back() == '\'') {
         outAttr.defaultValue.stringValue = defaultContent.substr(1, defaultContent.size() - 2);
-        if (outAttr.defaultValue.stringValue.size() > SCHEMA_DEFAULT_STRING_SIZE_LIMIT) {
+        if (outAttr.defaultValue.stringValue.size() > SchemaConstant::SCHEMA_DEFAULT_STRING_SIZE_LIMIT) {
             return -E_SCHEMA_PARSE_FAIL;
         }
         return E_OK;
@@ -241,10 +239,10 @@ int SchemaUtils::TransToDouble(const std::string &defaultContent, SchemaAttribut
 int SchemaUtils::TransformDefaultValue(std::string &defaultContent, SchemaAttribute &outAttr)
 {
     TrimFiled(defaultContent);
-    if (defaultContent.compare(KEYWORD_ATTR_VALUE_NULL) == 0 && outAttr.hasNotNullConstraint) {
+    if (defaultContent.compare(SchemaConstant::KEYWORD_ATTR_VALUE_NULL) == 0 && outAttr.hasNotNullConstraint) {
         LOGE("NOT NULL and DEFAULT null Simultaneously");
         return -E_SCHEMA_PARSE_FAIL;
-    } else if (defaultContent.compare(KEYWORD_ATTR_VALUE_NULL) == 0) {
+    } else if (defaultContent.compare(SchemaConstant::KEYWORD_ATTR_VALUE_NULL) == 0) {
         outAttr.hasDefaultValue = false;
         return E_OK;
     }
@@ -302,6 +300,15 @@ int SchemaUtils::ParseAndCheckSchemaAttribute(const std::string &inAttrString, S
 
 int SchemaUtils::ParseSchemaAttribute(std::vector<std::string> &attrContext, SchemaAttribute &outAttr, bool useAffinity)
 {
+    // Currently supported types
+    static const std::map<std::string, FieldType> FIELD_TYPE_DIC = {
+        {SchemaConstant::KEYWORD_TYPE_BOOL, FieldType::LEAF_FIELD_BOOL},
+        {SchemaConstant::KEYWORD_TYPE_INTEGER, FieldType::LEAF_FIELD_INTEGER},
+        {SchemaConstant::KEYWORD_TYPE_LONG, FieldType::LEAF_FIELD_LONG},
+        {SchemaConstant::KEYWORD_TYPE_DOUBLE, FieldType::LEAF_FIELD_DOUBLE},
+        {SchemaConstant::KEYWORD_TYPE_STRING, FieldType::LEAF_FIELD_STRING},
+    };
+
     // After split attribute? attrContext include 3 type field
     if (attrContext.size() < 3) {
         LOGE("No parsing preprocessing!!");
@@ -366,7 +373,7 @@ int CheckDollarDotPrefix(const std::string &inPathStr, bool &hasPrefix)
 }
 }
 
-int SchemaUtils::ParseAndCheckFieldPath(const std::string &inPathString, FieldPath &outPath)
+int SchemaUtils::ParseAndCheckFieldPath(const std::string &inPathString, FieldPath &outPath, bool permitPrefix)
 {
     std::string tempInPathString = inPathString;
     TrimFiled(tempInPathString);
@@ -376,6 +383,12 @@ int SchemaUtils::ParseAndCheckFieldPath(const std::string &inPathString, FieldPa
         LOGE("CheckDollarDotPrefix Fail.");
         return errCode;
     }
+
+    if (!permitPrefix && hasPrefix) {
+        LOGE("Not permit $. prefix.");
+        return -E_SCHEMA_PARSE_FAIL;
+    }
+
     if (!hasPrefix) {
         tempInPathString = std::string("$.") + tempInPathString;
     }
@@ -390,7 +403,7 @@ int SchemaUtils::ParseAndCheckFieldPath(const std::string &inPathString, FieldPa
         curPos = nextPointPos;
     }
 
-    if (outPath.size() > SCHEMA_FEILD_PATH_DEPTH_MAX) {
+    if (outPath.size() > SchemaConstant::SCHEMA_FEILD_PATH_DEPTH_MAX) {
         LOGE("Parse Schema Index  depth illegality!");
         return -E_SCHEMA_PARSE_FAIL;
     }
@@ -406,7 +419,7 @@ int SchemaUtils::ParseAndCheckFieldPath(const std::string &inPathString, FieldPa
 
 int SchemaUtils::CheckFieldName(const FieldName &inName)
 {
-    if (inName.empty() || inName.size() > SCHEMA_FEILD_NAME_LENGTH_MAX) {
+    if (inName.empty() || inName.size() > SchemaConstant::SCHEMA_FEILD_NAME_LENGTH_MAX) {
         LOGE("Schema FieldName have invalid size!");
         return -E_SCHEMA_PARSE_FAIL;
     }
@@ -466,6 +479,7 @@ std::string SchemaUtils::SchemaTypeString(SchemaType inType)
         {SchemaType::NONE, "NONE"},
         {SchemaType::JSON, "JSON-SCHEMA"},
         {SchemaType::FLATBUFFER, "FLATBUFFER-SCHEMA"},
+        {SchemaType::RELATIVE, "RELATIVE"},
         {SchemaType::UNRECOGNIZED, "UNRECOGNIZED"},
     };
     return schemaTypeMapString[inType];

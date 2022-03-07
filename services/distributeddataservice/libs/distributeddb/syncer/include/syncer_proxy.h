@@ -30,7 +30,7 @@ public:
     ~SyncerProxy() {};
 
     // Init the Syncer modules
-    int Initialize(ISyncInterface *syncInterface) override;
+    int Initialize(ISyncInterface *syncInterface, bool isNeedActive) override;
 
     // Close the syncer
     int Close() override;
@@ -61,6 +61,10 @@ public:
 
     // delete specified device's watermark
     int EraseDeviceWaterMark(const std::string &deviceId, bool isNeedHash) override;
+
+    // delete specified device's and table's watermark
+    int EraseDeviceWaterMark(const std::string &deviceId, bool isNeedHash,
+        const std::string &tableName) override;
 
     // Local data changed callback
     void LocalDataChanged(int notifyEvent) override;

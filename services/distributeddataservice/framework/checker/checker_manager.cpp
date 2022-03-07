@@ -13,8 +13,6 @@
 * limitations under the License.
 */
 #include "checker/checker_manager.h"
-#include "account/account_delegate.h"
-using namespace OHOS::DistributedKv;
 namespace OHOS {
 namespace DistributedData {
 CheckerManager &CheckerManager::GetInstance()
@@ -53,6 +51,10 @@ void CheckerManager::RegisterPlugin(const std::string &checker, std::function<Ch
 
 std::string CheckerManager::GetAppId(const std::string &bundleName, pid_t uid)
 {
+    if (checkers_.empty()) {
+        return "";
+    }
+
     for (auto &[name, checker] : checkers_) {
         if (checker == nullptr) {
             continue;
@@ -68,6 +70,10 @@ std::string CheckerManager::GetAppId(const std::string &bundleName, pid_t uid)
 
 bool CheckerManager::IsValid(const std::string &bundleName, pid_t uid)
 {
+    if (checkers_.empty()) {
+        return false;
+    }
+
     for (auto &[name, checker] : checkers_) {
         if (checker == nullptr) {
             continue;

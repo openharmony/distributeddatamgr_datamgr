@@ -24,7 +24,7 @@
 
 namespace DistributedDB {
 using RowData = std::vector<DataValue>;
-using OptRowData = std::vector<std::optional<DataValue>>;
+using OptRowData = std::vector<DataValue>;
 
 struct LogInfo {
     int dataKey = -1;
@@ -33,7 +33,7 @@ struct LogInfo {
     TimeStamp timestamp = 0;
     TimeStamp wTimeStamp = 0;
     uint64_t flag = 0;
-    std::string hashKey; // primary key hash value
+    Key hashKey; // primary key hash value
 };
 
 struct RowDataWithLog {
@@ -58,7 +58,6 @@ struct OptTableDataWithLog {
 
 class DataTransformer {
 public:
-
     static int TransformTableData(const TableDataWithLog &tableDataWithLog,
         const std::vector<FieldInfo> &fieldInfoList, std::vector<DataItem> &dataItems);
     static int TransformDataItem(const std::vector<DataItem> &dataItems, const std::vector<FieldInfo> &remoteFieldInfo,
@@ -72,10 +71,7 @@ public:
         const std::vector<FieldInfo> &localFieldInfo, std::vector<int> &indexMapping);
 
 private:
-    static int SerializeHashKey(Key &key, const std::string &hashKey);
     static int SerializeValue(Value &value, const RowData &rowData, const std::vector<FieldInfo> &fieldInfoList);
-
-    static int DeSerializeHashKey(const Key &key, std::string &hashKey);
     static int DeSerializeValue(const Value &value, OptRowData &optionalData,
         const std::vector<FieldInfo> &remoteFieldInfo, std::vector<int> &indexMapping);
 

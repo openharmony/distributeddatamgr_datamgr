@@ -17,18 +17,8 @@
 #include "rdb_manager_impl.h"
 
 namespace OHOS::DistributedRdb {
-std::shared_ptr<RdbSyncer> RdbManager::GetRdbSyncer(const RdbSyncerParam &param)
+std::shared_ptr<RdbService> RdbManager::GetRdbService(const RdbSyncerParam& param)
 {
-    return RdbManagerImpl::GetInstance().GetRdbSyncer(param);
-}
-
-int RdbManager::RegisterRdbServiceDeathObserver(const std::string &storeName, const std::function<void()>& observer)
-{
-    return RdbManagerImpl::GetInstance().RegisterRdbServiceDeathObserver(storeName, observer);
-}
-
-int RdbManager::UnRegisterRdbServiceDeathObserver(const std::string &storeName)
-{
-    return RdbManagerImpl::GetInstance().UnRegisterRdbServiceDeathObserver(storeName);
+    return RdbManagerImpl::GetInstance().GetRdbService(param);
 }
 }

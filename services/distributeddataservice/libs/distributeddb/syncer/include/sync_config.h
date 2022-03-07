@@ -33,14 +33,14 @@ current ability format:
 |first bit|second bit|third bit|
 |DATABASE_COMPRESSION_ZLIB|ALLPREDICATEQUERY|SUBSCRIBEQUERY|
 */
-constexpr AbilityItem DATABASE_COMPRESSION_ZLIB = {0, 1};
-constexpr AbilityItem ALLPREDICATEQUERY = {1, 1}; // offset: 0 + 1
-constexpr AbilityItem SUBSCRIBEQUERY = {2, 1}; // // offset: 1 + 1
-
-const std::vector<AbilityItem> ABILITYBITS = {DATABASE_COMPRESSION_ZLIB, ALLPREDICATEQUERY, SUBSCRIBEQUERY};
-
-const std::map<const uint8_t, const AbilityItem> COMPRESSALGOMAP = {
-    {static_cast<uint8_t>(CompressAlgorithm::ZLIB), DATABASE_COMPRESSION_ZLIB},
+class SyncConfig final {
+public:
+    static const AbilityItem DATABASE_COMPRESSION_ZLIB;
+    static const AbilityItem ALLPREDICATEQUERY;
+    static const AbilityItem SUBSCRIBEQUERY;
+    static const AbilityItem INKEYS_QUERY;
+    static const std::vector<AbilityItem> ABILITYBITS;
+    static const std::map<const uint8_t, const AbilityItem> COMPRESSALGOMAP;
 };
 }
 #endif

@@ -29,6 +29,7 @@
 #include "performance_analysis.h"
 #include "single_ver_sync_target.h"
 #include "single_ver_data_sync.h"
+#include "single_ver_data_sync_utils.h"
 
 namespace DistributedDB {
 namespace {
@@ -463,6 +464,7 @@ Event SingleVerSyncStateMachine::DoTimeSync()
         if (errCode == E_OK) {
             return Event::WAIT_ACK_EVENT;
         }
+        context_->SetTaskErrCode(errCode);
         return TransformErrCodeToEvent(errCode);
     }
 
@@ -729,8 +731,8 @@ int SingleVerSyncStateMachine::HandleDataAckRecv(const Message *inMsg)
         return errCode;
     }
     // when this msg is from response task while request task is running,  ignore the errCode
-    bool ignoreInnerErr = inMsg->GetSessionId() == context_->GetResponseSessionId()
-        && context_->GetRequestSessionId() != 0;
+    bool ignoreInnerErr = inMsg->GetSessionId() == context_->GetResponseSessionId() &&
+        context_->GetRequestSessionId() != 0;
     DataAckRecvErrCodeHandle(errCode, !ignoreInnerErr);
     HandleDataAckRecvWithSlidingWindow(errCode, inMsg, ignoreInnerErr);
     return errCode;
@@ -840,6 +842,7 @@ int SingleVerSyncStateMachine::GetSyncOperationStatus(int errCode) const
         { -E_NOT_SUPPORT, SyncOperation::OP_NOT_SUPPORT },
         { -E_INTERCEPT_DATA_FAIL, SyncOperation::OP_INTERCEPT_DATA_FAIL },
         { -E_MAX_LIMITS, SyncOperation::OP_MAX_LIMITS },
+        { -E_DISTRIBUTED_SCHEMA_CHANGED, SyncOperation::OP_SCHEMA_CHANGED },
         { -E_NOT_REGISTER, SyncOperation::OP_NOT_SUPPORT },
     };
     auto iter = statusMap.find(errCode);
@@ -864,7 +867,7 @@ int SingleVerSyncStateMachine::TimeMarkSyncRecv(const Message *inMsg)
         if (errCode != E_OK) {
             LOGE("[StateMachine][TimeMarkSyncRecv] AckRecv failed errCode=%d", errCode);
             if (inMsg->GetSessionId() != 0 && inMsg->GetSessionId() == context_->GetRequestSessionId()) {
-                context_->SetTaskErrCode(-E_FEEDBACK_COMMUNICATOR_NOT_FOUND);
+                context_->SetTaskErrCode(errCode);
                 CommErrAbort();
             }
             return errCode;
@@ -957,7 +960,7 @@ int SingleVerSyncStateMachine::MessageCallbackPre(const Message *inMsg)
 
 void SingleVerSyncStateMachine::AddPullResponseTarget(const Message *inMsg, WaterMark pullEndWatermark)
 {
-    int messageType = inMsg->GetMessageId();
+    int messageType = static_cast<int>(inMsg->GetMessageId());
     uint32_t sessionId = inMsg->GetSessionId();
     if (pullEndWatermark == 0) {
         LOGE("[StateMachine][AddPullResponseTarget] pullEndWatermark is 0!");
@@ -1090,10 +1093,17 @@ void SingleVerSyncStateMachine::DataRecvErrCodeHandle(uint32_t sessionId, int er
                 PushPullDataRequestEvokeErrHandle();
                 break;
             case -E_BUSY:
-            case -E_SECURITY_OPTION_CHECK_ERROR:
-            case -E_INVALID_QUERY_FORMAT:
-            case -E_INVALID_QUERY_FIELD:
+            case -E_DISTRIBUTED_SCHEMA_CHANGED:
+            case -E_DISTRIBUTED_SCHEMA_NOT_FOUND:
+            case -E_FEEDBACK_COMMUNICATOR_NOT_FOUND:
+            case -E_FEEDBACK_UNKNOWN_MESSAGE:
             case -E_INTERCEPT_DATA_FAIL:
+            case -E_INVALID_QUERY_FIELD:
+            case -E_INVALID_QUERY_FORMAT:
+            case -E_MAX_LIMITS:
+            case -E_NOT_REGISTER:
+            case -E_NOT_SUPPORT:
+            case -E_SECURITY_OPTION_CHECK_ERROR:
                 context_->SetTaskErrCode(errCode);
                 SwitchStateAndStep(Event::INNER_ERR_EVENT);
                 break;
@@ -1132,17 +1142,19 @@ void SingleVerSyncStateMachine::DataAckRecvErrCodeHandle(int errCode, bool handl
                 context_->SetOperationStatus(SyncOperation::OP_PERMISSION_CHECK_FAILED);
             }
             break;
-        case -E_EKEYREVOKED:
-        case -E_SECURITY_OPTION_CHECK_ERROR:
         case -E_BUSY:
-        case -E_INVALID_QUERY_FORMAT:
-        case -E_INVALID_QUERY_FIELD:
-        case -E_FEEDBACK_UNKNOWN_MESSAGE:
+        case -E_DISTRIBUTED_SCHEMA_CHANGED:
+        case -E_DISTRIBUTED_SCHEMA_NOT_FOUND:
+        case -E_EKEYREVOKED:
         case -E_FEEDBACK_COMMUNICATOR_NOT_FOUND:
-        case -E_NOT_SUPPORT:
+        case -E_FEEDBACK_UNKNOWN_MESSAGE:
         case -E_INTERCEPT_DATA_FAIL:
-        case -E_NOT_REGISTER:
+        case -E_INVALID_QUERY_FIELD:
+        case -E_INVALID_QUERY_FORMAT:
         case -E_MAX_LIMITS:
+        case -E_NOT_REGISTER:
+        case -E_NOT_SUPPORT:
+        case -E_SECURITY_OPTION_CHECK_ERROR:
             if (handleError) {
                 context_->SetTaskErrCode(errCode);
             }
@@ -1154,7 +1166,7 @@ void SingleVerSyncStateMachine::DataAckRecvErrCodeHandle(int errCode, bool handl
 
 bool SingleVerSyncStateMachine::IsNeedTriggerQueryAutoSync(Message *inMsg, QuerySyncObject &query)
 {
-    return dataSync_->IsNeedTriggerQueryAutoSync(inMsg, query);
+    return SingleVerDataSyncUtils::IsNeedTriggerQueryAutoSync(inMsg, query);
 }
 
 void SingleVerSyncStateMachine::JumpStatusAfterAbilitySync(int mode)

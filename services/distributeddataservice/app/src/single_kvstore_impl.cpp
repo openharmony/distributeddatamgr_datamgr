@@ -23,6 +23,7 @@
 #include "constant.h"
 #include "dds_trace.h"
 #include "device_kvstore_impl.h"
+#include "auth/auth_delegate.h"
 #include "kvstore_data_service.h"
 #include "kvstore_utils.h"
 #include "ipc_skeleton.h"
@@ -30,6 +31,7 @@
 #include "permission_validator.h"
 #include "query_helper.h"
 #include "reporter.h"
+#include "upgrade_manager.h"
 
 namespace OHOS::DistributedKv {
 using namespace OHOS::DistributedData;
@@ -297,19 +299,19 @@ int SingleKvStoreImpl::ConvertToDbObserverMode(const SubscribeType subscribeType
     return dbObserverMode;
 }
 
-    // Convert KvStore sync mode to DistributeDB sync mode.
-    DistributedDB::SyncMode SingleKvStoreImpl::ConvertToDbSyncMode(SyncMode syncMode) const
-    {
-        DistributedDB::SyncMode dbSyncMode;
-        if (syncMode == SyncMode::PUSH) {
-            dbSyncMode = DistributedDB::SyncMode::SYNC_MODE_PUSH_ONLY;
-        } else if (syncMode == SyncMode::PULL) {
-            dbSyncMode = DistributedDB::SyncMode::SYNC_MODE_PULL_ONLY;
-        } else {
-            dbSyncMode = DistributedDB::SyncMode::SYNC_MODE_PUSH_PULL;
-        }
-        return dbSyncMode;
+// Convert KvStore sync mode to DistributeDB sync mode.
+DistributedDB::SyncMode SingleKvStoreImpl::ConvertToDbSyncMode(SyncMode syncMode) const
+{
+    DistributedDB::SyncMode dbSyncMode;
+    if (syncMode == SyncMode::PUSH) {
+        dbSyncMode = DistributedDB::SyncMode::SYNC_MODE_PUSH_ONLY;
+    } else if (syncMode == SyncMode::PULL) {
+        dbSyncMode = DistributedDB::SyncMode::SYNC_MODE_PULL_ONLY;
+    } else {
+        dbSyncMode = DistributedDB::SyncMode::SYNC_MODE_PUSH_PULL;
     }
+    return dbSyncMode;
+}
 
 Status SingleKvStoreImpl::UnSubscribeKvStore(const SubscribeType subscribeType, sptr<IKvStoreObserver> observer)
 {
@@ -457,34 +459,11 @@ Status SingleKvStoreImpl::GetEntriesWithQuery(const std::string &query, std::vec
         }
         return Status::SUCCESS;
     }
-    switch (status) {
-        case DistributedDB::DBStatus::BUSY:
-        case DistributedDB::DBStatus::DB_ERROR: {
-            return Status::DB_ERROR;
-        }
-        case DistributedDB::DBStatus::INVALID_ARGS: {
-            return Status::INVALID_ARGUMENT;
-        }
-        case DistributedDB::DBStatus::INVALID_QUERY_FORMAT: {
-            return Status::INVALID_QUERY_FORMAT;
-        }
-        case DistributedDB::DBStatus::INVALID_QUERY_FIELD: {
-            return Status::INVALID_QUERY_FIELD;
-        }
-        case DistributedDB::DBStatus::NOT_SUPPORT: {
-            return Status::NOT_SUPPORT;
-        }
-        case DistributedDB::DBStatus::NOT_FOUND: {
-            ZLOGI("DB return NOT_FOUND, no matching result. Return success with empty list.");
-            return Status::SUCCESS;
-        }
-        case DistributedDB::DBStatus::EKEYREVOKED_ERROR: // fallthrough
-        case DistributedDB::DBStatus::SECURITY_OPTION_CHECK_ERROR:
-            return Status::SECURITY_LEVEL_ERROR;
-        default: {
-            return Status::ERROR;
-        }
+    if (status == DistributedDB::DBStatus::NOT_FOUND) {
+        ZLOGI("DB return NOT_FOUND, no matching result. Return success with empty list.");
+        return Status::SUCCESS;
     }
+    return ConvertDbStatus(status);
 }
 
 void SingleKvStoreImpl::GetResultSet(const Key &prefixKey,
@@ -735,7 +714,8 @@ Status SingleKvStoreImpl::RemoveDeviceData(const std::string &device)
     return Status::ERROR;
 }
 
-Status SingleKvStoreImpl::Sync(const std::vector<std::string> &deviceIds, SyncMode mode, uint32_t allowedDelayMs)
+Status SingleKvStoreImpl::Sync(const std::vector<std::string> &deviceIds, SyncMode mode,
+                               uint32_t allowedDelayMs, uint64_t sequenceId)
 {
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     ZLOGD("start.");
@@ -754,10 +734,11 @@ Status SingleKvStoreImpl::Sync(const std::vector<std::string> &deviceIds, SyncMo
         lastSyncMode_ = mode;
         lastSyncDelayMs_ = delayMs;
     }
-    return AddSync(deviceIds, mode, delayMs);
+    return AddSync(deviceIds, mode, delayMs, sequenceId);
 }
 
-Status SingleKvStoreImpl::Sync(const std::vector<std::string> &deviceIds, SyncMode mode, const std::string &query)
+Status SingleKvStoreImpl::Sync(const std::vector<std::string> &deviceIds, SyncMode mode,
+                               const std::string &query, uint64_t sequenceId)
 {
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     ZLOGD("start.");
@@ -766,27 +747,27 @@ Status SingleKvStoreImpl::Sync(const std::vector<std::string> &deviceIds, SyncMo
         return Status::EXCEED_MAX_ACCESS_RATE;
     }
     uint32_t delayMs = GetSyncDelayTime(0);
-    return AddSync(deviceIds, mode, query, delayMs);
+    return AddSync(deviceIds, mode, query, delayMs, sequenceId);
 }
 
-Status SingleKvStoreImpl::AddSync(const std::vector<std::string> &deviceIds, SyncMode mode,
-                                  uint32_t delayMs)
+Status SingleKvStoreImpl::AddSync(const std::vector<std::string> &deviceIds, SyncMode mode, uint32_t delayMs,
+                                  uint64_t sequenceId)
 {
     ZLOGD("start.");
     waitingSyncCount_++;
     return KvStoreSyncManager::GetInstance()->AddSyncOperation(reinterpret_cast<uintptr_t>(this), delayMs,
-        std::bind(&SingleKvStoreImpl::DoSync, this, deviceIds, mode, std::placeholders::_1),
-        std::bind(&SingleKvStoreImpl::DoSyncComplete, this, std::placeholders::_1));
+        std::bind(&SingleKvStoreImpl::DoSync, this, deviceIds, mode, std::placeholders::_1, sequenceId),
+        std::bind(&SingleKvStoreImpl::DoSyncComplete, this, std::placeholders::_1, "", sequenceId));
 }
 
 Status SingleKvStoreImpl::AddSync(const std::vector<std::string> &deviceIds, SyncMode mode,
-                                  const std::string &query, uint32_t delayMs)
+                                  const std::string &query, uint32_t delayMs, uint64_t sequenceId)
 {
     ZLOGD("start.");
     waitingSyncCount_++;
     return KvStoreSyncManager::GetInstance()->AddSyncOperation(reinterpret_cast<uintptr_t>(this), delayMs,
-        std::bind(&SingleKvStoreImpl::DoQuerySync, this, deviceIds, mode, query, std::placeholders::_1),
-        std::bind(&SingleKvStoreImpl::DoSyncComplete, this, std::placeholders::_1));
+        std::bind(&SingleKvStoreImpl::DoQuerySync, this, deviceIds, mode, query, std::placeholders::_1, sequenceId),
+        std::bind(&SingleKvStoreImpl::DoSyncComplete, this, std::placeholders::_1, query, sequenceId));
 }
 
 uint32_t SingleKvStoreImpl::GetSyncDelayTime(uint32_t allowedDelayMs) const
@@ -814,7 +795,8 @@ Status SingleKvStoreImpl::RemoveAllSyncOperation()
     return KvStoreSyncManager::GetInstance()->RemoveSyncOperation(reinterpret_cast<uintptr_t>(this));
 }
 
-void SingleKvStoreImpl::DoSyncComplete(const std::map<std::string, DistributedDB::DBStatus> &devicesSyncResult)
+void SingleKvStoreImpl::DoSyncComplete(const std::map<std::string, DistributedDB::DBStatus> &devicesSyncResult,
+                                       const std::string &query, uint64_t sequenceId)
 {
     DdsTrace trace(std::string("DdsTrace " LOG_TAG "::") + std::string(__FUNCTION__));
     std::map<std::string, Status> resultMap;
@@ -824,12 +806,12 @@ void SingleKvStoreImpl::DoSyncComplete(const std::map<std::string, DistributedDB
     syncRetries_ = 0;
     ZLOGD("callback.");
     if (syncCallback_ != nullptr) {
-        syncCallback_->SyncCompleted(resultMap);
+        syncCallback_->SyncCompleted(resultMap, sequenceId);
     }
 }
 
 Status SingleKvStoreImpl::DoQuerySync(const std::vector<std::string> &deviceIds, SyncMode mode,
-                                      const std::string &query, const KvStoreSyncManager::SyncEnd &syncEnd)
+    const std::string &query, const KvStoreSyncManager::SyncEnd &syncEnd, uint64_t sequenceId)
 {
     ZLOGD("start.");
     std::vector<std::string> deviceUuids = MapNodeIdToUuids(deviceIds);
@@ -868,8 +850,7 @@ Status SingleKvStoreImpl::DoQuerySync(const std::vector<std::string> &deviceIds,
     if (status == DistributedDB::DBStatus::BUSY) {
         if (syncRetries_ < KvStoreSyncManager::SYNC_RETRY_MAX_COUNT) {
             syncRetries_++;
-            auto addStatus = AddSync(deviceIds, mode, query,
-                KvStoreSyncManager::SYNC_DEFAULT_DELAY_MS);
+            auto addStatus = AddSync(deviceIds, mode, query, KvStoreSyncManager::SYNC_DEFAULT_DELAY_MS, sequenceId);
             if (addStatus == Status::SUCCESS) {
                 return addStatus;
             }
@@ -879,7 +860,7 @@ Status SingleKvStoreImpl::DoQuerySync(const std::vector<std::string> &deviceIds,
 }
 
 Status SingleKvStoreImpl::DoSync(const std::vector<std::string> &deviceIds, SyncMode mode,
-                                 const KvStoreSyncManager::SyncEnd &syncEnd)
+                                 const KvStoreSyncManager::SyncEnd &syncEnd, uint64_t sequenceId)
 {
     ZLOGD("start.");
     std::vector<std::string> deviceUuids = MapNodeIdToUuids(deviceIds);
@@ -904,7 +885,7 @@ Status SingleKvStoreImpl::DoSync(const std::vector<std::string> &deviceIds, Sync
     if (status == DistributedDB::DBStatus::BUSY) {
         if (syncRetries_ < KvStoreSyncManager::SYNC_RETRY_MAX_COUNT) {
             syncRetries_++;
-            auto addStatus = AddSync(deviceUuids, mode, KvStoreSyncManager::SYNC_DEFAULT_DELAY_MS);
+            auto addStatus = AddSync(deviceUuids, mode, KvStoreSyncManager::SYNC_DEFAULT_DELAY_MS, sequenceId);
             if (addStatus == Status::SUCCESS) {
                 return addStatus;
             }
@@ -925,8 +906,8 @@ std::vector<std::string> SingleKvStoreImpl::MapNodeIdToUuids(const std::vector<s
     return deviceUuids;
 }
 
-Status SingleKvStoreImpl::DoSubscribeWithQuery(const std::vector<std::string> &deviceIds,
-                                               const std::string &query, const KvStoreSyncManager::SyncEnd &syncEnd)
+Status SingleKvStoreImpl::DoSubscribe(const std::vector<std::string> &deviceIds,
+                                      const std::string &query, const KvStoreSyncManager::SyncEnd &syncEnd)
 {
     ZLOGD("start.");
     std::vector<std::string> deviceUuids = MapNodeIdToUuids(deviceIds);
@@ -956,8 +937,8 @@ Status SingleKvStoreImpl::DoSubscribeWithQuery(const std::vector<std::string> &d
     return ConvertDbStatus(status);
 }
 
-Status SingleKvStoreImpl::DoUnSubscribeWithQuery(const std::vector<std::string> &deviceIds, const std::string &query,
-                                                 const KvStoreSyncManager::SyncEnd &syncEnd)
+Status SingleKvStoreImpl::DoUnSubscribe(const std::vector<std::string> &deviceIds, const std::string &query,
+                                        const KvStoreSyncManager::SyncEnd &syncEnd)
 {
     ZLOGD("start.");
     std::vector<std::string> deviceUuids = MapNodeIdToUuids(deviceIds);
@@ -986,26 +967,26 @@ Status SingleKvStoreImpl::DoUnSubscribeWithQuery(const std::vector<std::string> 
     return ConvertDbStatus(status);
 }
 
-Status SingleKvStoreImpl::AddSubscribeWithQuery(const std::vector<std::string> &deviceIds,
-                                                const std::string &query, uint32_t delayMs)
+Status SingleKvStoreImpl::AddSubscribe(const std::vector<std::string> &deviceIds, const std::string &query,
+                                       uint32_t delayMs, uint64_t sequenceId)
 {
     ZLOGD("start.");
     return KvStoreSyncManager::GetInstance()->AddSyncOperation(reinterpret_cast<uintptr_t>(this), delayMs,
-        std::bind(&SingleKvStoreImpl::DoSubscribeWithQuery, this, deviceIds, query, std::placeholders::_1),
-        std::bind(&SingleKvStoreImpl::DoSyncComplete, this, std::placeholders::_1));
+        std::bind(&SingleKvStoreImpl::DoSubscribe, this, deviceIds, query, std::placeholders::_1),
+        std::bind(&SingleKvStoreImpl::DoSyncComplete, this, std::placeholders::_1, "", sequenceId));
 }
 
-Status SingleKvStoreImpl::AddUnSubscribeWithQuery(const std::vector<std::string> &deviceIds,
-                                                  const std::string &query, uint32_t delayMs)
+Status SingleKvStoreImpl::AddUnSubscribe(const std::vector<std::string> &deviceIds, const std::string &query,
+                                         uint32_t delayMs, uint64_t sequenceId)
 {
     ZLOGD("start.");
     return KvStoreSyncManager::GetInstance()->AddSyncOperation(reinterpret_cast<uintptr_t>(this), delayMs,
-        std::bind(&SingleKvStoreImpl::DoUnSubscribeWithQuery, this, deviceIds, query, std::placeholders::_1),
-        std::bind(&SingleKvStoreImpl::DoSyncComplete, this, std::placeholders::_1));
+        std::bind(&SingleKvStoreImpl::DoUnSubscribe, this, deviceIds, query, std::placeholders::_1),
+        std::bind(&SingleKvStoreImpl::DoSyncComplete, this, std::placeholders::_1, "", sequenceId));
 }
 
-Status SingleKvStoreImpl::SubscribeWithQuery(const std::vector<std::string> &deviceIds,
-                                             const std::string &query)
+Status SingleKvStoreImpl::Subscribe(const std::vector<std::string> &deviceIds,
+                                    const std::string &query, uint64_t sequenceId)
 {
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     ZLOGD("start.");
@@ -1014,11 +995,11 @@ Status SingleKvStoreImpl::SubscribeWithQuery(const std::vector<std::string> &dev
         return Status::EXCEED_MAX_ACCESS_RATE;
     }
     uint32_t delayMs = GetSyncDelayTime(0);
-    return AddSubscribeWithQuery(deviceIds, query, delayMs);
+    return AddSubscribe(deviceIds, query, delayMs, sequenceId);
 }
 
-Status SingleKvStoreImpl::UnSubscribeWithQuery(const std::vector<std::string> &deviceIds,
-                                               const std::string &query)
+Status SingleKvStoreImpl::UnSubscribe(const std::vector<std::string> &deviceIds,
+                                      const std::string &query, uint64_t sequenceId)
 {
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     ZLOGD("start.");
@@ -1027,7 +1008,7 @@ Status SingleKvStoreImpl::UnSubscribeWithQuery(const std::vector<std::string> &d
         return Status::EXCEED_MAX_ACCESS_RATE;
     }
     uint32_t delayMs = GetSyncDelayTime(0);
-    return AddUnSubscribeWithQuery(deviceIds, query, delayMs);
+    return AddUnSubscribe(deviceIds, query, delayMs, sequenceId);
 }
 
 InnerStatus SingleKvStoreImpl::Close(DistributedDB::KvStoreDelegateManager *kvStoreDelegateManager)
@@ -1630,5 +1611,37 @@ void SingleKvStoreImpl::OnDump(int fd) const
 std::string SingleKvStoreImpl::GetStoreId()
 {
     return storeId_;
+}
+
+void SingleKvStoreImpl::SetCompatibleIdentify(const std::string &changedDevice)
+{
+    bool flag = false;
+    auto capability = UpgradeManager::GetInstance().GetCapability(changedDevice, flag);
+    if (!flag || capability.version >= CapMetaData::CURRENT_VERSION) {
+        ZLOGE("get peer capability %{public}d, or not older version", flag);
+        return;
+    }
+
+    auto peerUserId = 0; // peer user id reversed here
+    auto groupType =
+        AuthDelegate::GetInstance()->GetGroupType(std::stoi(deviceAccountId_), peerUserId, changedDevice, appId_);
+    flag = false;
+    std::string compatibleUserId = UpgradeManager::GetIdentifierByType(groupType, flag);
+    if (!flag) {
+        ZLOGE("failed to get identifier by group type %{public}d", groupType);
+        return;
+    }
+    // older version use bound account syncIdentifier instead of user syncIdentifier
+    ZLOGI("compatible user:%{public}s", compatibleUserId.c_str());
+    auto syncIdentifier =
+        DistributedDB::KvStoreDelegateManager::GetKvStoreIdentifier(compatibleUserId, appId_, storeId_);
+    kvStoreNbDelegate_->SetEqualIdentifier(syncIdentifier, { changedDevice });
+}
+
+void SingleKvStoreImpl::SetCompatibleIdentify()
+{
+    KvStoreTuple tuple = { deviceAccountId_, appId_, storeId_ };
+    UpgradeManager::SetCompatibleIdentifyByType(kvStoreNbDelegate_, tuple, IDENTICAL_ACCOUNT_GROUP);
+    UpgradeManager::SetCompatibleIdentifyByType(kvStoreNbDelegate_, tuple, PEER_TO_PEER_GROUP);
 }
 }  // namespace OHOS::DistributedKv

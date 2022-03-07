@@ -20,14 +20,15 @@
 #include <string>
 #include <functional>
 
-#include "macro_utils.h"
-#include "notification_chain.h"
+#include "auto_launch.h"
+#include "auto_launch_export.h"
 #include "icommunicator_aggregator.h"
 #include "iprocess_system_api_adapter.h"
-#include "types_export.h"
 #include "kv_store_observer.h"
 #include "kvdb_properties.h"
-#include "auto_launch_export.h"
+#include "macro_utils.h"
+#include "notification_chain.h"
+#include "types_export.h"
 
 namespace DistributedDB {
 using TimerId = uint64_t;
@@ -36,6 +37,7 @@ using TimerFinalizer = std::function<void(void)>;
 using TaskAction = std::function<void(void)>;
 using TimeChangedAction = std::function<void(void *)>;
 using LockStatusNotifier = std::function<void(void *isLocked)>;
+using UserChangedAction = std::function<void(void *)>;
 
 class RuntimeContext {
 public:
@@ -50,6 +52,7 @@ public:
     virtual int SetCommunicatorAdapter(IAdapter *adapter) = 0;
     virtual int GetCommunicatorAggregator(ICommunicatorAggregator *&outAggregator) = 0;
     virtual void SetCommunicatorAggregator(ICommunicatorAggregator *inAggregator) = 0;
+    virtual int GetLocalIdentity(std::string &outTarget) = 0;
 
     // Timer interfaces.
     virtual int SetTimer(int milliSeconds, const TimerAction &action,
@@ -81,11 +84,12 @@ public:
     virtual int EnableKvStoreAutoLaunch(const KvDBProperties &properties, AutoLaunchNotifier notifier,
         const AutoLaunchOption &option) = 0;
 
-    virtual int DisableKvStoreAutoLaunch(const std::string &identifier) = 0;
+    virtual int DisableKvStoreAutoLaunch(const std::string &normalIdentifier, const std::string &dualTupleIdentifier,
+        const std::string &userId) = 0;
 
     virtual void GetAutoLaunchSyncDevices(const std::string &identifier, std::vector<std::string> &devices) const = 0;
 
-    virtual void SetAutoLaunchRequestCallback(const AutoLaunchRequestCallback &callback) = 0;
+    virtual void SetAutoLaunchRequestCallback(const AutoLaunchRequestCallback &callback, DBType type) = 0;
 
     virtual NotificationChain::Listener *RegisterLockStatusLister(const LockStatusNotifier &action, int &errCode) = 0;
 
@@ -105,6 +109,20 @@ public:
 
     // Notify TIME_CHANGE_EVENT.
     virtual void NotifyTimeStampChanged(TimeOffset offset) const = 0;
+
+    virtual void SetStoreStatusNotifier(const StoreStatusNotifier &notifier) = 0;
+
+    virtual void NotifyDatabaseStatusChange(const std::string &userId, const std::string &appId,
+        const std::string &storeId, const std::string &deviceId, bool onlineStatus) = 0;
+
+    virtual int SetSyncActivationCheckCallback(const SyncActivationCheckCallback &callback) = 0;
+
+    virtual bool IsSyncerNeedActive(std::string &userId, std::string &appId, std::string &storeId) const = 0;
+
+    virtual NotificationChain::Listener *RegisterUserChangedListerner(const UserChangedAction &action,
+        EventType event) = 0;
+
+    virtual int NotifyUserChanged() const = 0;
 protected:
     RuntimeContext() = default;
     virtual ~RuntimeContext() {}

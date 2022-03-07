@@ -19,7 +19,7 @@
 #include <list>
 #include <string>
 #include "db_types.h"
-#include "types.h"
+#include "store_types.h"
 #include "kvdb_properties.h"
 
 namespace DistributedDB {
@@ -50,15 +50,22 @@ public:
     static std::string GenerateIdentifierId(const std::string &storeId,
         const std::string &appId, const std::string &userId);
 
+    static std::string GenerateDualTupleIdentifierId(const std::string &storeId, const std::string &appId);
+
     static void SetDatabaseIds(KvDBProperties &properties, const std::string &appId, const std::string &userId,
         const std::string &storeId);
 
     static std::string StringMasking(const std::string &oriStr, size_t remain = 3); // remain 3 unmask
+
+    static std::string GetDistributedTableName(const std::string &device, const std::string &tableName);
+
+    static void GetDeviceFromName(const std::string &deviceTableName, std::string &deviceHash, std::string &tableName);
 };
 
 // Define short macro substitute for original long expression for convenience of using
 #define VEC_TO_STR(x) DBCommon::VectorToHexString(x).c_str()
 #define STR_MASK(x) DBCommon::StringMasking(x).c_str()
+#define STR_TO_HEX(x) DBCommon::TransferStringToHex(x).c_str()
 } // namespace DistributedDB
 
 #endif // DISTRIBUTEDDB_COMMON_H

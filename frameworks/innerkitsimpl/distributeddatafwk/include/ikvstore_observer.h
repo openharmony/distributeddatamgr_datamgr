@@ -45,7 +45,6 @@ public:
 private:
     static inline BrokerDelegator<KvStoreObserverProxy> delegator_;
 };
-
 }  // namespace DistributedKv
 }  // namespace OHOS
 

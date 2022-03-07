@@ -19,12 +19,13 @@
 #include <nlohmann/json.hpp>
 
 #include "app_device_status_change_listener.h"
-#include "types.h"
-#include "system_ability.h"
 #include "kv_store_delegate.h"
 #include "kv_store_delegate_manager.h"
+#include "kv_store_task.h"
 #include "kvstore_impl.h"
 #include "single_kvstore_impl.h"
+#include "system_ability.h"
+#include "types.h"
 
 namespace OHOS {
 namespace DistributedKv {
@@ -37,11 +38,16 @@ enum FLAG {
     CHECK_EXIST_LOCAL,
 };
 
+enum class CHANGE_FLAG {
+    INSERT,
+    UPDATE,
+    DELETE
+};
+
 struct Serializable {
     using json = nlohmann::json;
     template<typename T>
     static T GetVal(const json &j, const std::string &name, json::value_t type, const T &def);
-    static bool CheckJsonValue(const json &j, const std::string &name, json::value_t type);
     static json ToJson(const std::string &jsonStr);
 };
 
@@ -103,17 +109,11 @@ struct KvStoreMetaData {
     std::string Marshal() const;
     void Unmarshal(const json &jObject);
 
-    static bool CheckChiefValues(const json &jObject);
-
     static inline std::string GetAppId(const json &jObject)
     {
         return Serializable::GetVal<std::string>(jObject, APP_ID, json::value_t::string, "");
     }
 
-    static inline std::string GetBundleName(const json &jObject)
-    {
-        return Serializable::GetVal<std::string>(jObject, BUNDLE_NAME, json::value_t::string, "");
-    }
     static inline std::string GetStoreId(const json &jObject)
     {
         return Serializable::GetVal<std::string>(jObject, STORE_ID, json::value_t::string, "");
@@ -150,26 +150,17 @@ private:
     static constexpr const char *KVSTORE_TYPE = "kvStoreType";
 };
 
-struct DelegateGuard {
-    using Fn = std::function<void()>;
-    Fn action_;
-    DelegateGuard(Fn action) : action_(std::forward<Fn>(action)) {}
-
-    ~DelegateGuard()
-    {
-        if (action_) {
-            action_();
-        }
-    }
-    DelegateGuard() = delete;
-    DelegateGuard(const DelegateGuard &) = delete;
-    DelegateGuard &operator=(const DelegateGuard &) = delete;
-};
-
 class KvStoreMetaManager {
 public:
+    static constexpr uint32_t META_STORE_VERSION = 0x03000001;
+    static const inline std::string META_DB_APP_ID = "distributeddata";
+    enum DatabaseType {
+        KVDB,
+        RDB,
+    };
     using NbDelegate = std::unique_ptr<DistributedDB::KvStoreNbDelegate,
         std::function<void(DistributedDB::KvStoreNbDelegate *)>>;
+    using ChangeObserver = std::function<void(const std::vector<uint8_t> &, const std::vector<uint8_t> &, CHANGE_FLAG)>;
 
     class MetaDeviceChangeListenerImpl : public AppDistributedKv::AppDeviceStatusChangeListener {
         void OnDeviceChanged(const AppDistributedKv::DeviceInfo &info,
@@ -183,9 +174,8 @@ public:
     static KvStoreMetaManager &GetInstance();
 
     void InitMetaParameter();
-
-    void InitMetaListener(std::function<void(const KvStoreMetaData &metaData)> observer);
-
+    void InitMetaListener();
+    void SubscribeMeta(const std::string &keyPrefix, const ChangeObserver &observer);
     const NbDelegate &GetMetaKvStore();
 
     Status CheckUpdateServiceMeta(const std::vector<uint8_t> &metaKey, FLAG flag, const std::vector<uint8_t> &val = {});
@@ -243,10 +233,6 @@ public:
 
     Status QueryKvStoreMetaDataByDeviceIdAndAppId(const std::string &devId, const std::string &appId,
                                                   KvStoreMetaData &val);
-    // json rule
-    void ToJson(nlohmann::json &j, const KvStoreMetaData &k);
-
-    void FromJson(const nlohmann::json &j, KvStoreMetaData &k);
 
     Status GetKvStoreMeta(const std::vector<uint8_t> &metaKey, KvStoreMetaData &kvStoreMetaData);
 
@@ -254,7 +240,7 @@ public:
 
     bool GetKvStoreMetaDataByAppId(const std::string &appId, KvStoreMetaData &metaData);
 
-    bool GetFullMetaData(std::map<std::string, MetaData> &entries);
+    bool GetFullMetaData(std::map<std::string, MetaData> &entries, enum DatabaseType type = KVDB);
 private:
     NbDelegate CreateMetaKvStore();
 
@@ -270,8 +256,6 @@ private:
 
     Status GetStategyMeta(const std::string &key, std::map<std::string, std::vector<std::string>> &strategies);
 
-    int GetSecurityLevelByBundleName(const std::string &bundleName);
-
     bool GetKvStoreMetaByType(const std::string &name, const std::string &val, KvStoreMetaData &metaData);
 
     class KvStoreMetaObserver : public DistributedDB::KvStoreObserver {
@@ -280,10 +264,11 @@ private:
 
         // Database change callback
         void OnChange(const DistributedDB::KvStoreChangedData &data) override;
-        std::function<void(const KvStoreMetaData &)> notify_ = nullptr;
+        std::map<std::string, ChangeObserver> handlerMap_;
+    private:
+        void HandleChanges(CHANGE_FLAG flag, const std::list<DistributedDB::Entry> &list);
     };
 
-    static const inline std::string META_DB_APP_ID = "distributeddata";
     static constexpr const char *ROOT_KEY_ALIAS = "distributed_db_root_key";
     static constexpr const char *STRATEGY_META_PREFIX = "StrategyMetaData";
     static constexpr const char *CAPABILITY_ENABLED = "capabilityEnabled";

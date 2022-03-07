@@ -75,6 +75,9 @@ public:
     static DistributedDB::SecurityOption ConvertSecurity(int securityLevel);
 
     size_t GetTotalKvStoreNum() const;
+
+    bool IsStoreOpened(const std::string &storeId) const;
+    void SetCompatibleIdentify(const std::string &deviceId) const;
 private:
     DISALLOW_COPY_AND_MOVE(KvStoreAppManager);
     Status ConvertErrorStatus(DistributedDB::DBStatus dbStatus, bool createIfMissing);

@@ -28,6 +28,7 @@
 #include "time_tick_monitor.h"
 #include "icommunicator_aggregator.h"
 #include "auto_launch.h"
+#include "user_change_monitor.h"
 
 namespace DistributedDB {
 class RuntimeContextImpl final : public RuntimeContext {
@@ -41,7 +42,7 @@ public:
     int SetCommunicatorAdapter(IAdapter *adapter) override;
     int GetCommunicatorAggregator(ICommunicatorAggregator *&outAggregator) override;
     void SetCommunicatorAggregator(ICommunicatorAggregator *inAggregator) override;
-
+    int GetLocalIdentity(std::string &outTarget) override;
     // Add and start a timer.
     int SetTimer(int milliSeconds, const TimerAction &action,
         const TimerFinalizer &finalizer, TimerId &timerId) override;
@@ -72,11 +73,12 @@ public:
     int EnableKvStoreAutoLaunch(const KvDBProperties &properties, AutoLaunchNotifier notifier,
         const AutoLaunchOption &option) override;
 
-    int DisableKvStoreAutoLaunch(const std::string &identifier) override;
+    int DisableKvStoreAutoLaunch(const std::string &normalIdentifier, const std::string &dualTupleIdentifier,
+        const std::string &userId) override;
 
     void GetAutoLaunchSyncDevices(const std::string &identifier, std::vector<std::string> &devices) const override;
 
-    void SetAutoLaunchRequestCallback(const AutoLaunchRequestCallback &callback) override;
+    void SetAutoLaunchRequestCallback(const AutoLaunchRequestCallback &callback, DBType type) override;
 
     NotificationChain::Listener *RegisterLockStatusLister(const LockStatusNotifier &action, int &errCode) override;
 
@@ -97,6 +99,20 @@ public:
     // Notify TIME_CHANGE_EVENT.
     void NotifyTimeStampChanged(TimeOffset offset) const override;
 
+    void SetStoreStatusNotifier(const StoreStatusNotifier &notifier) override;
+
+    void NotifyDatabaseStatusChange(const std::string &userId, const std::string &appId, const std::string &storeId,
+        const std::string &deviceId, bool onlineStatus) override;
+
+    int SetSyncActivationCheckCallback(const SyncActivationCheckCallback &callback) override;
+
+    bool IsSyncerNeedActive(std::string &userId, std::string &appId, std::string &storeId) const override;
+
+    // Register a user changed lister, it will be callback when user change.
+    NotificationChain::Listener *RegisterUserChangedListerner(const UserChangedAction &action,
+        EventType event) override;
+    // Notify TIME_CHANGE_EVENT.
+    int NotifyUserChanged() const override;
 private:
     static constexpr int MAX_TP_THREADS = 10;  // max threads of the task pool.
     static constexpr int MIN_TP_THREADS = 1;   // min threads of the task pool.
@@ -142,6 +158,15 @@ private:
     std::shared_ptr<IProcessSystemApiAdapter> systemApiAdapter_;
     mutable std::mutex lockStatusLock_; // Mutex for lockStatusObserver_.
     LockStatusObserver *lockStatusObserver_;
+
+    mutable std::shared_mutex databaseStatusCallbackMutex_{};
+    StoreStatusNotifier databaseStatusNotifyCallback_;
+
+    mutable std::shared_mutex syncActivationCheckCallbackMutex_{};
+    SyncActivationCheckCallback syncActivationCheckCallback_;
+
+    mutable std::mutex userChangeMonitorLock_;
+    std::unique_ptr<UserChangeMonitor> userChangeMonitor_;
 };
 } // namespace DistributedDB
 

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef SDB_DIRECTORY_MANAGER_H
-#define SDB_DIRECTORY_MANAGER_H
+#ifndef DISTRIBUTEDDATAMGR_DIRECTORY_MANAGER_H
+#define DISTRIBUTEDDATAMGR_DIRECTORY_MANAGER_H
 
 #include <map>
 #include <memory>
@@ -91,4 +91,4 @@ private:
     std::string version_;
 };
 } // namespace OHOS::DistributedKv
-#endif // SDB_DIRECTORY_MANAGER_H
+#endif // DISTRIBUTEDDATAMGR_DIRECTORY_MANAGER_H

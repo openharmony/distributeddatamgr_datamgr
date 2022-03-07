@@ -33,7 +33,7 @@ using ErrorCode = int;
 using SyncId = uint64_t;
 using WaterMark = uint64_t;
 using DatabaseCorruptHandler = std::function<void()>;
-using DatabaseLifeCycleNotifier = std::function<void(const std::string &)>;
+using DatabaseLifeCycleNotifier = std::function<void(const std::string &, const std::string &)>;
 const uint32_t MTU_SIZE = 5 * 1024 * 1024; // 5 M, 1024 is scale
 
 struct DataItem {
@@ -53,6 +53,7 @@ struct DataItem {
     // Only use for query sync and subscribe. ATTENTION!!! this flag should not write into mainDB.
     // Mark the changed row data does not match with query sync(or subscribe) condition.
     static constexpr uint64_t REMOTE_DEVICE_DATA_MISS_QUERY = 0x10;
+    static constexpr uint64_t UPDATE_FLAG = 0X20;
 };
 
 struct PragmaPublishInfo {
@@ -129,6 +130,7 @@ struct SyncTimeRange {
     TimeStamp deleteBeginTime = 0;
     TimeStamp endTime = static_cast<TimeStamp>(INT64_MAX);
     TimeStamp deleteEndTime = static_cast<TimeStamp>(INT64_MAX);
+    TimeStamp lastQueryTime = 0;
     bool IsValid() const
     {
         return (beginTime <= endTime && deleteBeginTime <= deleteEndTime);

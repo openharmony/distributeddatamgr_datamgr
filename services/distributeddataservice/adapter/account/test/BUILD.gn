@@ -37,8 +37,8 @@ ohos_unittest("DistributeddataAccountTest") {
   ]
 
   external_deps = [
-    "ability_runtime:base",
-    "ability_runtime:intent",
+    "ability_base:base",
+    "ability_base:want",
     "bundle_framework:appexecfwk_base",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",

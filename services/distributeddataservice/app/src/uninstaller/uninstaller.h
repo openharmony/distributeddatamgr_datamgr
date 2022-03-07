@@ -23,7 +23,7 @@
 
 namespace OHOS::DistributedKv {
 class KvStoreDataService;
-enum class Status;
+enum Status : int32_t;
 class Uninstaller {
 public:
     KVSTORE_API virtual Status Init(KvStoreDataService *kvStoreDataService) = 0;

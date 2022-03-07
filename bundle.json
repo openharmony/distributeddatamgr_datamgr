@@ -48,13 +48,13 @@
         "ram": "",
         "deps": {
             "components": [
+                "ability_base",
                 "libhilog",
                 "ipc_core",
                 "utils",
                 "samgr_proxy",
                 "ace_napi",
                 "base",
-                "intent",
                 "appexecfwk_base",
                 "appexecfwk_core",
                 "batterysrv_client",
@@ -81,7 +81,6 @@
         },
         "build": {
             "sub_component": [
-                "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/app_distributeddata:app_distributeddata",
                 "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/distributeddata:build_module",
                 "//foundation/distributeddatamgr/distributeddatamgr/interfaces/jskits/distributeddata:build_module",
                 "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/app:build_module",
@@ -111,25 +110,6 @@
                             "device_status_change_listener.h"
                         ],
                         "header_base": "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/distributeddata/include"
-                    }
-                },
-                {
-                    "name": "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/app_distributeddata:app_distributeddata",
-                    "header": {
-                        "header_files": [
-                            "app_blob.h",
-                            "app_change_notification.h",
-                            "app_distributed_kv_data_manager.h",
-                            "app_kvstore.h",
-                            "app_kvstore_conflict_data.h",
-                            "app_kvstore_observer.h",
-                            "app_kvstore_result_set.h",
-                            "app_device_status_change_listener.h",
-                            "app_types.h",
-                            "app_kvstore_corruption_observer.h",
-                            "visibility.h"
-                        ],
-                        "header_base": "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/app_distributeddata/include"
                     }
                 }
             ],

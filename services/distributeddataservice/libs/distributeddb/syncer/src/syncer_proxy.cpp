@@ -25,7 +25,7 @@ SyncerProxy::SyncerProxy()
 {
 }
 
-int SyncerProxy::Initialize(ISyncInterface *syncInterface)
+int SyncerProxy::Initialize(ISyncInterface *syncInterface, bool isNeedActive)
 {
     if (syncInterface == nullptr) {
         return -E_INVALID_ARGS;
@@ -43,7 +43,7 @@ int SyncerProxy::Initialize(ISyncInterface *syncInterface)
         return -E_OUT_OF_MEMORY;
     }
 
-    return syncer_->Initialize(syncInterface);
+    return syncer_->Initialize(syncInterface, isNeedActive);
 }
 
 int SyncerProxy::Close()
@@ -106,10 +106,17 @@ void SyncerProxy::EnableAutoSync(bool enable)
 
 int SyncerProxy::EraseDeviceWaterMark(const std::string &deviceId, bool isNeedHash)
 {
+    return syncer_->EraseDeviceWaterMark(deviceId, isNeedHash, "");
+}
+
+int SyncerProxy::EraseDeviceWaterMark(const std::string &deviceId, bool isNeedHash,
+    const std::string &tableName)
+{
     if (syncer_ == nullptr) {
-        return SyncerFactory::GetSyncer(ISyncInterface::SYNC_SVD)->EraseDeviceWaterMark(deviceId, isNeedHash);
+        LOGE("[SyncerProxy] Syncer no init, unknown rule to erase waterMark!");
+        return -E_NOT_INIT;
     }
-    return syncer_->EraseDeviceWaterMark(deviceId, isNeedHash);
+    return syncer_->EraseDeviceWaterMark(deviceId, isNeedHash, tableName);
 }
 
 void SyncerProxy::LocalDataChanged(int notifyEvent)

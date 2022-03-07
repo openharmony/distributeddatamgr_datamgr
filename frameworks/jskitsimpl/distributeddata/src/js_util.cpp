@@ -17,6 +17,7 @@
 #include <endian.h>
 #include <securec.h>
 
+#include "js_schema.h"
 #include "log_print.h"
 #include "napi_queue.h"
 
@@ -884,12 +885,21 @@ napi_status JSUtil::GetValue(napi_env env, napi_value in, DistributedKv::Options
     GetNamedProperty(env, in, "kvStoreType", kvStoreType);
     options.kvStoreType = static_cast<DistributedKv::KvStoreType>(kvStoreType);
 
-    GetNamedProperty(env, in, "schema", options.schema);
+    JsSchema *jsSchema = nullptr;
+    napi_status status = GetNamedProperty(env, in, "schema", jsSchema);
+    if (status == napi_ok) {
+        options.schema = jsSchema->Dump();
+    }
     
     int32_t level = 0;
     GetNamedProperty(env, in, "securityLevel", level);
     options.securityLevel = level;
     return napi_ok;
+}
+
+napi_status JSUtil::GetValue(napi_env env, napi_value inner, JsSchema*& out)
+{
+    return JsSchema::ToJson(env, inner, out);
 }
 
 napi_status JSUtil::SetValue(napi_env env, const DistributedKv::Options& in, napi_value& out)

@@ -50,7 +50,6 @@ napi_value JsSchema::Constructor(napi_env env)
 {
     ZLOGD("Init JsSchema");
     const napi_property_descriptor properties[] = {
-        DECLARE_NAPI_FUNCTION("toJsonString", JsSchema::ToJson),
         DECLARE_NAPI_GETTER_SETTER("root", JsSchema::GetRootNode, JsSchema::SetRootNode),
         DECLARE_NAPI_GETTER_SETTER("indexes", JsSchema::GetIndexes, JsSchema::SetIndexes),
         DECLARE_NAPI_GETTER_SETTER("mode", JsSchema::GetMode, JsSchema::SetMode),
@@ -80,17 +79,10 @@ napi_value JsSchema::New(napi_env env, napi_callback_info info)
     return ctxt->self;
 }
 
-napi_value JsSchema::ToJson(napi_env env, napi_callback_info info)
+napi_status JsSchema::ToJson(napi_env env, napi_value inner, JsSchema*& out)
 {
-    ZLOGD("Schema::New");
-    auto ctxt = std::make_shared<ContextBase>();
-    ctxt->GetCbInfoSync(env, info);
-    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
-
-    auto schema = reinterpret_cast<JsSchema*>(ctxt->native);
-    auto json = schema->Dump();
-    JSUtil::SetValue(env, json, ctxt->output);
-    return ctxt->output;
+    ZLOGD("Schema::ToJson");
+    return JSUtil::Unwrap(env, inner, (void**)(&out), JsSchema::Constructor(env));
 }
 
 napi_value JsSchema::GetRootNode(napi_env env, napi_callback_info info)

@@ -55,9 +55,16 @@ int Metadata::Initialize(ISyncInterface* storage)
     int errCode = GetMetadataFromDb(key, timeOffset);
     if (errCode == -E_NOT_FOUND) {
         uint64_t randTimeOffset = GetRandTimeOffset();
-        SaveLocalTimeOffset(TimeHelper::BASE_OFFSET + randTimeOffset);
-    } else {
+        int err = SaveLocalTimeOffset(TimeHelper::BASE_OFFSET + static_cast<int64_t>(randTimeOffset));
+        if (err != E_OK) {
+            LOGD("[Metadata][Initialize]SaveLocalTimeOffset failed errCode:%d", err);
+            return err;
+        }
+    } else if (errCode == E_OK) {
         localTimeOffset_ = StringToLong(timeOffset);
+    } else {
+        LOGE("Metadata::Initialize get meatadata from db failed,err=%d", errCode);
+        return errCode;
     }
     {
         std::lock_guard<std::mutex> lockGuard(metadataLock_);
@@ -147,12 +154,17 @@ TimeOffset Metadata::GetLocalTimeOffset() const
 
 int Metadata::EraseDeviceWaterMark(const std::string &deviceId, bool isNeedHash)
 {
+    return EraseDeviceWaterMark(deviceId, isNeedHash, "");
+}
+
+int Metadata::EraseDeviceWaterMark(const std::string &deviceId, bool isNeedHash, const std::string &tableName)
+{
     // try to erase all the waterMark
     // erase deleteSync recv waterMark
     WaterMark waterMark = 0;
     int errCodeDeleteSync = SetRecvDeleteSyncWaterMark(deviceId, waterMark);
     // erase querySync recv waterMark
-    int errCodeQuerySync = ResetRecvQueryWaterMark(deviceId);
+    int errCodeQuerySync = ResetRecvQueryWaterMark(deviceId, tableName);
     // peerWaterMark must be erased at last
     int errCode = SavePeerWaterMark(deviceId, 0, isNeedHash);
     if (errCode != E_OK) {
@@ -302,7 +314,11 @@ bool IsMetaDataKey(const Key &inKey, const std::string &expectPrefix)
 int Metadata::LoadAllMetadata()
 {
     std::vector<std::vector<uint8_t>> metaDataKeys;
-    GetAllMetadataKey(metaDataKeys);
+    int errCode = GetAllMetadataKey(metaDataKeys);
+    if (errCode != E_OK) {
+        LOGE("[Metadata] get all metadata key failed err=%d", errCode);
+        return errCode;
+    }
 
     std::vector<std::vector<uint8_t>> querySyncIds;
     for (const auto &deviceId : metaDataKeys) {
@@ -412,6 +428,23 @@ int Metadata::SetSendQueryWaterMark(const std::string &queryIdentify,
     return querySyncWaterMarkHelper_.SetSendQueryWaterMark(queryIdentify, deviceId, waterMark);
 }
 
+int Metadata::GetLastQueryTime(const std::string &queryIdentify, const std::string &deviceId, TimeStamp &timeStamp)
+{
+    QueryWaterMark queryWaterMark;
+    int errCode = querySyncWaterMarkHelper_.GetQueryWaterMark(queryIdentify, deviceId, queryWaterMark);
+    if (errCode != E_OK) {
+        return errCode;
+    }
+    timeStamp = queryWaterMark.lastQueryTime;
+    return E_OK;
+}
+
+int Metadata::SetLastQueryTime(const std::string &queryIdentify, const std::string &deviceId,
+    const TimeStamp &timeStamp)
+{
+    return querySyncWaterMarkHelper_.SetLastQueryTime(queryIdentify, deviceId, timeStamp);
+}
+
 int Metadata::GetSendDeleteSyncWaterMark(const DeviceID &deviceId, WaterMark &waterMark, bool isAutoLift)
 {
     DeleteWaterMark deleteWaterMark;
@@ -452,9 +485,9 @@ int Metadata::SetRecvDeleteSyncWaterMark(const DeviceID &deviceId, const WaterMa
     return querySyncWaterMarkHelper_.SetRecvDeleteSyncWaterMark(deviceId, waterMark);
 }
 
-int Metadata::ResetRecvQueryWaterMark(const DeviceID &deviceId)
+int Metadata::ResetRecvQueryWaterMark(const DeviceID &deviceId, const std::string &tableName)
 {
-    return querySyncWaterMarkHelper_.ResetRecvQueryWaterMark(deviceId);
+    return querySyncWaterMarkHelper_.ResetRecvQueryWaterMark(deviceId, tableName);
 }
 
 void Metadata::GetDbCreateTime(const DeviceID &deviceId, uint64_t &outValue)

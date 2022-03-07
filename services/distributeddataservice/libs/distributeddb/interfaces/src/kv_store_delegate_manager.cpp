@@ -107,6 +107,7 @@ namespace {
             properties.SetIntProp(KvDBProperties::COMPRESSION_RATE,
                 ParamCheckUtils::GetValidCompressionRate(option.compressionRate));
         }
+        properties.SetBoolProp(KvDBProperties::SYNC_DUAL_TUPLE_MODE, option.syncDualTupleMode);
     }
 
     bool CheckObserverConflictParam(const KvStoreNbDelegate::Option &option)
@@ -525,15 +526,16 @@ DBStatus KvStoreDelegateManager::EnableKvStoreAutoLaunch(const std::string &user
     if (RuntimeContext::GetInstance() == nullptr) {
         return DB_ERROR;
     }
-    AutoLaunchParam param{ userId, appId, storeId, option, notifier };
-    KvDBProperties properties;
-    int errCode = AutoLaunch::GetAutoLaunchProperties(param, properties);
+    AutoLaunchParam param{ userId, appId, storeId, option, notifier, {}};
+    std::shared_ptr<DBProperties> ptr = std::make_shared<KvDBProperties>();
+    int errCode = AutoLaunch::GetAutoLaunchProperties(param, DBType::DB_KV, ptr);
     if (errCode != E_OK) {
         LOGE("[KvStoreManager] Enable auto launch failed:%d", errCode);
         return TransferDBErrno(errCode);
     }
 
-    errCode = RuntimeContext::GetInstance()->EnableKvStoreAutoLaunch(properties, notifier, option);
+    std::shared_ptr<KvDBProperties> kvPtr = std::static_pointer_cast<KvDBProperties>(ptr);
+    errCode = RuntimeContext::GetInstance()->EnableKvStoreAutoLaunch(*kvPtr, notifier, option);
     if (errCode != E_OK) {
         LOGE("[KvStoreManager] Enable auto launch failed:%d", errCode);
         return TransferDBErrno(errCode);
@@ -551,7 +553,8 @@ DBStatus KvStoreDelegateManager::DisableKvStoreAutoLaunch(const std::string &use
 
     std::string syncIdentifier = DBCommon::GenerateIdentifierId(storeId, appId, userId);
     std::string hashIdentifier = DBCommon::TransferHashString(syncIdentifier);
-    int errCode = RuntimeContext::GetInstance()->DisableKvStoreAutoLaunch(hashIdentifier);
+    std::string dualIdentifier = DBCommon::TransferHashString(DBCommon::GenerateDualTupleIdentifierId(storeId, appId));
+    int errCode = RuntimeContext::GetInstance()->DisableKvStoreAutoLaunch(hashIdentifier, dualIdentifier, userId);
     if (errCode != E_OK) {
         LOGE("[KvStoreManager] Disable auto launch failed:%d", errCode);
         return TransferDBErrno(errCode);
@@ -562,14 +565,17 @@ DBStatus KvStoreDelegateManager::DisableKvStoreAutoLaunch(const std::string &use
 
 void KvStoreDelegateManager::SetAutoLaunchRequestCallback(const AutoLaunchRequestCallback &callback)
 {
-    RuntimeContext::GetInstance()->SetAutoLaunchRequestCallback(callback);
+    RuntimeContext::GetInstance()->SetAutoLaunchRequestCallback(callback, DBType::DB_KV);
 }
 
 std::string KvStoreDelegateManager::GetKvStoreIdentifier(const std::string &userId, const std::string &appId,
-    const std::string &storeId)
+    const std::string &storeId, bool syncDualTupleMode)
 {
-    if (!ParamCheckUtils::CheckStoreParameter(storeId, appId, userId)) {
+    if (!ParamCheckUtils::CheckStoreParameter(storeId, appId, userId, syncDualTupleMode)) {
         return "";
+    }
+    if (syncDualTupleMode) {
+        return DBCommon::TransferHashString(appId + "-" + storeId);
     }
     return DBCommon::TransferHashString(userId + "-" + appId + "-" + storeId);
 }
@@ -577,5 +583,22 @@ std::string KvStoreDelegateManager::GetKvStoreIdentifier(const std::string &user
 DBStatus KvStoreDelegateManager::SetProcessSystemAPIAdapter(const std::shared_ptr<IProcessSystemApiAdapter> &adapter)
 {
     return TransferDBErrno(RuntimeContext::GetInstance()->SetProcessSystemApiAdapter(adapter));
+}
+
+void KvStoreDelegateManager::SetStoreStatusNotifier(const StoreStatusNotifier &notifier)
+{
+    RuntimeContext::GetInstance()->SetStoreStatusNotifier(notifier);
+}
+
+DBStatus KvStoreDelegateManager::SetSyncActivationCheckCallback(const SyncActivationCheckCallback &callback)
+{
+    int errCode = RuntimeContext::GetInstance()->SetSyncActivationCheckCallback(callback);
+    return TransferDBErrno(errCode);
+}
+
+DBStatus KvStoreDelegateManager::NotifyUserChanged()
+{
+    int errCode = RuntimeContext::GetInstance()->NotifyUserChanged();
+    return TransferDBErrno(errCode);
 }
 } // namespace DistributedDB

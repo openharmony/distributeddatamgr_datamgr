@@ -24,7 +24,6 @@
 #include "distributeddb_data_generator.h"
 #include "distributeddb_nb_test_tools.h"
 #include "kv_store_delegate_manager.h"
-#include "types.h"
 #include "distributed_test_tools.h"
 
 using namespace std;
@@ -1196,7 +1195,7 @@ HWTEST_F(DistributeddbNbCreateTest, MemoryDb003, TestSize.Level0)
 
     EXPECT_EQ(manager->CloseKvStore(delegate), OK);
     delegate = nullptr;
-    EXPECT_EQ(manager->DeleteKvStore(STORE_ID_1), NOT_FOUND);
+    EXPECT_EQ(manager->DeleteKvStore(STORE_ID_1), INVALID_ARGS);
 
     ReleaseManager(manager);
 }

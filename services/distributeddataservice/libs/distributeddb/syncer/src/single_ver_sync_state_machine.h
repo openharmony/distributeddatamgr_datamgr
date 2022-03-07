@@ -69,7 +69,7 @@ namespace {
 }
 
 using stateMappingHandler = std::function<uint8_t(void)>;
-class SingleVerSyncStateMachine final : public SyncStateMachine {
+class SingleVerSyncStateMachine : public SyncStateMachine {
 public:
 
     SingleVerSyncStateMachine();
@@ -127,6 +127,10 @@ protected:
     // Called by StartSaveDataNotifyTimer, used to send a save data notify packet
     void SendSaveDataNotifyPacket(uint32_t sessionId, uint32_t sequenceId, uint32_t inMsgId) override;
 
+    int TimeMarkSyncRecv(const Message *inMsg);
+
+    void DataAckRecvErrCodeHandle(int errCode, bool handleError);
+
 private:
     // Used to init sync state machine switchbables
     static void InitStateSwitchTables();
@@ -166,8 +170,6 @@ private:
 
     int GetSyncOperationStatus(int errCode) const;
 
-    int TimeMarkSyncRecv(const Message *inMsg);
-
     int AbilitySyncRecv(const Message *inMsg);
 
     int DataPktRecv(Message *inMsg);
@@ -205,8 +207,6 @@ private:
     bool AbilityMsgSessionIdCheck(const Message *inMsg);
 
     SyncType GetSyncType(uint32_t messageId) const;
-
-    void DataAckRecvErrCodeHandle(int errCode, bool handleError);
 
     void JumpStatusAfterAbilitySync(int mode);
 

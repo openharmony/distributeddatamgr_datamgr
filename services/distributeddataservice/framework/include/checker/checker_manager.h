@@ -15,13 +15,14 @@
 
 #ifndef OHOS_DISTRIBUTED_DATA_SERVICES_FRAMEWORK_CHECKER_CHECKER_MANAGER_H
 #define OHOS_DISTRIBUTED_DATA_SERVICES_FRAMEWORK_CHECKER_CHECKER_MANAGER_H
+#include <vector>
 #include "visibility.h"
 #include "concurrent_map.h"
 namespace OHOS {
 namespace DistributedData {
 class CheckerManager {
 public:
-    static constexpr pid_t INVALID_UID = 0;
+    static constexpr pid_t INVALID_UID = -1;
     struct Trust {
         std::string bundleName;
         std::string appId;

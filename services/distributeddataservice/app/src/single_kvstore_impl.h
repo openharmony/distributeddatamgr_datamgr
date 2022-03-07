@@ -20,6 +20,8 @@
 #include <set>
 #include <memory>
 #include <shared_mutex>
+
+#include "auth/auth_delegate.h"
 #include "flowctrl_manager/kvstore_flowctrl_manager.h"
 #include "ikvstore_observer.h"
 #include "ikvstore_single.h"
@@ -51,8 +53,10 @@ public:
                                std::function<void(Status, sptr<IKvStoreResultSet>)> callback) override;
     Status GetCountWithQuery(const std::string &query, int &result) override;
     Status CloseResultSet(sptr<IKvStoreResultSet> resultSet) override;
-    Status Sync(const std::vector<std::string> &deviceIds, SyncMode mode, uint32_t allowedDelayMs) override;
-    Status Sync(const std::vector<std::string> &deviceIds, SyncMode mode, const std::string &query) override;
+    Status Sync(const std::vector<std::string> &deviceIds, SyncMode mode, uint32_t allowedDelayMs,
+                uint64_t sequenceId) override;
+    Status Sync(const std::vector<std::string> &deviceIds, SyncMode mode,
+                const std::string &query, uint64_t sequenceId) override;
     Status RemoveDeviceData(const std::string &device) override;
     Status RegisterSyncCallback(sptr<IKvStoreSyncCallback> callback) override;
     Status UnRegisterSyncCallback() override;
@@ -75,6 +79,8 @@ public:
     Status GetSecurityLevel(SecurityLevel &securityLevel) override;
     bool Import(const std::string &bundleName) const;
     void OnDump(int fd) const;
+    void SetCompatibleIdentify(const std::string &changedDevice);
+    void SetCompatibleIdentify();
 
 protected:
     virtual KvStoreObserverImpl *CreateObserver(const SubscribeType subscribeType, sptr<IKvStoreObserver> observer);
@@ -84,32 +90,35 @@ protected:
 private:
     Status ConvertDbStatus(DistributedDB::DBStatus dbStatus);
     uint32_t GetSyncDelayTime(uint32_t allowedDelayMs) const;
-    Status AddSync(const std::vector<std::string> &deviceIds, SyncMode mode, uint32_t delayMs);
+    Status AddSync(const std::vector<std::string> &deviceIds, SyncMode mode, uint32_t delayMs,
+                   uint64_t sequenceId);
     Status AddSync(const std::vector<std::string> &deviceIds, SyncMode mode,
-                   const std::string &query, uint32_t delayMs);
+                   const std::string &query, uint32_t delayMs, uint64_t sequenceId);
     Status RemoveAllSyncOperation();
-    void DoSyncComplete(const std::map<std::string, DistributedDB::DBStatus> &devicesSyncResult);
-    Status DoSync(const std::vector<std::string> &deviceIds, SyncMode mode, const KvStoreSyncManager::SyncEnd &syncEnd);
+    void DoSyncComplete(const std::map<std::string, DistributedDB::DBStatus> &devicesSyncResult,
+                        const std::string &query, uint64_t sequenceId);
+    Status DoSync(const std::vector<std::string> &deviceIds, SyncMode mode, const KvStoreSyncManager::SyncEnd &syncEnd,
+                  uint64_t sequenceId);
     Status DoQuerySync(const std::vector<std::string> &deviceIds, SyncMode mode, const std::string &query,
-                       const KvStoreSyncManager::SyncEnd &syncEnd);
+                       const KvStoreSyncManager::SyncEnd &syncEnd, uint64_t sequenceId);
     Status AddAutoSync();
     Status DoAutoSync(const KvStoreSyncManager::SyncEnd &);
     Status RebuildKvStoreObserver(DistributedDB::KvStoreNbDelegate *kvStoreNbDelegate);
     Status RebuildKvStoreResultSet();
     int ConvertToDbObserverMode(SubscribeType subscribeType) const;
     DistributedDB::SyncMode ConvertToDbSyncMode(SyncMode syncMode) const;
-    Status DoSubscribeWithQuery(const std::vector<std::string> &deviceIds,
-                                const std::string &query, const KvStoreSyncManager::SyncEnd &syncEnd);
-    Status AddSubscribeWithQuery(const std::vector<std::string> &deviceIds,
-                                 const std::string &query, uint32_t delayMs);
-    Status SubscribeWithQuery(const std::vector<std::string> &deviceIds,
-                              const std::string &query) override;
-    Status DoUnSubscribeWithQuery(const std::vector<std::string> &deviceIds,
-                                  const std::string &query, const KvStoreSyncManager::SyncEnd &syncEnd);
-    Status AddUnSubscribeWithQuery(const std::vector<std::string> &deviceIds,
-                                   const std::string &query, uint32_t delayMs);
-    Status UnSubscribeWithQuery(const std::vector<std::string> &deviceIds,
-                                const std::string &query) override;
+    Status DoSubscribe(const std::vector<std::string> &deviceIds,
+                       const std::string &query, const KvStoreSyncManager::SyncEnd &syncEnd);
+    Status AddSubscribe(const std::vector<std::string> &deviceIds,
+                        const std::string &query, uint32_t delayMs, uint64_t sequenceId);
+    Status Subscribe(const std::vector<std::string> &deviceIds,
+                     const std::string &query, uint64_t sequenceId) override;
+    Status DoUnSubscribe(const std::vector<std::string> &deviceIds,
+                         const std::string &query, const KvStoreSyncManager::SyncEnd &syncEnd);
+    Status AddUnSubscribe(const std::vector<std::string> &deviceIds,
+                          const std::string &query, uint32_t delayMs, uint64_t sequenceId);
+    Status UnSubscribe(const std::vector<std::string> &deviceIds,
+                       const std::string &query, uint64_t sequenceId) override;
     std::vector<std::string> MapNodeIdToUuids(const std::vector<std::string> &deviceIds);
 
     // kvstore options.

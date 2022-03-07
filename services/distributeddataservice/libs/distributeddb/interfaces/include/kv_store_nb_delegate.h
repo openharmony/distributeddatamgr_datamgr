@@ -20,7 +20,7 @@
 #include <map>
 #include <functional>
 
-#include "types.h"
+#include "store_types.h"
 #include "kv_store_observer.h"
 #include "kv_store_nb_conflict_data.h"
 #include "kv_store_result_set.h"
@@ -53,6 +53,7 @@ public:
         bool isNeedRmCorruptedDb = false;
         bool isNeedCompressOnSync = false;
         uint8_t compressionRate = 100; // Valid in [1, 100].
+        bool syncDualTupleMode = false; // communicator label use dualTuple hash or not
     };
 
     DB_API virtual ~KvStoreNbDelegate() {}

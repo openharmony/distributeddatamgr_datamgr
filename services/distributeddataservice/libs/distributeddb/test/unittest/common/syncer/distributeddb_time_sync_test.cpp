@@ -19,6 +19,7 @@
 #include "distributeddb_tools_unit_test.h"
 #include "isyncer.h"
 #include "single_ver_sync_state_machine.h"
+#include "single_ver_kv_sync_task_context.h"
 #include "sync_types.h"
 #include "virtual_single_ver_sync_db_Interface.h"
 #include "virtual_time_sync_communicator.h"
@@ -88,7 +89,7 @@ void DistributedDBTimeSyncTest::SetUp(void)
     g_timeSyncB = new (std::nothrow) TimeSync();
     ASSERT_TRUE(g_timeSyncB != nullptr);
 
-    g_syncTaskContext = new (std::nothrow) SingleVerSyncTaskContext();
+    g_syncTaskContext = new (std::nothrow) SingleVerKvSyncTaskContext();
     ASSERT_TRUE(g_syncTaskContext != nullptr);
 }
 
@@ -345,7 +346,8 @@ HWTEST_F(DistributedDBTimeSyncTest, InvalidMessgeTest001, TestSize.Level0)
      */
     msg->SetMessageId(TIME_SYNC_MESSAGE);
     msg->SetMessageType(TYPE_REQUEST);
-    errCode = g_virtualCommunicator->SendMessage(DEVICE_B, msg, false, 0);
+    SendConfig conf = {false, 0};
+    errCode = g_virtualCommunicator->SendMessage(DEVICE_B, msg, conf);
     EXPECT_TRUE(errCode == -E_INVALID_ARGS);
 
     TimeSyncPacket data;
@@ -363,7 +365,7 @@ HWTEST_F(DistributedDBTimeSyncTest, InvalidMessgeTest001, TestSize.Level0)
     msg->SetMessageId(DATA_SYNC_MESSAGE);
     msg->SetMessageType(TYPE_REQUEST);
     msg->SetCopiedObject<>(data);
-    errCode = g_virtualCommunicator->SendMessage(DEVICE_B, msg, false, 0);
+    errCode = g_virtualCommunicator->SendMessage(DEVICE_B, msg, conf);
     EXPECT_TRUE(errCode == -E_INVALID_ARGS);
 
     /**
@@ -375,7 +377,7 @@ HWTEST_F(DistributedDBTimeSyncTest, InvalidMessgeTest001, TestSize.Level0)
     msg->SetMessageId(TIME_SYNC_MESSAGE);
     msg->SetMessageType(TYPE_RESPONSE);
     msg->SetCopiedObject<>(data);
-    errCode = g_virtualCommunicator->SendMessage(DEVICE_B, msg, false, 0);
+    errCode = g_virtualCommunicator->SendMessage(DEVICE_B, msg, conf);
     EXPECT_TRUE(errCode == -E_INVALID_ARGS);
 }
 
@@ -415,7 +417,8 @@ HWTEST_F(DistributedDBTimeSyncTest, InvalidMessgeTest002, TestSize.Level0)
      */
     msg->SetMessageId(TIME_SYNC_MESSAGE);
     msg->SetMessageType(TYPE_RESPONSE);
-    errCode = g_virtualCommunicator->SendMessage(DEVICE_A, msg, false, 0);
+    SendConfig conf = {false, 0};
+    errCode = g_virtualCommunicator->SendMessage(DEVICE_A, msg, conf);
     EXPECT_TRUE(errCode == -E_INVALID_ARGS);
 
     TimeSyncPacket data;
@@ -433,7 +436,7 @@ HWTEST_F(DistributedDBTimeSyncTest, InvalidMessgeTest002, TestSize.Level0)
     msg->SetMessageId(DATA_SYNC_MESSAGE);
     msg->SetMessageType(TYPE_RESPONSE);
     msg->SetCopiedObject<>(data);
-    errCode = g_virtualCommunicator->SendMessage(DEVICE_A, msg, false, 0);
+    errCode = g_virtualCommunicator->SendMessage(DEVICE_A, msg, conf);
     EXPECT_TRUE(errCode == -E_INVALID_ARGS);
 
     /**
@@ -445,7 +448,7 @@ HWTEST_F(DistributedDBTimeSyncTest, InvalidMessgeTest002, TestSize.Level0)
     msg->SetMessageId(TIME_SYNC_MESSAGE);
     msg->SetMessageType(TYPE_REQUEST);
     msg->SetCopiedObject<>(data);
-    errCode = g_virtualCommunicator->SendMessage(DEVICE_A, msg, false, 0);
+    errCode = g_virtualCommunicator->SendMessage(DEVICE_A, msg, conf);
     EXPECT_TRUE(errCode == -E_INVALID_ARGS);
 }
 

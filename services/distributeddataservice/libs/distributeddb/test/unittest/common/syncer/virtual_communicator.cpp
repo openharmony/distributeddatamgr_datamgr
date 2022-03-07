@@ -43,14 +43,13 @@ void VirtualCommunicator::Activate()
 {
 }
 
-int VirtualCommunicator::SendMessage(const std::string &dstTarget, const Message *inMsg, bool nonBlock,
-    uint32_t timeout)
+int VirtualCommunicator::SendMessage(const std::string &dstTarget, const Message *inMsg, SendConfig &config)
 {
-    return SendMessage(dstTarget, inMsg, nonBlock, timeout, nullptr);
+    return SendMessage(dstTarget, inMsg, config, nullptr);
 }
 
 int VirtualCommunicator::SendMessage(const std::string &dstTarget, const Message *inMsg,
-    bool nonBlock, uint32_t timeout, const OnSendEnd &onEnd)
+    SendConfig &config, const OnSendEnd &onEnd)
 {
     AutoLock lock(this);
     if (IsKilled()) {
@@ -71,7 +70,7 @@ int VirtualCommunicator::SendMessage(const std::string &dstTarget, const Message
 
 int VirtualCommunicator::GetRemoteCommunicatorVersion(const std::string &deviceId, uint16_t &version) const
 {
-    version = 1;
+    version = UINT16_MAX;
     return E_OK;
 }
 

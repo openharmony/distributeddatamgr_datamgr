@@ -25,7 +25,7 @@
 #include "kv_store_delegate.h"
 #endif
 #include "kv_store_nb_delegate.h"
-#include "types.h"
+#include "store_types.h"
 #include "iprocess_communicator.h"
 #include "iprocess_system_api_adapter.h"
 #include "auto_launch_export.h"
@@ -98,10 +98,15 @@ public:
     DB_API static void SetAutoLaunchRequestCallback(const AutoLaunchRequestCallback &callback);
 
     DB_API static std::string GetKvStoreIdentifier(const std::string &userId, const std::string &appId,
-        const std::string &storeId);
+        const std::string &storeId, bool syncDualTupleMode = false);
 
     DB_API static DBStatus SetProcessSystemAPIAdapter(const std::shared_ptr<IProcessSystemApiAdapter> &adapter);
 
+    DB_API static void SetStoreStatusNotifier(const StoreStatusNotifier &notifier);
+
+    DB_API static DBStatus SetSyncActivationCheckCallback(const SyncActivationCheckCallback &callback);
+
+    DB_API static DBStatus NotifyUserChanged();
 private:
 
     // Check if the dataDir is safe arg.

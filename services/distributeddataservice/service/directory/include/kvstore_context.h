@@ -13,17 +13,16 @@
  * limitations under the License.
  */
 
+#ifndef DISTRIBUTEDDATAMGR_KVSTORE_CONTEXT_H
+#define DISTRIBUTEDDATAMGR_KVSTORE_CONTEXT_H
 #include <string>
 
 #include "types.h"
-
-#ifndef SDB_KVSTORE_CONTEXT_H
-#define SDB_KVSTORE_CONTEXT_H
 namespace OHOS::DistributedData {
 struct ClientContext {
     std::string userId {};
     std::string bundleName {};
     std::string dataDir {};
 };
-}
-#endif // SDB_KVSTORE_CONTEXT_H
+} // namespace OHOS::DistributedData
+#endif // DISTRIBUTEDDATAMGR_KVSTORE_CONTEXT_H

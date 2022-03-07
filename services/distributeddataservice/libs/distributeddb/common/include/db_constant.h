@@ -41,6 +41,8 @@ public:
     static constexpr int MAX_COMMIT_SIZE = 1000000;
     static constexpr int MAX_ENTRIES_SIZE = 1000000;
 
+    static constexpr uint32_t MAX_COLUMN  = 32767;
+
     // In querySync, when getting query data finished,
     // if the block size reach the half of max block size, will get deleted data next;
     // if the block size not reach the half of max block size, will not get deleted data.
@@ -121,6 +123,10 @@ public:
     static constexpr uint64_t MAX_LOG_SIZE_HIGH = 0x400000000ULL; // 16GB
     static constexpr uint64_t MAX_LOG_SIZE_LOW = 0x400000ULL; // 4MB
     static constexpr uint64_t MAX_LOG_SIZE_DEFAULT = 0x40000000ULL; // 1GB
+
+    static constexpr int DEF_LIFE_CYCLE_TIME = 60000; // 60S
+
+    static constexpr int RELATIONAL_LOG_TABLE_FIELD_NUM = 7; // field num is relational distributed log table
 
     // For relational
     static const std::string RELATIONAL_PREFIX;

@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <thread>
 
+#include "db_common.h"
 #include "db_errno.h"
 #include "generic_single_ver_kv_entry.h"
 #include "intercepted_data_impl.h"
@@ -87,6 +88,9 @@ int VirtualSingleVerSyncDBInterface::GetMetaData(const Key &key, Value &value) c
 
 int VirtualSingleVerSyncDBInterface::PutMetaData(const Key &key, const Value &value)
 {
+    if (busy_) {
+        return -E_BUSY;
+    }
     metadata_[key] = value;
     return E_OK;
 }
@@ -406,5 +410,10 @@ int VirtualSingleVerSyncDBInterface::RemoveSubscribe(const std::string &subscrib
 int VirtualSingleVerSyncDBInterface::RemoveSubscribe(const std::vector<std::string> &subscribeIds)
 {
     return E_OK;
+}
+
+void VirtualSingleVerSyncDBInterface::SetBusy(bool busy)
+{
+    busy_ = busy;
 }
 }  // namespace DistributedDB

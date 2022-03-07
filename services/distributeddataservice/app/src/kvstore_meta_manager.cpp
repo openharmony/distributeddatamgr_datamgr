@@ -15,24 +15,32 @@
 #define LOG_TAG "KvStoreMetaManager"
 
 #include "kvstore_meta_manager.h"
-#include <chrono>
-#include <condition_variable>
+
 #include <directory_ex.h>
 #include <file_ex.h>
-#include <thread>
 #include <unistd.h>
-#include "security_adapter.h"
-#include "hks_api.h"
-#include "hks_param.h"
+
+#include <chrono>
+#include <condition_variable>
+#include <thread>
+
 #include "account_delegate.h"
 #include "constant.h"
-#include "kvstore_utils.h"
 #include "device_kvstore_impl.h"
-#include "kvstore_data_service.h"
-#include "log_print.h"
-#include "reporter.h"
 #include "directory_utils.h"
+#include "executor_factory.h"
+#include "hks_api.h"
+#include "hks_param.h"
 #include "kvstore_app_manager.h"
+#include "kvstore_data_service.h"
+#include "kvstore_utils.h"
+#include "log_print.h"
+#include "metadata/capability_meta_data.h"
+#include "metadata/user_meta_data.h"
+#include "rdb_types.h"
+#include "reporter.h"
+#include "serializable/serializable.h"
+#include "user_delegate.h"
 #include "utils/crypto.h"
 
 namespace OHOS {
@@ -60,8 +68,7 @@ KvStoreMetaManager::KvStoreMetaManager()
                     ZLOGE("CloseMetaKvstore return error status: %d", static_cast<int>(result));
                 }
             }),
-      metaDBDirectory_(Constant::Concatenate({
-      Constant::ROOT_PATH_DE, "/", Constant::SERVICE_NAME, "/", Constant::META_DIR_NAME })),
+      metaDBDirectory_("/data/service/el1/public/database/distributeddata/meta"),
       kvStoreDelegateManager_(META_DB_APP_ID, Constant::GetDefaultHarmonyAccountName())
 {
     ZLOGI("begin.");
@@ -77,17 +84,21 @@ KvStoreMetaManager &KvStoreMetaManager::GetInstance()
     return instance;
 }
 
-void KvStoreMetaManager::InitMetaListener(std::function<void(const KvStoreMetaData &metaData)> observer)
+void KvStoreMetaManager::SubscribeMeta(const std::string &keyPrefix, const ChangeObserver &observer)
 {
-    metaObserver_.notify_ = observer;
+    metaObserver_.handlerMap_[keyPrefix] = observer;
+}
 
+void KvStoreMetaManager::InitMetaListener()
+{
     InitMetaData();
-    auto status = KvStoreUtils::GetProviderInstance().StartWatchDeviceChange(&listener_, {"metaMgr"});
+    auto status = KvStoreUtils::GetProviderInstance().StartWatchDeviceChange(&listener_, { "metaMgr" });
     if (status != AppDistributedKv::Status::SUCCESS) {
         ZLOGW("register failed.");
+        return;
     }
     ZLOGI("register meta device change success.");
-    GetInstance().SubscribeMetaKvStore();
+    SubscribeMetaKvStore();
 }
 
 void KvStoreMetaManager::InitMetaData()
@@ -98,14 +109,15 @@ void KvStoreMetaManager::InitMetaData()
         ZLOGI("get meta failed.");
         return;
     }
+    auto uid = getuid();
     const std::string accountId = AccountDelegate::GetInstance()->GetCurrentAccountId();
-    const std::string userId = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(getuid());
+    const std::string userId = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(uid);
     auto metaKey = GetMetaKey(userId, "default", META_DB_APP_ID, Constant::SERVICE_META_DB_NAME);
     struct KvStoreMetaData metaData {
         .appId = META_DB_APP_ID,
         .appType = "default",
         .bundleName = META_DB_APP_ID,
-        .dataDir = "default",
+        .dataDir = metaDBDirectory_,
         .deviceAccountId = userId,
         .deviceId = DeviceKvStoreImpl::GetLocalDeviceId(),
         .isAutoSync = false,
@@ -115,15 +127,16 @@ void KvStoreMetaManager::InitMetaData()
         .schema = "",
         .storeId = Constant::SERVICE_META_DB_NAME,
         .userId = accountId,
-        .uid = -1,
-        .version = KvStoreDataService::KVSTORE_META_VERSION,
-        .securityLevel = SecurityLevel::NO_LABEL,
+        .uid = int32_t(uid),
+        .version = META_STORE_VERSION,
+        .securityLevel = SecurityLevel::S1,
     };
     std::string jsonStr = metaData.Marshal();
     std::vector<uint8_t> value(jsonStr.begin(), jsonStr.end());
     if (CheckUpdateServiceMeta(metaKey, UPDATE, value) != Status::SUCCESS) {
         ZLOGW("CheckUpdateServiceMeta database failed.");
     }
+
     ZLOGI("end.");
 }
 
@@ -137,9 +150,7 @@ void KvStoreMetaManager::InitMetaParameter()
         ZLOGE("create directories failed");
         return;
     }
-    // change mode for directories to 0755, and for files to 0600.
-    DirectoryUtils::ChangeModeDirOnly(metaDBDirectory_, Constant::DEFAULT_MODE_DIR);
-    DirectoryUtils::ChangeModeFileOnly(metaDBDirectory_, Constant::DEFAULT_MODE_FILE);
+    ret = ForceCreateDirectory(metaDBDirectory_ + "/backup");
 
     DistributedDB::KvStoreConfig kvStoreConfig {metaDBDirectory_};
     kvStoreDelegateManager_.SetKvStoreConfig(kvStoreConfig);
@@ -257,16 +268,13 @@ Status KvStoreMetaManager::CheckUpdateServiceMeta(const std::vector<uint8_t> &me
         return Status::DB_ERROR;
     }
 
-    KvStoreAppManager::PathType pathType = KvStoreAppManager::PATH_DE;
     DistributedDB::Key dbKey = metaKey;
     DistributedDB::Value dbValue = val;
     DistributedDB::DBStatus dbStatus;
     DistributedDB::CipherPassword dbPassword;
-    const std::string userId = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(getuid());
-    const std::string accountId = AccountDelegate::GetInstance()->GetCurrentAccountId();
-    std::initializer_list<std::string> backList = {accountId, "_", META_DB_APP_ID, "_", Constant::SERVICE_META_DB_NAME};
+    std::initializer_list<std::string> backList = {META_DB_APP_ID, "_", Constant::SERVICE_META_DB_NAME};
     std::string backupName = Constant::Concatenate(backList);
-    std::initializer_list<std::string> backFullList = {BackupHandler::GetBackupPath(userId, pathType), "/",
+    std::initializer_list<std::string> backFullList = {metaDBDirectory_, "/backup/",
         BackupHandler::GetHashedBackupName(backupName)};
     auto backupFullName = Constant::Concatenate(backFullList);
 
@@ -296,7 +304,7 @@ Status KvStoreMetaManager::CheckUpdateServiceMeta(const std::vector<uint8_t> &me
         default:
             break;
     }
-    ZLOGI("Flag: %d status: %d", static_cast<int>(flag), static_cast<int>(dbStatus));
+    ZLOGI("Flag: %{public}d status: %{public}d", static_cast<int>(flag), static_cast<int>(dbStatus));
     SyncMeta();
     return (dbStatus != DistributedDB::DBStatus::OK) ? Status::DB_ERROR : Status::SUCCESS;
 }
@@ -838,10 +846,10 @@ void KvStoreMetaManager::SubscribeMetaKvStore()
         return;
     }
 
-    int mode = DistributedDB::OBSERVER_CHANGES_NATIVE;
+    int mode = DistributedDB::OBSERVER_CHANGES_NATIVE | DistributedDB::OBSERVER_CHANGES_FOREIGN;
     auto dbStatus = metaDelegate->RegisterObserver(DistributedDB::Key(), mode, &metaObserver_);
     if (dbStatus != DistributedDB::DBStatus::OK) {
-        ZLOGW("register meta observer failed :%d.", dbStatus);
+        ZLOGW("register meta observer failed :%{public}d.", dbStatus);
     }
 }
 
@@ -964,27 +972,24 @@ KvStoreMetaManager::KvStoreMetaObserver::~KvStoreMetaObserver()
 void KvStoreMetaManager::KvStoreMetaObserver::OnChange(const DistributedDB::KvStoreChangedData &data)
 {
     ZLOGD("on data change.");
-    if (notify_ != nullptr) {
-        auto &updated = data.GetEntriesUpdated();
-        for (const auto &entry : updated) {
-            std::string key(entry.key.begin(), entry.key.end());
-            if (key.find(KvStoreMetaRow::KEY_PREFIX) != 0) {
-                continue;
-            }
+    HandleChanges(CHANGE_FLAG::INSERT, data.GetEntriesInserted());
+    HandleChanges(CHANGE_FLAG::UPDATE, data.GetEntriesUpdated());
+    HandleChanges(CHANGE_FLAG::DELETE, data.GetEntriesDeleted());
+    KvStoreMetaManager::GetInstance().SyncMeta();
+}
 
-            KvStoreMetaData metaData;
-            std::string json(entry.value.begin(), entry.value.end());
-            metaData.Unmarshal(Serializable::ToJson(json));
-            ZLOGD("meta data info appType:%s, storeId:%s isDirty:%d",
-                  metaData.appType.c_str(), metaData.storeId.c_str(), metaData.isDirty);
-            if (!metaData.isDirty || metaData.appType != HARMONY_APP) {
-                continue;
+void KvStoreMetaManager::KvStoreMetaObserver::HandleChanges(
+    CHANGE_FLAG flag, const std::list<DistributedDB::Entry> &entries)
+{
+    for (const auto &entry : entries) {
+        std::string key(entry.key.begin(), entry.key.end());
+        for (const auto &item : handlerMap_) {
+            ZLOGI("flag:%{public}d, key:%{public}s", flag, key.c_str());
+            if (key.find(item.first) == 0) {
+                item.second(entry.key, entry.value, flag);
             }
-            ZLOGI("dirty kv store. storeId:%s", metaData.storeId.c_str());
-            notify_(metaData);
         }
     }
-    KvStoreMetaManager::GetInstance().SyncMeta();
 }
 
 void KvStoreMetaManager::MetaDeviceChangeListenerImpl::OnDeviceChanged(
@@ -1003,16 +1008,6 @@ void KvStoreMetaManager::MetaDeviceChangeListenerImpl::OnDeviceChanged(
 AppDistributedKv::ChangeLevelType KvStoreMetaManager::MetaDeviceChangeListenerImpl::GetChangeLevelType() const
 {
     return AppDistributedKv::ChangeLevelType::HIGH;
-}
-
-void KvStoreMetaManager::ToJson(json &j, const KvStoreMetaData &k)
-{
-    j = json(k.Marshal());
-}
-
-void KvStoreMetaManager::FromJson(const json &j, KvStoreMetaData &k)
-{
-    k.Unmarshal(j);
 }
 
 Status KvStoreMetaManager::QueryKvStoreMetaDataByDeviceIdAndAppId(const std::string &devId, const std::string &appId,
@@ -1047,7 +1042,7 @@ Status KvStoreMetaManager::QueryKvStoreMetaDataByDeviceIdAndAppId(const std::str
         }
     }
 
-    ZLOGW("find meta failed id:%s.", appId.c_str());
+    ZLOGW("find meta failed id: %{public}s", appId.c_str());
     return Status::ERROR;
 }
 
@@ -1061,7 +1056,7 @@ Status KvStoreMetaManager::GetKvStoreMeta(const std::vector<uint8_t> &metaKey, K
     }
     DistributedDB::Value dbValue;
     DistributedDB::DBStatus dbStatus = metaDelegate->Get(metaKey, dbValue);
-    ZLOGI("status: %d", static_cast<int>(dbStatus));
+    ZLOGI("status: %{public}d", static_cast<int>(dbStatus));
     if (dbStatus == DistributedDB::DBStatus::NOT_FOUND) {
         ZLOGI("key not found.");
         return Status::KEY_NOT_FOUND;
@@ -1141,26 +1136,6 @@ void KvStoreMetaData::Unmarshal(const nlohmann::json &jObject)
     isDirty = Serializable::GetVal<uint32_t>(jObject, DIRTY_KEY, json::value_t::boolean, isDirty);
 }
 
-bool KvStoreMetaData::CheckChiefValues(const nlohmann::json &jObject)
-{
-    return Serializable::CheckJsonValue(jObject, KVSTORE_TYPE, json::value_t::number_unsigned) &&
-           Serializable::CheckJsonValue(jObject, BACKUP, json::value_t::boolean) &&
-           Serializable::CheckJsonValue(jObject, ENCRYPT, json::value_t::boolean) &&
-           Serializable::CheckJsonValue(jObject, AUTO_SYNC, json::value_t::boolean) &&
-           Serializable::CheckJsonValue(jObject, APP_ID, json::value_t::string) &&
-           Serializable::CheckJsonValue(jObject, USER_ID, json::value_t::string) &&
-           Serializable::CheckJsonValue(jObject, STORE_ID, json::value_t::string) &&
-           Serializable::CheckJsonValue(jObject, BUNDLE_NAME, json::value_t::string) &&
-           Serializable::CheckJsonValue(jObject, DEVICE_ACCOUNT_ID, json::value_t::string) &&
-           Serializable::CheckJsonValue(jObject, DATA_DIR, json::value_t::string);
-}
-
-bool Serializable::CheckJsonValue(const nlohmann::json &j, const std::string &name, json::value_t type)
-{
-    auto it = j.find(name);
-    return it != j.end() && it->type() == type;
-}
-
 template<typename T>
 T Serializable::GetVal(const json &j, const std::string &name, json::value_t type, const T &val)
 {
@@ -1190,7 +1165,7 @@ void SecretKeyMetaData::Unmarshal(const nlohmann::json &jObject)
     kvStoreType = Serializable::GetVal<KvStoreType>(jObject, KVSTORE_TYPE, json::value_t::number_unsigned, kvStoreType);
 }
 
-bool KvStoreMetaManager::GetFullMetaData(std::map<std::string, MetaData> &entries)
+bool KvStoreMetaManager::GetFullMetaData(std::map<std::string, MetaData> &entries, enum DatabaseType type)
 {
     ZLOGI("start");
     auto &metaDelegate = GetMetaKvStore();
@@ -1212,8 +1187,8 @@ bool KvStoreMetaManager::GetFullMetaData(std::map<std::string, MetaData> &entrie
         auto metaObj = Serializable::ToJson(jsonStr);
         MetaData metaData {0};
         metaData.kvStoreType = MetaData::GetKvStoreType(metaObj);
-        if (metaData.kvStoreType == KvStoreType::INVALID_TYPE) {
-            ZLOGE("Failed to find KVSTORE_TYPE in jsonStr.");
+        if (!(type == KVDB && metaData.kvStoreType < KvStoreType::INVALID_TYPE) &&
+             !(type == RDB && metaData.kvStoreType >= DistributedRdb::RdbDistributedType::RDB_DEVICE_COLLABORATION)) {
             continue;
         }
 
@@ -1240,17 +1215,6 @@ bool KvStoreMetaManager::GetFullMetaData(std::map<std::string, MetaData> &entrie
     }
 
     return true;
-}
-
-int KvStoreMetaManager::GetSecurityLevelByBundleName(const std::string &bundleName)
-{
-    KvStoreMetaData kvStoreMetaData;
-    auto getKvStoreMetaBMeta = GetKvStoreMetaByType(KvStoreMetaData::BUNDLE_NAME, bundleName, kvStoreMetaData);
-    if (!getKvStoreMetaBMeta) {
-        ZLOGE("getkvstore meta by type failed");
-        return SecurityLevel::NO_LABEL;
-    }
-    return kvStoreMetaData.securityLevel;
 }
 
 bool KvStoreMetaManager::GetKvStoreMetaByType(const std::string &name, const std::string &val,
@@ -1296,5 +1260,5 @@ bool KvStoreMetaManager::GetKvStoreMetaDataByAppId(const std::string &appId, KvS
 {
     return GetKvStoreMetaByType(KvStoreMetaData::APP_ID, appId, metaData);
 }
-}  // namespace DistributedKv
-}  // namespace OHOS
+} // namespace DistributedKv
+} // namespace OHOS

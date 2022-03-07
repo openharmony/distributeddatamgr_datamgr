@@ -29,8 +29,10 @@ public:
     static napi_value Constructor(napi_env env);
 
     static napi_value New(napi_env env, napi_callback_info info);
+    
+    static napi_status ToJson(napi_env env, napi_value inner, JsSchema*& out);
+    std::string Dump();
 private:
-    static napi_value ToJson(napi_env env, napi_callback_info info);
     static napi_value GetRootNode(napi_env env, napi_callback_info info);
     static napi_value SetRootNode(napi_env env, napi_callback_info info);
     static napi_value GetMode(napi_env env, napi_callback_info info);
@@ -39,8 +41,6 @@ private:
     static napi_value SetSkip(napi_env env, napi_callback_info info);
     static napi_value GetIndexes(napi_env env, napi_callback_info info);
     static napi_value SetIndexes(napi_env env, napi_callback_info info);
-
-    std::string Dump();
 
     enum {
         SCHEMA_MODE_SLOPPY,

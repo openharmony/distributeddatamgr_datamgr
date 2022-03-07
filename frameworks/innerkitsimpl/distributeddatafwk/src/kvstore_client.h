@@ -64,7 +64,6 @@ private:
     std::mutex observerMapMutex_;
     std::string storeId_;
 };
-
 }  // namespace DistributedKv
 }  // namespace OHOS
 

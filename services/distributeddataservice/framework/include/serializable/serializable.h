@@ -31,8 +31,22 @@ struct Serializable {
 public:
     using json = nlohmann::json;
     using size_type= nlohmann::json::size_type;
+    using error_handler_t = nlohmann::detail::error_handler_t;
     API_EXPORT json Marshall() const;
+    template<typename T>
+    static std::string Marshall(T &values)
+    {
+        json root;
+        SetValue(root, values);
+        return root.dump(-1, ' ', false, error_handler_t::replace);
+    }
+
     API_EXPORT bool Unmarshall(const std::string &jsonStr);
+    template<typename T>
+    static bool Unmarshall(const std::string &body, T &values)
+    {
+        return GetValue(ToJson(body), "", values);
+    }
     API_EXPORT static json ToJson(const std::string &jsonStr);
     virtual bool Marshal(json &node) const = 0;
     virtual bool Unmarshal(const json &node) = 0;

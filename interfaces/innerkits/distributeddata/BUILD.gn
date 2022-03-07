@@ -72,17 +72,15 @@ ohos_shared_library("distributeddata_inner") {
     "../../../frameworks/innerkitsimpl/distributeddatafwk/src/kvstore_snapshot_client.cpp",
     "../../../frameworks/innerkitsimpl/distributeddatafwk/src/kvstore_sync_callback_client.cpp",
     "../../../frameworks/innerkitsimpl/distributeddatafwk/src/single_kvstore_client.cpp",
+    "../../../frameworks/innerkitsimpl/distributeddatafwk/src/sync_observer.cpp",
     "include/types.h",
   ]
 
   rdb_sources = [
-    "../../../frameworks/innerkitsimpl/rdb/src/rdb_client_death_recipient.cpp",
     "../../../frameworks/innerkitsimpl/rdb/src/rdb_manager.cpp",
     "../../../frameworks/innerkitsimpl/rdb/src/rdb_manager_impl.cpp",
+    "../../../frameworks/innerkitsimpl/rdb/src/rdb_notifier.cpp",
     "../../../frameworks/innerkitsimpl/rdb/src/rdb_service_proxy.cpp",
-    "../../../frameworks/innerkitsimpl/rdb/src/rdb_service_stub.cpp",
-    "../../../frameworks/innerkitsimpl/rdb/src/rdb_syncer_proxy.cpp",
-    "../../../frameworks/innerkitsimpl/rdb/src/rdb_syncer_stub.cpp",
   ]
 
   sources = kvdb_sources + rdb_sources
@@ -91,6 +89,7 @@ ohos_shared_library("distributeddata_inner") {
 
   deps = [
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter:distributeddata_adapter",
+    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/utils:distributeddata_utils_static",
     "//utils/native/base:utils",
   ]
   external_deps = [

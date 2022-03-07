@@ -21,7 +21,7 @@
 
 #include "single_ver_kvdb_sync_interface.h"
 #include "query_object.h"
-#include "types.h"
+#include "store_types.h"
 
 namespace DistributedDB {
 struct VirtualDataItem {
@@ -118,6 +118,8 @@ public:
     int RemoveSubscribe(const std::string &subscribeId) override;
 
     int RemoveSubscribe(const std::vector<std::string> &subscribeIds) override;
+
+    void SetBusy(bool busy);
 private:
     int GetSyncData(TimeStamp begin, TimeStamp end, uint32_t blockSize, std::vector<VirtualDataItem>& dataItems,
         ContinueToken& continueStmtToken) const;
@@ -134,6 +136,7 @@ private:
     KvDBProperties properties_;
     uint64_t saveDataDelayTime_ = 0;
     SecurityOption secOption_;
+    bool busy_ = false;
 };
 }  // namespace DistributedDB
 

@@ -37,15 +37,26 @@ void QueryExpression::AssemblyQueryInfo(const QueryObjType queryOperType, const 
         return;
     }
 
+    FieldPath outPath;
     if (isNeedFieldPath) {
-        FieldPath outPath;
         if (SchemaUtils::ParseAndCheckFieldPath(field, outPath) != E_OK) {
             SetErrFlag(false);
             LOGE("Field path illegal!");
             return;
         }
     }
-    queryInfo_.emplace_back(QueryObjNode{queryOperType, field, type, values});
+    std::string formatedField;
+    if (isTableNameSpecified_) { // remove '$.' prefix in relational query
+        for (auto it = outPath.begin(); it < outPath.end(); ++it) {
+            if (it != outPath.begin()) {
+                formatedField += ".";
+            }
+            formatedField += *it;
+        }
+    } else {
+        formatedField = field;
+    }
+    queryInfo_.emplace_back(QueryObjNode{queryOperType, formatedField, type, values});
 }
 
 QueryExpression::QueryExpression()
@@ -186,6 +197,13 @@ void QueryExpression::QueryBySuggestIndex(const std::string &indexName)
     suggestIndex_ = indexName;
 }
 
+void QueryExpression::InKeys(const std::set<Key> &keys)
+{
+    queryInfo_.emplace_back(QueryObjNode{QueryObjType::IN_KEYS, std::string(), QueryValueType::VALUE_TYPE_NULL,
+        std::vector<FieldValue>()});
+    keys_ = keys;
+}
+
 const std::list<QueryObjNode> &QueryExpression::GetQueryExpression()
 {
     if (!GetErrFlag()) {
@@ -212,7 +230,7 @@ const std::string &QueryExpression::GetTableName()
     return tableName_;
 }
 
-bool QueryExpression::IsTableNameSpacified() const
+bool QueryExpression::IsTableNameSpecified() const
 {
     return isTableNameSpecified_;
 }
@@ -220,6 +238,11 @@ bool QueryExpression::IsTableNameSpacified() const
 std::string QueryExpression::GetSuggestIndex() const
 {
     return suggestIndex_;
+}
+
+const std::set<Key> &QueryExpression::GetKeys() const
+{
+    return keys_;
 }
 
 void QueryExpression::BeginGroup()
@@ -241,6 +264,7 @@ void QueryExpression::Reset()
     prefixKey_.clear();
     prefixKey_.shrink_to_fit();
     suggestIndex_.clear();
+    keys_.clear();
 }
 
 void QueryExpression::SetErrFlag(bool flag)
