@@ -246,8 +246,14 @@ Status KvStoreDataService::GetSingleKvStore(const Options &options, const AppId 
             KvStoreAppManager::ConvertPathType(param.uid, param.bundleName, options.securityLevel), store);
     }
     if (param.status == Status::SUCCESS) {
+        status = UpdateMetaData(options, param, keyPara.metaKey, it->second);
+        if (status != Status::SUCCESS) {
+            ZLOGE("failed to write meta");
+            callback(nullptr);
+            return status;
+        }
         callback(std::move(store));
-        return UpdateMetaData(options, param, keyPara.metaKey, it->second);
+        return status;
     }
 
     param.status =  GetSingleKvStoreFailDo(options, param, keyPara, it->second, store);
@@ -340,12 +346,17 @@ Status KvStoreDataService::RecoverSecretKey(const Status &alreadyCreated, bool &
 Status KvStoreDataService::UpdateMetaData(const Options &options, const KvStoreParam &kvParas,
     const std::vector<uint8_t> &metaKey, KvStoreUserManager &kvStoreUserManager)
 {
+    auto localDeviceId = DeviceKvStoreImpl::GetLocalDeviceId();
+    if (localDeviceId.empty()) {
+        ZLOGE("failed to get local device id");
+        return Status::ERROR;
+    }
     KvStoreMetaData metaData;
     metaData.appId = kvParas.trueAppId;
     metaData.appType = "harmony";
     metaData.bundleName = kvParas.bundleName;
     metaData.deviceAccountId = kvParas.userId;
-    metaData.deviceId = DeviceKvStoreImpl::GetLocalDeviceId();
+    metaData.deviceId = localDeviceId;
     metaData.isAutoSync = options.autoSync;
     metaData.isBackup = options.backup;
     metaData.isEncrypt = options.encrypt;
@@ -833,7 +844,7 @@ void KvStoreDataService::OnStart()
 void KvStoreDataService::StartService()
 {
     static constexpr int32_t RETRY_TIMES = 10;
-    static constexpr int32_t RETRY_INTERVAL = 500; // unit is ms
+    static constexpr int32_t RETRY_INTERVAL = 500 * 1000; // unit is ms
     for (BlockInteger retry(RETRY_INTERVAL); retry < RETRY_TIMES; ++retry) {
         if (!DeviceKvStoreImpl::GetLocalDeviceId().empty()) {
             break;
