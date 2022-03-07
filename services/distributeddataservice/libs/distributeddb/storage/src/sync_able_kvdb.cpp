@@ -190,20 +190,20 @@ int SyncAbleKvDB::StartSyncerWithNoLock(bool isCheckSyncActive, bool isNeedActiv
 }
 
 // Stop syncer
-void SyncAbleKvDB::StopSyncer(bool isClosed)
+void SyncAbleKvDB::StopSyncer(bool isClosedOperation)
 {
     std::unique_lock<std::mutex> lock(syncerOperateLock_);
-    StopSyncerWithNoLock(isClosed);
+    StopSyncerWithNoLock(isClosedOperation);
 }
 
-void SyncAbleKvDB::StopSyncerWithNoLock(bool isClosed)
+void SyncAbleKvDB::StopSyncerWithNoLock(bool isClosedOperation)
 {
     ReSetSyncModuleActive();
-    syncer_.Close(isClosed);
+    syncer_.Close(isClosedOperation);
     if (started_) {
         started_ = false;
     }
-    closed_ = isClosed;
+    closed_ = isClosedOperation;
     if (userChangeListerner_ != nullptr) {
         userChangeListerner_->Drop(false);
         userChangeListerner_ = nullptr;

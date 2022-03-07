@@ -97,9 +97,9 @@ protected:
     int StartSyncerWithNoLock(bool isCheckSyncActive, bool isNeedActive);
 
     // Stop syncer
-    void StopSyncer(bool isClosed = false);
+    void StopSyncer(bool isClosedOperation = false);
 
-    void StopSyncerWithNoLock(bool isClosed = false);
+    void StopSyncerWithNoLock(bool isClosedOperation = false);
 
     void UserChangeHandle();
 
