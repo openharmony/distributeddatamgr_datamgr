@@ -1184,7 +1184,7 @@ int SQLiteSingleVerRelationalStorageExecutor::CheckAndCleanDistributedTable(cons
             }
             missingTables.emplace_back(tableName);
         } else if (errCode != SQLiteUtils::MapSQLiteErrno(SQLITE_ROW)) {
-            LOGE("Check distributed table failed. %s", errCode);
+            LOGE("Check distributed table failed. %d", errCode);
             break;
         }
         errCode = E_OK; // Check result ok for distributed table is still exists
