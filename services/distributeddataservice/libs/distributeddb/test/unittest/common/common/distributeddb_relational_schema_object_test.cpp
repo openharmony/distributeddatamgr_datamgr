@@ -378,16 +378,15 @@ HWTEST_F(DistributedDBRelationalSchemaObjectTest, RelationalTableCompareTest001,
  */
 HWTEST_F(DistributedDBRelationalSchemaObjectTest, RelationalSchemaOpinionTest001, TestSize.Level1)
 {
-    const uint32_t softWareVersion = 106;
     RelationalSyncOpinion opinion;
     opinion["table_1"] = SyncOpinion {true, false, false};
     opinion["table_2"] = SyncOpinion {false, true, false};
     opinion["table_3"] = SyncOpinion {false, false, true};
 
-    uint32_t len = SchemaNegotiate::CalculateParcelLen(opinion, softWareVersion);
+    uint32_t len = SchemaNegotiate::CalculateParcelLen(opinion);
     std::vector<uint8_t> buff(len, 0);
     Parcel writeParcel(buff.data(), len);
-    int errCode = SchemaNegotiate::SerializeData(opinion, writeParcel, softWareVersion);
+    int errCode = SchemaNegotiate::SerializeData(opinion, writeParcel);
     EXPECT_EQ(errCode, E_OK);
 
     Parcel readParcel(buff.data(), len);

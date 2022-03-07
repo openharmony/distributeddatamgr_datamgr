@@ -19,7 +19,6 @@
 #include "relational_schema_object.h"
 
 namespace DistributedDB {
-
 struct SyncOpinion {
     bool permitSync = false;
     bool requirePeerConvert = false;
@@ -52,8 +51,8 @@ public:
     static RelationalSyncStrategy ConcludeSyncStrategy(const RelationalSyncOpinion &localOpinion,
         const RelationalSyncOpinion &remoteOpinion);
 
-    static uint32_t CalculateParcelLen(const RelationalSyncOpinion &opinions, uint32_t softWareVersion);
-    static int SerializeData(const RelationalSyncOpinion &opinions, Parcel &parcel, uint32_t softWareVersion);
+    static uint32_t CalculateParcelLen(const RelationalSyncOpinion &opinions);
+    static int SerializeData(const RelationalSyncOpinion &opinions, Parcel &parcel);
     static int DeserializeData(Parcel &parcel, RelationalSyncOpinion &opinion);
 
 private:

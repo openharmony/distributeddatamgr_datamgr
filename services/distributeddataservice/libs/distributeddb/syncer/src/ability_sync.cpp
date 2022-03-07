@@ -297,7 +297,7 @@ uint32_t AbilitySyncAckPacket::CalculateLen() const
     len += Parcel::GetUInt32Len(); // requirePeerConvert_
     len += Parcel::GetUInt64Len(); // dbCreateTime_
     len += DbAbility::CalculateLen(dbAbility_); // dbAbility_
-    len += SchemaNegotiate::CalculateParcelLen(relationalSyncOpinion_, softwareVersion_);
+    len += SchemaNegotiate::CalculateParcelLen(relationalSyncOpinion_);
     if (len > INT32_MAX) {
         LOGE("[AbilitySyncAckPacket][CalculateLen]  err len:%llu", len);
         return 0;
@@ -709,7 +709,7 @@ int AbilitySync::AckPacketSerialization(uint8_t *buffer, uint32_t length, const 
     if (parcel.IsError() || errCode != E_OK) {
         return -E_PARSE_FAIL;
     }
-    errCode = SchemaNegotiate::SerializeData(packet->GetRelationalSyncOpinion(), parcel, SOFTWARE_VERSION_CURRENT);
+    errCode = SchemaNegotiate::SerializeData(packet->GetRelationalSyncOpinion(), parcel);
     if (parcel.IsError() || errCode != E_OK) {
         return -E_PARSE_FAIL;
     }

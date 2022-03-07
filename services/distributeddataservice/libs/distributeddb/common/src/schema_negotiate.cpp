@@ -172,7 +172,7 @@ namespace {
 } // namespace
 
 
-uint32_t SchemaNegotiate::CalculateParcelLen(const RelationalSyncOpinion &opinions, uint32_t softWareVersion)
+uint32_t SchemaNegotiate::CalculateParcelLen(const RelationalSyncOpinion &opinions)
 {
     uint64_t len = Parcel::GetStringLen(MAGIC);
     len += Parcel::GetUInt32Len();
@@ -190,7 +190,7 @@ uint32_t SchemaNegotiate::CalculateParcelLen(const RelationalSyncOpinion &opinio
     return static_cast<uint32_t>(len);
 }
 
-int SchemaNegotiate::SerializeData(const RelationalSyncOpinion &opinions, Parcel &parcel, uint32_t softWareVersion)
+int SchemaNegotiate::SerializeData(const RelationalSyncOpinion &opinions, Parcel &parcel)
 {
     (void)parcel.WriteString(MAGIC);
     (void)parcel.WriteUInt32(SYNC_OPINION_VERSION);
@@ -240,5 +240,4 @@ int SchemaNegotiate::DeserializeData(Parcel &parcel, RelationalSyncOpinion &opin
     }
     return parcel.IsError() ? -E_INVALID_ARGS : E_OK;
 }
-
 }
