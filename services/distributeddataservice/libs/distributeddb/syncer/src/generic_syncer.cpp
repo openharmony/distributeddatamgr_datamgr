@@ -60,7 +60,11 @@ GenericSyncer::~GenericSyncer()
         // waiting all thread exist
         std::mutex engineMutex;
         std::unique_lock<std::mutex> cvLock(engineMutex);
-        engineFinalizeCv_.wait(cvLock, [this](){ return engineFinalize_; });
+        bool engineFinalize = engineFinalizeCv_.wait_for(cvLock, std::chrono::milliseconds(DBConstant::MIN_TIMEOUT),
+            [this](){ return engineFinalize_; });
+        if (!engineFinalize) {
+            LOGW("syncer finalize before engine finalize!");
+        }
         syncEngine_ = nullptr;
     }
     timeHelper_ = nullptr;
@@ -348,25 +352,17 @@ int GenericSyncer::InitSyncEngine(ISyncInterface *syncInterface)
         LOGI("[Syncer] syncEngine is active");
         return E_OK;
     }
-    if (syncEngine_ == nullptr) {
-        syncEngine_ = CreateSyncEngine();
-        if (syncEngine_ == nullptr) {
-            return -E_OUT_OF_MEMORY;
-        }
+    int errCode = BuildSyncEngine();
+    if (errCode != E_OK) {
+        return errCode;
     }
-
-    syncEngine_->OnLastRef([this]() { 
-        LOGD("[Syncer] SyncEngine finalized"); 
-        engineFinalize_ = true;
-        engineFinalizeCv_.notify_all();
-    });
     const std::function<void(std::string)> onlineFunc = std::bind(&GenericSyncer::RemoteDataChanged,
         this, std::placeholders::_1);
     const std::function<void(std::string)> offlineFunc = std::bind(&GenericSyncer::RemoteDeviceOffline,
         this, std::placeholders::_1);
     const std::function<void(const InternalSyncParma &param)> queryAutoSyncFunc =
         std::bind(&GenericSyncer::QueryAutoSync, this, std::placeholders::_1);
-    int errCode = syncEngine_->Initialize(syncInterface, metadata_, onlineFunc, offlineFunc, queryAutoSyncFunc);
+    errCode = syncEngine_->Initialize(syncInterface, metadata_, onlineFunc, offlineFunc, queryAutoSyncFunc);
     if (errCode == E_OK) {
         syncInterface_ = syncInterface;
         syncInterface->IncRefCount();
@@ -390,11 +386,9 @@ int GenericSyncer::CheckSyncActive(ISyncInterface *syncInterface, bool isNeedAct
         return E_OK;
     }
     LOGI("[Syncer] syncer no need to active");
-    if (syncEngine_ == nullptr) {
-        syncEngine_ = CreateSyncEngine();
-        if (syncEngine_ == nullptr) {
-            return -E_OUT_OF_MEMORY;
-        }
+    int errCode = BuildSyncEngine();
+    if (errCode != E_OK) {
+        return errCode;
     }
     return -E_NO_NEED_ACTIVE;
 }
@@ -760,5 +754,22 @@ void GenericSyncer::InitSyncOperation(SyncOperation *operation, const SyncParma 
     if (param.isQuerySync) {
         operation->SetQuery(param.syncQuery);
     }
+}
+
+int GenericSyncer::BuildSyncEngine()
+{
+    if (syncEngine_ != nullptr) {
+        return E_OK;
+    }
+    syncEngine_ = CreateSyncEngine();
+    if (syncEngine_ == nullptr) {
+        return -E_OUT_OF_MEMORY;
+    }
+    syncEngine_->OnLastRef([this]() { 
+        LOGD("[Syncer] SyncEngine finalized"); 
+        engineFinalize_ = true;
+        engineFinalizeCv_.notify_all();
+    });
+    return E_OK;
 }
 } // namespace DistributedDB

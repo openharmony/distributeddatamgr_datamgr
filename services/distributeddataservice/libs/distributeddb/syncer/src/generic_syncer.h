@@ -165,6 +165,8 @@ protected:
 
     int SyncParamCheck(const SyncParma &param) const;
 
+    int BuildSyncEngine();
+
     static int SyncModuleInit();
 
     static int SyncResourceInit();
