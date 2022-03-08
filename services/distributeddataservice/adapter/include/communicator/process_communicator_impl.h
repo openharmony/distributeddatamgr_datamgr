@@ -17,8 +17,10 @@
 #define PROCESS_COMMUNICATOR_IMPL_H
 
 #include <mutex>
-#include "iprocess_communicator.h"
+
 #include "communication_provider.h"
+#include "iprocess_communicator.h"
+#include "route_head_handler.h"
 
 namespace OHOS {
 namespace AppDistributedKv {
@@ -30,7 +32,11 @@ public:
     using OnDeviceChange = DistributedDB::OnDeviceChange;
     using OnDataReceive = DistributedDB::OnDataReceive;
     using DeviceInfos = DistributedDB::DeviceInfos;
+    using RouteHeadHandlerCreator =
+        std::function<std::shared_ptr<DistributedData::RouteHeadHandler>(const DistributedDB::ExtendInfo &info)>;
+
     KVSTORE_API ProcessCommunicatorImpl();
+    KVSTORE_API explicit ProcessCommunicatorImpl(RouteHeadHandlerCreator handlerCreator);
     KVSTORE_API ~ProcessCommunicatorImpl() override;
 
     KVSTORE_API DBStatus Start(const std::string &processLabel) override;
@@ -45,6 +51,12 @@ public:
     KVSTORE_API DeviceInfos GetLocalDeviceInfos() override;
     KVSTORE_API std::vector<DeviceInfos> GetRemoteOnlineDeviceInfosList() override;
     KVSTORE_API bool IsSameProcessLabelStartedOnPeerDevice(const DeviceInfos &peerDevInfo) override;
+
+    API_EXPORT std::shared_ptr<DistributedDB::ExtendHeaderHandle> GetExtendHeaderHandle(
+        const DistributedDB::ExtendInfo &info) override;
+    API_EXPORT DBStatus CheckAndGetDataHeadInfo(
+        const uint8_t *data, uint32_t dataLen, uint32_t &headLen, std::vector<std::string> &users) override;
+
 private:
     void OnMessage(const DeviceInfo &info, const uint8_t *ptr, const int size,
                    const PipeInfo &pipeInfo) const override;
@@ -53,6 +65,8 @@ private:
     std::string thisProcessLabel_;
     OnDeviceChange onDeviceChangeHandler_;
     OnDataReceive onDataReceiveHandler_;
+    RouteHeadHandlerCreator routeHeadHandlerCreator_; // route header handler creator
+
     mutable std::mutex onDeviceChangeMutex_;
     mutable std::mutex onDataReceiveMutex_;
 

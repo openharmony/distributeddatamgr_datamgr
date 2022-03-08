@@ -43,8 +43,8 @@ ohos_static_library("distributeddata_communicator_static") {
   cflags_cc = [ "-fvisibility=hidden" ]
 
   deps = [
-    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/libs/distributeddb:distributeddb",
     "../dfx:distributeddata_dfx_static",
+    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/libs/distributeddb:distributeddb",
     "//utils/native/base:utils",
   ]
 

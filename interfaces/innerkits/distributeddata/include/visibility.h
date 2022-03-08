@@ -13,10 +13,14 @@
  * limitations under the License.
  */
 
-#ifndef KVSTORE_API
-#define KVSTORE_API __attribute__ ((visibility ("default")))
-#endif
+#ifndef OHOS_DISTRIBUTED_DATA_INTERFACE_DISTRIBUTEDDATA_INCLUDE_COMMON_VISIBILITY_H
+#define OHOS_DISTRIBUTED_DATA_INTERFACE_DISTRIBUTEDDATA_INCLUDE_COMMON_VISIBILITY_H
 
 #ifndef API_EXPORT
-#define API_EXPORT __attribute__((visibility ("default")))
+#define API_EXPORT __attribute__((visibility("default")))
 #endif
+#ifndef KVSTORE_API
+#define KVSTORE_API API_EXPORT
+#endif
+
+#endif // OHOS_DISTRIBUTED_DATA_INTERFACE_DISTRIBUTEDDATA_INCLUDE_COMMON_VISIBILITY_H

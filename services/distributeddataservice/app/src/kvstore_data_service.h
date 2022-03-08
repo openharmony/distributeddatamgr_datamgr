@@ -17,20 +17,22 @@
 #define KVSTORE_DATASERVICE_H
 
 #include <map>
-#include <set>
 #include <mutex>
-#include "constant.h"
-#include "ikvstore_data_service.h"
-#include "kvstore_impl.h"
-#include "kvstore_user_manager.h"
-#include "single_kvstore_impl.h"
-#include "system_ability.h"
-#include "reporter.h"
-#include "types.h"
+#include <set>
+
 #include "account_delegate.h"
 #include "backup_handler.h"
+#include "constant.h"
 #include "device_change_listener_impl.h"
+#include "ikvstore_data_service.h"
+#include "kvstore_device_listener.h"
+#include "kvstore_impl.h"
+#include "kvstore_user_manager.h"
+#include "reporter.h"
 #include "security/security.h"
+#include "single_kvstore_impl.h"
+#include "system_ability.h"
+#include "types.h"
 
 namespace OHOS::DistributedRdb {
 class IRdbService;
@@ -39,7 +41,9 @@ class RdbServiceImpl;
 
 namespace OHOS::DistributedKv {
 class KvStoreAccountObserver;
-class KvStoreDataService : public SystemAbility, public KvStoreDataServiceStub {
+class KvStoreDataService
+    : public SystemAbility
+    , public KvStoreDataServiceStub {
     DECLARE_SYSTEM_ABILITY(KvStoreDataService);
 
 public:
@@ -86,6 +90,8 @@ public:
 
     void AccountEventChanged(const AccountEventInfo &eventInfo);
 
+    void SetCompatibleIdentify(const AppDistributedKv::DeviceInfo &info) const;
+
     bool CheckBackupFileExist(const std::string &userId, const std::string &bundleName,
                               const std::string &storeId, int pathType);
 
@@ -105,6 +111,7 @@ public:
         Status alreadyCreated = Status::SUCCESS;
         bool outdated = false;
     };
+
 private:
     class KvStoreClientDeathObserverImpl {
     public:
@@ -152,6 +159,8 @@ private:
     Status UpdateMetaData(const Options &options, const KvStoreParam &kvParas,
         const std::vector<uint8_t> &metaKey, KvStoreUserManager &kvStoreUserManager);
 
+    void OnStoreMetaChanged(const std::vector<uint8_t> &key, const std::vector<uint8_t> &value, CHANGE_FLAG flag);
+
     Status GetKvStoreFailDo(const Options &options, const KvStoreParam &kvParas, SecretKeyPara &secKeyParas,
         KvStoreUserManager &kvUserManager, sptr<KvStoreImpl> &kvStore);
 
@@ -163,10 +172,12 @@ private:
     bool CheckPermissions(const std::string &userId, const std::string &appId, const std::string &storeId,
                           const std::string &deviceId, uint8_t flag) const;
     bool ResolveAutoLaunchParamByIdentifier(const std::string &identifier, DistributedDB::AutoLaunchParam &param);
+    static void ResolveAutoLaunchCompatible(const MetaData &meta, const std::string &identifier);
+    bool CheckSyncActivation(const std::string &userId, const std::string &appId, const std::string &storeId);
 
     bool CheckOptions(const Options &options, const std::vector<uint8_t> &metaKey) const;
-    
     void CreateRdbService();
+    bool IsStoreOpened(const std::string &userId, const std::string &appId, const std::string &storeId);
     static Status FillStoreParam(
         const Options &options, const AppId &appId, const StoreId &storeId, KvStoreParam &param);
 
@@ -184,6 +195,7 @@ private:
 
     std::shared_ptr<Security> security_;
     sptr<DistributedRdb::RdbServiceImpl> rdbService_;
+    std::shared_ptr<KvStoreDeviceListener> deviceInnerListener_;
 };
 
 class DbMetaCallbackDelegateMgr : public DbMetaCallbackDelegate {

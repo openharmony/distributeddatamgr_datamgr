@@ -26,6 +26,11 @@ ProcessCommunicatorImpl::ProcessCommunicatorImpl()
 {
 }
 
+ProcessCommunicatorImpl::ProcessCommunicatorImpl(RouteHeadHandlerCreator handlerCreator)
+    : routeHeadHandlerCreator_(std::move(handlerCreator))
+{
+}
+
 ProcessCommunicatorImpl::~ProcessCommunicatorImpl()
 {
     ZLOGE("destructor.");
@@ -187,5 +192,39 @@ void ProcessCommunicatorImpl::OnDeviceChanged(const DeviceInfo &info, const Devi
     devInfo.identifier = info.deviceId;
     onDeviceChangeHandler_(devInfo, (type == DeviceChangeType::DEVICE_ONLINE));
 }
-}  // namespace AppDistributedKv
-}  // namespace OHOS
+
+std::shared_ptr<ExtendHeaderHandle> ProcessCommunicatorImpl::GetExtendHeaderHandle(const ExtendInfo &info)
+{
+    if (routeHeadHandlerCreator_ != nullptr) {
+        return routeHeadHandlerCreator_(info);
+    }
+    return {};
+}
+
+DBStatus ProcessCommunicatorImpl::CheckAndGetDataHeadInfo(
+    const uint8_t *data, uint32_t dataLen, uint32_t &headLen, std::vector<std::string> &users)
+{
+    ZLOGD("begin");
+    if (routeHeadHandlerCreator_ == nullptr) {
+        ZLOGE("header handler creator not registered");
+        return DBStatus::DB_ERROR;
+    }
+    auto handler = routeHeadHandlerCreator_({});
+    if (handler == nullptr) {
+        ZLOGE("failed to get header handler");
+        return DBStatus::DB_ERROR;
+    }
+    auto ret = handler->ParseHeadData(data, dataLen, headLen, users);
+    if (!ret) {
+        ZLOGD("illegal head format");
+        return DBStatus::INVALID_FORMAT;
+    }
+    if (users.empty()) {
+        ZLOGW("no valid user");
+        return DBStatus::NO_PERMISSION;
+    }
+    ZLOGD("ok, result:%{public}u, user:%{public}s", users.size(), users.front().c_str());
+    return DBStatus::OK;
+}
+} // namespace AppDistributedKv
+} // namespace OHOS

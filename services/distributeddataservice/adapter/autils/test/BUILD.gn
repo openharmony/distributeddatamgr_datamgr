@@ -34,7 +34,7 @@ ohos_unittest("KvStoreThreadPoolTest") {
   deps = [
     "../../autils:distributeddata_autils_static",
     "//third_party/googletest:gtest_main",
- ]
+  ]
 }
 
 group("unittest") {

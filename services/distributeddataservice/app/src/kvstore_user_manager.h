@@ -66,6 +66,9 @@ public:
 
     void Dump(int fd) const;
 
+    bool IsStoreOpened(const std::string &appId, const std::string &storeId);
+    void SetCompatibleIdentify(const std::string &deviceId) const;
+
 private:
     std::mutex appMutex_;
     std::map<std::string, KvStoreAppManager> appMap_;

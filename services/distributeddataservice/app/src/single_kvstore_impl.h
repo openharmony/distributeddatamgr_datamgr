@@ -20,6 +20,8 @@
 #include <set>
 #include <memory>
 #include <shared_mutex>
+
+#include "auth/auth_delegate.h"
 #include "flowctrl_manager/kvstore_flowctrl_manager.h"
 #include "ikvstore_observer.h"
 #include "ikvstore_single.h"
@@ -77,6 +79,8 @@ public:
     Status GetSecurityLevel(SecurityLevel &securityLevel) override;
     bool Import(const std::string &bundleName) const;
     void OnDump(int fd) const;
+    void SetCompatibleIdentify(const std::string &changedDevice);
+    void SetCompatibleIdentify();
 
 protected:
     virtual KvStoreObserverImpl *CreateObserver(const SubscribeType subscribeType, sptr<IKvStoreObserver> observer);
