@@ -104,7 +104,7 @@ napi_value JsSchema::GetRootNode(napi_env env, napi_callback_info info)
     ZLOGD("Schema::GetRootNode");
     auto ctxt = std::make_shared<ContextBase>();
     auto schema = GetSchema(env, info, ctxt);
-
+    
     if (schema->rootNode == nullptr) {
         int argc = 1;
         napi_value argv[1] = { nullptr };

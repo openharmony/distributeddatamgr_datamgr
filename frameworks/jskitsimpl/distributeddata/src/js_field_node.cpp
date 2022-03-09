@@ -166,7 +166,7 @@ napi_value JsFieldNode::SetDefaultValue(napi_env env, napi_callback_info info)
 
 napi_value JsFieldNode::GetNullable(napi_env env, napi_callback_info info)
 {
-     ZLOGD("FieldNode::GetNullable");
+    ZLOGD("FieldNode::GetNullable");
     auto ctxt = std::make_shared<ContextBase>();
     auto fieldNode = GetFieldNode(env, info, ctxt);
     return GetContextValue(env, ctxt, fieldNode->isNullable);
@@ -193,7 +193,7 @@ napi_value JsFieldNode::SetNullable(napi_env env, napi_callback_info info)
 
 napi_value JsFieldNode::GetValueType(napi_env env, napi_callback_info info)
 {
-     ZLOGD("FieldNode::GetValueType");
+    ZLOGD("FieldNode::GetValueType");
     auto ctxt = std::make_shared<ContextBase>();
     auto fieldNode = GetFieldNode(env, info, ctxt);
     return GetContextValue(env, ctxt, fieldNode->valueType);
