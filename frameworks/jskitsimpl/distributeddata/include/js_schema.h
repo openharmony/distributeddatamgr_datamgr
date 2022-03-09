@@ -42,6 +42,11 @@ private:
     static napi_value GetIndexes(napi_env env, napi_callback_info info);
     static napi_value SetIndexes(napi_env env, napi_callback_info info);
 
+    template <typename T>
+    static napi_value GetContextValue(napi_env env, std::shared_ptr<ContextBase>& ctxt, T &value);
+    
+    static JsSchema* GetSchema(napi_env env, napi_callback_info info, std::shared_ptr<ContextBase> &ctxt);
+
     enum {
         SCHEMA_MODE_SLOPPY,
         SCHEMA_MODE_STRICT,

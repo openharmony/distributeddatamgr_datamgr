@@ -86,11 +86,11 @@ napi_value JsDeviceKVStore::Get(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<GetContext>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         // number 2 means: required 2 arguments, <deviceId> + <key>
-        CHECK_ARGS(ctxt, argc == 2, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc == 2, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], ctxt->deviceId);
-        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid deviceId!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[0], i.e. invalid deviceId!");
         ctxt->status = JSUtil::GetValue(env, argv[1], ctxt->key);
-        CHECK_STATUS(ctxt, "invalid arg[1], i.e. invalid key!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[1], i.e. invalid key!");
     };
     ctxt->GetCbInfo(env, info, input);
 
@@ -103,11 +103,11 @@ napi_value JsDeviceKVStore::Get(napi_env env, napi_callback_info info)
         ZLOGD("kvStore->Get return %{public}d", status);
         ctxt->value = JSUtil::Blob2VariantValue(value);
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
-        CHECK_STATUS(ctxt, "kvStore->Get() failed!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "kvStore->Get() failed!");
     };
     auto output = [env, ctxt](napi_value& result) {
         ctxt->status = JSUtil::SetValue(env, ctxt->value, result);
-        CHECK_STATUS(ctxt, "output failed");
+        CHECK_STATUS_RETURN_VOID(ctxt, "output failed");
     };
     return NapiQueue::AsyncWork(env, ctxt, std::string(__FUNCTION__), execute, output);
 }
@@ -181,7 +181,7 @@ napi_value JsDeviceKVStore::GetEntries(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<GetEntriesContext>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         ctxt->status = GetVariantArgs(env, argc, argv, ctxt->va);
-        CHECK_STATUS(ctxt, "invalid arguments!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arguments!");
     };
     ctxt->GetCbInfo(env, info, input);
 
@@ -204,11 +204,11 @@ napi_value JsDeviceKVStore::GetEntries(napi_env env, napi_callback_info info)
             ZLOGD("kvStore->GetEntriesWithQuery() return %{public}d", status);
         }
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
-        CHECK_STATUS(ctxt, "kvStore->GetEntries() failed!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "kvStore->GetEntries() failed!");
     };
     auto output = [env, ctxt](napi_value& result) {
         ctxt->status = JSUtil::SetValue(env, ctxt->entries, result);
-        CHECK_STATUS(ctxt, "output failed!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "output failed!");
     };
     return NapiQueue::AsyncWork(env, ctxt, std::string(__FUNCTION__), execute, output);
 }
@@ -235,10 +235,10 @@ napi_value JsDeviceKVStore::GetResultSet(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<GetResultSetContext>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         ctxt->status = GetVariantArgs(env, argc, argv, ctxt->va);
-        CHECK_STATUS(ctxt, "invalid arguments!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arguments!");
         ctxt->ref = JSUtil::NewWithRef(env, 0, nullptr, (void**)(&ctxt->resultSet),
             JsKVStoreResultSet::Constructor(env));
-        CHECK_ARGS(ctxt, ctxt->resultSet != nullptr, "KVStoreResultSet::New failed!");
+        CHECK_ARGS_RETURN_VOID(ctxt, ctxt->resultSet != nullptr, "KVStoreResultSet::New failed!");
     };
     ctxt->GetCbInfo(env, info, input);
 
@@ -262,13 +262,13 @@ napi_value JsDeviceKVStore::GetResultSet(napi_env env, napi_callback_info info)
             ZLOGD("kvStore->GetEntriesWithQuery() return %{public}d", status);
         }
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
-        CHECK_STATUS(ctxt, "kvStore->GetResultSet() failed!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "kvStore->GetResultSet() failed!");
         ctxt->resultSet->SetNative(kvResultSet);
     };
     auto output = [env, ctxt](napi_value& result) {
         ctxt->status = napi_get_reference_value(env, ctxt->ref, &result);
         napi_delete_reference(env, ctxt->ref);
-        CHECK_STATUS(ctxt, "output KvResultSet failed");
+        CHECK_STATUS_RETURN_VOID(ctxt, "output KvResultSet failed");
     };
     return NapiQueue::AsyncWork(env, ctxt, std::string(__FUNCTION__), execute, output);
 }
@@ -287,13 +287,13 @@ napi_value JsDeviceKVStore::CloseResultSet(napi_env env, napi_callback_info info
     auto ctxt = std::make_shared<CloseResultSetContext>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         // required 1 arguments :: <resultSet>
-        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc == 1, "invalid arguments!");
         napi_valuetype type = napi_undefined;
         ctxt->status = napi_typeof(env, argv[0], &type);
-        CHECK_ARGS(ctxt, type == napi_object, "invalid arg[0], i.e. invalid resultSet!");
+        CHECK_ARGS_RETURN_VOID(ctxt, type == napi_object, "invalid arg[0], i.e. invalid resultSet!");
         ctxt->status = JSUtil::Unwrap(env, argv[0], (void**)(&ctxt->resultSet),
             JsKVStoreResultSet::Constructor(env));
-        CHECK_ARGS(ctxt, ctxt->resultSet != nullptr, "invalid arg[0], i.e. invalid resultSet!");
+        CHECK_ARGS_RETURN_VOID(ctxt, ctxt->resultSet != nullptr, "invalid arg[0], i.e. invalid resultSet!");
     };
     ctxt->GetCbInfo(env, info, input);
 
@@ -302,7 +302,7 @@ napi_value JsDeviceKVStore::CloseResultSet(napi_env env, napi_callback_info info
         Status status = kvStore->CloseResultSet(ctxt->resultSet->GetNative());
         ZLOGD("kvStore->CloseResultSet return %{public}d", status);
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
-        CHECK_STATUS(ctxt, "kvStore->CloseResultSet failed!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "kvStore->CloseResultSet failed!");
     };
     return NapiQueue::AsyncWork(env, ctxt, std::string(__FUNCTION__), execute);
 }
@@ -325,9 +325,9 @@ napi_value JsDeviceKVStore::GetResultSize(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<ResultSizeContext>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         ctxt->status = GetVariantArgs(env, argc, argv, ctxt->va);
-        CHECK_ARGS(ctxt, (ctxt->va.type == ArgsType::DEVICEID_QUERY) || (ctxt->va.type == ArgsType::QUERY),
+        CHECK_ARGS_RETURN_VOID(ctxt, (ctxt->va.type == ArgsType::DEVICEID_QUERY) || (ctxt->va.type == ArgsType::QUERY),
             "invalid arguments!");
-        CHECK_STATUS(ctxt, "invalid arguments!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arguments!");
     };
 
     ctxt->GetCbInfo(env, info, input);
@@ -340,11 +340,11 @@ napi_value JsDeviceKVStore::GetResultSize(napi_env env, napi_callback_info info)
         Status status = kvStore->GetCountWithQuery(query.ToString(), ctxt->resultSize);
         ZLOGD("kvStore->GetCountWithQuery() return %{public}d", status);
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
-        CHECK_STATUS(ctxt, "kvStore->GetCountWithQuery() failed!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "kvStore->GetCountWithQuery() failed!");
     };
     auto output = [env, ctxt](napi_value& result) {
         ctxt->status = JSUtil::SetValue(env, static_cast<int32_t>(ctxt->resultSize), result);
-        CHECK_STATUS(ctxt, "output resultSize failed!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "output resultSize failed!");
     };
     return NapiQueue::AsyncWork(env, ctxt, std::string(__FUNCTION__), execute, output);
 }
@@ -363,9 +363,9 @@ napi_value JsDeviceKVStore::RemoveDeviceData(napi_env env, napi_callback_info in
     auto ctxt = std::make_shared<RemoveDeviceContext>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         // required 1 arguments :: <deviceId>
-        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc == 1, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], ctxt->deviceId);
-        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid deviceId!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[0], i.e. invalid deviceId!");
     };
     ctxt->GetCbInfo(env, info, input);
 
@@ -374,7 +374,7 @@ napi_value JsDeviceKVStore::RemoveDeviceData(napi_env env, napi_callback_info in
         Status status = kvStore->RemoveDeviceData(ctxt->deviceId);
         ZLOGD("kvStore->RemoveDeviceData return %{public}d", status);
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
-        CHECK_STATUS(ctxt, "kvStore->RemoveDeviceData() failed!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "kvStore->RemoveDeviceData() failed!");
     };
     return NapiQueue::AsyncWork(env, ctxt, std::string(__FUNCTION__), execute);
 }
@@ -392,12 +392,12 @@ napi_value JsDeviceKVStore::Sync(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<SyncContext>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         // required 2 arguments :: <deviceIdList> + <mode>
-        CHECK_ARGS(ctxt, argc == 2, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc == 2, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], ctxt->deviceIdList);
-        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid deviceIdList!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[0], i.e. invalid deviceIdList!");
         ctxt->status = JSUtil::GetValue(env, argv[1], ctxt->mode);
-        CHECK_STATUS(ctxt, "invalid arg[1], i.e. invalid mode!");
-        CHECK_ARGS(ctxt, ctxt->mode <= uint32_t(SyncMode::PUSH_PULL), "invalid arg[1], i.e. invalid mode!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[1], i.e. invalid mode!");
+        CHECK_ARGS_RETURN_VOID(ctxt, ctxt->mode <= uint32_t(SyncMode::PUSH_PULL), "invalid arg[1], i.e. invalid mode!");
     };
     ctxt->GetCbInfoSync(env, info, input);
     NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
@@ -416,10 +416,10 @@ napi_value JsDeviceKVStore::New(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<ContextBase>();
     auto input = [env, ctxt, &storeId](size_t argc, napi_value* argv) {
         // required 2 arguments :: <storeId> <options>
-        CHECK_ARGS(ctxt, argc == 2, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc == 2, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], storeId);
-        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid storeId!");
-        CHECK_ARGS(ctxt, !storeId.empty(), "invalid arg[0], i.e. invalid storeId!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[0], i.e. invalid storeId!");
+        CHECK_ARGS_RETURN_VOID(ctxt, !storeId.empty(), "invalid arg[0], i.e. invalid storeId!");
     };
     ctxt->GetCbInfoSync(env, info, input);
     NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
