@@ -47,7 +47,7 @@ public:
     static bool IsS3SECEOpt(const SecurityOption &secOpt);
 
     static int CheckAndTransferAutoLaunchParam(const AutoLaunchParam &param,
-        SchemaObject &schemaObject, std::string &canonicalDir);
+        SchemaObject &schemaObject);
 
     static uint8_t GetValidCompressionRate(uint8_t compressionRate);
 

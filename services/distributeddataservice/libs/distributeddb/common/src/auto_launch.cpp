@@ -1005,8 +1005,7 @@ int AutoLaunch::GetAutoLaunchKVProperties(const AutoLaunchParam &param,
     const std::shared_ptr<KvDBProperties> &propertiesPtr)
 {
     SchemaObject schemaObject;
-    std::string canonicalDir;
-    int errCode = ParamCheckUtils::CheckAndTransferAutoLaunchParam(param, schemaObject, canonicalDir);
+    int errCode = ParamCheckUtils::CheckAndTransferAutoLaunchParam(param, schemaObject);
     if (errCode != E_OK) {
         return errCode;
     }
@@ -1014,7 +1013,7 @@ int AutoLaunch::GetAutoLaunchKVProperties(const AutoLaunchParam &param,
     if (param.option.isEncryptedDb) {
         propertiesPtr->SetPassword(param.option.cipher, param.option.passwd);
     }
-    propertiesPtr->SetStringProp(KvDBProperties::DATA_DIR, canonicalDir);
+    propertiesPtr->SetStringProp(KvDBProperties::DATA_DIR, param.option.dataDir);
     propertiesPtr->SetBoolProp(KvDBProperties::CREATE_IF_NECESSARY, param.option.createIfNecessary);
     propertiesPtr->SetBoolProp(KvDBProperties::CREATE_DIR_BY_STORE_ID_ONLY, param.option.createDirByStoreIdOnly);
     propertiesPtr->SetBoolProp(KvDBProperties::MEMORY_MODE, false);
@@ -1081,6 +1080,14 @@ int AutoLaunch::OpenKvConnection(AutoLaunchItem &autoLaunchItem)
     std::shared_ptr<KvDBProperties> properties =
         std::static_pointer_cast<KvDBProperties>(autoLaunchItem.propertiesPtr);
     int errCode = E_OK;
+    std::string canonicalDir;
+    std::string dataDir;
+    properties->GetStringProp(KvDBProperties::DATA_DIR, dataDir);
+     if (!ParamCheckUtils::CheckDataDir(dataDir, canonicalDir)) {
+        LOGE("[AutoLaunch] CheckDataDir is invalid Auto Launch failed.");
+        return -E_INVALID_ARGS;
+    }
+    properties->SetStringProp(KvDBProperties::DATA_DIR, canonicalDir);
     IKvDBConnection *conn = KvDBManager::GetDatabaseConnection(*properties, errCode, false);
     if (errCode == -E_ALREADY_OPENED) {
         LOGI("[AutoLaunch] GetOneConnection user already getkvstore by self");
