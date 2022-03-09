@@ -196,6 +196,34 @@ HWTEST_F(DistributedDBMockSyncModuleTest, StateMachineCheck005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: StateMachineCheck006
+ * @tc.desc: Test machine exec next task when queue not empty to empty.
+ * @tc.type: FUNC
+ * @tc.require: AR000CCPOM
+ * @tc.author: zhangqiquan
+ */
+HWTEST_F(DistributedDBMockSyncModuleTest, StateMachineCheck006, TestSize.Level1)
+{
+    MockSingleVerStateMachine stateMachine;
+    MockSyncTaskContext syncTaskContext;
+    MockCommunicator communicator;
+    VirtualSingleVerSyncDBInterface dbSyncInterface;
+    Init(stateMachine, syncTaskContext, communicator, dbSyncInterface);
+
+    EXPECT_CALL(syncTaskContext, IsTargetQueueEmpty())
+        .WillOnce(Return(false))
+        .WillOnce(Return(true));
+    EXPECT_CALL(syncTaskContext, IsCurrentSyncTaskCanBeSkipped())
+        .WillRepeatedly(Return(syncTaskContext.CallIsCurrentSyncTaskCanBeSkipped()));
+    EXPECT_CALL(syncTaskContext, MoveToNextTarget()).WillOnce(Return());
+    // we expect machine dont change context status when queue not empty
+    EXPECT_CALL(syncTaskContext, SetOperationStatus(_)).WillOnce(Return());
+    EXPECT_CALL(syncTaskContext, SetTaskExecStatus(_)).WillOnce(Return());
+
+    EXPECT_EQ(stateMachine.CallExecNextTask(), -E_NO_SYNC_TASK);
+}
+
+/**
  * @tc.name: DataSyncCheck001
  * @tc.desc: Test dataSync recv error ack.
  * @tc.type: FUNC

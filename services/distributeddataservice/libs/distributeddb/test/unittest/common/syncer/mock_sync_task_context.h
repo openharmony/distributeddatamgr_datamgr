@@ -22,6 +22,11 @@
 namespace DistributedDB {
 class MockSyncTaskContext : public SingleVerKvSyncTaskContext {
 public:
+    bool CallIsCurrentSyncTaskCanBeSkipped()
+    {
+        return SingleVerKvSyncTaskContext::IsCurrentSyncTaskCanBeSkipped();
+    }
+
     MOCK_CONST_METHOD0(GetTimerId, TimerId(void));
 
     MOCK_CONST_METHOD0(IsTargetQueueEmpty, bool(void));
