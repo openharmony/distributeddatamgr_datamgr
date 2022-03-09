@@ -278,7 +278,7 @@ HWTEST_F(DistributedDBMockSyncModuleTest, DataSyncCheck003, TestSize.Level1)
     MockCommunicator communicator;
     std::shared_ptr<Metadata> metadata = std::static_pointer_cast<Metadata>(mockMetadata);
     mockDataSync.Initialize(&storage, &communicator, metadata, "deviceId");
-    
+
     DistributedDB::Message *message = new(std::nothrow) DistributedDB::Message();
     ASSERT_TRUE(message != nullptr);
     DataAckPacket packet;
@@ -316,7 +316,7 @@ HWTEST_F(DistributedDBMockSyncModuleTest, AutoLaunchCheck001, TestSize.Level1)
     mockAutoLaunch.SetAutoLaunchItem(id, userId, item);
     EXPECT_CALL(mockAutoLaunch, TryCloseConnection(_)).WillOnce(Return());
     /**
-     * @tc.steps: step2. send close singal to simulate a connection was unused in 1 min
+     * @tc.steps: step2. send close signal to simulate a connection was unused in 1 min
      * @tc.expected: 10 thread try to close the connection and one thread close success
      */
     const int loopCount = 10;
@@ -385,7 +385,7 @@ HWTEST_F(DistributedDBMockSyncModuleTest, AbilitySync001, TestSize.Level1)
 {
     MockSyncTaskContext syncTaskContext;
     AbilitySync abilitySync;
-    
+
     DistributedDB::Message *message = new(std::nothrow) DistributedDB::Message();
     ASSERT_TRUE(message != nullptr);
     AbilitySyncAckPacket packet;
@@ -412,7 +412,7 @@ HWTEST_F(DistributedDBMockSyncModuleTest, AbilitySync002, TestSize.Level1)
     std::shared_ptr<Metadata> metaData = std::make_shared<Metadata>();
     metaData->Initialize(&syncDBInterface);
     abilitySync.Initialize(&comunicator, &syncDBInterface, metaData, "deviceId");
-    
+
     /**
      * @tc.steps: step1. set AbilitySyncAckPacket ackCode is E_OK for pass the ack check
      */

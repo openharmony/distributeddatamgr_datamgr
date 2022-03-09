@@ -458,7 +458,7 @@ HWTEST_F(DistributeddbKvCrudTest, ComplexDataTest002, TestSize.Level1)
 
 /*
  * @tc.name: ComplexDataTest 003
- * @tc.desc: Verify that can operate a alphanum string key.
+ * @tc.desc: Verify that can operate an alphanum string key.
  * @tc.type: FUNC
  * @tc.require: SR000BUH3J
  * @tc.author: luqianfu

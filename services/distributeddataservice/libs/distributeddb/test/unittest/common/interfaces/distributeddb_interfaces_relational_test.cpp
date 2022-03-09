@@ -318,7 +318,7 @@ HWTEST_F(DistributedDBInterfacesRelationalTest, RelationalStoreTest005, TestSize
     ASSERT_NE(delegate, nullptr);
 
     /**
-     * @tc.steps:step3. Create distributed table with invald table name
+     * @tc.steps:step3. Create distributed table with invalid table name
      * @tc.expected: step3. Create distributed table failed.
      */
     EXPECT_NE(delegate->CreateDistributedTable(DBConstant::SYSTEM_TABLE_PREFIX + "_tmp"), OK);
@@ -362,7 +362,7 @@ HWTEST_F(DistributedDBInterfacesRelationalTest, RelationalStoreTest006, TestSize
     ASSERT_NE(delegate, nullptr);
 
     /**
-     * @tc.steps:step3. Create distributed table with invald table name
+     * @tc.steps:step3. Create distributed table with invalid table name
      * @tc.expected: step3. Create distributed table failed.
      */
     EXPECT_EQ(delegate->CreateDistributedTable("sync_data"), OK);
@@ -611,7 +611,7 @@ HWTEST_F(DistributedDBInterfacesRelationalTest, RelationalRemoveDeviceDataTest00
     EXPECT_EQ(delegate->RemoveDeviceData("DEVICE_C", "sync_data"), OK);
 
     /**
-     * @tc.steps:step4. Remove device data with invald args
+     * @tc.steps:step4. Remove device data with invalid args
      * @tc.expected: step4. invalid
      */
     EXPECT_EQ(delegate->RemoveDeviceData(""), INVALID_ARGS);

@@ -163,7 +163,7 @@ private:
     // Is this operation is a block sync
     bool isBlockSync_;
 
-    // Is this operation is a auto sync
+    // Is this operation is an auto sync
     bool isAutoSync_;
 
     // Is this operation has finished

@@ -566,7 +566,7 @@ int KvDBManager::RemoveDatabase(const KvDBProperties &properties)
     if (errCode != E_OK) {
         LOGE("[KvDBManager] Remove database failed:%d", errCode);
     }
-    int err = KvDBManager::UnlockDB(properties); // unlock and delete lock file befor delete dir
+    int err = KvDBManager::UnlockDB(properties); // unlock and delete lock file before delete dir
     if (err != E_OK) {
         LOGE("[KvDBManager][RemoveDatabase] UnlockDB failed:%d, errno:%d", err, errno);
         errCode = err;

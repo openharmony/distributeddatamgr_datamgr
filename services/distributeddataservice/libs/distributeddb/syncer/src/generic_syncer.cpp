@@ -126,7 +126,7 @@ int GenericSyncer::Initialize(ISyncInterface *syncInterface, bool isNeedActive)
         initialized_ = true;
     }
 
-    // RegConnectCallback may start a auto sync, this function can not in syncerLock_
+    // RegConnectCallback may start an auto sync, this function can not in syncerLock_
     syncEngine_->RegConnectCallback();
     return E_OK;
 }

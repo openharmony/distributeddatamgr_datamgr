@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,7 +61,7 @@ public:
         const std::function<void(const std::map<std::string, int> &)> &onComplete,
         const std::function<void(void)> &onFinalize, bool wait) = 0;
 
-    // Sync function. use SyncParma to reduce paramter.
+    // Sync function. use SyncParma to reduce parameter.
     virtual int Sync(const SyncParma &param) = 0;
 
     // Remove the operation, with the given syncId, used to clean resource if sync finished or failed.
@@ -76,7 +77,7 @@ public:
 
     // delete specified device's watermark
     virtual int EraseDeviceWaterMark(const std::string &deviceId, bool isNeedHash) = 0;
-        
+
     // delete specified device's and table's watermark
     virtual int EraseDeviceWaterMark(const std::string &deviceId, bool isNeedHash,
         const std::string &tableName) = 0;

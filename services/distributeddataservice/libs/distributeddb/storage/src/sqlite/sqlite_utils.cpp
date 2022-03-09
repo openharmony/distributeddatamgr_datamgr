@@ -472,7 +472,6 @@ int SQLiteUtils::GetColumnBlobValue(sqlite3_stmt *statement, int index, std::vec
 
     int keySize = sqlite3_column_bytes(statement, index);
     auto keyRead = static_cast<const uint8_t *>(sqlite3_column_blob(statement, index));
-
     if (keySize < 0) {
         LOGE("[SQLiteUtils][Column blob] size:%d", keySize);
         return -E_INVALID_DATA;

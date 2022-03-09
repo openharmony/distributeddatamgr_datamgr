@@ -54,7 +54,7 @@ public:
 void RuntimeContextProcessSystemApiAdapterImplTest::SetUpTestCase(void)
 {
     /**
-     * @tc.setup: Get a adapter
+     * @tc.setup: Get an adapter
      */
     g_adapter = std::make_shared<ProcessSystemApiAdapterImpl>();
     EXPECT_TRUE(g_adapter != nullptr);

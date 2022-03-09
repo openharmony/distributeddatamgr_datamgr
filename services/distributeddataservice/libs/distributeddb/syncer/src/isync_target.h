@@ -49,7 +49,7 @@ public:
     // Get a SyncOperation
     virtual void GetSyncOperation(SyncOperation *&operation) const = 0;
 
-    // Is this target is a auto sync
+    // Is this target is an auto sync
     virtual bool IsAutoSync() const = 0;
 
     virtual uint32_t GetResponseSessionId() const = 0;
