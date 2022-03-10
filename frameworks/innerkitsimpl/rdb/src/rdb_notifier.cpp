@@ -151,7 +151,7 @@ int32_t RdbNotifierStub::OnChangeInner(MessageParcel &data, MessageParcel &reply
     }
     std::vector<std::string> devices;
     if (!data.ReadStringVector(&devices)) {
-        ZLOGE("read devices faield");
+        ZLOGE("read devices failed");
         return RDB_ERROR;
     }
     return OnChange(storeName, devices);

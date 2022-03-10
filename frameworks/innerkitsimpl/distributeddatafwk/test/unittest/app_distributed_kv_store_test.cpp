@@ -76,7 +76,7 @@ void AppDistributedKvStoreTest::SetUpTestCase(void)
     syncWrite.local = false;
     options.createIfMissing = true;
     options.encrypt = false;
-    options.persistant = true;
+    options.persistent = true;
 }
 
 void AppDistributedKvStoreTest::TearDownTestCase(void)

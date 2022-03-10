@@ -40,7 +40,7 @@ namespace OHOS::DistributedKv {
 struct OptionsIpc {
     bool createIfMissing;
     bool encrypt;
-    bool persistant;
+    bool persistent;
     bool backup;
     bool autoSync;
     int securityLevel;
