@@ -1083,7 +1083,7 @@ int AutoLaunch::OpenKvConnection(AutoLaunchItem &autoLaunchItem)
     std::string canonicalDir;
     std::string dataDir;
     properties->GetStringProp(KvDBProperties::DATA_DIR, dataDir);
-     if (!ParamCheckUtils::CheckDataDir(dataDir, canonicalDir)) {
+    if (!ParamCheckUtils::CheckDataDir(dataDir, canonicalDir)) {
         LOGE("[AutoLaunch] CheckDataDir is invalid Auto Launch failed.");
         return -E_INVALID_ARGS;
     }

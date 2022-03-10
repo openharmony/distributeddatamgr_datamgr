@@ -61,7 +61,7 @@ GenericSyncer::~GenericSyncer()
         std::mutex engineMutex;
         std::unique_lock<std::mutex> cvLock(engineMutex);
         bool engineFinalize = engineFinalizeCv_.wait_for(cvLock, std::chrono::milliseconds(DBConstant::MIN_TIMEOUT),
-            [this](){ return engineFinalize_; });
+            [this]() { return engineFinalize_; });
         if (!engineFinalize) {
             LOGW("syncer finalize before engine finalize!");
         }
