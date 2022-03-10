@@ -219,6 +219,8 @@ int CommitHistorySync::Initialize(MultiVerKvDBSyncInterface *storagePtr, ICommun
 
 void CommitHistorySync::TimeOutCallback(MultiVerSyncTaskContext *context, const Message *message) const
 {
+    (void)context;
+    (void)message;
     return;
 }
 

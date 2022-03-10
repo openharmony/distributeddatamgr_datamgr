@@ -36,6 +36,7 @@ int EventLoopSelect::Initialize()
 
 int EventLoopSelect::Prepare(const std::set<EventImpl *> &polling)
 {
+    (void)polling;
     return E_OK;
 }
 
@@ -56,21 +57,27 @@ int EventLoopSelect::WakeUp()
 
 int EventLoopSelect::Exit(const std::set<EventImpl *> &polling)
 {
+    (void)polling;
     return E_OK;
 }
 
 int EventLoopSelect::AddEvent(EventImpl *event)
 {
+    (void)event;
     return E_OK;
 }
 
 int EventLoopSelect::RemoveEvent(EventImpl *event)
 {
+    (void)event;
     return E_OK;
 }
 
 int EventLoopSelect::ModifyEvent(EventImpl *event, bool isAdd, EventsMask events)
 {
+    (void)event;
+    (void)isAdd;
+    (void)events;
     return E_OK;
 }
 

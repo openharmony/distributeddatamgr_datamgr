@@ -851,11 +851,17 @@ int SQLiteUtils::Rekey(sqlite3 *db, const CipherPassword &passwd)
 int SQLiteUtils::ExportDatabase(sqlite3 *db, CipherType type, const CipherPassword &passwd,
     const std::string &newDbName)
 {
+    (void)db;
+    (void)type;
+    (void)passwd;
+    (void)newDbName;
     return -E_NOT_SUPPORT;
 }
 
 int SQLiteUtils::Rekey(sqlite3 *db, const CipherPassword &passwd)
 {
+    (void)db;
+    (void)passwd;
     return -E_NOT_SUPPORT;
 }
 #endif
@@ -1039,6 +1045,11 @@ int SQLiteUtils::ExportDatabase(const std::string &srcFile, CipherType type, con
 int SQLiteUtils::ExportDatabase(const std::string &srcFile, CipherType type, const CipherPassword &srcPasswd,
     const std::string &targetFile, const CipherPassword &passwd)
 {
+    (void)srcFile;
+    (void)type;
+    (void)srcPasswd;
+    (void)targetFile;
+    (void)passwd;
     return -E_NOT_SUPPORT;
 }
 #endif

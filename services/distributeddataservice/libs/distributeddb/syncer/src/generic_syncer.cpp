@@ -282,6 +282,7 @@ uint64_t GenericSyncer::GetTimeStamp()
 
 void GenericSyncer::QueryAutoSync(const InternalSyncParma &param)
 {
+    (void)param;
 }
 
 void GenericSyncer::AddSyncOperation(SyncOperation *operation)
@@ -416,6 +417,10 @@ bool GenericSyncer::IsValidMode(int mode) const
 int GenericSyncer::SyncConditionCheck(QuerySyncObject &query, int mode, bool isQuerySync,
     const std::vector<std::string> &devices) const
 {
+    (void)query;
+    (void)mode;
+    (void)isQuerySync;
+    (void)(devices);
     return E_OK;
 }
 
@@ -765,8 +770,8 @@ int GenericSyncer::BuildSyncEngine()
     if (syncEngine_ == nullptr) {
         return -E_OUT_OF_MEMORY;
     }
-    syncEngine_->OnLastRef([this]() { 
-        LOGD("[Syncer] SyncEngine finalized"); 
+    syncEngine_->OnLastRef([this]() {
+        LOGD("[Syncer] SyncEngine finalized");
         engineFinalize_ = true;
         engineFinalizeCv_.notify_all();
     });
