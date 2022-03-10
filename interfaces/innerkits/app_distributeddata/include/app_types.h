@@ -130,7 +130,7 @@ enum SecurityLevel : int {
 struct Options {
     bool createIfMissing = false;
     bool encrypt = false;
-    bool persistant = false;
+    bool persistent = false;
     int conflictResolvePolicy = LAST_WIN;
     int securityLevel = SecurityLevel::NO_LABEL;
 };

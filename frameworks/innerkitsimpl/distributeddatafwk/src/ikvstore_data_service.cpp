@@ -549,7 +549,7 @@ int32_t KvStoreDataServiceStub::GetSingleKvStoreOnRemote(MessageParcel &data, Me
     Options options;
     options.createIfMissing = optionsIpc.createIfMissing;
     options.encrypt = optionsIpc.encrypt;
-    options.persistant = optionsIpc.persistant;
+    options.persistent = optionsIpc.persistent;
     options.backup = optionsIpc.backup;
     options.autoSync = optionsIpc.autoSync;
     options.securityLevel = optionsIpc.securityLevel;
