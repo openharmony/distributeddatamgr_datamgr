@@ -49,7 +49,7 @@ Status KvStoreDataServiceProxy::GetKvStore(const Options &options, const AppId &
     OptionsIpc optionsIpc;
     optionsIpc.createIfMissing = options.createIfMissing;
     optionsIpc.encrypt = options.encrypt;
-    optionsIpc.persistant = options.persistant;
+    optionsIpc.persistent = options.persistent;
     optionsIpc.backup = options.backup;
     optionsIpc.autoSync = options.autoSync;
     optionsIpc.securityLevel = options.securityLevel;
@@ -101,7 +101,7 @@ Status KvStoreDataServiceProxy::GetSingleKvStore(const Options &options, const A
     OptionsIpc optionsIpc;
     optionsIpc.createIfMissing = options.createIfMissing;
     optionsIpc.encrypt = options.encrypt;
-    optionsIpc.persistant = options.persistant;
+    optionsIpc.persistent = options.persistent;
     optionsIpc.backup = options.backup;
     optionsIpc.autoSync = options.autoSync;
     optionsIpc.securityLevel = options.securityLevel;
@@ -430,7 +430,7 @@ int32_t KvStoreDataServiceStub::GetKvStoreOnRemote(MessageParcel &data, MessageP
     Options options;
     options.createIfMissing = optionsIpc.createIfMissing;
     options.encrypt = optionsIpc.encrypt;
-    options.persistant = optionsIpc.persistant;
+    options.persistent = optionsIpc.persistent;
     options.backup = optionsIpc.backup;
     options.autoSync = optionsIpc.autoSync;
     options.securityLevel = optionsIpc.securityLevel;
@@ -549,7 +549,7 @@ int32_t KvStoreDataServiceStub::GetSingleKvStoreOnRemote(MessageParcel &data, Me
     Options options;
     options.createIfMissing = optionsIpc.createIfMissing;
     options.encrypt = optionsIpc.encrypt;
-    options.persistant = optionsIpc.persistant;
+    options.persistent = optionsIpc.persistent;
     options.backup = optionsIpc.backup;
     options.autoSync = optionsIpc.autoSync;
     options.securityLevel = optionsIpc.securityLevel;

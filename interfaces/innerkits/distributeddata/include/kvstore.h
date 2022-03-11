@@ -72,7 +72,7 @@ public:
     // delete a list of entries in the kvstore,
     // delete key not exist still return success,
     // key length should not be greater than 256, and can not be empty.
-    // if keys contains invaid key, all delete will fail.
+    // if keys contains invalid key, all delete will fail.
     // keys memory size should not be greater than IPC transport limit, and can not be empty.
     KVSTORE_API virtual Status DeleteBatch(const std::vector<Key> &keys) = 0;
 

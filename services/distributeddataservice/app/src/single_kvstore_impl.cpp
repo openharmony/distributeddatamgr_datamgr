@@ -1603,7 +1603,7 @@ void SingleKvStoreImpl::OnDump(int fd) const
     dprintf(fd, "%s    backup          : %d\n", prefix.c_str(), static_cast<int>(options_.backup));
     dprintf(fd, "%s    encrypt         : %d\n", prefix.c_str(), static_cast<int>(options_.encrypt));
     dprintf(fd, "%s    autoSync        : %d\n", prefix.c_str(), static_cast<int>(options_.autoSync));
-    dprintf(fd, "%s    persistant      : %d\n", prefix.c_str(), static_cast<int>(options_.persistant));
+    dprintf(fd, "%s    persistent      : %d\n", prefix.c_str(), static_cast<int>(options_.persistent));
     dprintf(fd, "%s    kvStoreType     : %d\n", prefix.c_str(), static_cast<int>(options_.kvStoreType));
     dprintf(fd, "%s    createIfMissing : %d\n", prefix.c_str(), static_cast<int>(options_.createIfMissing));
     dprintf(fd, "%s    schema          : %s\n", prefix.c_str(), options_.schema.c_str());

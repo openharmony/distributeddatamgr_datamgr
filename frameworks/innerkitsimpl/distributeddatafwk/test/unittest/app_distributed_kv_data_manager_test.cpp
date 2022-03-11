@@ -63,11 +63,11 @@ void AppDistributedKvDataManagerTest::SetUpTestCase(void)
 {
     create.createIfMissing = true;
     create.encrypt = false;
-    create.persistant = true;
+    create.persistent = true;
 
     noCreate.createIfMissing = false;
     noCreate.encrypt = false;
-    noCreate.persistant = true;
+    noCreate.persistent = true;
 
     appId = "com.ohos.nb.service";
     std::string dataDir = "data/misc_ce/0/com.ohos.nb.service";
@@ -325,7 +325,7 @@ HWTEST_F(AppDistributedKvDataManagerTest, AppManagerDeleteKvStore001, TestSize.L
 
 /**
   * @tc.name: AppManagerDeleteKvStore002
-  * @tc.desc: Delete a opened KvStore, and the callback should return ILLEGAL_STATE.
+  * @tc.desc: Delete an opened KvStore, and the callback should return ILLEGAL_STATE.
   * @tc.type: FUNC
   * @tc.require: AR000CCPOJ
   * @tc.author: liqiao

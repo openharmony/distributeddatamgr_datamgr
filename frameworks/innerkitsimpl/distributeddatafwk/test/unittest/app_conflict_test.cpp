@@ -112,7 +112,7 @@ void AppConflictTest::SetUp(void)
     Options options;
     options.createIfMissing = true;
     options.encrypt = false;  // not supported yet.
-    options.persistant = true;  // not supported yet.
+    options.persistent = true;  // not supported yet.
 
     std::string appId = "odmf";  // define app name.
     std::string storeId = "conflictdb";  // define kvstore(database) name.

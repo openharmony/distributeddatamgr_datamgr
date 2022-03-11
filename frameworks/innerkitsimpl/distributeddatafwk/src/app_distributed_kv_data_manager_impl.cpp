@@ -141,7 +141,7 @@ Status AppDistributedKvDataManagerImpl::GetKvStore(
     Status status = Status::ERROR;
     DistributedDB::KvStoreNbDelegate::Option dbOption;
     dbOption.createIfNecessary = options.createIfMissing;
-    dbOption.isMemoryDb = !options.persistant;
+    dbOption.isMemoryDb = !options.persistent;
     dbOption.secOption = ConvertSecurityLevel(options.securityLevel);
     kvStoreDelegateManager_->GetKvStore(
         trimmedStoreId, dbOption,

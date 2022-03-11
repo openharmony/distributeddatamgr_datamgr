@@ -264,7 +264,7 @@ enum class DeviceFilterStrategy {
 struct Options {
     bool createIfMissing = true;
     bool encrypt = false;
-    bool persistant = false;
+    bool persistent = false;
     bool backup = true;
     bool autoSync = true;
     int securityLevel = SecurityLevel::NO_LABEL;

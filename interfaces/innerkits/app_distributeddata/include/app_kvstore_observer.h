@@ -20,7 +20,7 @@
 
 namespace OHOS {
 namespace AppDistributedKv {
-//  This is a abstract classes. Client needs to implement this class by self.
+//  This is an abstract classes. Client needs to implement this class by self.
 class AppKvStoreObserver {
 public:
     KVSTORE_API AppKvStoreObserver() = default;
