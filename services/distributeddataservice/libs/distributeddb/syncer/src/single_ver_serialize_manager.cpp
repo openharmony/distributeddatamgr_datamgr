@@ -346,17 +346,17 @@ int SingleVerSerializeManager::DataPacketDeSerialization(const uint8_t *buffer, 
         return -E_VERSION_NOT_SUPPORT;
     }
 
+    packLen += static_cast<uint32_t>(GenericSingleVerKvEntry::DeSerializeDatas(dataItems, parcel));
+    if (parcel.IsError()) {
+        return -E_PARSE_FAIL;
+    }
+
     auto packet = new (std::nothrow) DataRequestPacket();
     if (packet == nullptr) {
         return -E_OUT_OF_MEMORY;
     }
 
     packet->SetVersion(version);
-    packLen += static_cast<uint32_t>(GenericSingleVerKvEntry::DeSerializeDatas(dataItems, parcel));
-    if (parcel.IsError()) {
-        return -E_PARSE_FAIL;
-    }
-
     packet->SetData(dataItems);
     int errCode = DataPacketSyncerPartDeSerialization(parcel, packet, packLen, length, version);
     if (errCode != E_OK) {
