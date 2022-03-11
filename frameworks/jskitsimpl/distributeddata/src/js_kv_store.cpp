@@ -111,12 +111,12 @@ napi_value JsKVStore::Put(napi_env env, napi_callback_info info)
 
     ctxt->GetCbInfo(env, info, [env, ctxt](size_t argc, napi_value* argv) {
         // required 2 arguments :: <key> <value>
-        CHECK_ARGS(ctxt, argc == 2, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc == 2, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], ctxt->key);
-        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid key!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[0], i.e. invalid key!");
         JSUtil::KvStoreVariant vv;
         ctxt->status = JSUtil::GetValue(env, argv[1], vv);
-        CHECK_STATUS(ctxt, "invalid arg[1], i.e. invalid value!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[1], i.e. invalid value!");
         DistributedKv::Blob blob = JSUtil::VariantValue2Blob(vv);
         ctxt->value = blob.Data();
     });
@@ -128,7 +128,7 @@ napi_value JsKVStore::Put(napi_env env, napi_callback_info info)
         Status status = kvStore->Put(key, value);
         ZLOGD("kvStore->Put return %{public}d", status);
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
-        CHECK_STATUS(ctxt, "kvStore->Put() failed!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "kvStore->Put() failed!");
     };
     return NapiQueue::AsyncWork(env, ctxt, std::string(__FUNCTION__), execute);
 }
@@ -150,9 +150,9 @@ napi_value JsKVStore::Delete(napi_env env, napi_callback_info info)
 
     ctxt->GetCbInfo(env, info, [env, ctxt](size_t argc, napi_value* argv) {
         // required 1 arguments :: <key>
-        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc == 1, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], ctxt->key);
-        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid key!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[0], i.e. invalid key!");
     });
 
     return NapiQueue::AsyncWork(env, ctxt, std::string(__FUNCTION__), [ctxt]() {
@@ -161,7 +161,7 @@ napi_value JsKVStore::Delete(napi_env env, napi_callback_info info)
         Status status = kvStore->Delete(key);
         ZLOGD("kvStore->Put return %{public}d", status);
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
-        CHECK_STATUS(ctxt, "kvStore->Delete() failed!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "kvStore->Delete() failed!");
     });
 }
 
@@ -177,12 +177,12 @@ napi_value JsKVStore::OnEvent(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<ContextBase>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         // required 2 arguments :: <event> [...] <callback>
-        CHECK_ARGS(ctxt, argc >= 2, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc >= 2, "invalid arguments!");
         std::string event;
         ctxt->status = JSUtil::GetValue(env, argv[0], event);
         ZLOGI("subscribe to event:%{public}s", event.c_str());
         auto handle = onEventHandlers_.find(event);
-        CHECK_ARGS(ctxt, handle != onEventHandlers_.end(), "invalid arg[0], i.e. unsupported event");
+        CHECK_ARGS_RETURN_VOID(ctxt, handle != onEventHandlers_.end(), "invalid arg[0], i.e. unsupported event");
         // shift 1 argument, for JsKVStore::Exec.
         handle->second(env, argc - 1, &argv[1], ctxt);
     };
@@ -203,12 +203,12 @@ napi_value JsKVStore::OffEvent(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<ContextBase>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         // required 1 arguments :: <event> [callback]
-        CHECK_ARGS(ctxt, argc >= 1, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc >= 1, "invalid arguments!");
         std::string event;
         ctxt->status = JSUtil::GetValue(env, argv[0], event);
         ZLOGI("unsubscribe to event:%{public}s", event.c_str());
         auto handle = offEventHandlers_.find(event);
-        CHECK_ARGS(ctxt, handle != offEventHandlers_.end(), "invalid arg[0], i.e. unsupported event");
+        CHECK_ARGS_RETURN_VOID(ctxt, handle != offEventHandlers_.end(), "invalid arg[0], i.e. unsupported event");
         // shift 1 argument, for JsKVStore::Exec.
         handle->second(env, argc - 1, &argv[1], ctxt);
     };
@@ -233,9 +233,9 @@ napi_value JsKVStore::PutBatch(napi_env env, napi_callback_info info)
 
     ctxt->GetCbInfo(env, info, [env, ctxt](size_t argc, napi_value* argv) {
         // required 1 arguments :: <entries>
-        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc == 1, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], ctxt->entries);
-        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid entries!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[0], i.e. invalid entries!");
     });
 
     auto execute = [ctxt]() {
@@ -243,7 +243,7 @@ napi_value JsKVStore::PutBatch(napi_env env, napi_callback_info info)
         Status status = kvStore->PutBatch(ctxt->entries);
         ZLOGD("kvStore->DeleteBatch return %{public}d", status);
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
-        CHECK_STATUS(ctxt, "kvStore->PutBatch() failed!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "kvStore->PutBatch() failed!");
     };
     return NapiQueue::AsyncWork(env, ctxt, std::string(__FUNCTION__), execute);
 }
@@ -263,9 +263,9 @@ napi_value JsKVStore::DeleteBatch(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<DeleteBatchContext>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         // required 1 arguments :: <keys>
-        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc == 1, "invalid arguments!");
         JSUtil::GetValue(env, argv[0], ctxt->keys);
-        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid keys!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[0], i.e. invalid keys!");
     };
     ctxt->GetCbInfo(env, info, input);
 
@@ -279,7 +279,7 @@ napi_value JsKVStore::DeleteBatch(napi_env env, napi_callback_info info)
         Status status = kvStore->DeleteBatch(keys);
         ZLOGD("kvStore->DeleteBatch return %{public}d", status);
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
-        CHECK_STATUS(ctxt, "kvStore->DeleteBatch failed!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "kvStore->DeleteBatch failed!");
     };
     return NapiQueue::AsyncWork(env, ctxt, std::string(__FUNCTION__), execute);
 }
@@ -301,7 +301,7 @@ napi_value JsKVStore::StartTransaction(napi_env env, napi_callback_info info)
         Status status = kvStore->StartTransaction();
         ZLOGD("kvStore->StartTransaction return %{public}d", status);
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
-        CHECK_STATUS(ctxt, "kvStore->StartTransaction() failed!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "kvStore->StartTransaction() failed!");
     };
     return NapiQueue::AsyncWork(env, ctxt, std::string(__FUNCTION__), execute);
 }
@@ -323,7 +323,7 @@ napi_value JsKVStore::Commit(napi_env env, napi_callback_info info)
         Status status = kvStore->Commit();
         ZLOGD("kvStore->Commit return %{public}d", status);
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
-        CHECK_STATUS(ctxt, "kvStore->Commit() failed!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "kvStore->Commit() failed!");
     };
     return NapiQueue::AsyncWork(env, ctxt, std::string(__FUNCTION__), execute);
 }
@@ -345,7 +345,7 @@ napi_value JsKVStore::Rollback(napi_env env, napi_callback_info info)
         Status status = kvStore->Rollback();
         ZLOGD("kvStore->Commit return %{public}d", status);
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
-        CHECK_STATUS(ctxt, "kvStore->Rollback() failed!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "kvStore->Rollback() failed!");
     };
     return NapiQueue::AsyncWork(env, ctxt, std::string(__FUNCTION__), execute);
 }
@@ -365,9 +365,9 @@ napi_value JsKVStore::EnableSync(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<EnableSyncContext>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         // required 1 arguments :: <enable>
-        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc == 1, "invalid arguments!");
         ctxt->status = napi_get_value_bool(env, argv[0], &ctxt->enable);
-        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid enabled!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[0], i.e. invalid enabled!");
     };
     ctxt->GetCbInfo(env, info, input);
 
@@ -376,7 +376,7 @@ napi_value JsKVStore::EnableSync(napi_env env, napi_callback_info info)
         Status status = kvStore->SetCapabilityEnabled(ctxt->enable);
         ZLOGD("kvStore->SetCapabilityEnabled return %{public}d", status);
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
-        CHECK_STATUS(ctxt, "kvStore->SetCapabilityEnabled() failed!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "kvStore->SetCapabilityEnabled() failed!");
     };
     return NapiQueue::AsyncWork(env, ctxt, std::string(__FUNCTION__), execute);
 }
@@ -397,11 +397,11 @@ napi_value JsKVStore::SetSyncRange(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<SyncRangeContext>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         // required 2 arguments :: <localLabels> <remoteSupportLabels>
-        CHECK_ARGS(ctxt, argc == 2, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc == 2, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], ctxt->localLabels);
-        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid localLabels!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[0], i.e. invalid localLabels!");
         ctxt->status = JSUtil::GetValue(env, argv[1], ctxt->remoteSupportLabels);
-        CHECK_STATUS(ctxt, "invalid arg[1], i.e. invalid remoteSupportLabels!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[1], i.e. invalid remoteSupportLabels!");
     };
     ctxt->GetCbInfo(env, info, input);
 
@@ -410,7 +410,7 @@ napi_value JsKVStore::SetSyncRange(napi_env env, napi_callback_info info)
         Status status = kvStore->SetCapabilityRange(ctxt->localLabels, ctxt->remoteSupportLabels);
         ZLOGD("kvStore->SetCapabilityRange return %{public}d", status);
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
-        CHECK_STATUS(ctxt, "kvStore->SetCapabilityRange() failed!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "kvStore->SetCapabilityRange() failed!");
     };
     return NapiQueue::AsyncWork(env, ctxt, std::string(__FUNCTION__), execute);
 }
@@ -423,17 +423,17 @@ napi_value JsKVStore::SetSyncRange(napi_env env, napi_callback_info info)
 void JsKVStore::OnDataChange(napi_env env, size_t argc, napi_value* argv, std::shared_ptr<ContextBase> ctxt)
 {
     // required 2 arguments :: <SubscribeType> <observer>
-    CHECK_ARGS(ctxt, argc == 2, "invalid arguments on dataChange!");
+    CHECK_ARGS_RETURN_VOID(ctxt, argc == 2, "invalid arguments on dataChange!");
 
     int32_t type = SUBSCRIBE_COUNT;
     ctxt->status = napi_get_value_int32(env, argv[0], &type);
-    CHECK_STATUS(ctxt, "napi_get_value_int32 failed!");
-    CHECK_ARGS(ctxt, ValidSubscribeType(type), "invalid arg[1], i.e. invalid subscribeType");
+    CHECK_STATUS_RETURN_VOID(ctxt, "napi_get_value_int32 failed!");
+    CHECK_ARGS_RETURN_VOID(ctxt, ValidSubscribeType(type), "invalid arg[1], i.e. invalid subscribeType");
 
     napi_valuetype valueType = napi_undefined;
     ctxt->status = napi_typeof(env, argv[1], &valueType);
-    CHECK_STATUS(ctxt, "napi_typeof failed!");
-    CHECK_ARGS(ctxt, valueType == napi_function, "invalid arg[2], i.e. invalid callback");
+    CHECK_STATUS_RETURN_VOID(ctxt, "napi_typeof failed!");
+    CHECK_ARGS_RETURN_VOID(ctxt, valueType == napi_function, "invalid arg[2], i.e. invalid callback");
 
     ZLOGI("subscribe data change type %{public}d", type);
     auto proxy = reinterpret_cast<JsKVStore*>(ctxt->native);
@@ -448,7 +448,7 @@ void JsKVStore::OnDataChange(napi_env env, size_t argc, napi_value* argv, std::s
 
     std::shared_ptr<KvStoreObserver> observer = std::make_shared<DataObserver>(env, argv[1]);
     ctxt->status = proxy->Subscribe(type, observer);
-    CHECK_STATUS(ctxt, "Subscribe failed!");
+    CHECK_STATUS_RETURN_VOID(ctxt, "Subscribe failed!");
 }
 
 /*
@@ -461,13 +461,13 @@ void JsKVStore::OnDataChange(napi_env env, size_t argc, napi_value* argv, std::s
 void JsKVStore::OffDataChange(napi_env env, size_t argc, napi_value* argv, std::shared_ptr<ContextBase> ctxt)
 {
     // required 1 arguments :: [callback]
-    CHECK_ARGS(ctxt, argc <= 1, "invalid arguments off dataChange!");
+    CHECK_ARGS_RETURN_VOID(ctxt, argc <= 1, "invalid arguments off dataChange!");
     // have 1 arguments :: have the callback
     if (argc == 1) {
         napi_valuetype valueType = napi_undefined;
         ctxt->status = napi_typeof(env, argv[0], &valueType);
-        CHECK_STATUS(ctxt, "napi_typeof failed!");
-        CHECK_ARGS(ctxt, valueType == napi_function, "invalid arg[1], i.e. invalid callback");
+        CHECK_STATUS_RETURN_VOID(ctxt, "napi_typeof failed!");
+        CHECK_ARGS_RETURN_VOID(ctxt, valueType == napi_function, "invalid arg[1], i.e. invalid callback");
     }
     ZLOGI("unsubscribe dataChange, %{public}s specified observer.", (argc == 0) ? "without": "with");
 
@@ -499,7 +499,7 @@ void JsKVStore::OffDataChange(napi_env env, size_t argc, napi_value* argv, std::
         }
     }
     found = (argc == 0) || found;  // no specified observer, don't care about found or not.
-    CHECK_ARGS(ctxt, found, "not Subscribed!");
+    CHECK_ARGS_RETURN_VOID(ctxt, found, "not Subscribed!");
 }
 
 /*
@@ -510,16 +510,16 @@ void JsKVStore::OffDataChange(napi_env env, size_t argc, napi_value* argv, std::
 void JsKVStore::OnSyncComplete(napi_env env, size_t argc, napi_value* argv, std::shared_ptr<ContextBase> ctxt)
 {
     // required 1 arguments :: <callback>
-    CHECK_ARGS(ctxt, argc == 1, "invalid arguments on syncComplete!");
+    CHECK_ARGS_RETURN_VOID(ctxt, argc == 1, "invalid arguments on syncComplete!");
     napi_valuetype valueType = napi_undefined;
     ctxt->status = napi_typeof(env, argv[0], &valueType);
-    CHECK_STATUS(ctxt, "napi_typeof failed!");
-    CHECK_ARGS(ctxt, valueType == napi_function, "invalid arg[1], i.e. invalid callback");
+    CHECK_STATUS_RETURN_VOID(ctxt, "napi_typeof failed!");
+    CHECK_ARGS_RETURN_VOID(ctxt, valueType == napi_function, "invalid arg[1], i.e. invalid callback");
 
     std::shared_ptr<KvStoreSyncCallback> callback = std::make_shared<SyncObserver>(env, argv[0]);
     auto proxy = reinterpret_cast<JsKVStore*>(ctxt->native);
     ctxt->status = proxy->RegisterSyncCallback(callback);
-    CHECK_STATUS(ctxt, "RegisterSyncCallback failed!");
+    CHECK_STATUS_RETURN_VOID(ctxt, "RegisterSyncCallback failed!");
 }
 
 /*
@@ -530,21 +530,21 @@ void JsKVStore::OnSyncComplete(napi_env env, size_t argc, napi_value* argv, std:
 void JsKVStore::OffSyncComplete(napi_env env, size_t argc, napi_value* argv, std::shared_ptr<ContextBase> ctxt)
 {
     // required 1 arguments :: [callback]
-    CHECK_ARGS(ctxt, argc <= 1, "invalid arguments off syncComplete!");
+    CHECK_ARGS_RETURN_VOID(ctxt, argc <= 1, "invalid arguments off syncComplete!");
     auto proxy = reinterpret_cast<JsKVStore*>(ctxt->native);
     // have 1 arguments :: have the callback
     if (argc == 1) {
         napi_valuetype valueType = napi_undefined;
         ctxt->status = napi_typeof(env, argv[0], &valueType);
-        CHECK_STATUS(ctxt, "napi_typeof failed!");
-        CHECK_ARGS(ctxt, valueType == napi_function, "invalid arg[1], i.e. invalid callback");
+        CHECK_STATUS_RETURN_VOID(ctxt, "napi_typeof failed!");
+        CHECK_ARGS_RETURN_VOID(ctxt, valueType == napi_function, "invalid arg[1], i.e. invalid callback");
         auto observer = std::static_pointer_cast<SyncObserver>(proxy->syncObserver_);
-        CHECK_ARGS(ctxt, *observer == argv[0], "invalid arg[1], not Subscribed");
+        CHECK_ARGS_RETURN_VOID(ctxt, *observer == argv[0], "invalid arg[1], not Subscribed");
     }
     ZLOGI("unsubscribe syncComplete, %{public}s specified observer.", (argc == 0) ? "without": "with");
 
     ctxt->status = proxy->UnRegisterSyncCallback();
-    CHECK_STATUS(ctxt, "UnRegisterSyncCallback failed!");
+    CHECK_STATUS_RETURN_VOID(ctxt, "UnRegisterSyncCallback failed!");
 }
 
 /*

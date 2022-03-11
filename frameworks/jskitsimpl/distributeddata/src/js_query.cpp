@@ -104,11 +104,11 @@ struct ValueContext : public ContextBase {
     {
         auto input = [this, env](size_t argc, napi_value* argv) {
             // required 2 arguments :: <field> <value>
-            CHECK_ARGS(this, argc == 2, "invalid arguments!");
+            CHECK_ARGS_RETURN_VOID(this, argc == 2, "invalid arguments!");
             status = JSUtil::GetValue(env, argv[0], field);
-            CHECK_STATUS(this, "invalid arg[0], i.e. invalid field!");
+            CHECK_STATUS_RETURN_VOID(this, "invalid arg[0], i.e. invalid field!");
             status = JSUtil::GetValue(env, argv[1], vv);
-            CHECK_STATUS(this, "invalid arg[1], i.e. invalid value!");
+            CHECK_STATUS_RETURN_VOID(this, "invalid arg[1], i.e. invalid value!");
         };
         GetCbInfoSync(env, info, input);
     }
@@ -271,9 +271,9 @@ napi_value JsQuery::IsNull(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<ContextBase>();
     auto input = [env, ctxt, &field](size_t argc, napi_value* argv) {
         // required 1 arguments :: <field>
-        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc == 1, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], field);
-        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid field!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[0], i.e. invalid field!");
     };
     ctxt->GetCbInfoSync(env, info, input);
     NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
@@ -305,9 +305,9 @@ struct NumbersContext : public ContextBase {
     {
         auto input = [this, env](size_t argc, napi_value* argv) {
             // required 2 arguments :: <field> <value-list>
-            CHECK_ARGS(this, argc == 2, "invalid arguments!");
+            CHECK_ARGS_RETURN_VOID(this, argc == 2, "invalid arguments!");
             status = JSUtil::GetValue(env, argv[0], field);
-            CHECK_STATUS(this, "invalid arg[0], i.e. invalid field!");
+            CHECK_STATUS_RETURN_VOID(this, "invalid arg[0], i.e. invalid field!");
 
             bool isTypedArray = false;
             status = napi_is_typedarray(env, argv[1], &isTypedArray);
@@ -319,7 +319,7 @@ struct NumbersContext : public ContextBase {
                 size_t offset = 0;
                 void* data = nullptr;
                 status = napi_get_typedarray_info(env, argv[1], &type, &length, &data, &buffer, &offset);
-                CHECK_STATUS(this, "invalid arg[1], i.e. invalid number array!");
+                CHECK_STATUS_RETURN_VOID(this, "invalid arg[1], i.e. invalid number array!");
                 if (type < napi_uint32_array) {
                     status = JSUtil::GetValue(env, argv[1], intList);
                     innerType = NumberType::NUMBER_INT;
@@ -333,10 +333,10 @@ struct NumbersContext : public ContextBase {
             } else {
                 bool isArray = false;
                 status = napi_is_array(env, argv[1], &isArray);
-                CHECK_ARGS(this, isArray, "invalid arg[1], i.e. invalid number array!");
+                CHECK_ARGS_RETURN_VOID(this, isArray, "invalid arg[1], i.e. invalid number array!");
                 ZLOGD("arg[1] %{public}s a Array, treat as array of double.", isTypedArray ? "is" : "is not");
                 status = JSUtil::GetValue(env, argv[1], doubleList);
-                CHECK_STATUS(this, "invalid arg[1], i.e. invalid number array!");
+                CHECK_STATUS_RETURN_VOID(this, "invalid arg[1], i.e. invalid number array!");
                 innerType = NumberType::NUMBER_DOUBLE;
             };
         };
@@ -370,11 +370,11 @@ napi_value JsQuery::InString(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<StringsContext>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         // required 2 arguments :: <field> <valueList>
-        CHECK_ARGS(ctxt, argc == 2, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc == 2, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], ctxt->field);
-        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid field!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[0], i.e. invalid field!");
         ctxt->status = JSUtil::GetValue(env, argv[1], ctxt->valueList);
-        CHECK_STATUS(ctxt, "invalid arg[1], i.e. invalid valueList!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[1], i.e. invalid valueList!");
     };
     ctxt->GetCbInfoSync(env, info, input);
     NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
@@ -411,11 +411,11 @@ napi_value JsQuery::NotInString(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<StringsContext>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         // required 2 arguments :: <field> <valueList>
-        CHECK_ARGS(ctxt, argc == 2, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc == 2, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], ctxt->field);
-        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid field!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[0], i.e. invalid field!");
         ctxt->status = JSUtil::GetValue(env, argv[1], ctxt->valueList);
-        CHECK_STATUS(ctxt, "invalid arg[1], i.e. invalid valueList!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[1], i.e. invalid valueList!");
     };
     ctxt->GetCbInfoSync(env, info, input);
     NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
@@ -435,11 +435,11 @@ napi_value JsQuery::Like(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<LikeContext>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         // required 2 arguments :: <field> <value>
-        CHECK_ARGS(ctxt, argc == 2, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc == 2, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], ctxt->field);
-        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid field!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[0], i.e. invalid field!");
         ctxt->status = JSUtil::GetValue(env, argv[1], ctxt->value);
-        CHECK_STATUS(ctxt, "invalid arg[1], i.e. invalid value!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[1], i.e. invalid value!");
     };
     ctxt->GetCbInfoSync(env, info, input);
     NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
@@ -459,11 +459,11 @@ napi_value JsQuery::Unlike(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<UnlikeContext>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         // required 2 arguments :: <field> <value>
-        CHECK_ARGS(ctxt, argc == 2, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc == 2, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], ctxt->field);
-        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid field!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[0], i.e. invalid field!");
         ctxt->status = JSUtil::GetValue(env, argv[1], ctxt->value);
-        CHECK_STATUS(ctxt, "invalid arg[1], i.e. invalid value!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[1], i.e. invalid value!");
     };
     ctxt->GetCbInfoSync(env, info, input);
     NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
@@ -504,9 +504,9 @@ napi_value JsQuery::OrderByAsc(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<ContextBase>();
     auto input = [env, ctxt, &field](size_t argc, napi_value* argv) {
         // required 1 arguments :: <field>
-        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc == 1, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], field);
-        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid field!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[0], i.e. invalid field!");
     };
     ctxt->GetCbInfoSync(env, info, input);
     NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
@@ -523,9 +523,9 @@ napi_value JsQuery::OrderByDesc(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<ContextBase>();
     auto input = [env, ctxt, &field](size_t argc, napi_value* argv) {
         // required 1 arguments :: <field>
-        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc == 1, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], field);
-        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid field!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[0], i.e. invalid field!");
     };
     ctxt->GetCbInfoSync(env, info, input);
     NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
@@ -544,11 +544,11 @@ napi_value JsQuery::Limit(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<LimitContext>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         // required 2 arguments :: <number> <offset>
-        CHECK_ARGS(ctxt, argc == 2, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc == 2, "invalid arguments!");
         ctxt->status = napi_get_value_int32(env, argv[0], &ctxt->number);
-        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid number!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[0], i.e. invalid number!");
         ctxt->status = napi_get_value_int32(env, argv[1], &ctxt->offset);
-        CHECK_STATUS(ctxt, "invalid arg[1], i.e. invalid offset!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[1], i.e. invalid offset!");
     };
     ctxt->GetCbInfoSync(env, info, input);
     NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
@@ -564,9 +564,9 @@ napi_value JsQuery::IsNotNull(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<ContextBase>();
     auto input = [env, ctxt, &field](size_t argc, napi_value* argv) {
         // required 1 arguments :: <field>
-        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc == 1, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], field);
-        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid field!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[0], i.e. invalid field!");
     };
     ctxt->GetCbInfoSync(env, info, input);
     NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
@@ -605,9 +605,9 @@ napi_value JsQuery::PrefixKey(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<ContextBase>();
     auto input = [env, ctxt, &prefix](size_t argc, napi_value* argv) {
         // required 1 arguments :: <prefix>
-        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc == 1, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], prefix);
-        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid prefix!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[0], i.e. invalid prefix!");
     };
     ctxt->GetCbInfoSync(env, info, input);
     NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
@@ -623,9 +623,9 @@ napi_value JsQuery::SetSuggestIndex(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<ContextBase>();
     auto input = [env, ctxt, &suggestIndex](size_t argc, napi_value* argv) {
         // required 1 arguments :: <suggestIndex>
-        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc == 1, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], suggestIndex);
-        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid suggestIndex!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[0], i.e. invalid suggestIndex!");
     };
     ctxt->GetCbInfoSync(env, info, input);
     NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
@@ -641,9 +641,9 @@ napi_value JsQuery::DeviceId(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<ContextBase>();
     auto input = [env, ctxt, &deviceId](size_t argc, napi_value* argv) {
         // required 1 arguments :: <deviceId>
-        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc == 1, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], deviceId);
-        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid deviceId!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[0], i.e. invalid deviceId!");
     };
     ctxt->GetCbInfoSync(env, info, input);
     NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");

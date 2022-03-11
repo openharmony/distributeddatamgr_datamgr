@@ -85,14 +85,25 @@ napi_status JsSchema::ToJson(napi_env env, napi_value inner, JsSchema*& out)
     return JSUtil::Unwrap(env, inner, (void**)(&out), JsSchema::Constructor(env));
 }
 
+JsSchema* JsSchema::GetSchema(napi_env env, napi_callback_info info, std::shared_ptr<ContextBase>& ctxt)
+{
+    ctxt->GetCbInfoSync(env, info);
+    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
+    return reinterpret_cast<JsSchema*>(ctxt->native);
+}
+
+template <typename T>
+napi_value JsSchema::GetContextValue(napi_env env, std::shared_ptr<ContextBase>& ctxt, T& value)
+{
+    JSUtil::SetValue(env, value, ctxt->output);
+    return ctxt->output;
+}
+
 napi_value JsSchema::GetRootNode(napi_env env, napi_callback_info info)
 {
     ZLOGD("Schema::GetRootNode");
     auto ctxt = std::make_shared<ContextBase>();
-    ctxt->GetCbInfoSync(env, info);
-    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
-
-    auto schema = reinterpret_cast<JsSchema*>(ctxt->native);
+    auto schema = GetSchema(env, info, ctxt);
     if (schema->rootNode == nullptr) {
         int argc = 1;
         napi_value argv[1] = { nullptr };
@@ -112,18 +123,18 @@ napi_value JsSchema::SetRootNode(napi_env env, napi_callback_info info)
     auto ctxt = std::make_shared<ContextBase>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         // required 2 arguments :: <root-node>
-        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc == 1, "invalid arguments!");
         JsFieldNode* node = nullptr;
         ctxt->status = JSUtil::Unwrap(env, argv[0], (void**)(&node), JsFieldNode::Constructor(env));
-        CHECK_STATUS(ctxt, "napi_unwrap to FieldNode failed");
-        CHECK_ARGS(ctxt, node != nullptr, "invalid arg[0], i.e. invalid node!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "napi_unwrap to FieldNode failed");
+        CHECK_ARGS_RETURN_VOID(ctxt, node != nullptr, "invalid arg[0], i.e. invalid node!");
 
         auto schema = reinterpret_cast<JsSchema*>(ctxt->native);
         if (schema->ref != nullptr) {
             napi_delete_reference(env, schema->ref);
         }
         ctxt->status = napi_create_reference(env, argv[0], 1, &schema->ref);
-        CHECK_STATUS(ctxt, "napi_create_reference to FieldNode failed");
+        CHECK_STATUS_RETURN_VOID(ctxt, "napi_create_reference to FieldNode failed");
         schema->rootNode = node;
     };
     ctxt->GetCbInfoSync(env, info, input);
@@ -133,13 +144,10 @@ napi_value JsSchema::SetRootNode(napi_env env, napi_callback_info info)
 
 napi_value JsSchema::GetMode(napi_env env, napi_callback_info info)
 {
+    ZLOGD("Schema::GetMode");
     auto ctxt = std::make_shared<ContextBase>();
-    ctxt->GetCbInfoSync(env, info);
-    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
-
-    auto schema = reinterpret_cast<JsSchema*>(ctxt->native);
-    JSUtil::SetValue(env, schema->mode, ctxt->output);
-    return ctxt->output;
+    auto schema = GetSchema(env, info, ctxt);
+    return GetContextValue(env, ctxt, schema->mode);
 }
 
 napi_value JsSchema::SetMode(napi_env env, napi_callback_info info)
@@ -148,9 +156,9 @@ napi_value JsSchema::SetMode(napi_env env, napi_callback_info info)
     uint32_t mode = false;
     auto input = [env, ctxt, &mode](size_t argc, napi_value* argv) {
         // required 1 arguments :: <mode>
-        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc == 1, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], mode);
-        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid mode!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[0], i.e. invalid mode!");
     };
     ctxt->GetCbInfoSync(env, info, input);
     NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
@@ -162,13 +170,10 @@ napi_value JsSchema::SetMode(napi_env env, napi_callback_info info)
 
 napi_value JsSchema::GetSkip(napi_env env, napi_callback_info info)
 {
+    ZLOGD("Schema::GetSkip");
     auto ctxt = std::make_shared<ContextBase>();
-    ctxt->GetCbInfoSync(env, info);
-    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
-
-    auto schema = reinterpret_cast<JsSchema*>(ctxt->native);
-    JSUtil::SetValue(env, schema->skip, ctxt->output);
-    return ctxt->output;
+    auto schema = GetSchema(env, info, ctxt);
+    return GetContextValue(env, ctxt, schema->skip);
 }
 
 napi_value JsSchema::SetSkip(napi_env env, napi_callback_info info)
@@ -177,9 +182,9 @@ napi_value JsSchema::SetSkip(napi_env env, napi_callback_info info)
     uint32_t skip = false;
     auto input = [env, ctxt, &skip](size_t argc, napi_value* argv) {
         // required 1 arguments :: <skip size>
-        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc == 1, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], skip);
-        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid skip size!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[0], i.e. invalid skip size!");
     };
     ctxt->GetCbInfoSync(env, info, input);
     NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
@@ -191,13 +196,10 @@ napi_value JsSchema::SetSkip(napi_env env, napi_callback_info info)
 
 napi_value JsSchema::GetIndexes(napi_env env, napi_callback_info info)
 {
+    ZLOGD("Schema::GetIndexes");
     auto ctxt = std::make_shared<ContextBase>();
-    ctxt->GetCbInfoSync(env, info);
-    NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
-
-    auto schema = reinterpret_cast<JsSchema*>(ctxt->native);
-    JSUtil::SetValue(env, schema->indexes, ctxt->output);
-    return ctxt->output;
+    auto schema = GetSchema(env, info, ctxt);
+    return GetContextValue(env, ctxt, schema->indexes);
 }
 
 napi_value JsSchema::SetIndexes(napi_env env, napi_callback_info info)
@@ -206,9 +208,9 @@ napi_value JsSchema::SetIndexes(napi_env env, napi_callback_info info)
     std::vector<std::string> indexes;
     auto input = [env, ctxt, &indexes](size_t argc, napi_value* argv) {
         // required 1 arguments :: <indexes>
-        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc == 1, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], indexes);
-        CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid indexes!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[0], i.e. invalid indexes!");
     };
     ctxt->GetCbInfoSync(env, info, input);
     NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");

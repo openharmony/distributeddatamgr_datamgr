@@ -164,7 +164,7 @@ napi_value JsKVStoreResultSet::Move(napi_env env, napi_callback_info info) /* bo
     auto ctxt = std::make_shared<ContextBase>();
     auto input = [env, ctxt, &offset](size_t argc, napi_value* argv) {
         // required 1 arguments :: <offset>
-        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc == 1, "invalid arguments!");
         ctxt->status = napi_get_value_int32(env, argv[0], (int32_t*)&offset);
     };
     ctxt->GetCbInfoSync(env, info, input);
@@ -183,7 +183,7 @@ napi_value JsKVStoreResultSet::MoveToPosition(napi_env env, napi_callback_info i
     auto ctxt = std::make_shared<ContextBase>();
     auto input = [env, ctxt, &position](size_t argc, napi_value* argv) {
         // required 1 arguments :: <position>
-        CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, argc == 1, "invalid arguments!");
         ctxt->status = napi_get_value_int32(env, argv[0], (int32_t*)&position);
     };
     ctxt->GetCbInfoSync(env, info, input);
