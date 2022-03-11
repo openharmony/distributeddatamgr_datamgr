@@ -99,7 +99,7 @@ DBStatus DistributedRdbTools::GetOpenStoreStatus(const RelatetionalStoreManager 
     if (delegate == nullptr) {
         MST_LOG("%s GetRdbStore failed! delegate nullptr.", TAG.c_str());
     }
-    retrun status;
+    return status;
 }
 
 DBStatus DistributedRdbTools::GetCreateDistributedTableStatus(const RelatetionalStoreDelegate *&delegate,
@@ -110,7 +110,7 @@ DBStatus DistributedRdbTools::GetCreateDistributedTableStatus(const Relatetional
         return DBStatus::DB_ERROR;
     }
     DBStatus status = delegate->CreateDistributedTable(tableName);
-    retrun status;
+    return status;
 }
 
 DBStatus DistributedRdbTools::CloseStore(const RelatetionalStoreDelegate *&delegate)

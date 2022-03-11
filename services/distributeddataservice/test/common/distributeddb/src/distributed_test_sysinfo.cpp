@@ -223,24 +223,34 @@ uint64_t DistributedTestSysInfo::GetSecondMemFree() const
 #elif defined RUNNING_ON_WIN
 void DistributedTestSysInfo::GetSysMemOccpy(SeqNo seqNo)
 {
+    (void)seqNo;
 }
 
 void DistributedTestSysInfo::GetSysCpuUsage(SeqNo seqNo, uint64_t microSeconds)
 {
+    (void)seqNo;
+    (void)microSeconds;
 }
 
 float DistributedTestSysInfo::ReadSysValFromFile(const std::string &filePath)
 {
+    (void)filePath;
     return 0.0f;
 }
 
 float DistributedTestSysInfo::GetSysMeanCurrentVal(
     const std::string &filePath, int totalCount, uint64_t microSeconds)
 {
+    (void)filePath;
+    (void)totalCount;
+    (void)microSeconds;
     return 0.0f;
 }
 void DistributedTestSysInfo::GetSysCurrentPower(SeqNo seqNo, int totalCount, uint64_t microSeconds)
 {
+    (void)seqNo;
+    (void)totalCount;
+    (void)microSeconds;
 }
 
 uint64_t DistributedTestSysInfo::GetFirstMemFree() const

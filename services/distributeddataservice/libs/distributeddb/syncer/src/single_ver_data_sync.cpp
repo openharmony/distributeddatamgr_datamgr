@@ -1181,7 +1181,7 @@ void SingleVerDataSync::SendSaveDataNotifyPacket(SingleVerSyncTaskContext *conte
     uint32_t sessionId, uint32_t sequenceId, uint32_t inMsgId)
 {
     if (inMsgId != DATA_SYNC_MESSAGE && inMsgId != QUERY_SYNC_MESSAGE) {
-        LOGE("[SingleVerDataSync] messageId not avaiable.");
+        LOGE("[SingleVerDataSync] messageId not available.");
         return;
     }
     Message *ackMessage = new (std::nothrow) Message(inMsgId);

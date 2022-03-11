@@ -324,7 +324,7 @@ HWTEST_F(DistributedDBCommunicatorProxyTest, SendMessage001, TestSize.Level1)
 
 /**
  * @tc.name: Get timeout time 001
- * @tc.desc: Test get timout called from CommunicatorProxy.
+ * @tc.desc: Test get timeout called from CommunicatorProxy.
  * @tc.type: FUNC
  * @tc.require: AR000F4GVG
  * @tc.author: xushaohua

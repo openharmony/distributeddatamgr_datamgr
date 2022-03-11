@@ -146,7 +146,7 @@ bool ParamCheckUtils::IsS3SECEOpt(const SecurityOption &secOpt)
 }
 
 int ParamCheckUtils::CheckAndTransferAutoLaunchParam(const AutoLaunchParam &param,
-    SchemaObject &schemaObject, std::string &canonicalDir)
+    SchemaObject &schemaObject)
 {
     if ((param.option.notifier && !ParamCheckUtils::CheckConflictNotifierType(param.option.conflictType)) ||
         (!param.option.notifier && param.option.conflictType != 0)) {
@@ -177,11 +177,6 @@ int ParamCheckUtils::CheckAndTransferAutoLaunchParam(const AutoLaunchParam &para
             LOGE("[AutoLaunch] ParseFromSchemaString is invalid.");
             return -E_INVALID_SCHEMA;
         }
-    }
-
-    if (!ParamCheckUtils::CheckDataDir(param.option.dataDir, canonicalDir)) {
-        LOGE("[AutoLaunch] CheckDataDir is invalid.");
-        return -E_INVALID_ARGS;
     }
     return E_OK;
 }

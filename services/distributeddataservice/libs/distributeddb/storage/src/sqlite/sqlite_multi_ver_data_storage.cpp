@@ -233,6 +233,7 @@ int SQLiteMultiVerDataStorage::RollbackWrite(IKvDBMultiVerTransaction *transacti
 void SQLiteMultiVerDataStorage::CommitWritePhaseTwo(IKvDBMultiVerTransaction *transaction)
 {
     // just change the head version?
+    (void)transaction;
 }
 
 // Get one start transaction.

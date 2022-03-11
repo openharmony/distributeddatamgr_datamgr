@@ -508,7 +508,7 @@ HWTEST_F(DistributedDBInterfacesTransactionSyncDBTest, RollBack004, TestSize.Lev
 
 /**
  * @tc.name: RollBack005
- * @tc.desc: delete a exist data and rollback
+ * @tc.desc: delete an exist data and rollback
  * @tc.type: FUNC
  * @tc.require: AR000BVRNM AR000CQDTQ
  * @tc.author: huangnaigu

@@ -1010,7 +1010,7 @@ int AbilitySync::AckMsgCheck(const Message *message, ISyncTaskContext *context) 
     }
     int ackCode = packet->GetAckCode();
     if (ackCode != E_OK) {
-        LOGE("[AbilitySync][AckMsgCheck] received a errCode %d", ackCode);
+        LOGE("[AbilitySync][AckMsgCheck] received an errCode %d", ackCode);
         context->SetTaskErrCode(ackCode);
         return ackCode;
     }

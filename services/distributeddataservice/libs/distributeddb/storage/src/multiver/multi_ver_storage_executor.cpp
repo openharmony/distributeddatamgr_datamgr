@@ -1489,11 +1489,14 @@ int MultiVerStorageExecutor::DeleteEntriesByHashKey(Version version, const Key &
 
 int MultiVerStorageExecutor::UpdateTrimedFlag(Version version, const Key &hashKey)
 {
+    (void)version;
+    (void)hashKey;
     return E_OK;
 }
 
 int MultiVerStorageExecutor::UpdateTrimedFlag(const CommitID &commit)
 {
+    (void)commit;
     return E_OK;
 }
 } // namespace DistributedDB

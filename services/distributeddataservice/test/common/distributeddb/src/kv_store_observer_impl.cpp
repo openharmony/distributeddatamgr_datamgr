@@ -114,7 +114,7 @@ void KvStoreObserverImpl::WaitUntilReachChangeCount(unsigned int countGoal, uint
     }
     // Change count has not reach countGoal
     auto waitChangeFunc = [this, countGoal]()->bool {
-        MST_LOG("############################ realChanged=%d, countGoal=%d", this->changed_, countGoal);
+        MST_LOG("############################ realChanged=%d, countGoal=%u", this->changed_, countGoal);
         return this->changed_ >= countGoal;
     };
     MST_LOG("############################ BEGIN ############################");

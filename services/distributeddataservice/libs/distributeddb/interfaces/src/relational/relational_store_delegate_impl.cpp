@@ -90,7 +90,7 @@ DBStatus RelationalStoreDelegateImpl::RemoveDeviceData(const std::string &device
 
     if (device.empty() || device.length() > DBConstant::MAX_DEV_LENGTH ||
         !ParamCheckUtils::CheckRelationalTableName(tableName)) {
-        LOGE("[RelationalStore Delegate] Remove device data with invald device name or table name.");
+        LOGE("[RelationalStore Delegate] Remove device data with invalid device name or table name.");
         return INVALID_ARGS;
     }
 

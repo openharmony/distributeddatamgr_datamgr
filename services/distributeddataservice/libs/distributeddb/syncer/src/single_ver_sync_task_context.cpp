@@ -479,6 +479,9 @@ DEFINE_OBJECT_TAG_FACILITIES(SingleVerSyncTaskContext)
 
 bool SingleVerSyncTaskContext::IsCurrentSyncTaskCanBeSkipped() const
 {
+    if (syncOperation_ == nullptr) {
+        return true;
+    }
     if (mode_ == SyncModeType::PUSH) {
         if (lastFullSyncTaskStatus_ != SyncOperation::OP_FINISHED_ALL) {
             return false;

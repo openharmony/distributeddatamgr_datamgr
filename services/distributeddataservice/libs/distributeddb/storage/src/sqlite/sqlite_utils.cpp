@@ -472,7 +472,6 @@ int SQLiteUtils::GetColumnBlobValue(sqlite3_stmt *statement, int index, std::vec
 
     int keySize = sqlite3_column_bytes(statement, index);
     auto keyRead = static_cast<const uint8_t *>(sqlite3_column_blob(statement, index));
-
     if (keySize < 0) {
         LOGE("[SQLiteUtils][Column blob] size:%d", keySize);
         return -E_INVALID_DATA;
@@ -852,11 +851,17 @@ int SQLiteUtils::Rekey(sqlite3 *db, const CipherPassword &passwd)
 int SQLiteUtils::ExportDatabase(sqlite3 *db, CipherType type, const CipherPassword &passwd,
     const std::string &newDbName)
 {
+    (void)db;
+    (void)type;
+    (void)passwd;
+    (void)newDbName;
     return -E_NOT_SUPPORT;
 }
 
 int SQLiteUtils::Rekey(sqlite3 *db, const CipherPassword &passwd)
 {
+    (void)db;
+    (void)passwd;
     return -E_NOT_SUPPORT;
 }
 #endif
@@ -1040,6 +1045,11 @@ int SQLiteUtils::ExportDatabase(const std::string &srcFile, CipherType type, con
 int SQLiteUtils::ExportDatabase(const std::string &srcFile, CipherType type, const CipherPassword &srcPasswd,
     const std::string &targetFile, const CipherPassword &passwd)
 {
+    (void)srcFile;
+    (void)type;
+    (void)srcPasswd;
+    (void)targetFile;
+    (void)passwd;
     return -E_NOT_SUPPORT;
 }
 #endif

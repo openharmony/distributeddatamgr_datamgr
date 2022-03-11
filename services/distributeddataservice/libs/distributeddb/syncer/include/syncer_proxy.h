@@ -45,7 +45,7 @@ public:
         const std::function<void(const std::map<std::string, int> &)> &onComplete,
         const std::function<void(void)> &onFinalize, bool wait) override;
 
-    // Sync function. use SyncParma to reduce paramter.
+    // Sync function. use SyncParma to reduce parameter.
     int Sync(const SyncParma &param) override;
 
     // Remove the operation, with the given syncId, used to clean resource if sync finished or failed.
