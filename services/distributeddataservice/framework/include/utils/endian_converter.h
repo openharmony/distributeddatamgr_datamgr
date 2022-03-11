@@ -18,33 +18,36 @@
 
 #include <endian.h>
 
-inline uint16_t htobe(uint16_t value)
+namespace OHOS::DistributedData {
+// use little endian byteorder by default
+static inline uint16_t HostToNet(uint16_t value)
 {
-    return htobe16(value);
+    return htole16(value);
 }
 
-inline uint16_t betoh(uint16_t value)
+static inline uint16_t NetToHost(uint16_t value)
 {
-    return be16toh(value);
+    return le16toh(value);
 }
 
-inline uint32_t htobe(uint32_t value)
+static inline uint32_t HostToNet(uint32_t value)
 {
-    return htobe32(value);
+    return htole32(value);
 }
 
-inline uint32_t betoh(uint32_t value)
+static inline uint32_t NetToHost(uint32_t value)
 {
-    return be32toh(value);
+    return le32toh(value);
 }
 
-inline uint64_t htobe(uint64_t value)
+static inline uint64_t HostToNet(uint64_t value)
 {
-    return htobe64(value);
+    return htole64(value);
 }
 
-inline uint64_t betoh(uint64_t value)
+static inline uint64_t NetToHost(uint64_t value)
 {
-    return be64toh(value);
+    return le64toh(value);
 }
+} // namespace OHOS::DistributedData
 #endif // DISTRIBUTEDDATAMGR_ENDIAN_CONVERTER_H
