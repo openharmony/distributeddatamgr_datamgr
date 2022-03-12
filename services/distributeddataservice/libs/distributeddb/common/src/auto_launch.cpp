@@ -143,7 +143,7 @@ int AutoLaunch::EnableKvStoreAutoLaunchParmCheck(AutoLaunchItem &autoLaunchItem,
         return -E_ALREADY_SET;
     }
     uint32_t autoLaunchItemSize = 0;
-    for (const auto item : autoLaunchItemMap_) {
+    for (const auto &item : autoLaunchItemMap_) {
         autoLaunchItemSize += item.second.size();
     }
     if (autoLaunchItemSize == MAX_AUTO_LAUNCH_ITEM_NUM) {
