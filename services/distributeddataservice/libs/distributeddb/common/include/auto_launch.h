@@ -163,6 +163,8 @@ protected:
 
     void EraseAutoLauchItem(const std::string &identifier, const std::string &userId);
 
+    void NotifyInvalidParam(const AutoLaunchItem &autoLaunchItem);
+
     mutable std::mutex dataLock_;
     mutable std::mutex communicatorLock_;
     std::set<std::string> onlineDevices_;

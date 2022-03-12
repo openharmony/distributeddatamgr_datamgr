@@ -829,21 +829,33 @@ void AutoLaunch::AutoLaunchExtTask(const std::string identifier, const std::stri
         }
         extItemMap_[identifier][userId] = autoLaunchItem;
     }
-    int errCode = OpenOneConnection(autoLaunchItem);
-    LOGI("[AutoLaunch] AutoLaunchExtTask GetOneConnection errCode:%d", errCode);
-    if (autoLaunchItem.conn == nullptr) {
-        std::lock_guard<std::mutex> autoLock(extLock_);
-        extItemMap_[identifier].erase(userId);
-        if (extItemMap_[identifier].size() == 0) {
-            extItemMap_.erase(identifier);
+    bool abort = false;
+    do {
+        std::string canonicalDir;
+        std::string dataDir;
+        autoLaunchItem.propertiesPtr->GetStringProp(DBProperties::DATA_DIR, dataDir);
+        if (!ParamCheckUtils::CheckDataDir(dataDir, canonicalDir)) {
+            LOGE("[AutoLaunch] CheckDataDir is invalid Auto Launch failed.");
+            NotifyInvalidParam(autoLaunchItem);
+            abort = true;
+            break;
         }
-        return;
-    }
-
-    errCode = RegisterObserverAndLifeCycleCallback(autoLaunchItem, identifier, true);
-    if (errCode != E_OK) {
-        LOGE("[AutoLaunch] AutoLaunchExtTask RegisterObserverAndLifeCycleCallback failed");
-        TryCloseConnection(autoLaunchItem); // if here failed, do nothing
+        autoLaunchItem.propertiesPtr->SetStringProp(DBProperties::DATA_DIR, canonicalDir);
+        int errCode = OpenOneConnection(autoLaunchItem);
+        LOGI("[AutoLaunch] AutoLaunchExtTask GetOneConnection errCode:%d", errCode);
+        if (autoLaunchItem.conn == nullptr) {
+            abort = true;
+            break;
+        }
+        errCode = RegisterObserverAndLifeCycleCallback(autoLaunchItem, identifier, true);
+        if (errCode != E_OK) {
+            LOGE("[AutoLaunch] AutoLaunchExtTask RegisterObserverAndLifeCycleCallback failed");
+            TryCloseConnection(autoLaunchItem); // if here failed, do nothing
+            abort = true;
+            break;
+        }
+    } while (false);
+    if (abort) {
         std::lock_guard<std::mutex> autoLock(extLock_);
         extItemMap_[identifier].erase(userId);
         if (extItemMap_[identifier].size() == 0) {
@@ -1081,14 +1093,6 @@ int AutoLaunch::OpenKvConnection(AutoLaunchItem &autoLaunchItem)
     std::shared_ptr<KvDBProperties> properties =
         std::static_pointer_cast<KvDBProperties>(autoLaunchItem.propertiesPtr);
     int errCode = E_OK;
-    std::string canonicalDir;
-    std::string dataDir;
-    properties->GetStringProp(KvDBProperties::DATA_DIR, dataDir);
-    if (!ParamCheckUtils::CheckDataDir(dataDir, canonicalDir)) {
-        LOGE("[AutoLaunch] CheckDataDir is invalid Auto Launch failed.");
-        return -E_INVALID_ARGS;
-    }
-    properties->SetStringProp(KvDBProperties::DATA_DIR, canonicalDir);
     IKvDBConnection *conn = KvDBManager::GetDatabaseConnection(*properties, errCode, false);
     if (errCode == -E_ALREADY_OPENED) {
         LOGI("[AutoLaunch] GetOneConnection user already getkvstore by self");
@@ -1208,6 +1212,25 @@ void AutoLaunch::EraseAutoLauchItem(const std::string &identifier, const std::st
     autoLaunchItemMap_[identifier].erase(userId);
     if (autoLaunchItemMap_[identifier].size() == 0) {
         autoLaunchItemMap_.erase(identifier);
+    }
+}
+
+void AutoLaunch::NotifyInvalidParam(const AutoLaunchItem &autoLaunchItem)
+{
+    if (!autoLaunchItem.notifier) {
+        return;
+    }
+    int retCode = RuntimeContext::GetInstance()->ScheduleTask([autoLaunchItem] {
+        std::string userId;
+        std::string appId;
+        std::string storeId;
+        autoLaunchItem.propertiesPtr->GetStringProp(DBProperties::APP_ID, appId);
+        autoLaunchItem.propertiesPtr->GetStringProp(DBProperties::STORE_ID, storeId);
+        autoLaunchItem.propertiesPtr->GetStringProp(DBProperties::USER_ID, userId);
+        autoLaunchItem.notifier(userId, appId, storeId, INVALID_PARAM);
+    });
+    if (retCode != E_OK) {
+        LOGE("[AutoLaunch] AutoLaunchExt notifier ScheduleTask retCode:%d", retCode);
     }
 }
 } // namespace DistributedDB
