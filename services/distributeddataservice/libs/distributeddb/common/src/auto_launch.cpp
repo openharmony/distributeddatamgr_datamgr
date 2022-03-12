@@ -831,17 +831,12 @@ void AutoLaunch::AutoLaunchExtTask(const std::string identifier, const std::stri
     }
     bool abort = false;
     do {
-        std::string canonicalDir;
-        std::string dataDir;
-        autoLaunchItem.propertiesPtr->GetStringProp(DBProperties::DATA_DIR, dataDir);
-        if (!ParamCheckUtils::CheckDataDir(dataDir, canonicalDir)) {
-            LOGE("[AutoLaunch] CheckDataDir is invalid Auto Launch failed.");
-            NotifyInvalidParam(autoLaunchItem);
+        int errCode = CheckAutoLaunchRealPath(autoLaunchItem);
+        if (errCode != E_OK) {
             abort = true;
             break;
         }
-        autoLaunchItem.propertiesPtr->SetStringProp(DBProperties::DATA_DIR, canonicalDir);
-        int errCode = OpenOneConnection(autoLaunchItem);
+        errCode = OpenOneConnection(autoLaunchItem);
         LOGI("[AutoLaunch] AutoLaunchExtTask GetOneConnection errCode:%d", errCode);
         if (autoLaunchItem.conn == nullptr) {
             abort = true;
@@ -1232,5 +1227,21 @@ void AutoLaunch::NotifyInvalidParam(const AutoLaunchItem &autoLaunchItem)
     if (retCode != E_OK) {
         LOGE("[AutoLaunch] AutoLaunchExt notifier ScheduleTask retCode:%d", retCode);
     }
+}
+
+int AutoLaunch::CheckAutoLaunchRealPath(const AutoLaunchItem &autoLaunchItem)
+{
+    if (autoLaunchItem.type != DBType::DB_KV) {
+        return E_OK;
+    }
+    std::string canonicalDir;
+    std::string dataDir = autoLaunchItem.propertiesPtr->GetStringProp(DBProperties::DATA_DIR, "");
+    if (!ParamCheckUtils::CheckDataDir(dataDir, canonicalDir)) {
+        LOGE("[AutoLaunch] CheckDataDir is invalid Auto Launch failed.");
+        NotifyInvalidParam(autoLaunchItem);
+        return -E_INVALID_ARGS;
+    }
+    autoLaunchItem.propertiesPtr->SetStringProp(DBProperties::DATA_DIR, canonicalDir);
+    return E_OK;
 }
 } // namespace DistributedDB

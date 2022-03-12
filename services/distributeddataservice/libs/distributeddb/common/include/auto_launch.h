@@ -165,6 +165,8 @@ protected:
 
     void NotifyInvalidParam(const AutoLaunchItem &autoLaunchItem);
 
+    int CheckAutoLaunchRealPath(const AutoLaunchItem &autoLaunchItem);
+
     mutable std::mutex dataLock_;
     mutable std::mutex communicatorLock_;
     std::set<std::string> onlineDevices_;
