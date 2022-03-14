@@ -141,10 +141,8 @@ int SQLiteSingleVerStorageExecutor::GetKvData(SingleVerDataType type, const Key 
     // get timestamp
     if (type == SingleVerDataType::LOCAL_TYPE) {
         timeStamp = static_cast<TimeStamp>(sqlite3_column_int64(statement, GET_KV_RES_LOCAL_TIME_INDEX));
-        LOGD("[SingleVerExe][GetKv] Timestamp from local is %llu", timeStamp);
     } else if (type == SingleVerDataType::SYNC_TYPE) {
         timeStamp = static_cast<TimeStamp>(sqlite3_column_int64(statement, GET_KV_RES_SYNC_TIME_INDEX));
-        LOGD("[SingleVerExe][GetKv] Timestamp from sync is %llu", timeStamp);
     }
 
 END:
@@ -418,7 +416,6 @@ void SQLiteSingleVerStorageExecutor::InitCurrentMaxStamp(TimeStamp &maxStamp)
     errCode = SQLiteUtils::StepWithRetry(statement, isMemDb_);
     if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_ROW)) {
         maxStamp = static_cast<uint64_t>(sqlite3_column_int64(statement, 0)); // get the first column
-        LOGD("Max time stamp is %llu", maxStamp);
     }
     SQLiteUtils::ResetStatement(statement, true, errCode);
 }
@@ -2162,7 +2159,6 @@ uint64_t SQLiteSingleVerStorageExecutor::GetLogFileSize() const
     if (result != E_OK) {
         return 0;
     }
-    LOGI("The log file size is %llu", fileSize);
     return fileSize;
 }
 } // namespace DistributedDB

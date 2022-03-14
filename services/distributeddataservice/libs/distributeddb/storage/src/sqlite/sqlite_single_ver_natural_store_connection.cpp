@@ -1263,7 +1263,6 @@ int SQLiteSingleVerNaturalStoreConnection::StartTransactionInCacheMode()
         return errCode;
     }
 
-    LOGD("[SingleVerConnection] Start transaction finish in cache mode.");
     writeHandle_ = handle;
     transactionEntrySize_ = 0;
     return E_OK;
@@ -1306,7 +1305,6 @@ int SQLiteSingleVerNaturalStoreConnection::StartTransactionNormally()
         return errCode;
     }
 
-    LOGD("[SingleVerConnection] Start transaction finish.");
     writeHandle_ = handle;
     transactionEntrySize_ = 0;
     return E_OK;
@@ -1324,7 +1322,7 @@ void SQLiteSingleVerNaturalStoreConnection::InitConflictNotifiedFlag()
     if (kvDB_->GetRegisterFunctionCount(CONFLICT_SINGLE_VERSION_NS_NATIVE_ALL) != 0) {
         conflictFlag |= static_cast<unsigned>(SQLITE_GENERAL_NS_NATIVE_ALL);
     }
-    LOGD("[SingleVer][InitConflictNotifiedFlag] conflictFlag Flag: %u", conflictFlag);
+
     committedData_->SetConflictedNotifiedFlag(static_cast<int>(conflictFlag));
 }
 
@@ -1334,7 +1332,6 @@ int SQLiteSingleVerNaturalStoreConnection::CommitInner()
 
     int errCode = writeHandle_->Commit();
     ReleaseExecutor(writeHandle_);
-    LOGD("Commit transaction finish.");
     transactionEntrySize_ = 0;
 
     if (!isCacheOrMigrating) {
@@ -1356,7 +1353,6 @@ int SQLiteSingleVerNaturalStoreConnection::CommitInner()
 int SQLiteSingleVerNaturalStoreConnection::RollbackInner()
 {
     int errCode = writeHandle_->Rollback();
-    LOGD("Rollback transaction finish.");
     transactionEntrySize_ = 0;
     currentMaxTimeStamp_ = 0;
     if (!IsExtendedCacheDBMode()) {
@@ -1372,7 +1368,7 @@ SQLiteSingleVerStorageExecutor *SQLiteSingleVerNaturalStoreConnection::GetExecut
     SQLiteSingleVerNaturalStore *naturalStore = GetDB<SQLiteSingleVerNaturalStore>();
     if (naturalStore == nullptr) {
         errCode = -E_NOT_INIT;
-        LOGE("[SingleVerConnection] Kvstore is null, get executor failed! errCode = [%d]", errCode);
+        LOGE("[SingleVerConnection] the store is null");
         return nullptr;
     }
     return naturalStore->GetHandle(isWrite, errCode);
@@ -1382,7 +1378,7 @@ bool SQLiteSingleVerNaturalStoreConnection::IsCacheDBMode() const
 {
     SQLiteSingleVerNaturalStore *naturalStore = GetDB<SQLiteSingleVerNaturalStore>();
     if (naturalStore == nullptr) {
-        LOGE("[SingleVerConnection] natural store is null in IsCacheDBMode.");
+        LOGE("[SingleVerConnection] the store is null");
         return false;
     }
     return naturalStore->IsCacheDBMode();
@@ -1392,7 +1388,7 @@ bool SQLiteSingleVerNaturalStoreConnection::IsExtendedCacheDBMode() const
 {
     SQLiteSingleVerNaturalStore *naturalStore = GetDB<SQLiteSingleVerNaturalStore>();
     if (naturalStore == nullptr) {
-        LOGE("[SingleVerConnection] natural store is nullptr in IsExtendedCacheDBMode.");
+        LOGE("[SingleVerConnection] the store is null");
         return false;
     }
     return naturalStore->IsExtendedCacheDBMode();

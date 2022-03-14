@@ -307,7 +307,7 @@ EngineState StorageEngine::GetEngineState() const
 
 void StorageEngine::SetEngineState(EngineState state)
 {
-    LOGI("Set storage engine state to [%d]!", state);
+    LOGI("Storage engine state to [%d]!", state);
     engineState_ = state;
 }
 
@@ -361,7 +361,6 @@ void StorageEngine::AddStorageExecutor(StorageExecutor *handle)
     } else {
         readIdleList_.push_back(handle);
     }
-    LOGD("add [%d] storage executor to handle pool.", handle->GetWritable());
 }
 
 void StorageEngine::CloseExecutor()
@@ -412,8 +411,8 @@ StorageExecutor *StorageEngine::FetchStorageExecutor(bool isWrite, std::list<Sto
     auto item = idleList.front();
     usingList.push_back(item);
     idleList.remove(item);
-    LOGD("Get executor from [%.6s], write[%d], using[%d], idle[%d]",
-        DBCommon::TransferStringToHex(identifier_).c_str(), isWrite, usingList.size(), idleList.size());
+    LOGD("Get executor[%d] from [%.6s], using[%d]", isWrite,
+        DBCommon::TransferStringToHex(identifier_).c_str(), usingList.size());
     errCode = E_OK;
     return item;
 }

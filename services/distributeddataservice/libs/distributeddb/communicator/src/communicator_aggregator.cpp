@@ -136,7 +136,7 @@ ICommunicator *CommunicatorAggregator::AllocCommunicator(uint64_t commLabel, int
 ICommunicator *CommunicatorAggregator::AllocCommunicator(const std::vector<uint8_t> &commLabel, int &outErrorNo)
 {
     std::lock_guard<std::mutex> commMapLockGuard(commMapMutex_);
-    LOGI("[CommAggr][Alloc] Label=%s.", VEC_TO_STR(commLabel));
+    LOGI("[CommAggr][Alloc] Label=%.6s.", VEC_TO_STR(commLabel));
     if (commLabel.size() != COMM_LABEL_LENGTH) {
         outErrorNo = -E_INVALID_ARGS;
         return nullptr;
@@ -163,7 +163,7 @@ void CommunicatorAggregator::ReleaseCommunicator(ICommunicator *inCommunicator)
     }
     Communicator *commPtr = static_cast<Communicator *>(inCommunicator);
     LabelType commLabel = commPtr->GetCommunicatorLabel();
-    LOGI("[CommAggr][Release] Label=%s.", VEC_TO_STR(commLabel));
+    LOGI("[CommAggr][Release] Label=%.6s.", VEC_TO_STR(commLabel));
 
     std::lock_guard<std::mutex> commMapLockGuard(commMapMutex_);
     if (commMap_.count(commLabel) == 0) {
@@ -234,7 +234,7 @@ int CommunicatorAggregator::GetLocalIdentity(std::string &outTarget) const
 void CommunicatorAggregator::ActivateCommunicator(const LabelType &commLabel)
 {
     std::lock_guard<std::mutex> commMapLockGuard(commMapMutex_);
-    LOGI("[CommAggr][Activate] Label=%s.", VEC_TO_STR(commLabel));
+    LOGI("[CommAggr][Activate] Label=%.6s.", VEC_TO_STR(commLabel));
     if (commMap_.count(commLabel) == 0) {
         LOGW("[CommAggr][Activate] Communicator of this label not allocated.");
         return;

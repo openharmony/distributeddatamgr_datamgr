@@ -929,7 +929,6 @@ int SQLiteUtils::GetVersion(sqlite3 *db, int &version)
     if (sqlite3_step(statement) == SQLITE_ROW) {
         // Get pragma user_version at first column
         version = sqlite3_column_int(statement, 0);
-        LOGD("[SqlUtil][GetVer] db version=%d", version);
     } else {
         LOGE("[SqlUtil][GetVer] Get db user_version failed.");
         errCode = SQLiteUtils::MapSQLiteErrno(SQLITE_ERROR);

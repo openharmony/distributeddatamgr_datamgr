@@ -93,7 +93,6 @@ int SQLiteRelationalStoreConnection::StartTransaction()
         return errCode;
     }
 
-    LOGD("[RelationalConnection] Start transaction finish.");
     writeHandle_ = handle;
     return E_OK;
 }

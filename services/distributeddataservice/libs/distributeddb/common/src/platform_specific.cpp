@@ -144,7 +144,7 @@ int GetRealPath(const std::string &inOriPath, std::string &outRealPath)
     }
 
     if (realpath(inOriPath.c_str(), realPath) == nullptr) {
-        LOGE("[RealPath] Get realpath for inOriPath fail:%d.", errno);
+        LOGE("[OS] Realpath error:%d.", errno);
         delete []realPath;
         return -E_SYSTEM_API_FAIL;
     }
