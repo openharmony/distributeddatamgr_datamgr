@@ -73,4 +73,5 @@ ohos_shared_library("distributeddata") {
 
   subsystem_name = "distributeddatamgr"
   relative_install_dir = "module/data"
+  part_name = "distributeddatamgr"
 }
