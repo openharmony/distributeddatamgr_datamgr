@@ -14,8 +14,8 @@
  */
 #ifndef OHOS_FIELD_NODE_H
 #define OHOS_FIELD_NODE_H
-#include <nlohmann/json.hpp>
 #include <list>
+#include "nlohmann/json.hpp"
 #include "js_util.h"
 #include "napi_queue.h"
 
@@ -42,7 +42,12 @@ private:
     static napi_value SetNullable(napi_env env, napi_callback_info info);
     static napi_value GetValueType(napi_env env, napi_callback_info info);
     static napi_value SetValueType(napi_env env, napi_callback_info info);
-
+    static std::map<uint32_t, std::string> valueTypeToString_;
+    
+    template <typename T>
+    static napi_value GetContextValue(napi_env env, std::shared_ptr<ContextBase> &ctxt, T &value);
+    static JsFieldNode* GetFieldNode(napi_env env, napi_callback_info info, std::shared_ptr<ContextBase> &ctxt);
+    
     std::string ValueToString(JSUtil::KvStoreVariant value);
     std::string ValueTypeToString(uint32_t type);
 
