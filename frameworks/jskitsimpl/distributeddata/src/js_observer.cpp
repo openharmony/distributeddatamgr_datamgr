@@ -55,6 +55,6 @@ void JSObserver::AsyncCall(UvQueue::NapiArgsGenerator genArgs)
         napi_value callback = nullptr;
         napi_get_reference_value(env, observer->callback_, &callback);
         return callback;
-    }, genArgs);
+        }, genArgs);
 }
 }
