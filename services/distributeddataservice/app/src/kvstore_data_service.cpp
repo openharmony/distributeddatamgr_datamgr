@@ -834,6 +834,14 @@ void KvStoreDataService::AddPermission() const
 void KvStoreDataService::OnStart()
 {
     ZLOGI("distributeddata service onStart");
+    static constexpr int32_t RETRY_TIMES = 10;
+    static constexpr int32_t RETRY_INTERVAL = 500 * 1000; // unit is ms
+    for (BlockInteger retry(RETRY_INTERVAL); retry < RETRY_TIMES; ++retry) {
+        if (!DeviceKvStoreImpl::GetLocalDeviceId().empty()) {
+            break;
+        }
+        ZLOGE("GetLocalDeviceId failed, retry count:%{public}d", static_cast<int>(retry));
+    }
     Initialize();
     Bootstrap::GetInstance().LoadComponents();
     Bootstrap::GetInstance().LoadDirectory();
@@ -855,15 +863,6 @@ void KvStoreDataService::OnStart()
 
 void KvStoreDataService::StartService()
 {
-    static constexpr int32_t RETRY_TIMES = 10;
-    static constexpr int32_t RETRY_INTERVAL = 500 * 1000; // unit is ms
-    for (BlockInteger retry(RETRY_INTERVAL); retry < RETRY_TIMES; ++retry) {
-        if (!DeviceKvStoreImpl::GetLocalDeviceId().empty()) {
-            break;
-        }
-        ZLOGE("GetLocalDeviceId failed, retry count:%{public}d", static_cast<int>(retry));
-    }
-
     // register this to ServiceManager.
     bool ret = SystemAbility::Publish(this);
     if (!ret) {
