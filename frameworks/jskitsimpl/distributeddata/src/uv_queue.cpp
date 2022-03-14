@@ -45,7 +45,7 @@ void UvQueue::AsyncCall(NapiCallbackGetter getter, NapiArgsGenerator genArgs)
         ZLOGE("no memory for uv_work_t");
         return;
     }
-    work->data = new UvEntry{env_, getter, std::move(genArgs)};
+    work->data = new UvEntry{ env_, getter, std::move(genArgs) };
     uv_queue_work(
         loop_, work, [](uv_work_t* work) {},
         [](uv_work_t* work, int uvstatus) {
