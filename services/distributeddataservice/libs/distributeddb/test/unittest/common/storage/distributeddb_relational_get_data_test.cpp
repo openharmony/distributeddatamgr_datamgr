@@ -1252,4 +1252,59 @@ HWTEST_F(DistributedDBRelationalGetDataTest, PutSyncDataConflictDataTest001, Tes
     EXPECT_EQ(RelationalTestUtils::CheckTableRecords(db, deviceTable), 3);
     sqlite3_close_v2(db);
 }
+
+/**
+ * @tc.name: SaveNonexistDevdata1
+ * @tc.desc: Save non-exist device data and check errCode.
+ * @tc.type: FUNC
+ * @tc.require: AR000GK58H
+ * @tc.author: lidongwei
+ */
+HWTEST_F(DistributedDBRelationalGetDataTest, SaveNonexistDevdata1, TestSize.Level1)
+{
+    ASSERT_EQ(g_mgr.OpenStore(g_storePath, g_storeID, RelationalStoreDelegate::Option {}, g_delegate), DBStatus::OK);
+    ASSERT_NE(g_delegate, nullptr);
+    ASSERT_EQ(g_delegate->CreateDistributedTable(g_tableName), DBStatus::OK);
+    /**
+     * @tc.steps: step1. Create distributed table "dataPlus".
+     * @tc.expected: Succeed, return OK.
+     */
+    const string tableName = g_tableName + "Plus";
+    std::string sql = "CREATE TABLE " + tableName + "(key INTEGER, value INTEGER NOT NULL, \
+        extra_field TEXT NOT NULL DEFAULT 'default_value');";
+    sqlite3 *db = nullptr;
+    ASSERT_EQ(sqlite3_open(g_storePath.c_str(), &db), SQLITE_OK);
+    ASSERT_EQ(sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr), SQLITE_OK);
+    ASSERT_EQ(g_delegate->CreateDistributedTable(tableName), DBStatus::OK);
+    /**
+     * @tc.steps: step2. Put 1 record into data table.
+     * @tc.expected: Succeed, return OK.
+     */
+    ASSERT_EQ(AddOrUpdateRecord(1, 101), E_OK);
+
+    /**
+     * @tc.steps: step3. Get all data from "data" table.
+     * @tc.expected: Succeed and the count is right.
+     */
+    auto store = GetRelationalStore();
+    ASSERT_NE(store, nullptr);
+    ContinueToken token = nullptr;
+    QueryObject query(Query::Select(g_tableName));
+    std::vector<SingleVerKvEntry *> entries;
+    EXPECT_EQ(store->GetSyncData(query, SyncTimeRange {}, DataSizeSpecInfo {}, token, entries), E_OK);
+    EXPECT_EQ(entries.size(), 1UL);
+
+    /**
+     * @tc.steps: step4. Put data into "data_plus" table from deviceA and deviceA does not exist.
+     * @tc.expected: Succeed, return OK.
+     */
+    query = QueryObject(Query::Select(tableName));
+    const DeviceID deviceID = "deviceA";
+    EXPECT_EQ(const_cast<RelationalSyncAbleStorage *>(store)->PutSyncDataWithQuery(query, entries, deviceID),
+        -1);  // -1 means error
+    SingleVerKvEntry::Release(entries);
+
+    sqlite3_close(db);
+    RefObject::DecObjRef(g_store);
+}
 #endif
