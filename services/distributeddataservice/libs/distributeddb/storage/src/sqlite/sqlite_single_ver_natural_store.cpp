@@ -148,7 +148,8 @@ namespace {
         size_t appendLen)
     {
         bool reachThreshold = false;
-        for (size_t i = 0, blockSize = 0; !reachThreshold && i < dataItems.size(); i++) {
+        size_t blockSize = 0;
+        for (size_t i = 0; !reachThreshold && i < dataItems.size(); i++) {
             blockSize += SQLiteSingleVerStorageExecutor::GetDataItemSerialSize(dataItems[i], appendLen);
             reachThreshold = (blockSize >= dataSizeInfo.blockSize * DBConstant::QUERY_SYNC_THRESHOLD);
         }

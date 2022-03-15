@@ -375,12 +375,7 @@ int SQLiteSingleVerNaturalStoreConnection::Pragma(int cmd, void *parameter)
             if (parameter == nullptr) {
                 return -E_INVALID_ARGS;
             }
-            if (static_cast<PragmaDeviceIdentifier *>(parameter)->deviceID == "") {
-                return -E_INVALID_ARGS;
-            }
-            static_cast<PragmaDeviceIdentifier *>(parameter)->deviceIdentifier =
-                DBCommon::TransferHashString(static_cast<PragmaDeviceIdentifier *>(parameter)->deviceID);
-            break;
+            return CalcHashDevID(*(static_cast<PragmaDeviceIdentifier *>(parameter)));
         }
         case PRAGMA_GET_DEVICE_IDENTIFIER_OF_ENTRY:
             return GetDeviceIdentifier(static_cast<PragmaEntryDeviceIdentifier *>(parameter));
@@ -1758,6 +1753,15 @@ bool SQLiteSingleVerNaturalStoreConnection::CheckLogOverLimit(SQLiteSingleVerSto
         LOGW("Log size[%llu] over the limit", logFileSize);
     }
     return result;
+}
+
+int SQLiteSingleVerNaturalStoreConnection::CalcHashDevID(PragmaDeviceIdentifier &pragmaDev)
+{
+    if (pragmaDev.deviceID.empty()) {
+        return -E_INVALID_ARGS;
+    }
+    pragmaDev.deviceIdentifier = DBCommon::TransferHashString(pragmaDev.deviceID);
+    return E_OK;
 }
 
 DEFINE_OBJECT_TAG_FACILITIES(SQLiteSingleVerNaturalStoreConnection)

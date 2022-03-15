@@ -200,6 +200,7 @@ private:
     int ForceCheckPoint() const;
 
     bool CheckLogOverLimit(SQLiteSingleVerStorageExecutor *executor) const;
+    int CalcHashDevID(PragmaDeviceIdentifier &pragmaDev);
 
     DECLARE_OBJECT_TAG(SQLiteSingleVerNaturalStoreConnection);
 
