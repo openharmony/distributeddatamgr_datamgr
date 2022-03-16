@@ -62,7 +62,7 @@ public:
     int ParseQueryObjNodes();
 
     bool Empty() const;
-    
+
     bool HasInKeys() const
     {
         return hasInKeys_;
@@ -87,6 +87,7 @@ protected:
 private:
     int Parse();
     int ParseNode(const std::list<QueryObjNode>::iterator &iter);
+    int ParseNodeByOperFlag(const std::list<QueryObjNode>::iterator &iter);
     int CheckEqualFormat(const std::list<QueryObjNode>::iterator &iter) const;
     int CheckLinkerFormat(const std::list<QueryObjNode>::iterator &iter) const;
     int CheckSuggestIndexFormat(const std::list<QueryObjNode>::iterator &iter) const;

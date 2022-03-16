@@ -625,14 +625,13 @@ int SQLiteSingleVerRelationalStorageExecutor::PrepareForSavingLog(const QueryObj
     int errCode = SQLiteUtils::GetStatement(dbHandle_, sql, logStmt);
     if (errCode != E_OK) {
         LOGE("[info statement] Get log statement fail! errCode:%d", errCode);
-        return -E_INVALID_QUERY_FORMAT;
+        return errCode;
     }
     std::string selectSql = "select " + columnList + " from " + tableName + " where hash_key = ? and device = ?;";
     errCode = SQLiteUtils::GetStatement(dbHandle_, selectSql, queryStmt);
     if (errCode != E_OK) {
         SQLiteUtils::ResetStatement(logStmt, true, errCode);
         LOGE("[info statement] Get query statement fail! errCode:%d", errCode);
-        return -E_INVALID_QUERY_FORMAT;
     }
     return errCode;
 }
@@ -654,7 +653,6 @@ int SQLiteSingleVerRelationalStorageExecutor::PrepareForSavingData(const QueryOb
     int errCode = SQLiteUtils::GetStatement(dbHandle_, sql, statement);
     if (errCode != E_OK) {
         LOGE("[info statement] Get saving data statement fail! errCode:%d", errCode);
-        errCode = -E_INVALID_QUERY_FORMAT;
     }
     return errCode;
 }
@@ -718,8 +716,8 @@ int SQLiteSingleVerRelationalStorageExecutor::DeleteSyncDataItem(const DataItem 
             "WHERE hash_key=? AND device=? AND flag&0x01=0);";
         int errCode = SQLiteUtils::GetStatement(dbHandle_, sql, stmt);
         if (errCode != E_OK) {
-            LOGE("[DeleteSyncDataItem] Get statement fail!");
-            return -E_INVALID_QUERY_FORMAT;
+            LOGE("[DeleteSyncDataItem] Get statement fail!, errCode:%d", errCode);
+            return errCode;
         }
     }
 

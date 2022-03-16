@@ -28,7 +28,6 @@ bool ParamCheckUtils::CheckDataDir(const std::string &dataDir, std::string &cano
     }
 
     if (OS::GetRealPath(dataDir, canonicalDir) != E_OK) {
-        LOGE("Failed to canonicalize the data dir.");
         return false;
     }
     // After normalizing the path, determine whether the path is a legal path considered by the program.

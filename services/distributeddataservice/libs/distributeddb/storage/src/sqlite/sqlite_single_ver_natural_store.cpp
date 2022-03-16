@@ -148,7 +148,8 @@ namespace {
         size_t appendLen)
     {
         bool reachThreshold = false;
-        for (size_t i = 0, blockSize = 0; !reachThreshold && i < dataItems.size(); i++) {
+        size_t blockSize = 0;
+        for (size_t i = 0; !reachThreshold && i < dataItems.size(); i++) {
             blockSize += SQLiteSingleVerStorageExecutor::GetDataItemSerialSize(dataItems[i], appendLen);
             reachThreshold = (blockSize >= dataSizeInfo.blockSize * DBConstant::QUERY_SYNC_THRESHOLD);
         }
@@ -1609,7 +1610,7 @@ int SQLiteSingleVerNaturalStore::GetSchema(SchemaObject &schema) const
         std::string schemaValue(value.begin(), value.end());
         errCode = schema.ParseFromSchemaString(schemaValue);
     } else {
-        LOGI("[SqlSinStore][GetSchema] Get schema from db failed or no schema=%d.", errCode);
+        LOGI("[SqlSinStore] Get schema error:%d.", errCode);
     }
     ReleaseHandle(handle);
     return errCode;

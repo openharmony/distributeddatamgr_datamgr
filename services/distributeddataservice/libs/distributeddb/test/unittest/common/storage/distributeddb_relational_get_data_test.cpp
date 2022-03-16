@@ -165,6 +165,13 @@ int GetCount(sqlite3 *db, const string &sql, size_t &count)
     return errCode;
 }
 
+void ExpectCount(sqlite3 *db, const string &sql, size_t expectCount)
+{
+    size_t count = 0;
+    ASSERT_EQ(GetCount(db, sql, count), E_OK);
+    EXPECT_EQ(count, expectCount);
+}
+
 std::string GetOneText(sqlite3 *db, const string &sql)
 {
     std::string result;
@@ -196,7 +203,7 @@ int PutBatchData(uint32_t totalCount, uint32_t valueSize)
         goto ERROR;
     }
     for (uint32_t i = 0; i < totalCount; i++) {
-        errCode = SQLiteUtils::BindBlobToStatement(stmt, 2, Value(valueSize, 'a'), false);
+        errCode = SQLiteUtils::BindBlobToStatement(stmt, 2, Value(valueSize, 'a'), false);  // 2 means value index
         if (errCode != E_OK) {
             break;
         }
@@ -219,6 +226,33 @@ ERROR:
     sqlite3_close(db);
     return errCode;
 }
+
+void ExecSqlAndAssertOK(sqlite3 *db, const std::string &sql)
+{
+    ASSERT_EQ(sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr), SQLITE_OK);
+}
+
+void ExecSqlAndAssertOK(sqlite3 *db, const initializer_list<std::string> &sqlList)
+{
+    for (const auto &sql : sqlList) {
+        ASSERT_EQ(sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr), SQLITE_OK);
+    }
+}
+
+void ExpectMissQueryCnt(const std::vector<SingleVerKvEntry *> &entries, size_t expectCount)
+{
+    size_t count = 0;
+    for (auto iter = entries.begin(); iter != entries.end(); ++iter) {
+        if (((*iter)->GetFlag() & DataItem::REMOTE_DEVICE_DATA_MISS_QUERY) == 0) {
+            count++;
+        }
+        auto nextOne = std::next(iter, 1);
+        if (nextOne != entries.end()) {
+            EXPECT_LT((*iter)->GetTimestamp(), (*nextOne)->GetTimestamp());
+        }
+    }
+    EXPECT_EQ(count, expectCount);
+};
 }
 
 class DistributedDBRelationalGetDataTest : public testing::Test {
@@ -242,9 +276,6 @@ void DistributedDBRelationalGetDataTest::TearDownTestCase(void)
 void DistributedDBRelationalGetDataTest::SetUp(void)
 {
     DistributedDBToolsUnitTest::PrintTestCaseInfo();
-    if (DistributedDBToolsUnitTest::RemoveTestDbFiles(g_testDir) != 0) {
-        LOGE("rm test db files error.");
-    }
     CreateDBAndTable();
 }
 
@@ -254,7 +285,9 @@ void DistributedDBRelationalGetDataTest::TearDown(void)
         EXPECT_EQ(g_mgr.CloseStore(g_delegate), DBStatus::OK);
         g_delegate = nullptr;
     }
-
+    if (DistributedDBToolsUnitTest::RemoveTestDbFiles(g_testDir) != 0) {
+        LOGE("rm test db files error.");
+    }
     return;
 }
 
@@ -408,17 +441,12 @@ HWTEST_F(DistributedDBRelationalGetDataTest, GetSyncData3, TestSize.Level1)
      * @tc.steps: step2. Put 5 records with different type into "dataPlus" table. Put 5 records into "data" table.
      * @tc.expected: Succeed, return OK.
      */
-    vector<string> sqls = {
-        "INSERT INTO " + tableName + " VALUES(NULL, 1);",
-        "INSERT INTO " + tableName + " VALUES(NULL, 0.01);",
-        "INSERT INTO " + tableName + " VALUES(NULL, NULL);",
-        "INSERT INTO " + tableName + " VALUES(NULL, 'This is a text.');",
-        "INSERT INTO " + tableName + " VALUES(NULL, x'0123456789');",
-    };
-    const size_t RECORD_COUNT = sqls.size();
-    for (const auto &sql : sqls) {
-        ASSERT_EQ(sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr), SQLITE_OK);
-    }
+    const size_t RECORD_COUNT = 5;  // 5 records
+    ExecSqlAndAssertOK(db, {"INSERT INTO " + tableName + " VALUES(NULL, 1);",
+                            "INSERT INTO " + tableName + " VALUES(NULL, 0.01);",
+                            "INSERT INTO " + tableName + " VALUES(NULL, NULL);",
+                            "INSERT INTO " + tableName + " VALUES(NULL, 'This is a text.');",
+                            "INSERT INTO " + tableName + " VALUES(NULL, x'0123456789');"});
 
     /**
      * @tc.steps: step3. Get all data from "dataPlus" table.
@@ -436,17 +464,17 @@ HWTEST_F(DistributedDBRelationalGetDataTest, GetSyncData3, TestSize.Level1)
      * @tc.steps: step4. Put data into "data" table from deviceA and deviceB
      * @tc.expected: Succeed, return OK.
      */
-    query = QueryObject(Query::Select(g_tableName));
+    QueryObject gQuery(Query::Select(g_tableName));
     DeviceID deviceA = "deviceA";
     ASSERT_EQ(E_OK, SQLiteUtils::CreateSameStuTable(db, store->GetSchemaInfo().GetTable(g_tableName),
         DBCommon::GetDistributedTableName(deviceA, g_tableName)));
-    EXPECT_EQ(const_cast<RelationalSyncAbleStorage *>(store)->PutSyncDataWithQuery(query, entries, deviceA), E_OK);
+    EXPECT_EQ(const_cast<RelationalSyncAbleStorage *>(store)->PutSyncDataWithQuery(gQuery, entries, deviceA), E_OK);
 
     DeviceID deviceB = "deviceB";
     auto rEntries = std::vector<SingleVerKvEntry *>(entries.rbegin(), entries.rend());
     ASSERT_EQ(E_OK, SQLiteUtils::CreateSameStuTable(db, store->GetSchemaInfo().GetTable(g_tableName),
         DBCommon::GetDistributedTableName(deviceB, g_tableName)));
-    EXPECT_EQ(const_cast<RelationalSyncAbleStorage *>(store)->PutSyncDataWithQuery(query, rEntries, deviceB), E_OK);
+    EXPECT_EQ(const_cast<RelationalSyncAbleStorage *>(store)->PutSyncDataWithQuery(gQuery, rEntries, deviceB), E_OK);
     rEntries.clear();
     SingleVerKvEntry::Release(entries);
 
@@ -454,37 +482,22 @@ HWTEST_F(DistributedDBRelationalGetDataTest, GetSyncData3, TestSize.Level1)
      * @tc.steps: step5. Delete 2 "dataPlus" data from deviceA.
      * @tc.expected: Succeed.
      */
-    sql = "DELETE FROM " + tableName + " WHERE rowid<=2;";
-    ASSERT_EQ(sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr), SQLITE_OK);
-
-    query = QueryObject(Query::Select(tableName));
+    ExecSqlAndAssertOK(db, "DELETE FROM " + tableName + " WHERE rowid<=2;");
     EXPECT_EQ(store->GetSyncData(query, SyncTimeRange {}, DataSizeSpecInfo {}, token, entries), E_OK);
     EXPECT_EQ(entries.size(), RECORD_COUNT);
-
-    query = QueryObject(Query::Select(g_tableName));
-    EXPECT_EQ(const_cast<RelationalSyncAbleStorage *>(store)->PutSyncDataWithQuery(query, entries, deviceA), E_OK);
+    EXPECT_EQ(const_cast<RelationalSyncAbleStorage *>(store)->PutSyncDataWithQuery(gQuery, entries, deviceA), E_OK);
     SingleVerKvEntry::Release(entries);
 
     /**
      * @tc.steps: step6. Check data.
      * @tc.expected: 2 data in the from deviceA are deleted and all data from deviceB are not deleted.
      */
-    sql = "SELECT count(*) FROM " + DBConstant::RELATIONAL_PREFIX + g_tableName + "_log WHERE flag&0x01=0x01;";
-    size_t count = 0;
-    EXPECT_EQ(GetCount(db, sql, count), E_OK);
-    EXPECT_EQ(count, 2UL);  // 2 for test
-
-    sql = "SELECT count(*) FROM " + DBConstant::RELATIONAL_PREFIX + g_tableName + "_" +
-            DBCommon::TransferStringToHex(DBCommon::TransferHashString(deviceA)) + ";";
-    count = 0;
-    EXPECT_EQ(GetCount(db, sql, count), E_OK);
-    EXPECT_EQ(count, 3UL);  // 0 for test
-
-    sql = "SELECT count(*) FROM " + DBConstant::RELATIONAL_PREFIX + g_tableName + "_" +
-            DBCommon::TransferStringToHex(DBCommon::TransferHashString(deviceB)) + ";";
-    count = 0;
-    EXPECT_EQ(GetCount(db, sql, count), E_OK);
-    EXPECT_EQ(count, RECORD_COUNT);
+    ExpectCount(db, "SELECT count(*) FROM " + DBConstant::RELATIONAL_PREFIX + g_tableName +
+        "_log WHERE flag&0x01=0x01;", 2U);  // 2 deleted log
+    ExpectCount(db, "SELECT count(*) FROM " + DBConstant::RELATIONAL_PREFIX + g_tableName + "_" +
+        DBCommon::TransferStringToHex(DBCommon::TransferHashString(deviceA)) + ";", 3U);  // 3 records in A
+    ExpectCount(db, "SELECT count(*) FROM " + DBConstant::RELATIONAL_PREFIX + g_tableName + "_" +
+        DBCommon::TransferStringToHex(DBCommon::TransferHashString(deviceB)) + ";", RECORD_COUNT);  // 5 records in B
 
     sqlite3_close(db);
     RefObject::DecObjRef(g_store);
@@ -621,16 +634,16 @@ HWTEST_F(DistributedDBRelationalGetDataTest, GetIncorrectTypeData1, TestSize.Lev
      */
     sqlite3 *db = nullptr;
     ASSERT_EQ(sqlite3_open(g_storePath.c_str(), &db), SQLITE_OK);
-    string sql = "CREATE INDEX index1 ON " + g_tableName + "(value);"
-                 "CREATE UNIQUE INDEX index2 ON " + g_tableName + "(value,key);";
-    ASSERT_EQ(sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr), SQLITE_OK);
+
+    ExecSqlAndAssertOK(db, {"CREATE INDEX index1 ON " + g_tableName + "(value);",
+                            "CREATE UNIQUE INDEX index2 ON " + g_tableName + "(value,key);"});
 
     /**
      * @tc.steps: step2. Create distributed table "dataPlus".
      * @tc.expected: Succeed, return OK.
      */
     const string tableName = g_tableName + "Plus";
-    sql = "CREATE TABLE " + tableName + "(key INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, value INTEGER);";
+    string sql = "CREATE TABLE " + tableName + "(key INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, value INTEGER);";
     ASSERT_EQ(sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr), SQLITE_OK);
     ASSERT_EQ(g_delegate->CreateDistributedTable(tableName), DBStatus::OK);
 
@@ -638,17 +651,12 @@ HWTEST_F(DistributedDBRelationalGetDataTest, GetIncorrectTypeData1, TestSize.Lev
      * @tc.steps: step3. Put 5 records with different type into "dataPlus" table.
      * @tc.expected: Succeed, return OK.
      */
-    vector<string> sqls = {
-        "INSERT INTO " + tableName + " VALUES(NULL, 1);",
-        "INSERT INTO " + tableName + " VALUES(NULL, 0.01);",
-        "INSERT INTO " + tableName + " VALUES(NULL, NULL);",
-        "INSERT INTO " + tableName + " VALUES(NULL, 'This is a text.');",
-        "INSERT INTO " + tableName + " VALUES(NULL, x'0123456789');",
-    };
-    const size_t RECORD_COUNT = sqls.size();
-    for (const auto &sql : sqls) {
-        ASSERT_EQ(sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr), SQLITE_OK);
-    }
+    const size_t RECORD_COUNT = 5;  // 5 sqls
+    ExecSqlAndAssertOK(db, {"INSERT INTO " + tableName + " VALUES(NULL, 1);",
+                            "INSERT INTO " + tableName + " VALUES(NULL, 0.01);",
+                            "INSERT INTO " + tableName + " VALUES(NULL, NULL);",
+                            "INSERT INTO " + tableName + " VALUES(NULL, 'This is a text.');",
+                            "INSERT INTO " + tableName + " VALUES(NULL, x'0123456789');"});
 
     /**
      * @tc.steps: step4. Get all data from "dataPlus" table.
@@ -679,22 +687,17 @@ HWTEST_F(DistributedDBRelationalGetDataTest, GetIncorrectTypeData1, TestSize.Lev
      * @tc.steps: step6. Check data.
      * @tc.expected: All data in the two tables are same.
      */
-    sql = "SELECT count(*) "
-        "FROM " + tableName + " as a, " + DBConstant::RELATIONAL_PREFIX + g_tableName + "_" +
-            DBCommon::TransferStringToHex(DBCommon::TransferHashString(deviceID)) + " as b "
-        "WHERE a.key=b.key AND (a.value=b.value OR (a.value is NULL AND b.value is NULL));";
-    size_t count = 0;
-    EXPECT_EQ(GetCount(db, sql, count), E_OK);
-    EXPECT_EQ(count, RECORD_COUNT);
+    ExpectCount(db, "SELECT count(*) FROM " + tableName + " as a, " + DBConstant::RELATIONAL_PREFIX + g_tableName +
+        "_" + DBCommon::TransferStringToHex(DBCommon::TransferHashString(deviceID)) + " as b "
+        "WHERE a.key=b.key AND (a.value=b.value OR (a.value is NULL AND b.value is NULL));", RECORD_COUNT);
 
     /**
      * @tc.steps: step7. Check index.
      * @tc.expected: 2 index for deviceA's data table exists.
      */
-    sql = "SELECT count(*) FROM sqlite_master WHERE type='index' AND tbl_name='" + DBConstant::RELATIONAL_PREFIX +
-        g_tableName + "_" + DBCommon::TransferStringToHex(DBCommon::TransferHashString(deviceID)) + "'";
-    EXPECT_EQ(GetCount(db, sql, count), E_OK);
-    EXPECT_EQ(count, 2UL); // The index count is 2.
+    ExpectCount(db,
+        "SELECT count(*) FROM sqlite_master WHERE type='index' AND tbl_name='" + DBConstant::RELATIONAL_PREFIX +
+        g_tableName + "_" + DBCommon::TransferStringToHex(DBCommon::TransferHashString(deviceID)) + "'", 2U); // 2 index
     sqlite3_close(db);
     RefObject::DecObjRef(g_store);
 }
@@ -874,16 +877,9 @@ HWTEST_F(DistributedDBRelationalGetDataTest, MissQuery1, TestSize.Level1)
      * @tc.steps: step2. Put 5 records with different type into "dataPlus" table.
      * @tc.expected: Succeed, return OK.
      */
-    vector<string> sqls = {
-        "INSERT INTO " + tableName + " VALUES(NULL, 1);",
-        "INSERT INTO " + tableName + " VALUES(NULL, 2);",
-        "INSERT INTO " + tableName + " VALUES(NULL, 3);",
-        "INSERT INTO " + tableName + " VALUES(NULL, 4);",
-        "INSERT INTO " + tableName + " VALUES(NULL, 5);",
-    };
-    for (const auto &sql : sqls) {
-        ASSERT_EQ(sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr), SQLITE_OK);
-    }
+    ExecSqlAndAssertOK(db, {"INSERT INTO " + tableName + " VALUES(NULL, 1);",
+        "INSERT INTO " + tableName + " VALUES(NULL, 2);", "INSERT INTO " + tableName + " VALUES(NULL, 3);",
+        "INSERT INTO " + tableName + " VALUES(NULL, 4);", "INSERT INTO " + tableName + " VALUES(NULL, 5);"});
 
     /**
      * @tc.steps: step3. Get all data from "dataPlus" table.
@@ -916,26 +912,17 @@ HWTEST_F(DistributedDBRelationalGetDataTest, MissQuery1, TestSize.Level1)
      */
     std::string getDataSql = "SELECT count(*) FROM " + DBConstant::RELATIONAL_PREFIX + g_tableName + "_" +
         DBCommon::TransferStringToHex(DBCommon::TransferHashString(deviceID)) + ";";
-    size_t count = 0;
-    EXPECT_EQ(GetCount(db, getDataSql, count), E_OK);
-    EXPECT_EQ(count, 3U);  // 2,3,4
+    ExpectCount(db, getDataSql, 3);  // 2,3,4
 
     std::string getLogSql = "SELECT count(*) FROM " + DBConstant::RELATIONAL_PREFIX + g_tableName + "_log;";
-    count = 0;
-    EXPECT_EQ(GetCount(db, getLogSql, count), E_OK);
-    EXPECT_EQ(count, 3U);  // 2,3,4
+    ExpectCount(db, getLogSql, 3);  // 2,3,4
 
     /**
      * @tc.steps: step6. Update data. k2v2 to k2v102, k3v3 to k3v103.
      * @tc.expected: Update succeed.
      */
-    sqls = {
-        "UPDATE " + tableName + " SET value=102 WHERE value=2;",
-        "UPDATE " + tableName + " SET value=103 WHERE value=3;",
-    };
-    for (const auto &sql : sqls) {
-        ASSERT_EQ(sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr), SQLITE_OK);
-    }
+    ExecSqlAndAssertOK(db, {"UPDATE " + tableName + " SET value=102 WHERE value=2;",
+                            "UPDATE " + tableName + " SET value=103 WHERE value=3;"});
 
     /**
      * @tc.steps: step7. Get all data from "dataPlus" table.
@@ -957,12 +944,8 @@ HWTEST_F(DistributedDBRelationalGetDataTest, MissQuery1, TestSize.Level1)
      * @tc.steps: step9. Check data.
      * @tc.expected: There is 1 data in table.
      */
-    count = 0;
-    EXPECT_EQ(GetCount(db, getDataSql, count), E_OK);
-    EXPECT_EQ(count, 1U);  // 4
-
-    EXPECT_EQ(GetCount(db, getLogSql, count), E_OK);
-    EXPECT_EQ(count, 1U);  // 4
+    ExpectCount(db, getDataSql, 1U);  // 4
+    ExpectCount(db, getLogSql, 1U);  // 4
 
     sqlite3_close(db);
     RefObject::DecObjRef(g_store);
@@ -974,7 +957,7 @@ HWTEST_F(DistributedDBRelationalGetDataTest, MissQuery1, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: AR000GK58H
  * @tc.author: lidongwei
-  */
+ */
 HWTEST_F(DistributedDBRelationalGetDataTest, CompatibleData1, TestSize.Level1)
 {
     ASSERT_EQ(g_mgr.OpenStore(g_storePath, g_storeID, RelationalStoreDelegate::Option {}, g_delegate), DBStatus::OK);
@@ -1061,7 +1044,7 @@ HWTEST_F(DistributedDBRelationalGetDataTest, CompatibleData1, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: AR000GK58H
  * @tc.author: lidongwei
-  */
+ */
 HWTEST_F(DistributedDBRelationalGetDataTest, GetDataSortByTime1, TestSize.Level1)
 {
     ASSERT_EQ(g_mgr.OpenStore(g_storePath, g_storeID, RelationalStoreDelegate::Option {}, g_delegate), DBStatus::OK);
@@ -1093,74 +1076,29 @@ HWTEST_F(DistributedDBRelationalGetDataTest, GetDataSortByTime1, TestSize.Level1
     QueryObject query(Query::Select(g_tableName));
     std::vector<SingleVerKvEntry *> entries;
     EXPECT_EQ(store->GetSyncData(query, SyncTimeRange {}, DataSizeSpecInfo {}, token, entries), E_OK);
-    size_t count = 0;
-    for (auto iter = entries.begin(); iter != entries.end(); ++iter) {
-        if (((*iter)->GetFlag() & DataItem::REMOTE_DEVICE_DATA_MISS_QUERY) == 0) {
-            count++;
-        }
-        auto nextOne = std::next(iter, 1);
-        if (nextOne != entries.end()) {
-            EXPECT_LT((*iter)->GetTimestamp(), (*nextOne)->GetTimestamp());
-        }
-    }
-    EXPECT_EQ(count, 3UL);
+    ExpectMissQueryCnt(entries, 3UL);  // 3 data
     SingleVerKvEntry::Release(entries);
+
     query = QueryObject(Query::Select(g_tableName).EqualTo("key", 1).Or().EqualTo("key", 3));
     EXPECT_EQ(store->GetSyncData(query, SyncTimeRange {}, DataSizeSpecInfo {}, token, entries), E_OK);
-    count = 0;
-    for (auto iter = entries.begin(); iter != entries.end(); ++iter) {
-        if (((*iter)->GetFlag() & DataItem::REMOTE_DEVICE_DATA_MISS_QUERY) == 0) {
-            count++;
-        }
-        auto nextOne = std::next(iter, 1);
-        if (nextOne != entries.end()) {
-            EXPECT_LT((*iter)->GetTimestamp(), (*nextOne)->GetTimestamp());
-        }
-    }
-    EXPECT_EQ(count, 2UL);
+    ExpectMissQueryCnt(entries, 2UL);  // 2 data
     SingleVerKvEntry::Release(entries);
+
     query = QueryObject(Query::Select(g_tableName).OrderBy("key", false));
     EXPECT_EQ(store->GetSyncData(query, SyncTimeRange {}, DataSizeSpecInfo {}, token, entries), E_OK);
-    count = 0;
-    for (auto iter = entries.begin(); iter != entries.end(); ++iter) {
-        if (((*iter)->GetFlag() & DataItem::REMOTE_DEVICE_DATA_MISS_QUERY) == 0) {
-            count++;
-        }
-        auto nextOne = std::next(iter, 1);
-        if (nextOne != entries.end()) {
-            EXPECT_LT((*iter)->GetTimestamp(), (*nextOne)->GetTimestamp());
-        }
-    }
-    EXPECT_EQ(count, 3UL);
+    ExpectMissQueryCnt(entries, 3UL);  // 3 data
     SingleVerKvEntry::Release(entries);
+
     query = QueryObject(Query::Select(g_tableName).OrderBy("value", false));
     EXPECT_EQ(store->GetSyncData(query, SyncTimeRange {}, DataSizeSpecInfo {}, token, entries), E_OK);
-    count = 0;
-    for (auto iter = entries.begin(); iter != entries.end(); ++iter) {
-        if (((*iter)->GetFlag() & DataItem::REMOTE_DEVICE_DATA_MISS_QUERY) == 0) {
-            count++;
-        }
-        auto nextOne = std::next(iter, 1);
-        if (nextOne != entries.end()) {
-            EXPECT_LT((*iter)->GetTimestamp(), (*nextOne)->GetTimestamp());
-        }
-    }
-    EXPECT_EQ(count, 3UL);
+    ExpectMissQueryCnt(entries, 3UL);  // 3 data
     SingleVerKvEntry::Release(entries);
+
     query = QueryObject(Query::Select(g_tableName).Limit(2));
     EXPECT_EQ(store->GetSyncData(query, SyncTimeRange {}, DataSizeSpecInfo {}, token, entries), E_OK);
-    count = 0;
-    for (auto iter = entries.begin(); iter != entries.end(); ++iter) {
-        if (((*iter)->GetFlag() & DataItem::REMOTE_DEVICE_DATA_MISS_QUERY) == 0) {
-            count++;
-        }
-        auto nextOne = std::next(iter, 1);
-        if (nextOne != entries.end()) {
-            EXPECT_LT((*iter)->GetTimestamp(), (*nextOne)->GetTimestamp());
-        }
-    }
-    EXPECT_EQ(count, 2UL);
+    ExpectMissQueryCnt(entries, 2UL);  // 2 data
     SingleVerKvEntry::Release(entries);
+
     sqlite3_close(db);
     RefObject::DecObjRef(g_store);
 }
@@ -1171,7 +1109,7 @@ HWTEST_F(DistributedDBRelationalGetDataTest, GetDataSortByTime1, TestSize.Level1
  * @tc.type: FUNC
  * @tc.require: AR000GK58H
  * @tc.author: lidongwei
-  */
+ */
 HWTEST_F(DistributedDBRelationalGetDataTest, SameFieldWithLogTable1, TestSize.Level1)
 {
     ASSERT_EQ(g_mgr.OpenStore(g_storePath, g_storeID, RelationalStoreDelegate::Option {}, g_delegate), DBStatus::OK);
@@ -1215,7 +1153,7 @@ HWTEST_F(DistributedDBRelationalGetDataTest, SameFieldWithLogTable1, TestSize.Le
  * @tc.type: FUNC
  * @tc.require: AR000GK58H
  * @tc.author: lidongwei
-  */
+ */
 HWTEST_F(DistributedDBRelationalGetDataTest, CompatibleData2, TestSize.Level1)
 {
     ASSERT_EQ(g_mgr.OpenStore(g_storePath, g_storeID, RelationalStoreDelegate::Option {}, g_delegate), DBStatus::OK);
@@ -1263,31 +1201,13 @@ HWTEST_F(DistributedDBRelationalGetDataTest, CompatibleData2, TestSize.Level1)
     RefObject::DecObjRef(g_store);
 }
 
-std::vector<SingleVerKvEntry *> PrepareEntries(std::vector<DataItem> dataItems)
-{
-    std::vector<SingleVerKvEntry *> entries;
-    int errCode = E_OK;
-    for (auto &item : dataItems) {
-        auto entry = new (std::nothrow) GenericSingleVerKvEntry();
-        if (entry == nullptr) {
-            errCode = -E_OUT_OF_MEMORY;
-            LOGE("GetKvEntries failed, errCode:%d", errCode);
-            SingleVerKvEntry::Release(entries);
-            break;
-        }
-        entry->SetEntryData(std::move(item));
-        entries.push_back(entry);
-    }
-    return entries;
-}
-
 /**
- * @tc.name: CompatibleData2
- * @tc.desc: Check compatibility.
+ * @tc.name: PutSyncDataConflictDataTest001
+ * @tc.desc: Check put with conflict sync data.
  * @tc.type: FUNC
  * @tc.require: AR000GK58H
- * @tc.author: lidongwei
-  */
+ * @tc.author: lianhuix
+ */
 HWTEST_F(DistributedDBRelationalGetDataTest, PutSyncDataConflictDataTest001, TestSize.Level1)
 {
     const DeviceID deviceID_A = "deviceA";
@@ -1333,4 +1253,58 @@ HWTEST_F(DistributedDBRelationalGetDataTest, PutSyncDataConflictDataTest001, Tes
     sqlite3_close_v2(db);
 }
 
+/**
+ * @tc.name: SaveNonexistDevdata1
+ * @tc.desc: Save non-exist device data and check errCode.
+ * @tc.type: FUNC
+ * @tc.require: AR000GK58H
+ * @tc.author: lidongwei
+ */
+HWTEST_F(DistributedDBRelationalGetDataTest, SaveNonexistDevdata1, TestSize.Level1)
+{
+    ASSERT_EQ(g_mgr.OpenStore(g_storePath, g_storeID, RelationalStoreDelegate::Option {}, g_delegate), DBStatus::OK);
+    ASSERT_NE(g_delegate, nullptr);
+    ASSERT_EQ(g_delegate->CreateDistributedTable(g_tableName), DBStatus::OK);
+    /**
+     * @tc.steps: step1. Create distributed table "dataPlus".
+     * @tc.expected: Succeed, return OK.
+     */
+    const string tableName = g_tableName + "Plus";
+    std::string sql = "CREATE TABLE " + tableName + "(key INTEGER, value INTEGER NOT NULL, \
+        extra_field TEXT NOT NULL DEFAULT 'default_value');";
+    sqlite3 *db = nullptr;
+    ASSERT_EQ(sqlite3_open(g_storePath.c_str(), &db), SQLITE_OK);
+    ASSERT_EQ(sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr), SQLITE_OK);
+    ASSERT_EQ(g_delegate->CreateDistributedTable(tableName), DBStatus::OK);
+    /**
+     * @tc.steps: step2. Put 1 record into data table.
+     * @tc.expected: Succeed, return OK.
+     */
+    ASSERT_EQ(AddOrUpdateRecord(1, 101), E_OK);
+
+    /**
+     * @tc.steps: step3. Get all data from "data" table.
+     * @tc.expected: Succeed and the count is right.
+     */
+    auto store = GetRelationalStore();
+    ASSERT_NE(store, nullptr);
+    ContinueToken token = nullptr;
+    QueryObject query(Query::Select(g_tableName));
+    std::vector<SingleVerKvEntry *> entries;
+    EXPECT_EQ(store->GetSyncData(query, SyncTimeRange {}, DataSizeSpecInfo {}, token, entries), E_OK);
+    EXPECT_EQ(entries.size(), 1UL);
+
+    /**
+     * @tc.steps: step4. Put data into "data_plus" table from deviceA and deviceA does not exist.
+     * @tc.expected: Succeed, return OK.
+     */
+    query = QueryObject(Query::Select(tableName));
+    const DeviceID deviceID = "deviceA";
+    EXPECT_EQ(const_cast<RelationalSyncAbleStorage *>(store)->PutSyncDataWithQuery(query, entries, deviceID),
+        -1);  // -1 means error
+    SingleVerKvEntry::Release(entries);
+
+    sqlite3_close(db);
+    RefObject::DecObjRef(g_store);
+}
 #endif

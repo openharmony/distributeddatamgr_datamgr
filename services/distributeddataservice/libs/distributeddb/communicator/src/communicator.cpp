@@ -47,7 +47,7 @@ int Communicator::RegOnConnectCallback(const OnConnectCallback &onConnect, const
     if (onConnect && errCode == E_OK) {
         // Register action and success
         for (auto &entry : onlineTargets_) {
-            LOGI("[Comm][RegConnect] Label=%s, online target=%s{private}.", VEC_TO_STR(commLabel_), entry.c_str());
+            LOGI("[Comm][RegConnect] Label=%.6s, online target=%s{private}.", VEC_TO_STR(commLabel_), entry.c_str());
             onConnectHandle_(entry, true);
         }
     }

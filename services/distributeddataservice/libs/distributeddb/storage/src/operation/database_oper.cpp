@@ -519,7 +519,6 @@ int DatabaseOper::ClearImportTempFile(const KvDBProperties &property) const
     std::string exportBackupDir = workDir + "/" + dbSubDir + DBConstant::PATH_POSTFIX_UNPACKED;
     DBCommon::RemoveAllFilesOfDirectory(exportBackupDir);
 
-    LOGI("Clear the files while import");
     if (isOriKeepFileExist && isBakKeepFileExist) {
         LOGE("Origin and backup file shouldn't exist concurrently");
     }
@@ -556,7 +555,6 @@ int DatabaseOper::ClearExportedTempFiles(const KvDBProperties &property) const
     int dbType = property.GetIntProp(KvDBProperties::DATABASE_TYPE, KvDBProperties::LOCAL_TYPE);
     std::string dbSubDir = KvDBProperties::GetStoreSubDirectory(dbType);
     std::string backupDir = workDir + "/" + dbSubDir + DBConstant::PATH_POSTFIX_EXPORT_BACKUP;
-    LOGI("Remove the exported files.");
     errCode = DBCommon::RemoveAllFilesOfDirectory(backupDir);
     if (errCode != E_OK) {
         LOGE("Remove the exported backup dir failed");
