@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="BranchesTreeState">
+    <expand>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </expand>
+    <select />
+  </component>
+  <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true">
+    <generated />
+  </component>
+  <component name="CMakeSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" CONFIG_NAME="Debug" />
+    </configurations>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="0c106e40-b688-4f00-86b4-3afa92246d80" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/services/distributeddataservice/adapter/autils/src/thread_pool/kv_store_thread_pool_impl.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/services/distributeddataservice/adapter/autils/src/thread_pool/kv_store_thread_pool_impl.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/services/distributeddataservice/adapter/communicator/src/softbus_adapter_standard.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/services/distributeddataservice/adapter/communicator/src/softbus_adapter_standard.cpp" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="26PX7ige6ztn8IVotKHdlv9R0kl" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="cf.first.check.clang-format" value="false" />
+    <property name="last_opened_file_path" value="Z:/home/wufengshan/ohcode/foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/autils/src" />
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="0c106e40-b688-4f00-86b4-3afa92246d80" name="Default Changelist" comment="" />
+      <created>1647326029498</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1647326029498</updated>
+      <workItem from="1647326030667" duration="2330000" />
+      <workItem from="1647328565652" duration="1918000" />
+      <workItem from="1647344368278" duration="5844000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="2" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="650" y="225" key="FileChooserDialogImpl" timestamp="1647346275956">
+      <screen x="0" y="0" width="1739" height="939" />
+    </state>
+    <state x="650" y="225" key="FileChooserDialogImpl/0.0.1739.939@0.0.1739.939" timestamp="1647346275956" />
+    <state x="573" y="72" width="792" height="795" key="find.popup" timestamp="1647326780279">
+      <screen x="0" y="0" width="1739" height="939" />
+    </state>
+    <state x="573" y="72" width="792" height="795" key="find.popup/0.0.1739.939@0.0.1739.939" timestamp="1647326780279" />
+    <state x="533" y="200" width="672" height="678" key="search.everywhere.popup" timestamp="1647395293066">
+      <screen x="0" y="0" width="1739" height="939" />
+    </state>
+    <state x="533" y="200" width="672" height="678" key="search.everywhere.popup/0.0.1739.939@0.0.1739.939" timestamp="1647395293066" />
+  </component>
+</project>
