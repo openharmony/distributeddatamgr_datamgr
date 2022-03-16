@@ -158,7 +158,10 @@ struct Entry : public virtual Parcelable {
     // Returns size being read on success or zero if any error occur.
     static Entry *Unmarshalling(Parcel &parcel)
     {
-        Entry *entry = new Entry;
+        Entry *entry = new(std::nothrow) Entry;
+        if (entry == nullptr) {
+            return entry;
+        }
 
         bool noError = true;
         sptr<Key> keyTmp = parcel.ReadParcelable<Key>();

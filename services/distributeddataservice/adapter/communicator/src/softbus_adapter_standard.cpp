@@ -265,7 +265,7 @@ std::vector<DeviceInfo> SoftBusAdapter::GetDeviceList() const
         DeviceInfo deviceInfo = {uuid, std::string(info[i].deviceName), std::to_string(info[i].deviceTypeId)};
         dis.push_back(deviceInfo);
     }
-    if (info != NULL) {
+    if (info != nullptr) {
         FreeNodeInfo(info);
     }
     return dis;
@@ -349,7 +349,7 @@ std::vector<DeviceInfo> SoftBusAdapter::GetRemoteNodesBasicInfo() const
         dis.push_back({std::string(info[i].networkId), std::string(info[i].deviceName),
             std::to_string(info[i].deviceTypeId)});
     }
-    if (info != NULL) {
+    if (info != nullptr) {
         FreeNodeInfo(info);
     }
     return dis;
@@ -440,7 +440,7 @@ std::string SoftBusAdapter::ToNodeID(const std::string& id, const std::string &n
             }
         }
     }
-    if (info != NULL) {
+    if (info != nullptr) {
         FreeNodeInfo(info);
     }
     return networkId;
@@ -690,7 +690,7 @@ void AppDataListenerWrap::OnSessionClosed(int sessionId)
     }
     ret = GetPeerSessionName(sessionId, peerSessionName, sizeof(peerSessionName));
     if (ret != SOFTBUS_OK) {
-        ZLOGW("get my peer session name failed, session id is %{public}d.", sessionId);
+        ZLOGW("get my peer session name failed.");
         return;
     }
     ret = GetPeerDeviceId(sessionId, peerDevId, sizeof(peerDevId));
@@ -752,8 +752,8 @@ void AppDataListenerWrap::OnBytesReceived(int sessionId, const void *data, unsig
         return;
     }
     std::string peerUuid = softBusAdapter_->GetUuidByNodeId(std::string(peerDevId));
-    ZLOGD("[BytesReceived] sessionId:%{public}d, peerSessionName:%{public}s, peerDevId:%{public}s",
-        sessionId, peerSessionName, SoftBusAdapter::ToBeAnonymous(peerUuid).c_str());
+    ZLOGD("[BytesReceived] peerSessionName:%{public}s, peerDevId:%{public}s",peerSessionName,
+            SoftBusAdapter::ToBeAnonymous(peerUuid).c_str());
     NotifyDataListeners(reinterpret_cast<const uint8_t *>(data), dataLen, peerUuid, {std::string(peerSessionName), ""});
 }
 
