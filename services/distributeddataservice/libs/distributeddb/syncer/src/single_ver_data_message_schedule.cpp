@@ -69,6 +69,7 @@ Message *SingleVerDataMessageSchedule::MoveNextMsg(SingleVerSyncTaskContext *con
     Message *msg = GetMsgFromMap(isNeedHandle);
     isNeedContinue = true;
     if (msg == nullptr) {
+        StopTimer();
         std::lock_guard<std::mutex> lock(workingLock_);
         isWorking_ = false;
         return nullptr;
