@@ -191,7 +191,7 @@ HWTEST_F(DistributedDBDataTransformerTest, DataTransformerCheck001, TestSize.Lev
     }
 
     /**
-     * @tc.steps: step2. generate a originData by fieldInfoLiist.
+     * @tc.steps: step2. generate an originData by fieldInfoLiist.
      */
     TableDataWithLog originData;
     GenerateTableDataWithLog(fieldInfoList, originData);

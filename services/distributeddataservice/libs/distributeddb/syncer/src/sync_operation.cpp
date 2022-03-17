@@ -278,7 +278,7 @@ SyncType SyncOperation::GetSyncType(int mode)
 int SyncOperation::TransferSyncMode(int mode)
 {
     // AUTO_PUSH and AUTO_PULL mode is used before sync, RESPONSE_PULL is regarded as push or query push mode.
-    // so for the three mode, it is no need to transfered.
+    // so for the three mode, it is no need to transferred.
     if (mode >= SyncModeType::QUERY_PUSH && mode <= SyncModeType::QUERY_PUSH_PULL) {
         return (mode - QUERY_SYNC_MODE_BASE);
     }

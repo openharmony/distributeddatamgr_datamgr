@@ -115,7 +115,7 @@ int DeviceManager::SendBroadCast(uint32_t msgId)
     if (msgId == LOCAL_DATA_CHANGED) {
         return SendLocalDataChanged();
     }
-    LOGE("[DeviceManager] invalid BroadCast msgId:%d", msgId);
+    LOGE("[DeviceManager] invalid BroadCast msgId:%u", msgId);
     return -E_INVALID_ARGS;
 }
 
@@ -138,7 +138,7 @@ int DeviceManager::SendLocalDataChanged()
         }
         msg->SetMessageId(LOCAL_DATA_CHANGED);
         msg->SetTarget(deviceId);
-        SendConfig conf = {false, false, SEND_TIME_OUT};
+        SendConfig conf = {false, false, SEND_TIME_OUT, {}};
         int errCode = communicator_->SendMessage(deviceId, msg, conf);
         if (errCode != E_OK) {
             LOGE("[DeviceManager] SendLocalDataChanged to dev %s{private} failed. err %d",
@@ -153,7 +153,7 @@ int DeviceManager::SendLocalDataChanged()
 bool DeviceManager::IsDeviceOnline(const std::string &deviceId) const
 {
     std::lock_guard<std::mutex> lock(devicesLock_);
-    auto iter  = std::find(devices_.begin(), devices_.end(), deviceId);
+    auto iter = std::find(devices_.begin(), devices_.end(), deviceId);
     return (iter != devices_.end());
 }
 } // namespace DistributedDB

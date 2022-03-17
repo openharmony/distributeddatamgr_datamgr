@@ -28,7 +28,6 @@ bool ParamCheckUtils::CheckDataDir(const std::string &dataDir, std::string &cano
     }
 
     if (OS::GetRealPath(dataDir, canonicalDir) != E_OK) {
-        LOGE("Failed to canonicalize the data dir.");
         return false;
     }
     // After normalizing the path, determine whether the path is a legal path considered by the program.
@@ -145,7 +144,7 @@ bool ParamCheckUtils::IsS3SECEOpt(const SecurityOption &secOpt)
     return (secOpt == S3SeceOpt);
 }
 
-int ParamCheckUtils::CheckAndTransferAutoLaunchParam(const AutoLaunchParam &param,
+int ParamCheckUtils::CheckAndTransferAutoLaunchParam(const AutoLaunchParam &param, bool checkDir,
     SchemaObject &schemaObject, std::string &canonicalDir)
 {
     if ((param.option.notifier && !ParamCheckUtils::CheckConflictNotifierType(param.option.conflictType)) ||
@@ -177,6 +176,11 @@ int ParamCheckUtils::CheckAndTransferAutoLaunchParam(const AutoLaunchParam &para
             LOGE("[AutoLaunch] ParseFromSchemaString is invalid.");
             return -E_INVALID_SCHEMA;
         }
+    }
+
+    if (!checkDir) {
+        canonicalDir = param.option.dataDir;
+        return E_OK;
     }
 
     if (!ParamCheckUtils::CheckDataDir(param.option.dataDir, canonicalDir)) {

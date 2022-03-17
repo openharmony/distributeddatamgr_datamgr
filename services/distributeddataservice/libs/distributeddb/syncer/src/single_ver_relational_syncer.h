@@ -24,7 +24,7 @@ public:
 
     int Initialize(ISyncInterface *syncInterface, bool isNeedActive) override;
 
-    // Sync function. use SyncParma to reduce paramter.
+    // Sync function. use SyncParma to reduce parameter.
     int Sync(const SyncParma &param) override;
 
     void EnableAutoSync(bool enable) override;

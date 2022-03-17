@@ -22,10 +22,6 @@ namespace DistributedDB {
 namespace {
 const int INVALID_LIMIT = INT_MAX;
 const int LIMIT_FIELD_VALUE_SIZE = 2;
-bool IsNeedCheckEqualFormat(SymbolType type)
-{
-    return type == COMPARE_SYMBOL || type == RELATIONAL_SYMBOL || type == RANGE_SYMBOL;
-}
 }
 
 QueryObject::QueryObject()
@@ -212,45 +208,63 @@ int QueryObject::ParseQueryObjNodes()
 
 int QueryObject::ParseNode(const std::list<QueryObjNode>::iterator &iter)
 {
-    SymbolType symbolType = SqliteQueryHelper::GetSymbolType(iter->operFlag);
     // The object is newly instantiated in the connection, and there is no reentrancy problem.
-    if (symbolType == PREFIXKEY_SYMBOL && hasPrefixKey_) {
-        LOGE("Only filter by prefix key once!!");
+    if (!iter->IsValid()) {
         return -E_INVALID_QUERY_FORMAT;
     }
 
-    if (iter->operFlag == QueryObjType::OPER_ILLEGAL || iter->type == QueryValueType::VALUE_TYPE_INVALID) {
-        return -E_INVALID_QUERY_FORMAT;
-    } else if (IsNeedCheckEqualFormat(symbolType)) {
-        return CheckEqualFormat(iter);
-    } else if (symbolType == LINK_SYMBOL) {
-        return CheckLinkerFormat(iter);
-    } else if (iter->operFlag == QueryObjType::LIMIT) {
-        hasLimit_ = true;
-        if (iter->fieldValue.size() == LIMIT_FIELD_VALUE_SIZE) {
-            limit_ = iter->fieldValue[0].integerValue;
-            offset_ = iter->fieldValue[1].integerValue;
+    switch (SqliteQueryHelper::GetSymbolType(iter->operFlag)) {
+        case COMPARE_SYMBOL:
+        case RELATIONAL_SYMBOL:
+        case RANGE_SYMBOL:
+            return CheckEqualFormat(iter);
+        case LINK_SYMBOL:
+            return CheckLinkerFormat(iter);
+        case PREFIXKEY_SYMBOL: {
+            if (hasPrefixKey_) {
+                LOGE("Only filter by prefix key once!!");
+                return -E_INVALID_QUERY_FORMAT;
+            }
+            hasPrefixKey_ = true;
+            if (prefixKey_.size() > DBConstant::MAX_KEY_SIZE) {
+                return -E_INVALID_ARGS;
+            }
+            return E_OK;
         }
-        return CheckLimitFormat(iter);
-    } else if (iter->operFlag == QueryObjType::ORDERBY) {
-        return CheckOrderByFormat(iter);
-    } else if (symbolType == PREFIXKEY_SYMBOL) {
-        hasPrefixKey_ = true;
-        if (prefixKey_.size() > DBConstant::MAX_KEY_SIZE) {
-            return -E_INVALID_ARGS;
+        case SUGGEST_INDEX_SYMBOL:
+            return CheckSuggestIndexFormat(iter);
+        case IN_KEYS_SYMBOL: {
+            if (hasInKeys_) {
+                LOGE("Only filter by keys in once!!");
+                return -E_INVALID_QUERY_FORMAT;
+            }
+            int errCode = CheckInKeys();
+            if (errCode != E_OK) {
+                return errCode;
+            }
+            hasInKeys_ = true;
+            return E_OK;
         }
-    } else if (symbolType == SUGGEST_INDEX_SYMBOL) {
-        return CheckSuggestIndexFormat(iter);
-    } else if (symbolType == IN_KEYS_SYMBOL) {
-        if (hasInKeys_) {
-            LOGE("Only filter by keys in once!!");
-            return -E_INVALID_QUERY_FORMAT;
-        }
-        int errCode = CheckInKeys();
-        if (errCode != E_OK) {
-            return errCode;
-        }
-        hasInKeys_ = true;
+        default:
+            return ParseNodeByOperFlag(iter);
+    }
+    return E_OK;
+}
+
+int QueryObject::ParseNodeByOperFlag(const std::list<QueryObjNode>::iterator &iter)
+{
+    switch (iter->operFlag) {
+        case QueryObjType::LIMIT:
+            hasLimit_ = true;
+            if (iter->fieldValue.size() == LIMIT_FIELD_VALUE_SIZE) {
+                limit_ = iter->fieldValue[0].integerValue;
+                offset_ = iter->fieldValue[1].integerValue;
+            }
+            return CheckLimitFormat(iter);
+        case QueryObjType::ORDERBY:
+            return CheckOrderByFormat(iter);
+        default:
+            return E_OK;
     }
     return E_OK;
 }

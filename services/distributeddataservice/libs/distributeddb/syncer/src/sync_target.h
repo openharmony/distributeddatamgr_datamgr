@@ -45,7 +45,7 @@ public:
     // Get a SyncOperation
     void GetSyncOperation(SyncOperation *&operation) const override;
 
-    // Is this target is a auto sync
+    // Is this target is an auto sync
     bool IsAutoSync() const override;
 
     uint32_t GetResponseSessionId() const override;

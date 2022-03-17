@@ -188,8 +188,8 @@ int SQLiteSingleVerDatabaseUpgrader::UpgradeFromDatabaseVersion(int version)
 {
     std::vector<std::string> sqls;
     bool isCreateUpgradeFile = false;
-    LOGI("[SqlSingleUp]version=%d, metaSplit[%d], secLabel[%d], secFlag[%d]",
-        version, isMetaUpgrade_, secOpt_.securityLabel, secOpt_.securityFlag);
+    LOGI("[SqlSingleUp] metaSplit[%d], secLabel[%d], secFlag[%d]",
+        isMetaUpgrade_, secOpt_.securityLabel, secOpt_.securityFlag);
     SetUpgradeSqls(version, sqls, isCreateUpgradeFile);
     for (const auto &item : sqls) {
         int errCode = SQLiteUtils::ExecuteRawSQL(db_, item);

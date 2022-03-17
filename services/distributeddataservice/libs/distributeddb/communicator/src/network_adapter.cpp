@@ -209,7 +209,7 @@ int NetworkAdapter::SendBytes(const std::string &dstTarget, const uint8_t *bytes
     if (bytes == nullptr || length == 0) {
         return -E_INVALID_ARGS;
     }
-    LOGI("[NAdapt][SendBytes] Enter, to=%s{private}, length=%d", dstTarget.c_str(), length);
+    LOGI("[NAdapt][SendBytes] Enter, to=%s{private}, length=%u", dstTarget.c_str(), length);
     DeviceInfos dstDevInfo;
     dstDevInfo.identifier = dstTarget;
     DBStatus errCode = processCommunicator_->SendData(dstDevInfo, bytes, length);

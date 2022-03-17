@@ -66,6 +66,11 @@ struct QueryObjNode {
     std::string fieldName {};
     QueryValueType type = QueryValueType::VALUE_TYPE_INVALID;
     std::vector<FieldValue> fieldValue = {};
+    bool IsValid()
+    {
+        return operFlag != QueryObjType::OPER_ILLEGAL &&
+               type != QueryValueType::VALUE_TYPE_INVALID;
+    }
 };
 
 class QueryExpression final {

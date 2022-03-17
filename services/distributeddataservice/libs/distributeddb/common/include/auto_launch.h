@@ -64,7 +64,7 @@ struct AutoLaunchItem {
 
 class AutoLaunch {
 public:
-    static int GetAutoLaunchProperties(const AutoLaunchParam &param, const DBType &openType,
+    static int GetAutoLaunchProperties(const AutoLaunchParam &param, const DBType &openType, bool checkDir,
         std::shared_ptr<DBProperties> &propertiesPtr);
 
     AutoLaunch() = default;
@@ -96,7 +96,7 @@ protected:
     static int SetConflictNotifier(AutoLaunchItem &autoLaunchItem);
 
     static int GetAutoLaunchKVProperties(const AutoLaunchParam &param,
-        const std::shared_ptr<KvDBProperties> &propertiesPtr);
+        const std::shared_ptr<KvDBProperties> &propertiesPtr, bool checkDir);
 
     static int GetAutoLaunchRelationProperties(const AutoLaunchParam &param,
         const std::shared_ptr<RelationalDBProperties> &propertiesPtr);
@@ -154,14 +154,17 @@ protected:
 
     int ExtAutoLaunchRequestCallBack(const std::string &identifier, AutoLaunchParam &param, DBType &openType);
 
-    int RegisterLifeCycleCallback(AutoLaunchItem &autoLaunchItem, const std::string &identifier,
-        bool isExt);
+    int RegisterLifeCycleCallback(AutoLaunchItem &autoLaunchItem, const std::string &identifier, bool isExt);
 
     void TryCloseKvConnection(AutoLaunchItem &autoLaunchItem);
 
     void TryCloseRelationConnection(AutoLaunchItem &autoLaunchItem);
 
     void EraseAutoLauchItem(const std::string &identifier, const std::string &userId);
+
+    void NotifyInvalidParam(const AutoLaunchItem &autoLaunchItem);
+
+    int CheckAutoLaunchRealPath(const AutoLaunchItem &autoLaunchItem);
 
     mutable std::mutex dataLock_;
     mutable std::mutex communicatorLock_;

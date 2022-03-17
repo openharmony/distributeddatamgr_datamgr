@@ -50,7 +50,7 @@ public:
         const std::function<void(const std::map<std::string, int> &)> &onComplete,
         const std::function<void(void)> &onFinalize, bool wait) override;
 
-    // Sync function. use SyncParma to reduce paramter.
+    // Sync function. use SyncParma to reduce parameter.
     int Sync(const SyncParma &param) override;
 
     // Remove the operation, with the given syncId, used to clean resource if sync finished or failed.
@@ -165,6 +165,8 @@ protected:
 
     int SyncParamCheck(const SyncParma &param) const;
 
+    int BuildSyncEngine();
+
     static int SyncModuleInit();
 
     static int SyncResourceInit();
@@ -192,6 +194,8 @@ protected:
     mutable std::mutex queuedManualSyncLock_;
     mutable std::mutex syncerLock_;
     std::string label_;
+    bool engineFinalize_;
+    std::condition_variable engineFinalizeCv_;
 };
 } // namespace DistributedDB
 

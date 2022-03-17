@@ -786,16 +786,22 @@ int JsonObject::GetStringArrayByFieldPath(const FieldPath &inPath, std::vector<s
 #else // OMIT_JSON
 uint32_t JsonObject::SetMaxNestDepth(uint32_t nestDepth)
 {
+    (void)nestDepth;
     return 0;
 }
 
 uint32_t JsonObject::CalculateNestDepth(const std::string &inString, int &errCode)
 {
+    (void)inString;
+    (void)errCode;
     return 0;
 }
 
 uint32_t JsonObject::CalculateNestDepth(const uint8_t *dataBegin, const uint8_t *dataEnd, int &errCode)
 {
+    (void)dataBegin;
+    (void)dataEnd;
+    (void)errCode;
     return 0;
 }
 
@@ -805,18 +811,22 @@ JsonObject& JsonObject::operator=(const JsonObject &other) = default;
 
 int JsonObject::Parse(const std::string &inString)
 {
+    (void)inString;
     LOGW("[Json][Parse] Json Omit From Compile.");
     return -E_NOT_PERMIT;
 }
 
 int JsonObject::Parse(const std::vector<uint8_t> &inData)
 {
+    (void)inData;
     LOGW("[Json][Parse] Json Omit From Compile.");
     return -E_NOT_PERMIT;
 }
 
 int JsonObject::Parse(const uint8_t *dataBegin, const uint8_t *dataEnd)
 {
+    (void)dataBegin;
+    (void)dataEnd;
     LOGW("[Json][Parse] Json Omit From Compile.");
     return -E_NOT_PERMIT;
 }
@@ -833,68 +843,94 @@ std::string JsonObject::ToString() const
 
 bool JsonObject::IsFieldPathExist(const FieldPath &inPath) const
 {
+    (void)inPath;
     return false;
 }
 
 int JsonObject::GetFieldTypeByFieldPath(const FieldPath &inPath, FieldType &outType) const
 {
+    (void)inPath;
+    (void)outType;
     return -E_NOT_PERMIT;
 }
 
 int JsonObject::GetFieldValueByFieldPath(const FieldPath &inPath, FieldValue &outValue) const
 {
+    (void)inPath;
+    (void)outValue;
     return -E_NOT_PERMIT;
 }
 
 int JsonObject::GetSubFieldPath(const FieldPath &inPath, std::set<FieldPath> &outSubPath) const
 {
+    (void)inPath;
+    (void)outSubPath;
     return -E_NOT_PERMIT;
 }
 
 int JsonObject::GetSubFieldPath(const std::set<FieldPath> &inPath, std::set<FieldPath> &outSubPath) const
 {
+    (void)inPath;
+    (void)outSubPath;
     return -E_NOT_PERMIT;
 }
 
 int JsonObject::GetSubFieldPathAndType(const FieldPath &inPath, std::map<FieldPath, FieldType> &outSubPathType) const
 {
+    (void)inPath;
+    (void)outSubPathType;
     return -E_NOT_PERMIT;
 }
 
 int JsonObject::GetSubFieldPathAndType(const std::set<FieldPath> &inPath,
     std::map<FieldPath, FieldType> &outSubPathType) const
 {
+    (void)inPath;
+    (void)outSubPathType;
     return -E_NOT_PERMIT;
 }
 
 int JsonObject::GetArraySize(const FieldPath &inPath, uint32_t &outSize) const
 {
+    (void)inPath;
+    (void)outSize;
     return -E_NOT_PERMIT;
 }
 
 int JsonObject::GetArrayContentOfStringOrStringArray(const FieldPath &inPath,
     std::vector<std::vector<std::string>> &outContent) const
 {
+    (void)inPath;
+    (void)outContent;
     return -E_NOT_PERMIT;
 }
 
 int JsonObject::InsertField(const FieldPath &inPath, FieldType inType, const FieldValue &inValue)
 {
+    (void)inPath;
+    (void)inType;
+    (void)inValue;
     return -E_NOT_PERMIT;
 }
 
 int JsonObject::InsertField(const FieldPath &inPath, const JsonObject &inValue, bool isAppend = false)
 {
+    (void)inPath;
+    (void)inValue;
+    (void)isAppend;
     return -E_NOT_PERMIT;
 }
 
 int JsonObject::DeleteField(const FieldPath &inPath)
 {
+    (void)inPath;
     return -E_NOT_PERMIT;
 }
 
 int JsonObject::GetArrayValueByFieldPath(const FieldPath &inPath, JsonObject &outArray) const
 {
+    (void)inPath;
+    (void)outArray;
     return -E_NOT_PERMIT;
 }
 #endif // OMIT_JSON

@@ -397,7 +397,7 @@ int RelationalSyncAbleStorage::SaveSyncDataItems(const QueryObject &object, std:
         storageEngine_->GetSchemaRef().GetTable(object.GetTableName()), maxTimestamp);
     if (errCode == E_OK) {
         (void)SetMaxTimeStamp(maxTimestamp);
-        // dataItems size > 0 now because already check befor
+        // dataItems size > 0 now because already check before
         // all dataItems will write into db now, so need to observer notify here
         // if some dataItems will not write into db in the future, observer notify here need change
         TriggerObserverAction(deviceName);

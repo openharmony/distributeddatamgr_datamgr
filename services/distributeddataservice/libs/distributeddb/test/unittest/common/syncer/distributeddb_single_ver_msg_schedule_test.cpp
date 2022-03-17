@@ -54,7 +54,7 @@ void DistributedDBSingleVerMsgScheduleTest::TearDown(void)
 
 /**
  * @tc.name: MsgSchedule001
- * @tc.desc: Test MsgSchedule funtion with normal sequenceId
+ * @tc.desc: Test MsgSchedule function with normal sequenceId
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: zhuwentao
@@ -104,7 +104,7 @@ HWTEST_F(DistributedDBSingleVerMsgScheduleTest, MsgSchedule001, TestSize.Level0)
 
 /**
  * @tc.name: MsgSchedule002
- * @tc.desc: Test MsgSchedule funtion with by low version
+ * @tc.desc: Test MsgSchedule function with by low version
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: zhuwentao
@@ -147,7 +147,7 @@ HWTEST_F(DistributedDBSingleVerMsgScheduleTest, MsgSchedule002, TestSize.Level0)
 
 /**
  * @tc.name: MsgSchedule003
- * @tc.desc: Test MsgSchedule funtion with cross sessionId
+ * @tc.desc: Test MsgSchedule function with cross sessionId
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: zhuwentao
@@ -214,7 +214,7 @@ HWTEST_F(DistributedDBSingleVerMsgScheduleTest, MsgSchedule003, TestSize.Level0)
 
 /**
  * @tc.name: MsgSchedule004
- * @tc.desc: Test MsgSchedule funtion with same sessionId with different packetId
+ * @tc.desc: Test MsgSchedule function with same sessionId with different packetId
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: zhuwentao
@@ -273,7 +273,7 @@ HWTEST_F(DistributedDBSingleVerMsgScheduleTest, MsgSchedule004, TestSize.Level0)
 
 /**
  * @tc.name: MsgSchedule005
- * @tc.desc: Test MsgSchedule funtion with same sessionId with different packetId
+ * @tc.desc: Test MsgSchedule function with same sessionId with different packetId
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: zhuwentao
@@ -330,7 +330,7 @@ HWTEST_F(DistributedDBSingleVerMsgScheduleTest, MsgSchedule005, TestSize.Level0)
 
 /**
  * @tc.name: MsgSchedule006
- * @tc.desc: Test MsgSchedule funtion with same sessionId and same sequenceId and packetId
+ * @tc.desc: Test MsgSchedule function with same sessionId and same sequenceId and packetId
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: zhuwentao
@@ -396,7 +396,7 @@ HWTEST_F(DistributedDBSingleVerMsgScheduleTest, MsgSchedule006, TestSize.Level0)
 
 /**
  * @tc.name: MsgSchedule007
- * @tc.desc: Test MsgSchedule funtion with same sessionId and duplicate sequenceId and low packetId
+ * @tc.desc: Test MsgSchedule function with same sessionId and duplicate sequenceId and low packetId
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author: zhuwentao

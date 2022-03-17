@@ -423,7 +423,7 @@ HWTEST_F(DistributeddbNbAutolaunchTest, ParamCheck006, TestSize.Level0)
     EXPECT_EQ(manager->SetKvStoreConfig({ .dataDir = DistributedDBConstant::NB_DIRECTOR }), OK);
     /**
      * @tc.steps: step1. call EnableKvStoreAutoLaunch use the option with which createIfNecessary is true,
-     *    isEncryptedDb = false, and different dataDir that include many special charaters;
+     *    isEncryptedDb = false, and different dataDir that include many special characters;
      * @tc.expected: step1. enable success, and return OK.
      */
     string middlePath = "ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/"

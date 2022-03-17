@@ -219,6 +219,8 @@ int CommitHistorySync::Initialize(MultiVerKvDBSyncInterface *storagePtr, ICommun
 
 void CommitHistorySync::TimeOutCallback(MultiVerSyncTaskContext *context, const Message *message) const
 {
+    (void)context;
+    (void)message;
     return;
 }
 
@@ -536,7 +538,7 @@ bool CommitHistorySync::IsPacketValid(const Message *inMsg, uint16_t messageType
 
 int CommitHistorySync::Send(const DeviceID &deviceId, const Message *inMsg)
 {
-    SendConfig conf = {false, false, SEND_TIME_OUT};
+    SendConfig conf = {false, false, SEND_TIME_OUT, {}};
     int errCode = communicateHandle_->SendMessage(deviceId, inMsg, conf);
     if (errCode != E_OK) {
         LOGE("CommitHistorySync::Send ERR! err = %d", errCode);

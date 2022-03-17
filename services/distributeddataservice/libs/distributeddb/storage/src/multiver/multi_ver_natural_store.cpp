@@ -1184,11 +1184,13 @@ int MultiVerNaturalStore::GetVersionFilePath(const KvDBProperties &kvDBProp, std
 
 int MultiVerNaturalStore::DeleteMetaDataByPrefixKey(const Key &keyPrefix) const
 {
+    (void)keyPrefix;
     return -E_NOT_SUPPORT;
 }
 
 void MultiVerNaturalStore::SetDataInterceptor(const PushDataInterceptor &interceptor)
 {
+    (void)interceptor;
     return;
 }
 

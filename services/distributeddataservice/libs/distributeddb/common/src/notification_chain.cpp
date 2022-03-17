@@ -273,7 +273,7 @@ void NotificationChain::Listener::KillWait()
         return;
     }
 
-    LOGW("[NotificationChain] Try to kill a active event listener, now wait.");
+    LOGW("[NotificationChain] Try to kill an active event listener, now wait.");
     bool noDeadLock = WaitLockedUntil(safeKill_, [this]() {
             if (eventRunningThread_ == std::thread::id()) {
                 return true;

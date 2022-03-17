@@ -46,7 +46,8 @@ GenericSyncer::GenericSyncer()
       queuedManualSyncSize_(0),
       queuedManualSyncLimit_(DBConstant::QUEUED_SYNC_LIMIT_DEFAULT),
       manualSyncEnable_(true),
-      closing_(false)
+      closing_(false),
+      engineFinalize_(false)
 {
 }
 
@@ -56,6 +57,14 @@ GenericSyncer::~GenericSyncer()
     if (syncEngine_ != nullptr) {
         syncEngine_->OnKill([this]() { this->syncEngine_->Close(); });
         RefObject::KillAndDecObjRef(syncEngine_);
+        // waiting all thread exist
+        std::mutex engineMutex;
+        std::unique_lock<std::mutex> cvLock(engineMutex);
+        bool engineFinalize = engineFinalizeCv_.wait_for(cvLock, std::chrono::milliseconds(DBConstant::MIN_TIMEOUT),
+            [this]() { return engineFinalize_; });
+        if (!engineFinalize) {
+            LOGW("syncer finalize before engine finalize!");
+        }
         syncEngine_ = nullptr;
     }
     timeHelper_ = nullptr;
@@ -117,7 +126,7 @@ int GenericSyncer::Initialize(ISyncInterface *syncInterface, bool isNeedActive)
         initialized_ = true;
     }
 
-    // RegConnectCallback may start a auto sync, this function can not in syncerLock_
+    // RegConnectCallback may start an auto sync, this function can not in syncerLock_
     syncEngine_->RegConnectCallback();
     return E_OK;
 }
@@ -273,6 +282,7 @@ uint64_t GenericSyncer::GetTimeStamp()
 
 void GenericSyncer::QueryAutoSync(const InternalSyncParma &param)
 {
+    (void)param;
 }
 
 void GenericSyncer::AddSyncOperation(SyncOperation *operation)
@@ -343,21 +353,17 @@ int GenericSyncer::InitSyncEngine(ISyncInterface *syncInterface)
         LOGI("[Syncer] syncEngine is active");
         return E_OK;
     }
-    if (syncEngine_ == nullptr) {
-        syncEngine_ = CreateSyncEngine();
-        if (syncEngine_ == nullptr) {
-            return -E_OUT_OF_MEMORY;
-        }
+    int errCode = BuildSyncEngine();
+    if (errCode != E_OK) {
+        return errCode;
     }
-
-    syncEngine_->OnLastRef([]() { LOGD("[Syncer] SyncEngine finalized"); });
     const std::function<void(std::string)> onlineFunc = std::bind(&GenericSyncer::RemoteDataChanged,
         this, std::placeholders::_1);
     const std::function<void(std::string)> offlineFunc = std::bind(&GenericSyncer::RemoteDeviceOffline,
         this, std::placeholders::_1);
     const std::function<void(const InternalSyncParma &param)> queryAutoSyncFunc =
         std::bind(&GenericSyncer::QueryAutoSync, this, std::placeholders::_1);
-    int errCode = syncEngine_->Initialize(syncInterface, metadata_, onlineFunc, offlineFunc, queryAutoSyncFunc);
+    errCode = syncEngine_->Initialize(syncInterface, metadata_, onlineFunc, offlineFunc, queryAutoSyncFunc);
     if (errCode == E_OK) {
         syncInterface_ = syncInterface;
         syncInterface->IncRefCount();
@@ -381,11 +387,9 @@ int GenericSyncer::CheckSyncActive(ISyncInterface *syncInterface, bool isNeedAct
         return E_OK;
     }
     LOGI("[Syncer] syncer no need to active");
-    if (syncEngine_ == nullptr) {
-        syncEngine_ = CreateSyncEngine();
-        if (syncEngine_ == nullptr) {
-            return -E_OUT_OF_MEMORY;
-        }
+    int errCode = BuildSyncEngine();
+    if (errCode != E_OK) {
+        return errCode;
     }
     return -E_NO_NEED_ACTIVE;
 }
@@ -413,6 +417,10 @@ bool GenericSyncer::IsValidMode(int mode) const
 int GenericSyncer::SyncConditionCheck(QuerySyncObject &query, int mode, bool isQuerySync,
     const std::vector<std::string> &devices) const
 {
+    (void)query;
+    (void)mode;
+    (void)isQuerySync;
+    (void)(devices);
     return E_OK;
 }
 
@@ -751,5 +759,22 @@ void GenericSyncer::InitSyncOperation(SyncOperation *operation, const SyncParma 
     if (param.isQuerySync) {
         operation->SetQuery(param.syncQuery);
     }
+}
+
+int GenericSyncer::BuildSyncEngine()
+{
+    if (syncEngine_ != nullptr) {
+        return E_OK;
+    }
+    syncEngine_ = CreateSyncEngine();
+    if (syncEngine_ == nullptr) {
+        return -E_OUT_OF_MEMORY;
+    }
+    syncEngine_->OnLastRef([this]() {
+        LOGD("[Syncer] SyncEngine finalized");
+        engineFinalize_ = true;
+        engineFinalizeCv_.notify_all();
+    });
+    return E_OK;
 }
 } // namespace DistributedDB

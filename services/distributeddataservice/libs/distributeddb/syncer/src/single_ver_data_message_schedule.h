@@ -47,7 +47,7 @@ private:
     void StopTimer();
     void ResetTimer(SingleVerSyncTaskContext *context);
     // when timeout queue size is 0 because thread can move queue msg to map if isNeedReload which is
-    // actived when queue has new msg is true
+    // activated when queue has new msg is true
     // so only need clear map msg
     int TimeOut(TimerId timerId);
 

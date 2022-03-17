@@ -21,26 +21,24 @@
 namespace DistributedDB {
 int SingleVerDatabaseUpgrader::Upgrade()
 {
-    LOGI("[SingleUp][Upgrade] Enter, CurVersion=%d.", SINGLE_VER_STORE_VERSION_CURRENT);
     int errCode = GetDatabaseVersion(dbVersion_);
     if (errCode != E_OK) {
-        LOGE("[SingleUp][Upgrade] GetVersion fail, errCode=%d.", errCode);
+        LOGE("[SingleUp][Upgrade] GetVersion error:%d.", errCode);
         return errCode;
     }
     if (dbVersion_ > SINGLE_VER_STORE_VERSION_CURRENT) {
         LOGE("[SingleUp][Upgrade] DbVersion=%d is newer.", dbVersion_);
         return -E_VERSION_NOT_SUPPORT;
     }
-    LOGI("[SingleUp][Upgrade] DbVersion=%d.", dbVersion_);
-
+    LOGI("[SingleUp][Upgrade] from %d to %d.", dbVersion_, SINGLE_VER_STORE_VERSION_CURRENT);
     errCode = BeginUpgrade();
     if (errCode != E_OK) {
-        LOGE("[SingleUp][Upgrade] Begin fail, errCode=%d.", errCode);
+        LOGE("[SingleUp][Upgrade] Begin error:%d.", errCode);
         return errCode;
     }
     errCode = ExecuteUpgrade();
     if (errCode != E_OK) {
-        LOGE("[SingleUp][Upgrade] Execute fail, errCode=%d.", errCode);
+        LOGE("[SingleUp][Upgrade] Execute error:%d.", errCode);
         EndUpgrade(false);
         return errCode;
     }
@@ -48,7 +46,7 @@ int SingleVerDatabaseUpgrader::Upgrade()
     if (dbVersion_ < SINGLE_VER_STORE_VERSION_CURRENT) {
         errCode = SetDatabaseVersion(SINGLE_VER_STORE_VERSION_CURRENT);
         if (errCode != E_OK) {
-            LOGE("[SingleUp][Upgrade] SetVersion fail, errCode=%d.", errCode);
+            LOGE("[SingleUp][Upgrade] SetVersion error:%d.", errCode);
             EndUpgrade(false);
             return errCode;
         }
@@ -56,11 +54,10 @@ int SingleVerDatabaseUpgrader::Upgrade()
 
     errCode = EndUpgrade(true);
     if (errCode != E_OK) {
-        LOGE("[SingleUp][Upgrade] End fail, errCode=%d.", errCode);
+        LOGE("[SingleUp][Upgrade] End error:%d.", errCode);
         return errCode;
     }
 
-    LOGI("[SingleUp][Upgrade] Exit Successfully.");
     return E_OK;
 }
 

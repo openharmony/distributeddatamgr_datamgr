@@ -57,7 +57,7 @@ DBStatus RelationalStoreDelegateImpl::CreateDistributedTable(const std::string &
 
     int errCode = conn_->CreateDistributedTable(tableName);
     if (errCode != E_OK) {
-        LOGW("[RelationalStore Delegate] Create Distributed table failed:%d", errCode);
+        LOGE("[RelationalStore Delegate] Create Distributed table failed:%d", errCode);
         return TransferDBErrno(errCode);
     }
     return OK;
@@ -90,7 +90,7 @@ DBStatus RelationalStoreDelegateImpl::RemoveDeviceData(const std::string &device
 
     if (device.empty() || device.length() > DBConstant::MAX_DEV_LENGTH ||
         !ParamCheckUtils::CheckRelationalTableName(tableName)) {
-        LOGE("[RelationalStore Delegate] Remove device data with invald device name or table name.");
+        LOGE("[RelationalStore Delegate] Remove device data with invalid device name or table name.");
         return INVALID_ARGS;
     }
 
