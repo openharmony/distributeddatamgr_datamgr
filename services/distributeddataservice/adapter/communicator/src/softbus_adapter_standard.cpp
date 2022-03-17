@@ -689,7 +689,7 @@ void AppDataListenerWrap::OnSessionClosed(int sessionId)
     }
     ret = GetPeerSessionName(sessionId, peerSessionName, sizeof(peerSessionName));
     if (ret != SOFTBUS_OK) {
-        ZLOGW("get my peer session name failed, session id is %{public}d.", sessionId);
+        ZLOGW("get my peer session name failed.");
         return;
     }
     ret = GetPeerDeviceId(sessionId, peerDevId, sizeof(peerDevId));

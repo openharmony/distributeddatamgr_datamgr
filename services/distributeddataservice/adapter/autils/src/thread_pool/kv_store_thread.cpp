@@ -21,7 +21,6 @@
 namespace OHOS {
 namespace DistributedKv {
 KvStoreThread::KvStoreThread(KvStoreThreadPool *threadPool)
-    : pool_(threadPool)
 {
     realThread_ = std::thread([&, threadPool]() {
         // this makes me unconfortable: this lambda capture 'this' by reference, and right after this call this object
@@ -29,11 +28,6 @@ KvStoreThread::KvStoreThread(KvStoreThreadPool *threadPool)
         // use all its non-virtual function, but all arguments and virtual-function are not available.
         Run(threadPool);
     });
-}
-
-KvStoreThread::KvStoreThread(KvStoreThread &&thread) : pool_(thread.pool_)
-{
-    realThread_ = std::move(thread.realThread_);
 }
 
 void KvStoreThread::Run(KvStoreThreadPool *pool)
