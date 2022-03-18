@@ -57,7 +57,7 @@ int LruMap::Put(const std::string &key, const QueryWaterMark &inValue)
 int LruMap::Get(const std::string &key, QueryWaterMark &outValue)
 {
     std::lock_guard<std::mutex> autoLock(lruLock_);
-    if (cache_.count(key) == 0) {
+    if (cache_.find(key) == cache_.end()) {
         return -E_NOT_FOUND;
     }
     outValue = cache_[key];

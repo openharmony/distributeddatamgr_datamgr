@@ -1061,9 +1061,8 @@ bool SingleVerSyncStateMachine::IsNeedErrCodeHandle(uint32_t sessionId) const
     if (sessionId == context_->GetRequestSessionId() ||
         context_->GetRemoteSoftwareVersion() == SOFTWARE_VERSION_RELEASE_2_0) {
         return true;
-    } else {
-        return false;
     }
+    return false;
 }
 
 void SingleVerSyncStateMachine::PushPullDataRequestEvokeErrHandle()
