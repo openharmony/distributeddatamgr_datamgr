@@ -578,7 +578,7 @@ int QuerySyncWaterMarkHelper::ResetRecvQueryWaterMark(const DeviceID &deviceId, 
             std::string hexTableName = DBCommon::TransferStringToHex(hashTableName);
             prefixKeyStr += hexTableName;
         }
-        
+
         // remove in db
         Key prefixKey;
         DBCommon::StringToVector(prefixKeyStr, prefixKey);
