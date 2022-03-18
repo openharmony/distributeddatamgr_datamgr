@@ -403,7 +403,8 @@ int AbilitySync::AckRecv(const Message *message, ISyncTaskContext *context)
         errCode = AckRecvWithHighVersion(message, context, packet);
     } else {
         std::string schema = packet->GetSchema();
-        bool isCompatible = static_cast<SyncGenericInterface *>(storageInterface_)->CheckCompatible(schema);
+        uint8_t schemaType = packet->GetSchemaType();
+        bool isCompatible = static_cast<SyncGenericInterface *>(storageInterface_)->CheckCompatible(schema, schemaType);
         if (!isCompatible) {
             (static_cast<SingleVerSyncTaskContext *>(context))->SetTaskErrCode(-E_SCHEMA_MISMATCH);
             LOGE("[AbilitySync][AckRecv] scheme check failed");
@@ -432,7 +433,8 @@ int AbilitySync::RequestRecv(const Message *message, ISyncTaskContext *context)
     }
 
     std::string schema = packet->GetSchema();
-    bool isCompatible = static_cast<SyncGenericInterface *>(storageInterface_)->CheckCompatible(schema);
+    uint8_t schemaType = packet->GetSchemaType();
+    bool isCompatible = static_cast<SyncGenericInterface *>(storageInterface_)->CheckCompatible(schema, schemaType);
     if (!isCompatible) {
         (static_cast<SingleVerSyncTaskContext *>(context))->SetTaskErrCode(-E_SCHEMA_MISMATCH);
     }
