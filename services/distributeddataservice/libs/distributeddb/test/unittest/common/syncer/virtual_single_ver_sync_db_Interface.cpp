@@ -108,7 +108,7 @@ int VirtualSingleVerSyncDBInterface::GetAllMetaKeys(std::vector<Key> &keys) cons
     for (auto iter = metadata_.begin(); iter != metadata_.end(); ++iter) {
         keys.push_back(iter->first);
     }
-    LOGD("GetAllMetaKeys size %d", keys.size());
+    LOGD("GetAllMetaKeys size %zu", keys.size());
     return E_OK;
 }
 
@@ -162,7 +162,7 @@ void VirtualSingleVerSyncDBInterface::GetMaxTimeStamp(TimeStamp& stamp) const
             stamp = iter->writeTimeStamp;
         }
     }
-    LOGD("VirtualSingleVerSyncDBInterface::GetMaxTimeStamp time = %llu", stamp);
+    LOGD("VirtualSingleVerSyncDBInterface::GetMaxTimeStamp time = %" PRIu64, stamp);
 }
 
 int VirtualSingleVerSyncDBInterface::RemoveDeviceData(const std::string &deviceName, bool isNeedNotify)
@@ -219,7 +219,7 @@ int VirtualSingleVerSyncDBInterface::GetSyncData(TimeStamp begin, TimeStamp end,
         }
     }
     continueStmtToken = nullptr;
-    LOGD("dataItems size %d", dataItems.size());
+    LOGD("dataItems size %zu", dataItems.size());
     return E_OK;
 }
 
@@ -246,7 +246,8 @@ int VirtualSingleVerSyncDBInterface::PutSyncData(std::vector<VirtualDataItem>& d
             [iter](VirtualDataItem item) { return item.key == iter->key; });
         if ((dbDataIter != dbData_.end()) && (dbDataIter->writeTimeStamp < iter->writeTimeStamp)) {
             // if has conflict, compare writeTimeStamp
-            LOGI("conflict data time local %llu, remote %llu", dbDataIter->writeTimeStamp, iter->writeTimeStamp);
+            LOGI("conflict data time local %" PRIu64 ", remote %" PRIu64, dbDataIter->writeTimeStamp,
+                iter->writeTimeStamp);
             dbDataIter->key = iter->key;
             dbDataIter->value = iter->value;
             dbDataIter->timeStamp = iter->timeStamp;
@@ -254,7 +255,7 @@ int VirtualSingleVerSyncDBInterface::PutSyncData(std::vector<VirtualDataItem>& d
             dbDataIter->flag = iter->flag;
             dbDataIter->isLocal = false;
         } else {
-            LOGI("PutSyncData, use remote data %llu", iter->timeStamp);
+            LOGI("PutSyncData, use remote data %" PRIu64, iter->timeStamp);
             VirtualDataItem dataItem;
             dataItem.key = iter->key;
             dataItem.value = iter->value;
@@ -333,7 +334,7 @@ int VirtualSingleVerSyncDBInterface::GetSyncData(QueryObject &query, const SyncT
         }
     }
 
-    LOGD("dataItems size %d", dataItems.size());
+    LOGD("dataItems size %zu", dataItems.size());
     return GetEntriesFromItems(entries, dataItems);
 }
 

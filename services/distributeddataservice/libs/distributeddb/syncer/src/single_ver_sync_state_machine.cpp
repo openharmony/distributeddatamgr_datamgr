@@ -322,7 +322,7 @@ void SingleVerSyncStateMachine::InitStateSwitchTable(uint32_t version,
     table.version = version;
     for (const auto &stateSwitch : switchTable) {
         if (stateSwitch.size() <= OUTPUT_STATE_INDEX) {
-            LOGE("[StateMachine][InitSwitchTable] stateSwitch size err,size=%llu", stateSwitch.size());
+            LOGE("[StateMachine][InitSwitchTable] stateSwitch size err,size=%zu", stateSwitch.size());
             return;
         }
         if (table.switchTable.count(stateSwitch[CURRENT_STATE_INDEX]) == 0) {
@@ -689,7 +689,7 @@ void SingleVerSyncStateMachine::NeedAbilitySyncHandle()
     // mean the version num has been reset when syncing data,
     // there should not clear the new version cache again.
     if (currentRemoteVersionId_ == context_->GetRemoteSoftwareVersionId()) {
-        LOGI("[StateMachine] set remote version 0, currentRemoteVersionId_ = %llu", currentRemoteVersionId_);
+        LOGI("[StateMachine] set remote version 0, currentRemoteVersionId_ = %" PRIu64, currentRemoteVersionId_);
         context_->SetRemoteSoftwareVersion(0);
     } else {
         currentRemoteVersionId_ = context_->GetRemoteSoftwareVersionId();

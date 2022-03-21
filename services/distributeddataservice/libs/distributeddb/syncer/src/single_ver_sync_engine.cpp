@@ -75,7 +75,7 @@ int SingleVerSyncEngine::StartAutoSubscribeTimer()
         return errCode;
     }
     subscribeTimerId_ = timerId;
-    LOGI("[SingleSyncEngine] start auto subscribe timerId=%d finished", timerId);
+    LOGI("[SingleSyncEngine] start auto subscribe timerId=%" PRIu64 " finished", timerId);
     return errCode;
 }
 
@@ -85,7 +85,7 @@ void SingleVerSyncEngine::StopAutoSubscribeTimer()
     if (subscribeTimerId_ == 0) {
         return;
     }
-    LOGI("[SingleSyncEngine] stop auto subscribe timerId=%d finished", subscribeTimerId_);
+    LOGI("[SingleSyncEngine] stop auto subscribe timerId=%" PRIu64 " finished", subscribeTimerId_);
     RuntimeContext::GetInstance()->RemoveTimer(subscribeTimerId_);
     subscribeTimerId_ = 0;
 }

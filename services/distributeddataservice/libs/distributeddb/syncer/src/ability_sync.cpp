@@ -145,7 +145,7 @@ uint32_t AbilitySyncRequestPacket::CalculateLen() const
     // the reason why not 8-byte align is that old version is not 8-byte align
     // so it is not possible to set 8-byte align for high version.
     if (len > INT32_MAX) {
-        LOGE("[AbilitySyncRequestPacket][CalculateLen]  err len:%llu", len);
+        LOGE("[AbilitySyncRequestPacket][CalculateLen]  err len:%" PRIu64, len);
         return 0;
     }
     return len;
@@ -299,7 +299,7 @@ uint32_t AbilitySyncAckPacket::CalculateLen() const
     len += DbAbility::CalculateLen(dbAbility_); // dbAbility_
     len += SchemaNegotiate::CalculateParcelLen(relationalSyncOpinion_);
     if (len > INT32_MAX) {
-        LOGE("[AbilitySyncAckPacket][CalculateLen]  err len:%llu", len);
+        LOGE("[AbilitySyncAckPacket][CalculateLen]  err len:%" PRIu64, len);
         return 0;
     }
     return len;
@@ -930,7 +930,7 @@ int AbilitySync::SetAbilityRequestBodyInfo(AbilitySyncRequestPacket &packet, uin
     packet.SetSecFlag(option.securityFlag);
     packet.SetDbCreateTime(dbCreateTime);
     packet.SetDbAbility(dbAbility);
-    LOGI("[AbilitySync][FillRequest] ver=%u,Lab=%d,Flag=%d,dbCreateTime=%llu", SOFTWARE_VERSION_CURRENT,
+    LOGI("[AbilitySync][FillRequest] ver=%u,Lab=%d,Flag=%d,dbCreateTime=%" PRId64, SOFTWARE_VERSION_CURRENT,
         option.securityLabel, option.securityFlag, dbCreateTime);
     return E_OK;
 }

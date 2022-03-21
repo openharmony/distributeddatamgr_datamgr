@@ -197,7 +197,7 @@ int TimeSync::SyncStart(const CommErrHandler &handler,  uint32_t sessionId)
     TimeStamp startTime = timeHelper_->GetTime();
     packet.SetSourceTimeBegin(startTime);
     // send timeSync request
-    LOGD("[TimeSync] startTime = %llu, dev = %s{private}", startTime, deviceId_.c_str());
+    LOGD("[TimeSync] startTime = %" PRIu64 ", dev = %s{private}", startTime, deviceId_.c_str());
 
     Message *message = new (std::nothrow) Message(TIME_SYNC_MESSAGE);
     if (message == nullptr) {
@@ -341,7 +341,8 @@ int TimeSync::AckRecv(const Message *message, uint32_t targetSessionId)
     }
     // calculate timeoffset of two devices
     TimeOffset offset = CalculateTimeOffset(packetData);
-    LOGD("TimeSync::AckRecv, dev = %s{private}, sEnd = %llu, tEnd = %llu, sBegin = %llu, tBegin = %llu, offset = %lld",
+    LOGD("TimeSync::AckRecv, dev = %s{private}, sEnd = %" PRIu64 ", tEnd = %" PRIu64 ", sBegin = %" PRIu64 
+        ", tBegin = %" PRIu64 ", offset = %lld",
         deviceId_.c_str(),
         packetData.GetSourceTimeEnd(),
         packetData.GetTargetTimeEnd(),
@@ -378,9 +379,9 @@ int TimeSync::RequestRecv(const Message *message)
     ackPacket.SetTargetTimeBegin(targetTimeBegin);
     TimeStamp targetTimeEnd = timeHelper_->GetTime();
     ackPacket.SetTargetTimeEnd(targetTimeEnd);
-    LOGD("TimeSync::RequestRecv, dev = %s{private}, sTimeEnd = %llu, tTimeEnd = %llu, sbegin = %llu, tbegin = %llu",
-        deviceId_.c_str(), ackPacket.GetSourceTimeEnd(), ackPacket.GetTargetTimeEnd(), ackPacket.GetSourceTimeBegin(),
-        ackPacket.GetTargetTimeBegin());
+    LOGD("TimeSync::RequestRecv, dev = %s{private}, sTimeEnd = %" PRIu64 ", tTimeEnd = %" PRIu64 ", sbegin = %" PRIu64
+        ", tbegin = %" PRIu64, deviceId_.c_str(), ackPacket.GetSourceTimeEnd(), ackPacket.GetTargetTimeEnd(),
+        ackPacket.GetSourceTimeBegin(), ackPacket.GetTargetTimeBegin());
     if (ackPacket.GetSourceTimeBegin() > TimeHelper::MAX_VALID_TIME) {
         LOGD("[TimeSync][RequestRecv] Time valid check failed.");
         return -E_INVALID_TIME;
@@ -434,8 +435,8 @@ TimeOffset TimeSync::CalculateTimeOffset(const TimeSyncPacket &timeSyncInfo)
     TimeOffset offset2 = static_cast<TimeOffset>(timeSyncInfo.GetTargetTimeEnd() + (roundTrip / TRIP_DIV_HALF) -
         timeSyncInfo.GetSourceTimeEnd());
     TimeOffset offset = (offset1 / TRIP_DIV_HALF) + (offset2 / TRIP_DIV_HALF);
-    LOGD("TimeSync::CalculateTimeOffset roundTrip= %lld, offset1 = %lld, offset2 = %lld, offset = %lld",
-        roundTrip, offset1, offset2, offset);
+    LOGD("TimeSync::CalculateTimeOffset roundTrip= %" PRId64 ", offset1 = %" PRId64 ", offset2 = %" PRId64
+        ", offset = %" PRId64, roundTrip, offset1, offset2, offset);
     return offset;
 }
 
@@ -499,7 +500,7 @@ int TimeSync::GetTimeOffset(TimeOffset &outOffset, uint32_t timeout, uint32_t se
         }
         CommErrHandler handler = std::bind(&TimeSync::CommErrHandlerFunc, std::placeholders::_1, this);
         int errCode = SyncStart(handler, sessionId);
-        LOGD("TimeSync::GetTimeOffset start, current time = %llu, errCode = %d，timeout = %u ms",
+        LOGD("TimeSync::GetTimeOffset start, current time = %" PRIu64 ", errCode = %d, timeout = %" PRIu32 " ms",
             TimeHelper::GetSysCurrentTime(), errCode, timeout);
         std::unique_lock<std::mutex> lock(cvLock_);
         if (errCode != E_OK || !conditionVar_.wait_for(lock, std::chrono::milliseconds(timeout),

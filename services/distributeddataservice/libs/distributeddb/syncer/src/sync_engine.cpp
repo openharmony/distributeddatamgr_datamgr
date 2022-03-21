@@ -250,7 +250,7 @@ int SyncEngine::InitComunicator(const ISyncInterface *syncInterface)
         false);
     if (isSyncDualTupleMode) {
         std::vector<uint8_t> dualTuplelabel = syncInterface->GetDualTupleIdentifier();
-        LOGI("[SyncEngine] dual tuple mode, original identifier=%0.6s, target identifier=%0.6s", VEC_TO_STR(label),
+        LOGI("[SyncEngine] dual tuple mode, original identifier=%.6s, target identifier=%.6s", VEC_TO_STR(label),
             VEC_TO_STR(dualTuplelabel));
         communicator_ = communicatorAggregator->AllocCommunicator(dualTuplelabel, errCode);
     } else {
@@ -521,7 +521,7 @@ void SyncEngine::PutMsgIntoQueue(const std::string &targetDev, Message *inMsg, i
     inMsg->SetTarget(targetDev);
     msgQueue_.push_back(inMsg);
     queueCacheSize_ += msgSize;
-    LOGE("[SyncEngine] The quantity of executing threads is beyond maximum. msgQueueSize = %d", msgQueue_.size());
+    LOGE("[SyncEngine] The quantity of executing threads is beyond maximum. msgQueueSize = %zu", msgQueue_.size());
 }
 
 int SyncEngine::GetMsgSize(const Message *inMsg) const

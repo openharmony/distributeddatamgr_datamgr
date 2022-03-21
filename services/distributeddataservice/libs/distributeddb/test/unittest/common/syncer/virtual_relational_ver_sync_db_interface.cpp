@@ -48,7 +48,7 @@ namespace {
             }
             entries.clear();
         }
-        LOGD("[GetEntriesFromItems] size:%d", dataItems.size());
+        LOGD("[GetEntriesFromItems] size:%zu", dataItems.size());
         return errCode;
     }
 
@@ -63,7 +63,7 @@ namespace {
 int VirtualRelationalVerSyncDBInterface::PutSyncDataWithQuery(const QueryObject &object,
     const std::vector<SingleVerKvEntry *> &entries, const std::string &deviceName)
 {
-    LOGD("[PutSyncData] size %d", entries.size());
+    LOGD("[PutSyncData] size %zu", entries.size());
     std::vector<DataItem> dataItems;
     for (auto itemEntry : entries) {
         auto *entry = static_cast<GenericSingleVerKvEntry *>(itemEntry);
@@ -95,7 +95,7 @@ int VirtualRelationalVerSyncDBInterface::PutSyncDataWithQuery(const QueryObject 
                 break;
             }
             DataValue dataValue = std::move(optItem);
-            LOGD("type:%d", optItem.GetType());
+            LOGD("type:%d", static_cast<int>(optItem.GetType()));
             virtualRowData.objectData.PutDataValue(localFieldInfo_[index].GetFieldName(), dataValue);
             index++;
         }
@@ -223,7 +223,7 @@ void VirtualRelationalVerSyncDBInterface::GetMaxTimeStamp(TimeStamp &stamp) cons
             }
         }
     }
-    LOGD("VirtualSingleVerSyncDBInterface::GetMaxTimeStamp time = %llu", stamp);
+    LOGD("VirtualSingleVerSyncDBInterface::GetMaxTimeStamp time = %" PRIu64, stamp);
 }
 
 int VirtualRelationalVerSyncDBInterface::GetMetaData(const Key &key, Value &value) const
@@ -269,7 +269,7 @@ int VirtualRelationalVerSyncDBInterface::GetAllMetaKeys(std::vector<Key> &keys) 
     for (auto &iter : metadata_) {
         keys.push_back(iter.first);
     }
-    LOGD("GetAllMetaKeys size %d", keys.size());
+    LOGD("GetAllMetaKeys size %zu", keys.size());
     return E_OK;
 }
 

@@ -106,7 +106,7 @@ void SingleVerDataSyncUtils::TransDbDataItemToSendDataItem(const std::string &lo
         }
         outData[i]->SetOrigDevice(outData[i]->GetOrigDevice().empty() ? localHashName : outData[i]->GetOrigDevice());
         if (i == 0 || i == (outData.size() - 1)) {
-            LOGD("[DataSync][TransToSendItem] printData packet=%d,timeStamp=%llu,flag=%llu", i,
+            LOGD("[DataSync][TransToSendItem] printData packet=%zu,timeStamp=%" PRIu64 ",flag=%" PRIu64, i,
                 outData[i]->GetTimestamp(), outData[i]->GetFlag());
         }
     }

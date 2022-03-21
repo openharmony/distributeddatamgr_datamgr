@@ -158,7 +158,7 @@ void SingleVerSyncTaskContext::ReleaseContinueToken()
 int SingleVerSyncTaskContext::PopResponseTarget(SingleVerSyncTarget &target)
 {
     std::lock_guard<std::mutex> lock(targetQueueLock_);
-    LOGD("[SingleVerSyncTaskContext] GetFrontExtWaterMarak size = %d", responseTargetQueue_.size());
+    LOGD("[SingleVerSyncTaskContext] GetFrontExtWaterMarak size = %zu", responseTargetQueue_.size());
     if (!responseTargetQueue_.empty()) {
         ISyncTarget *tmpTarget = responseTargetQueue_.front();
         responseTargetQueue_.pop_front();
@@ -240,7 +240,7 @@ void SingleVerSyncTaskContext::ClearAllSyncTask()
     std::list<ISyncTarget *> targetQueue;
     {
         std::lock_guard<std::mutex> lock(targetQueueLock_);
-        LOGI("[SingleVerSyncTaskContext] request taskcount=%d，responsecount=%d", requestTargetQueue_.size(),
+        LOGI("[SingleVerSyncTaskContext] request taskcount=%zu, responsecount=%zu", requestTargetQueue_.size(),
             responseTargetQueue_.size());
         while (!requestTargetQueue_.empty()) {
             ISyncTarget *tmpTarget = nullptr;
@@ -513,7 +513,7 @@ bool SingleVerSyncTaskContext::IsCurrentSyncTaskCanBeSkipped() const
         return false;
     }
     if (localWaterMark > maxTimeStampInDb) {
-        LOGI("skip current push task, deviceId_ = %s, localWaterMark = %llu, maxTimeStampInDb = %llu",
+        LOGI("skip current push task, deviceId_ = %s, localWaterMark = %" PRIu64 ", maxTimeStampInDb = %" PRIu64,
             STR_MASK(deviceId_), localWaterMark, maxTimeStampInDb);
         return true;
     }

@@ -462,7 +462,8 @@ int ValueSliceSync::AckPacketDeSerialization(const uint8_t *buffer, uint32_t len
     // valueSlice DeSerialization
     packLen += parcel.ReadVectorChar(valueSlice);
     if (packLen != length || parcel.IsError()) {
-        LOGE("ValueSliceSync::AckPacketSerialization data error, packLen = %lu, length = %lu", packLen, length);
+        LOGE("ValueSliceSync::AckPacketSerialization data error, packLen = %" PRIu32 ", length = %" PRIu32,
+            packLen, length);
         return -E_INVALID_ARGS;
     }
     ValueSlicePacket *packet = new (std::nothrow) ValueSlicePacket();

@@ -279,7 +279,7 @@ int MultiVerDataSync::AckRecvCallback(MultiVerSyncTaskContext *context, const Me
     context->SetEntries(entries);
     context->SetEntriesIndex(0);
     context->SetEntriesSize(static_cast<int>(entries.size()));
-    LOGD("MultiVerDataSync::AckRecvCallback src=%s{private}, entries num = %llu",
+    LOGD("MultiVerDataSync::AckRecvCallback src=%s{private}, entries num = %zu",
         context->GetDeviceId().c_str(), entries.size());
 
     if (entries.size() > 0) {
@@ -292,7 +292,7 @@ int MultiVerDataSync::AckRecvCallback(MultiVerSyncTaskContext *context, const Me
     context->SetValueSliceHashNodes(valueHashes);
     context->SetValueSlicesIndex(0);
     context->SetValueSlicesSize(valueHashes.size());
-    LOGD("MultiVerDataSync::AckRecvCallback src=%s{private}, ValueSlicesSize num = %llu",
+    LOGD("MultiVerDataSync::AckRecvCallback src=%s{private}, ValueSlicesSize num = %zu",
         context->GetDeviceId().c_str(), valueHashes.size());
     return errCode;
 }
