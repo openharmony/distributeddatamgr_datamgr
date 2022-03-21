@@ -38,6 +38,7 @@ public:
 private:
     void UpdateMsgMap();
     void UpdateMsgMapInner(std::queue<Message *> &msgTmpQueue);
+    void ProcessMsgWithNoLock(Message *msg);
     Message *GetMsgFromMap(bool &isNeedHandle);
     Message *GetLastMsgFromQueue();
     void ClearMsgMap();

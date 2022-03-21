@@ -132,41 +132,7 @@ void SingleVerDataMessageSchedule::UpdateMsgMapInner(std::queue<Message *> &msgT
     while (!msgTmpQueue.empty()) {
         Message *msg = msgTmpQueue.front();
         msgTmpQueue.pop();
-        if (msg == nullptr) {
-            continue;
-        }
-        const DataRequestPacket *packet = msg->GetObject<DataRequestPacket>();
-        if (packet == nullptr) {
-            delete msg;
-            continue;
-        }
-        uint32_t sessionId = msg->GetSessionId();
-        uint32_t sequenceId = msg->GetSequenceId();
-        uint64_t packetId = packet->GetPacketId();
-        if (prevSessionId_ != 0 && sessionId == prevSessionId_) {
-            delete msg;
-            continue;
-        }
-        if (sessionId != currentSessionId_) {
-            // make sure all msg sessionId is same in msgMap
-            ClearMsgMapWithNoLock();
-            prevSessionId_ = currentSessionId_;
-            currentSessionId_ = sessionId;
-            finishedPacketId_ = 0;
-            expectedSequenceId_ = 1;
-        }
-        if (messageMap_.count(sequenceId) > 0) {
-            const auto *cachePacket = messageMap_[sequenceId]->GetObject<DataRequestPacket>();
-            if (cachePacket != nullptr) {
-                if (packetId != 0 && packetId < cachePacket->GetPacketId()) {
-                    delete msg;
-                    continue;
-                }
-            }
-            delete messageMap_[sequenceId];
-            messageMap_[sequenceId] = nullptr;
-        }
-        messageMap_[sequenceId] = msg;
+        ProcessMsgWithNoLock(msg);
     }
 }
 
@@ -323,5 +289,44 @@ int SingleVerDataMessageSchedule::TimeOut(TimerId timerId)
     }
     RuntimeContext::GetInstance()->RemoveTimer(timerId);
     return E_OK;
+}
+
+void SingleVerDataMessageSchedule::ProcessMsgWithNoLock(Message *msg)
+{
+    if (msg == nullptr) {
+        return;
+    }
+    const DataRequestPacket *packet = msg->GetObject<DataRequestPacket>();
+    if (packet == nullptr) {
+        delete msg;
+        return;
+    }
+    uint32_t sessionId = msg->GetSessionId();
+    uint32_t sequenceId = msg->GetSequenceId();
+    uint64_t packetId = packet->GetPacketId();
+    if (prevSessionId_ != 0 && sessionId == prevSessionId_) {
+        delete msg;
+        return;
+    }
+    if (sessionId != currentSessionId_) {
+        // make sure all msg sessionId is same in msgMap
+        ClearMsgMapWithNoLock();
+        prevSessionId_ = currentSessionId_;
+        currentSessionId_ = sessionId;
+        finishedPacketId_ = 0;
+        expectedSequenceId_ = 1;
+    }
+    if (messageMap_.count(sequenceId) > 0) {
+        const auto *cachePacket = messageMap_[sequenceId]->GetObject<DataRequestPacket>();
+        if (cachePacket != nullptr) {
+            if (packetId != 0 && packetId < cachePacket->GetPacketId()) {
+                delete msg;
+                return;
+            }
+        }
+        delete messageMap_[sequenceId];
+        messageMap_[sequenceId] = nullptr;
+    }
+    messageMap_[sequenceId] = msg;
 }
 }

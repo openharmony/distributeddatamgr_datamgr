@@ -484,14 +484,14 @@ Event SingleVerSyncStateMachine::DoAbilitySync()
     // Fistr version, not support AbilitySync
     if (remoteCommunicatorVersion == 0) {
         context_->SetRemoteSoftwareVersion(SOFTWARE_VERSION_EARLIEST);
-        return GetEventAfterTimeSync(context_->GetMode(), true);
+        return GetEventAfterTimeSync(context_->GetMode());
     }
     if (context_->GetIsNeedResetAbilitySync()) {
         abilitySync_->SetAbilitySyncFinishedStatus(false);
         context_->SetIsNeedResetAbilitySync(false);
     }
     if (abilitySync_->GetAbilitySyncFinishedStatus()) {
-        return GetEventAfterTimeSync(context_->GetMode(), false);
+        return GetEventAfterTimeSync(context_->GetMode());
     }
 
     CommErrHandler handler = std::bind(&SyncTaskContext::CommErrHandlerFunc, std::placeholders::_1,
@@ -507,7 +507,7 @@ Event SingleVerSyncStateMachine::DoAbilitySync()
     return Event::WAIT_ACK_EVENT;
 }
 
-Event SingleVerSyncStateMachine::GetEventAfterTimeSync(int mode, bool isEarliestVersion)
+Event SingleVerSyncStateMachine::GetEventAfterTimeSync(int mode) const
 {
     if (mode == SyncModeType::SUBSCRIBE_QUERY || mode == SyncModeType::UNSUBSCRIBE_QUERY) {
         return Event::CONTROL_CMD_EVENT;

@@ -514,8 +514,7 @@ bool AbilitySync::SecLabelCheck(const AbilitySyncRequestPacket *packet) const
     }
 }
 
-void AbilitySync::HandleVersionV3RequestParam(const AbilitySyncRequestPacket *packet, ISyncTaskContext *context,
-    const std::string &remoteSchema) const
+void AbilitySync::HandleVersionV3RequestParam(const AbilitySyncRequestPacket *packet, ISyncTaskContext *context) const
 {
     int32_t remoteSecLabel = packet->GetSecLabel();
     int32_t remoteSecFlag = packet->GetSecFlag();
@@ -1046,7 +1045,7 @@ int AbilitySync::HandleRequestRecv(const Message *message, ISyncTaskContext *con
             remoteSoftwareVersion, isCompatible);
         return SendAckWithEmptySchema(message, E_OK, false);
     }
-    HandleVersionV3RequestParam(packet, context, schema);
+    HandleVersionV3RequestParam(packet, context);
     if (SecLabelCheck(packet)) {
         ackCode = E_OK;
     } else {
@@ -1075,7 +1074,7 @@ int AbilitySync::SendAck(const Message *message, int ackCode, bool isAckNotify, 
     if (IsSingleRelationalVer()) {
         auto schemaObj = (static_cast<RelationalDBSyncInterface *>(storageInterface_))->GetSchemaInfo();
         SetAbilityAckSchemaInfo(ackPacket, schemaObj);
-    } else if(IsSingleKvVer()) {
+    } else if (IsSingleKvVer()) {
         SchemaObject schemaObject = static_cast<SingleVerKvDBSyncInterface *>(storageInterface_)->GetSchemaInfo();
         SetAbilityAckSchemaInfo(ackPacket, schemaObject);
     }
