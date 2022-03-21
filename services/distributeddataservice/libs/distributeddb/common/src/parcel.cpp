@@ -164,13 +164,15 @@ int Parcel::WriteString(const std::string &inVal)
     uint64_t stepLen = sizeof(uint32_t) + static_cast<uint64_t>(inVal.size());
     len = HostToNet(len);
     if (stepLen > INT32_MAX || parcelLen_ + BYTE_8_ALIGN(stepLen) > totalLen_) {
-        LOGE("[WriteString] stepLen:%llu, totalLen:%llu, parcelLen:%llu", stepLen, totalLen_, parcelLen_);
+        LOGE("[WriteString] stepLen:%" PRIu64 ", totalLen:%" PRIu64 ", parcelLen:%" PRIu64 , stepLen, totalLen_,
+            parcelLen_);
         isError_ = true;
         return -E_PARSE_FAIL;
     }
     errno_t errCode = memcpy_s(bufPtr_, totalLen_ - parcelLen_, &len, sizeof(uint32_t));
     if (errCode != EOK) {
-        LOGE("[WriteString] bufPtr:%d, totalLen:%llu, parcelLen:%llu", bufPtr_ != nullptr, totalLen_, parcelLen_);
+        LOGE("[WriteString] bufPtr:%d, totalLen:%" PRIu64 ", parcelLen:%" PRIu64 , bufPtr_ != nullptr, totalLen_,
+            parcelLen_);
         isError_ = true;
         return -E_SECUREC_ERROR;
     }
@@ -182,7 +184,7 @@ int Parcel::WriteString(const std::string &inVal)
     }
     errCode = memcpy_s(bufPtr_, totalLen_ - parcelLen_ - sizeof(uint32_t), inVal.c_str(), inVal.size());
     if (errCode != EOK) {
-        LOGE("[WriteString] totalLen:%llu, parcelLen:%llu, inVal.size:%zu.",
+        LOGE("[WriteString] totalLen:%" PRIu64 ", parcelLen:%" PRIu64 ", inVal.size:%zu.",
             totalLen_, parcelLen_, inVal.size());
         isError_ = true;
         return -E_SECUREC_ERROR;
@@ -199,7 +201,8 @@ uint32_t Parcel::ReadString(std::string &outVal)
         return 0;
     }
     if (bufPtr_ == nullptr || parcelLen_ + sizeof(uint32_t) > totalLen_) {
-        LOGE("[ReadString] bufPtr:%d, totalLen:%llu, parcelLen:%llu", bufPtr_ != nullptr, totalLen_, parcelLen_);
+        LOGE("[ReadString] bufPtr:%d, totalLen:%" PRIu64 ", parcelLen:%" PRIu64, bufPtr_ != nullptr, totalLen_,
+            parcelLen_);
         isError_ = true;
         return 0;
     }
@@ -207,7 +210,8 @@ uint32_t Parcel::ReadString(std::string &outVal)
     len = NetToHost(len);
     uint64_t stepLen = static_cast<uint64_t>(len) + sizeof(uint32_t);
     if (stepLen > INT32_MAX || parcelLen_ + BYTE_8_ALIGN(stepLen) > totalLen_) {
-        LOGE("[ReadString] stepLen:%llu, totalLen:%llu, parcelLen:%llu", stepLen, totalLen_, parcelLen_);
+        LOGE("[ReadString] stepLen:%" PRIu64 ", totalLen:%" PRIu64 ", parcelLen:%" PRIu64, stepLen, totalLen_,
+            parcelLen_);
         isError_ = true;
         return 0;
     }
@@ -344,7 +348,7 @@ uint32_t Parcel::ReadMultiVerCommits(std::vector<MultiVerCommitNode> &commits)
     }
     if (size > DBConstant::MAX_COMMIT_SIZE) {
         isError_ = true;
-        LOGE("Parcel::ReadMultiVerCommits commits size too large: %llu", size);
+        LOGE("Parcel::ReadMultiVerCommits commits size too large: %" PRIu64, size);
         return 0;
     }
     for (uint64_t i = 0; i < size; i++) {
@@ -381,7 +385,7 @@ int Parcel::WriteBlob(const char *buffer, uint32_t bufLen)
         return -E_PARSE_FAIL;
     }
     if (parcelLen_ + bufLen > totalLen_) {
-        LOGE("[WriteBlob] bufLen:%u, totalLen:%llu, parcelLen:%llu", bufLen, totalLen_, parcelLen_);
+        LOGE("[WriteBlob] bufLen:%" PRIu32 ", totalLen:%" PRIu64 ", parcelLen:%" PRIu64, bufLen, totalLen_, parcelLen_);
         isError_ = true;
         return -E_PARSE_FAIL;
     }
@@ -409,7 +413,7 @@ uint32_t Parcel::ReadBlob(char *buffer, uint32_t bufLen)
     }
     uint32_t leftLen = static_cast<uint32_t>(totalLen_ - parcelLen_);
     if (parcelLen_ + bufLen > totalLen_) {
-        LOGE("[ReadBlob] bufLen:%u, totalLen:%llu, parcelLen:%llu", bufLen, totalLen_, parcelLen_);
+        LOGE("[ReadBlob] bufLen:%" PRIu32 ", totalLen:%" PRIu64 ", parcelLen:%" PRIu64, bufLen, totalLen_, parcelLen_);
         isError_ = true;
         return 0;
     }

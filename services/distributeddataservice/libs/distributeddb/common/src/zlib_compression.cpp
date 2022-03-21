@@ -35,7 +35,7 @@ int ZlibCompression::Compress(const std::vector<uint8_t> &srcData, std::vector<u
     auto srcLen = srcData.size();
     auto destLen = compressBound(srcLen);
     if (srcLen > DBConstant::MAX_SYNC_BLOCK_SIZE || destLen > DBConstant::MAX_SYNC_BLOCK_SIZE) {
-        LOGE("Too long to compress, srcLen:%u, destLen:%u.", srcLen, destLen);
+        LOGE("Too long to compress, srcLen:%zu, destLen:%lu.", srcLen, destLen);
         return -E_INVALID_ARGS;
     }
 
@@ -59,7 +59,7 @@ int ZlibCompression::Uncompress(const std::vector<uint8_t> &srcData, std::vector
 {
     auto srcLen = srcData.size();
     if (srcLen > DBConstant::MAX_SYNC_BLOCK_SIZE || destLen > DBConstant::MAX_SYNC_BLOCK_SIZE) {
-        LOGE("Too long to uncompress, srcLen:%u, destLen:%u.", srcLen, destLen);
+        LOGE("Too long to uncompress, srcLen:%zu, destLen:%lu.", srcLen, destLen);
         return -E_INVALID_ARGS;
     }
 

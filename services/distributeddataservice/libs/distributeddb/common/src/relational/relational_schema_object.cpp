@@ -510,7 +510,8 @@ int GetMemberFromJsonObject(const JsonObject &inJsonObject, const std::string &f
     }
 
     if (fieldType != expectType) {
-        LOGE("[RelationalSchema][Parse] Expect %s fieldType %d but: %d.", fieldName.c_str(), expectType, fieldType);
+        LOGE("[RelationalSchema][Parse] Expect %s fieldType %d but: %d.", fieldName.c_str(),
+            static_cast<int>(expectType), static_cast<int>(fieldType));
         return -E_SCHEMA_PARSE_FAIL;
     }
 

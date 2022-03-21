@@ -372,13 +372,13 @@ bool DistributedDBToolsUnitTest::IsEntryEqual(const DistributedDB::Entry &entryO
     const DistributedDB::Entry &entryRet)
 {
     if (entryOrg.key != entryRet.key) {
-        LOGD("key not equal, entryOrg key size is [%d], entryRet key size is [%d]", entryOrg.key.size(),
+        LOGD("key not equal, entryOrg key size is [%zu], entryRet key size is [%zu]", entryOrg.key.size(),
             entryRet.key.size());
         return false;
     }
 
     if (entryOrg.value != entryRet.value) {
-        LOGD("value not equal, entryOrg value size is [%d], entryRet value size is [%d]", entryOrg.value.size(),
+        LOGD("value not equal, entryOrg value size is [%zu], entryRet value size is [%zu]", entryOrg.value.size(),
             entryRet.value.size());
         return false;
     }
@@ -389,7 +389,7 @@ bool DistributedDBToolsUnitTest::IsEntryEqual(const DistributedDB::Entry &entryO
 bool DistributedDBToolsUnitTest::IsEntriesEqual(const std::vector<DistributedDB::Entry> &entriesOrg,
     const std::vector<DistributedDB::Entry> &entriesRet, bool needSort)
 {
-    LOGD("entriesOrg size is [%d], entriesRet size is [%d]", entriesOrg.size(),
+    LOGD("entriesOrg size is [%zu], entriesRet size is [%zu]", entriesOrg.size(),
         entriesRet.size());
 
     if (entriesOrg.size() != entriesRet.size()) {
@@ -405,11 +405,11 @@ bool DistributedDBToolsUnitTest::IsEntriesEqual(const std::vector<DistributedDB:
 
     for (size_t i = 0; i < entries1.size(); i++) {
         if (entries1[i].key != entries2[i].key) {
-            LOGE("IsEntriesEqual failed, key of index[%d] not match", i);
+            LOGE("IsEntriesEqual failed, key of index[%zu] not match", i);
             return false;
         }
         if (entries1[i].value != entries2[i].value) {
-            LOGE("IsEntriesEqual failed, value of index[%d] not match", i);
+            LOGE("IsEntriesEqual failed, value of index[%zu] not match", i);
             return false;
         }
     }
@@ -420,7 +420,7 @@ bool DistributedDBToolsUnitTest::IsEntriesEqual(const std::vector<DistributedDB:
 bool DistributedDBToolsUnitTest::CheckObserverResult(const std::vector<DistributedDB::Entry> &orgEntries,
     const std::list<DistributedDB::Entry> &resultLst)
 {
-    LOGD("orgEntries.size() is [%d], resultLst.size() is [%d]", orgEntries.size(),
+    LOGD("orgEntries.size() is [%zu], resultLst.size() is [%zu]", orgEntries.size(),
         resultLst.size());
 
     if (orgEntries.size() != resultLst.size()) {
@@ -537,7 +537,7 @@ int DistributedDBToolsUnitTest::ModifyDatabaseFile(const std::string &fileDir, u
     } else {
         fileSize = static_cast<uint64_t>(pos);
         if (fileSize < 1024) { // the least page size is 1024 bytes.
-            LOGE("Invalid database file:%llu.", fileSize);
+            LOGE("Invalid database file:%" PRIu64 ".", fileSize);
             return -E_UNEXPECTED_DATA;
         }
     }
@@ -674,7 +674,7 @@ void KvStoreObserverUnitTest::OnChange(const KvStoreChangedData& data)
     updated_ = data.GetEntriesUpdated();
     deleted_ = data.GetEntriesDeleted();
     isCleared_ = data.IsCleared();
-    LOGD("Onchangedata :%lu -- %lu -- %lu -- %d", inserted_.size(), updated_.size(), deleted_.size(), isCleared_);
+    LOGD("Onchangedata :%zu -- %zu -- %zu -- %d", inserted_.size(), updated_.size(), deleted_.size(), isCleared_);
     LOGD("Onchange() called success!");
 }
 

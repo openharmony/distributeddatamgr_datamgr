@@ -270,7 +270,8 @@ HWTEST_F(DistributedDBInterfacesSpaceManagementTest, GetKvStoreDiskSize002, Test
     ASSERT_TRUE(dbSizeForCheck != singleAndMultiDbSize);
     dbSizeForCheck = CheckRealFileSize(g_singleVerFileNames) + CheckRealFileSize(GetMultiVerFilelist());
     EXPECT_EQ(dbSizeForCheck, singleAndMultiDbSize);
-    LOGE("single:%lld,mul:%lld", CheckRealFileSize(g_singleVerFileNames), CheckRealFileSize(GetMultiVerFilelist()));
+    LOGE("single:%" PRIu64 ",mul:%" PRIu64, CheckRealFileSize(g_singleVerFileNames),
+        CheckRealFileSize(GetMultiVerFilelist()));
 
     /**
      * @tc.steps: step7. Close and Delete Db.

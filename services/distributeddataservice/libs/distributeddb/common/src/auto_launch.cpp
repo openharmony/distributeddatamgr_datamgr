@@ -179,7 +179,7 @@ int AutoLaunch::EnableKvStoreAutoLaunch(const KvDBProperties &properties, AutoLa
     if (isDualTupleMode && !RuntimeContext::GetInstance()->IsSyncerNeedActive(userId, appId, storeId)) {
         std::lock_guard<std::mutex> autoLock(dataLock_);
         std::string tmpIdentifier = isDualTupleMode ? dualTupleIdentifier : identifier;
-        LOGI("[AutoLaunch] GetDoOpenMap identifier=%0.6s no need to open", STR_TO_HEX(tmpIdentifier));
+        LOGI("[AutoLaunch] GetDoOpenMap identifier=%.6s no need to open", STR_TO_HEX(tmpIdentifier));
         autoLaunchItemMap_[tmpIdentifier][userId].state = AutoLaunchItemState::IDLE;
         return errCode;
     }
@@ -285,7 +285,7 @@ void AutoLaunch::TryCloseConnection(AutoLaunchItem &autoLaunchItem)
             TryCloseRelationConnection(autoLaunchItem);
             break;
         default:
-            LOGD("[AutoLaunch] Unknown type[%d] when try to close connection", autoLaunchItem.type);
+            LOGD("[AutoLaunch] Unknown type[%d] when try to close connection", static_cast<int>(autoLaunchItem.type));
             break;
     }
 }
@@ -321,7 +321,7 @@ int AutoLaunch::RegisterObserver(AutoLaunchItem &autoLaunchItem, const std::stri
         LOGE("[AutoLaunch] autoLaunchItem.conn is nullptr");
         return -E_INTERNAL_ERROR;
     }
-    LOGI("[AutoLaunch] RegisterObserver type=%d", autoLaunchItem.type);
+    LOGI("[AutoLaunch] RegisterObserver type=%d", static_cast<int>(autoLaunchItem.type));
     if (autoLaunchItem.type == DBType::DB_RELATION) {
         RelationalStoreConnection *conn = static_cast<RelationalStoreConnection *>(autoLaunchItem.conn);
         conn->RegisterObserverAction([autoLaunchItem](const std::string &changedDevice) {
@@ -366,7 +366,7 @@ int AutoLaunch::RegisterObserver(AutoLaunchItem &autoLaunchItem, const std::stri
 void AutoLaunch::ObserverFunc(const KvDBCommitNotifyData &notifyData, const std::string &identifier,
     const std::string &userId)
 {
-    LOGD("[AutoLaunch] ObserverFunc identifier=%0.6s", STR_TO_HEX(identifier));
+    LOGD("[AutoLaunch] ObserverFunc identifier=%.6s", STR_TO_HEX(identifier));
     AutoLaunchItem autoLaunchItem;
     std::string appId;
     std::string storeId;
@@ -420,7 +420,7 @@ int AutoLaunch::DisableKvStoreAutoLaunch(const std::string &normalIdentifier, co
     const std::string &userId)
 {
     std::string identifier = (autoLaunchItemMap_.count(normalIdentifier) == 0) ? dualTupleIdentifier : normalIdentifier;
-    LOGI("[AutoLaunch] DisableKvStoreAutoLaunch identifier=%0.6s", STR_TO_HEX(identifier));
+    LOGI("[AutoLaunch] DisableKvStoreAutoLaunch identifier=%.6s", STR_TO_HEX(identifier));
     AutoLaunchItem autoLaunchItem;
     {
         std::unique_lock<std::mutex> autoLock(dataLock_);
@@ -499,7 +499,7 @@ void AutoLaunch::CloseNotifier(const AutoLaunchItem &autoLaunchItem)
 
 void AutoLaunch::ConnectionLifeCycleCallbackTask(const std::string &identifier, const std::string &userId)
 {
-    LOGI("[AutoLaunch] ConnectionLifeCycleCallbackTask identifier=%0.6s", STR_TO_HEX(identifier));
+    LOGI("[AutoLaunch] ConnectionLifeCycleCallbackTask identifier=%.6s", STR_TO_HEX(identifier));
     AutoLaunchItem autoLaunchItem;
     {
         std::lock_guard<std::mutex> autoLock(dataLock_);
@@ -513,7 +513,7 @@ void AutoLaunch::ConnectionLifeCycleCallbackTask(const std::string &identifier, 
         }
         if (autoLaunchItemMap_[identifier][userId].state != AutoLaunchItemState::IDLE) {
             LOGI("[AutoLaunch] ConnectionLifeCycleCallback state:%d is not idle, do nothing",
-                autoLaunchItemMap_[identifier][userId].state);
+                static_cast<int>(autoLaunchItemMap_[identifier][userId].state));
             return;
         }
         autoLaunchItemMap_[identifier][userId].state = AutoLaunchItemState::IN_LIFE_CYCLE_CALL_BACK;
@@ -537,7 +537,7 @@ void AutoLaunch::ConnectionLifeCycleCallbackTask(const std::string &identifier, 
 
 void AutoLaunch::ConnectionLifeCycleCallback(const std::string &identifier, const std::string &userId)
 {
-    LOGI("[AutoLaunch] ConnectionLifeCycleCallback identifier=%0.6s", STR_TO_HEX(identifier));
+    LOGI("[AutoLaunch] ConnectionLifeCycleCallback identifier=%.6s", STR_TO_HEX(identifier));
     int errCode = RuntimeContext::GetInstance()->ScheduleTask(std::bind(&AutoLaunch::ConnectionLifeCycleCallbackTask,
         this, identifier, userId));
     if (errCode != E_OK) {
@@ -601,7 +601,8 @@ void AutoLaunch::GetDoOpenMap(std::map<std::string, std::map<std::string, AutoLa
                 LOGI("[AutoLaunch] GetDoOpenMap this item isDisable do nothing");
                 continue;
             } else if (iter.second.state != AutoLaunchItemState::IDLE) {
-                LOGI("[AutoLaunch] GetDoOpenMap this item state:%d is not idle do nothing", iter.second.state);
+                LOGI("[AutoLaunch] GetDoOpenMap this item state:%d is not idle do nothing",
+                    static_cast<int>(iter.second.state));
                 continue;
             } else if (iter.second.conn != nullptr) {
                 LOGI("[AutoLaunch] GetDoOpenMap this item is opened");
@@ -620,7 +621,7 @@ void AutoLaunch::GetDoOpenMap(std::map<std::string, std::map<std::string, AutoLa
 
 void AutoLaunch::GetConnInDoOpenMap(std::map<std::string, std::map<std::string, AutoLaunchItem>> &doOpenMap)
 {
-    LOGI("[AutoLaunch] GetConnInDoOpenMap doOpenMap.size():%llu", doOpenMap.size());
+    LOGI("[AutoLaunch] GetConnInDoOpenMap doOpenMap.size():%zu", doOpenMap.size());
     if (doOpenMap.empty()) {
         return;
     }
@@ -681,7 +682,7 @@ void AutoLaunch::UpdateGlobalMap(std::map<std::string, std::map<std::string, Aut
 
 void AutoLaunch::ReceiveUnknownIdentifierCallBackTask(const std::string &identifier, const std::string userId)
 {
-    LOGI("[AutoLaunch] ReceiveUnknownIdentifierCallBackTask identifier=%0.6s", STR_TO_HEX(identifier));
+    LOGI("[AutoLaunch] ReceiveUnknownIdentifierCallBackTask identifier=%.6s", STR_TO_HEX(identifier));
     AutoLaunchItem autoLaunchItem;
     {
         std::lock_guard<std::mutex> autoLock(dataLock_);
@@ -731,7 +732,7 @@ int AutoLaunch::ReceiveUnknownIdentifierCallBack(const LabelType &label, const s
         // normal tuple mode
         userId = autoLaunchItemMap_[identifier].begin()->first;
     }
-    LOGI("[AutoLaunch] ReceiveUnknownIdentifierCallBack identifier=%0.6s", STR_TO_HEX(identifier));
+    LOGI("[AutoLaunch] ReceiveUnknownIdentifierCallBack identifier=%.6s", STR_TO_HEX(identifier));
     int errCode;
     {
         std::lock_guard<std::mutex> autoLock(dataLock_);
@@ -746,7 +747,7 @@ int AutoLaunch::ReceiveUnknownIdentifierCallBack(const LabelType &label, const s
             return E_OK;
         } else if (autoLaunchItemMap_[identifier][userId].state != AutoLaunchItemState::IDLE) {
             LOGI("[AutoLaunch] ReceiveUnknownIdentifierCallBack state:%d is not idle, do nothing",
-                autoLaunchItemMap_[identifier][userId].state);
+                static_cast<int>(autoLaunchItemMap_[identifier][userId].state));
             return E_OK;
         }
         autoLaunchItemMap_[identifier][userId].state = AutoLaunchItemState::IN_COMMUNICATOR_CALL_BACK;
@@ -768,7 +769,7 @@ EXT:
 
 void AutoLaunch::SetAutoLaunchRequestCallback(const AutoLaunchRequestCallback &callback, DBType type)
 {
-    LOGI("[AutoLaunch] SetAutoLaunchRequestCallback type[%d]", type);
+    LOGI("[AutoLaunch] SetAutoLaunchRequestCallback type[%d]", static_cast<int>(type));
     std::lock_guard<std::mutex> lock(extLock_);
     if (callback) {
         autoLaunchRequestCallbackMap_[type] = callback;
@@ -865,7 +866,7 @@ void AutoLaunch::AutoLaunchExtTask(const std::string identifier, const std::stri
 void AutoLaunch::ExtObserverFunc(const KvDBCommitNotifyData &notifyData, const std::string &identifier,
     const std::string &userId)
 {
-    LOGD("[AutoLaunch] ExtObserverFunc identifier=%0.6s", STR_TO_HEX(identifier));
+    LOGD("[AutoLaunch] ExtObserverFunc identifier=%.6s", STR_TO_HEX(identifier));
     AutoLaunchItem autoLaunchItem;
     AutoLaunchNotifier notifier;
     {
@@ -907,7 +908,7 @@ void AutoLaunch::ExtObserverFunc(const KvDBCommitNotifyData &notifyData, const s
 
 void AutoLaunch::ExtConnectionLifeCycleCallback(const std::string &identifier, const std::string &userId)
 {
-    LOGI("[AutoLaunch] ExtConnectionLifeCycleCallback identifier=%0.6s", STR_TO_HEX(identifier));
+    LOGI("[AutoLaunch] ExtConnectionLifeCycleCallback identifier=%.6s", STR_TO_HEX(identifier));
     int errCode = RuntimeContext::GetInstance()->ScheduleTask(std::bind(
         &AutoLaunch::ExtConnectionLifeCycleCallbackTask, this, identifier, userId));
     if (errCode != E_OK) {
@@ -917,7 +918,7 @@ void AutoLaunch::ExtConnectionLifeCycleCallback(const std::string &identifier, c
 
 void AutoLaunch::ExtConnectionLifeCycleCallbackTask(const std::string &identifier, const std::string &userId)
 {
-    LOGI("[AutoLaunch] ExtConnectionLifeCycleCallbackTask identifier=%0.6s", STR_TO_HEX(identifier));
+    LOGI("[AutoLaunch] ExtConnectionLifeCycleCallbackTask identifier=%.6s", STR_TO_HEX(identifier));
     AutoLaunchItem autoLaunchItem;
     {
         std::lock_guard<std::mutex> autoLock(extLock_);
@@ -941,7 +942,7 @@ void AutoLaunch::ExtConnectionLifeCycleCallbackTask(const std::string &identifie
 int AutoLaunch::SetConflictNotifier(AutoLaunchItem &autoLaunchItem)
 {
     if (autoLaunchItem.type != DBType::DB_KV) {
-        LOGD("[AutoLaunch] Current Type[%d] Not Support ConflictNotifier Now", autoLaunchItem.type);
+        LOGD("[AutoLaunch] Current Type[%d] Not Support ConflictNotifier Now", static_cast<int>(autoLaunchItem.type));
         return E_OK;
     }
 
@@ -1131,7 +1132,7 @@ int AutoLaunch::RegisterLifeCycleCallback(AutoLaunchItem &autoLaunchItem, const 
                 static_cast<RelationalStoreConnection *>(autoLaunchItem.conn)->RegisterLifeCycleCallback(notifier);
             break;
         default:
-            LOGD("[AutoLaunch] Unknown Type[%d]", autoLaunchItem.type);
+            LOGD("[AutoLaunch] Unknown Type[%d]", static_cast<int>(autoLaunchItem.type));
             break;
     }
     return errCode;
@@ -1141,7 +1142,7 @@ int AutoLaunch::PragmaAutoSync(AutoLaunchItem &autoLaunchItem)
 {
     int errCode = E_OK;
     if (autoLaunchItem.type != DBType::DB_KV) {
-        LOGD("[AutoLaunch] Current Type[%d] Not Support AutoSync Now", autoLaunchItem.type);
+        LOGD("[AutoLaunch] Current Type[%d] Not Support AutoSync Now", static_cast<int>(autoLaunchItem.type));
         return errCode;
     }
 

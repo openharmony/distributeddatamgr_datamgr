@@ -269,7 +269,7 @@ int SchemaUtils::TransformDefaultValue(std::string &defaultContent, SchemaAttrib
             break;
     }
 
-    LOGD("SchemaAttribute type is [%d], transfer result is [%d]", outAttr.type, errCode);
+    LOGD("SchemaAttribute type is [%d], transfer result is [%d]", static_cast<int>(outAttr.type), errCode);
     return errCode;
 }
 

@@ -175,7 +175,7 @@ static void PutSyncData(const KvDBProperties &prop, const Key &key, const Value 
         TimeStamp time;
         kvStore->GetMaxTimeStamp(time);
         time += TIME_ADD;
-        LOGD("time:%lld", time);
+        LOGD("time:%" PRIu64, time);
         vect.push_back({key, value, time, 0, DBCommon::TransferHashString(REMOTE_DEVICE_ID)});
         EXPECT_EQ(DistributedDBToolsUnitTest::PutSyncDataTest(kvStore, vect, REMOTE_DEVICE_ID), E_OK);
     }
@@ -350,7 +350,7 @@ HWTEST_F(DistributedDBAutoLaunchUnitTest, AutoLaunch003, TestSize.Level3)
             std::string identifier = DBCommon::TransferHashString(userId + "-" + appId + "-" + storeId);
             std::unique_lock<std::mutex> lock(cvMutex);
             statusMap[identifier] = status;
-            LOGD("int AutoLaunch002 notifier statusMap.size():%d", statusMap.size());
+            LOGD("int AutoLaunch002 notifier statusMap.size():%zu", statusMap.size());
             finished = true;
             cv.notify_one();
         };
@@ -494,7 +494,7 @@ HWTEST_F(DistributedDBAutoLaunchUnitTest, AutoLaunch005, TestSize.Level3)
             std::string identifier = DBCommon::TransferHashString(userId + "-" + appId + "-" + storeId);
             std::unique_lock<std::mutex> lock(cvMutex);
             statusMap[identifier] = status;
-            LOGD("int AutoLaunch002 notifier statusMap.size():%d", statusMap.size());
+            LOGD("int AutoLaunch002 notifier statusMap.size():%zu", statusMap.size());
             finished = true;
             cv.notify_one();
         };
