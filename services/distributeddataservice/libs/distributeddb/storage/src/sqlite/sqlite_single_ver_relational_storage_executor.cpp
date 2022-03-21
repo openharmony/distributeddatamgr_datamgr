@@ -280,7 +280,7 @@ int SQLiteSingleVerRelationalStorageExecutor::AlterAuxTableForUpgrade(const Tabl
         return errCode;
     }
 
-    LOGD("Begin to alter table: upgrade fields[%d], indexces[%d], deviceTable[%d]", upgradeFields.size(),
+    LOGD("Begin to alter table: upgrade fields[%zu], indexces[%zu], deviceTable[%zu]", upgradeFields.size(),
         upgradeIndexces.size(), deviceTables.size());
     errCode = UpgradeFields(dbHandle_, deviceTables, upgradeFields);
     if (errCode != E_OK) {
@@ -763,7 +763,7 @@ int SQLiteSingleVerRelationalStorageExecutor::SaveSyncDataItem(const DataItem &d
         const auto &fieldData = data.optionalData[cid];
         errCode = BindDataValueByType(saveDataStmt, fieldData, cid + 1);
         if (errCode != E_OK) {
-            LOGE("Bind data failed, errCode:%d, cid:%d.", errCode, cid + 1);
+            LOGE("Bind data failed, errCode:%d, cid:%zu.", errCode, cid + 1);
             return errCode;
         }
     }
@@ -1122,7 +1122,7 @@ int SQLiteSingleVerRelationalStorageExecutor::DeleteDistributedDeviceTable(const
         return errCode;
     }
 
-    LOGD("Begin to delete device table: deviceTable[%d]", deviceTables.size());
+    LOGD("Begin to delete device table: deviceTable[%zu]", deviceTables.size());
     for (const auto &table : deviceTables) {
         std::string deleteSql = "DROP TABLE IF EXISTS " + table + ";"; // drop the found table
         errCode = SQLiteUtils::ExecuteRawSQL(dbHandle_, deleteSql);

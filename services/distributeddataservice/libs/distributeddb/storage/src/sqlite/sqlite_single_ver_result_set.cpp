@@ -95,7 +95,7 @@ int SQLiteSingleVerResultSet::OpenForCacheFullEntryMode(bool isMemDb)
     }
     count_ = window_->GetTotalCount();
     isOpen_ = true;
-    LOGD("[SqlSinResSet][OpenForEntry] Type=%d, CacheMaxSize=%d(MB), Count=%d, IsMem=%d.", type_,
+    LOGD("[SqlSinResSet][OpenForEntry] Type=%d, CacheMaxSize=%d(MB), Count=%d, IsMem=%d.", static_cast<int>(type_),
         option_.cacheMaxSize, count_, isMemDb);
     return E_OK;
 }
@@ -126,7 +126,7 @@ int SQLiteSingleVerResultSet::OpenForCacheEntryIdMode()
         cacheStartPosition_ = 0;
     }
     isOpen_ = true;
-    LOGD("[SqlSinResSet][OpenForRowId] Type=%d, CacheMaxSize=%d(MB), Count=%d, Cached=%zu.", type_,
+    LOGD("[SqlSinResSet][OpenForRowId] Type=%d, CacheMaxSize=%d(MB), Count=%d, Cached=%zu.", static_cast<int>(type_),
         option_.cacheMaxSize, count_, cachedRowIds_.size());
     return E_OK;
 }
@@ -279,7 +279,7 @@ void SQLiteSingleVerResultSet::Close()
     isOpen_ = false;
     count_ = 0;
     position_ = INIT_POSTION;
-    LOGD("[SqlSinResSet][Close] Done, Type=%d, Mode=%d.", type_, option_.cacheMode);
+    LOGD("[SqlSinResSet][Close] Done, Type=%d, Mode=%d.", static_cast<int>(type_), static_cast<int>(option_.cacheMode));
 }
 
 void SQLiteSingleVerResultSet::CloseForCacheFullEntryMode()

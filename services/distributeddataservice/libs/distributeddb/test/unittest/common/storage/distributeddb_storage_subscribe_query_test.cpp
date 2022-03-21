@@ -144,7 +144,7 @@ std::string FbfFileToSchemaString(const std::string &fileName)
     }
 
     auto size = is.tellg();
-    LOGE("file size %d", size);
+    LOGE("file size %u", static_cast<unsigned>(size));
     std::string schema(size, '\0');
     is.seekg(0);
     if (is.read(&schema[0], size)) {

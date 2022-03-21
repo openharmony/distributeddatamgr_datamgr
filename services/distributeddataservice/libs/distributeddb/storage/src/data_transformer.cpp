@@ -261,7 +261,7 @@ int SerializeDataValue(const DataValue &dataValue, Parcel &parcel)
     StorageType type = dataValue.GetType();
     parcel.WriteUInt32(static_cast<uint32_t>(type));
     if (type < StorageType::STORAGE_TYPE_NULL || type > StorageType::STORAGE_TYPE_BLOB) {
-        LOGE("Cannot serialize %u", type);
+        LOGE("Cannot serialize %u", static_cast<unsigned>(type));
         return -E_NOT_SUPPORT;
     }
     return funcs[static_cast<uint32_t>(type) - 1](dataValue, parcel);

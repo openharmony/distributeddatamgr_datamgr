@@ -1015,7 +1015,7 @@ int SQLiteSingleVerNaturalStoreConnection::SaveLocalEntry(const Entry &entry, bo
         dataItem.flag = DataItem::DELETE_FLAG;
     }
     dataItem.timeStamp = naturalStore->GetCurrentTimeStamp();
-    LOGD("TimeStamp is %llu", dataItem.timeStamp);
+    LOGD("TimeStamp is %" PRIu64 "", dataItem.timeStamp);
 
     if (IsCacheDBMode()) {
         return SaveLocalItemInCacheMode(dataItem);
@@ -1750,7 +1750,7 @@ bool SQLiteSingleVerNaturalStoreConnection::CheckLogOverLimit(SQLiteSingleVerSto
     uint64_t logFileSize = executor->GetLogFileSize();
     bool result = logFileSize > naturalStore->GetMaxLogSize();
     if (result) {
-        LOGW("Log size[%llu] over the limit", logFileSize);
+        LOGW("Log size[%" PRIu64 "] over the limit", logFileSize);
     }
     return result;
 }

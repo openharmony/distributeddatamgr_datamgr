@@ -219,8 +219,8 @@ int SQLiteSingleVerStorageExecutor::AttachMainDbAndCacheDb(CipherType type, cons
     } else {
         return -E_INVALID_ARGS;
     }
-    LOGD("[singleVerExecutor][attachDb] current engineState[%d], executorState[%d]", engineState, executorState_);
-
+    LOGD("[singleVerExecutor][attachDb] current engineState[%u], executorState[%u]", static_cast<unsigned>(engineState),
+        static_cast<unsigned>(executorState_));
     return errCode;
 }
 
@@ -532,8 +532,8 @@ int SQLiteSingleVerStorageExecutor::BindSyncDataInCacheMode(sqlite3_stmt *statem
         return errCode;
     }
 
-    LOGD("Write timestamp:%llu timestamp%llu, %llu, version %llu", dataItem.writeTimeStamp, dataItem.timeStamp,
-        dataItem.flag, recordVersion);
+    LOGD("Write timestamp:%" PRIu64 " timestamp:%llu, %" PRIu64 ", flag:%" PRIu64 ", version:%" PRIu64 "",
+        dataItem.writeTimeStamp, dataItem.timeStamp, dataItem.flag, recordVersion);
     errCode = SQLiteUtils::BindInt64ToStatement(statement, BIND_CACHE_SYNC_FLAG_INDEX,
         static_cast<int64_t>(dataItem.flag));
     if (errCode != E_OK) {
@@ -800,7 +800,7 @@ int SQLiteSingleVerStorageExecutor::GetMinTimestampInCacheDB(TimeStamp &minStamp
     errCode = SQLiteUtils::StepWithRetry(statement, isMemDb_);
     if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_ROW)) {
         minStamp = static_cast<uint64_t>(sqlite3_column_int64(statement, 0)); // get the first column
-        LOGD("Min time stamp in cacheDB is %llu", minStamp);
+        LOGD("Min time stamp in cacheDB is %" PRIu64 "", minStamp);
         errCode = E_OK;
     } else {
         LOGE("GetMinTimestampInCacheDB failed, errCode = %d.", errCode);
@@ -840,8 +840,8 @@ int SQLiteSingleVerStorageExecutor::InitMigrateTimeStampOffset()
     // The purpose of -1 is to ensure that the first data record in the original cacheDB is 1 greater than
     // the last data record in the original mainDB after the migration.
     migrateTimeOffset_ = minTimeInCache - maxTimeInMain - 1;
-    LOGI("Min timestamp in cacheDB is %llu, max timestamp in mainDB is %llu. Time offset during migrating is %lld.",
-        minTimeInCache, maxTimeInMain, migrateTimeOffset_);
+    LOGI("Min timestamp in cacheDB is %" PRIu64 ", max timestamp in mainDB is %" PRIu64 ". Time offset during migrating"
+        " is %" PRId64 ".", minTimeInCache, maxTimeInMain, migrateTimeOffset_);
     return E_OK;
 }
 
@@ -907,7 +907,7 @@ int SQLiteSingleVerStorageExecutor::InitMigrateData()
         insertSQL = MIGRATE_INSERT_DATA_TO_MAINDB_FROM_CACHEHANDLE;
         updateSQL = MIGRATE_UPDATE_DATA_TO_MAINDB_FROM_CACHEHANDLE;
     } else {
-        LOGE("[InitMigrateData] executor in an error state[%d]!", executorState_);
+        LOGE("[InitMigrateData] executor in an error state[%u]!", static_cast<unsigned>(executorState_));
         return -E_INVALID_DB;
     }
     int errCode = PrepareForSavingData(querySQL, insertSQL, updateSQL, migrateSyncStatements_);

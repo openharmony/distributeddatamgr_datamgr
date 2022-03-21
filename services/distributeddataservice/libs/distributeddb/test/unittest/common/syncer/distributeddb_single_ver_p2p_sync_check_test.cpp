@@ -92,7 +92,6 @@ void DistributedDBSingleVerP2PSyncCheckTest::SetUpTestCase(void)
     RuntimeContext::GetInstance()->SetCommunicatorAggregator(g_communicatorAggregator);
 
     std::shared_ptr<ProcessSystemApiAdapterImpl> g_adapter = std::make_shared<ProcessSystemApiAdapterImpl>();
-    EXPECT_TRUE(g_adapter != nullptr);
     RuntimeContext::GetInstance()->SetProcessSystemApiAdapter(g_adapter);
 }
 

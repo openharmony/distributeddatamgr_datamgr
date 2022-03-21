@@ -423,10 +423,6 @@ int MultiVerNaturalStore::Open(const KvDBProperties &kvDBProp)
     }
 
     multiVerEngine_ = std::make_unique<MultiVerStorageEngine>();
-    if (multiVerEngine_ == nullptr) {
-        errCode = -E_OUT_OF_MEMORY;
-        goto ERROR;
-    }
     errCode = multiVerEngine_->InitDatabases(this, multiVerData_, commitHistory_, multiVerKvStorage_, poolSize);
     if (errCode != E_OK) {
         goto ERROR;

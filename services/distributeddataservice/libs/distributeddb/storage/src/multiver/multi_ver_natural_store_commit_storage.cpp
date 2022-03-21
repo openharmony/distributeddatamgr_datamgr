@@ -706,7 +706,7 @@ int MultiVerNaturalStoreCommitStorage::TransferValueToCommit(const Value &value,
 {
     size_t valueLength = value.size();
     if (valueLength == 0 || valueLength >= MAX_COMMIT_ST_LENGTH) {
-        LOGE("Failed to transfer value to commit struct! invalid value length:%ul.", valueLength);
+        LOGE("Failed to transfer value to commit struct! invalid value length:%zu.", valueLength);
         return -E_UNEXPECTED_DATA;
     }
 

@@ -770,8 +770,8 @@ int SQLiteSingleVerNaturalStore::GetSyncDataForQuerySync(std::vector<DataItem> &
 
     // Get query data.
     if (!continueStmtToken->IsGetQueryDataFinished()) {
-        LOGD("[SingleVerNStore] Get query data between %llu and %llu.", continueStmtToken->GetQueryBeginTime(),
-            continueStmtToken->GetQueryEndTime());
+        LOGD("[SingleVerNStore] Get query data between %" PRIu64 " and %" PRIu64 ".",
+            continueStmtToken->GetQueryBeginTime(), continueStmtToken->GetQueryEndTime());
         errCode = handle->GetSyncDataWithQuery(continueStmtToken->GetQuery(), GetAppendedLen(), dataSizeInfo,
             std::make_pair(continueStmtToken->GetQueryBeginTime(), continueStmtToken->GetQueryEndTime()), dataItems);
     }
@@ -784,7 +784,7 @@ int SQLiteSingleVerNaturalStore::GetSyncDataForQuerySync(std::vector<DataItem> &
             errCode = -E_UNFINISHED;
             // Get delete time next.
             if (CanHoldDeletedData(dataItems, dataSizeInfo, GetAppendedLen())) {
-                LOGD("[SingleVerNStore] Get deleted data between %llu and %llu.",
+                LOGD("[SingleVerNStore] Get deleted data between %" PRIu64 " and %" PRIu64 ".",
                     continueStmtToken->GetDeletedBeginTime(), continueStmtToken->GetDeletedEndTime());
                 errCode = handle->GetDeletedSyncDataByTimestamp(dataItems, GetAppendedLen(),
                     continueStmtToken->GetDeletedBeginTime(), continueStmtToken->GetDeletedEndTime(), dataSizeInfo);
@@ -956,7 +956,7 @@ int SQLiteSingleVerNaturalStore::RemoveDeviceData(const std::string &deviceName,
     uint64_t logFileSize = handle->GetLogFileSize();
     ReleaseHandle(handle);
     if (logFileSize > GetMaxLogSize()) {
-        LOGW("[SingleVerNStore] RmDevData log size[%llu] over the limit", logFileSize);
+        LOGW("[SingleVerNStore] RmDevData log size[%" PRIu64 "] over the limit", logFileSize);
         return -E_LOG_OVER_LIMITS;
     }
 
@@ -988,7 +988,7 @@ int SQLiteSingleVerNaturalStore::RemoveDeviceDataInCacheMode(const std::string &
         return errCode;
     }
     uint64_t recordVersion = GetAndIncreaseCacheRecordVersion();
-    LOGI("Remove device data in cache mode isNeedNotify : %d, recordVersion : %d", isNeedNotify, recordVersion);
+    LOGI("Remove device data in cache mode isNeedNotify:%d, recordVersion:%" PRIu64 "", isNeedNotify, recordVersion);
     errCode = handle->RemoveDeviceDataInCacheMode(deviceName, isNeedNotify, recordVersion);
     if (errCode != E_OK) {
         LOGE("[SingleVerNStore] RemoveDeviceDataInCacheMode failed:%d", errCode);
@@ -1159,7 +1159,7 @@ void SQLiteSingleVerNaturalStore::InitCurrentMaxStamp()
     }
 
     handle->InitCurrentMaxStamp(currentMaxTimeStamp_);
-    LOGD("Init max timestamp:%llu", currentMaxTimeStamp_);
+    LOGD("Init max timestamp:%" PRIu64 "", currentMaxTimeStamp_);
     ReleaseHandle(handle);
 }
 
@@ -2251,7 +2251,7 @@ int SQLiteSingleVerNaturalStore::RemoveSubscribe(const std::string &subscribeId)
 
 int SQLiteSingleVerNaturalStore::SetMaxLogSize(uint64_t limit)
 {
-    LOGI("Set the max log size to %llu", limit);
+    LOGI("Set the max log size to %" PRIu64 "", limit);
     maxLogSize_.store(limit);
     return E_OK;
 }

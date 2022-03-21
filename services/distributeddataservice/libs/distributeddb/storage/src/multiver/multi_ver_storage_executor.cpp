@@ -409,7 +409,7 @@ int MultiVerStorageExecutor::ReInitTransactionVersion(const MultiVerCommitNode &
             errCode = E_OK;
         }
     } else {
-        LOGD("Reput the version:%llu", readCommit->GetCommitVersion());
+        LOGD("Reput the version:%" PRIu64 "", readCommit->GetCommitVersion());
         transaction_->SetVersion(readCommit->GetCommitVersion());
         commitStorage_->ReleaseCommit(readCommit);
     }
@@ -559,7 +559,7 @@ int MultiVerStorageExecutor::MergeCommits(const std::vector<MultiVerCommitNode> 
         }
         if (item.deviceInfo.size() == MULTI_VER_TAG_SIZE ||
             item.deviceInfo.compare(0, SHA256_DIGEST_LENGTH, rootNodeDeviceInfo, 0, SHA256_DIGEST_LENGTH) != 0) {
-            LOGD("Skip the version:%llu", item.version);
+            LOGD("Skip the version:%" PRIu64 "", item.version);
             continue;
         }
         errCode = MergeOneCommit(item);
@@ -871,7 +871,7 @@ int MultiVerStorageExecutor::CommitTransaction(MultiTransactionType type)
         dataStorage_->RollbackWritePhaseOne(transaction_, commitVersion);
         goto END;
     }
-    LOGD("local commit version:%llu", commitVersion);
+    LOGD("local commit version:%" PRIu64 "", commitVersion);
     static_cast<MultiVerNaturalStore *>(kvDB_)->SetMaxTimeStamp(multiVerTimeStamp.timestamp);
     dataStorage_->CommitWritePhaseTwo(transaction_);
     static_cast<MultiVerNaturalStore *>(kvDB_)->SetMaxCommitVersion(commitVersion);
@@ -1107,7 +1107,7 @@ int MultiVerStorageExecutor::GetResolvedConflictEntries(const MultiVerCommitNode
     entries.clear();
     entries.shrink_to_fit();
     Version version = commit->GetCommitVersion();
-    LOGD("Version is %llu", version);
+    LOGD("Version is %" PRIu64 "", version);
     if (transaction_ != nullptr) {
         errCode = transaction_->GetEntriesByVersion(version, entries);
         if (errCode != E_OK) {
@@ -1318,7 +1318,7 @@ int MultiVerStorageExecutor::CommitTransaction(const MultiVerCommitNode &multiVe
     dataStorage_->CommitWritePhaseTwo(transaction_);
     static_cast<MultiVerNaturalStore *>(kvDB_)->SetMaxTimeStamp(multiVerTimeStamp.timestamp);
     static_cast<MultiVerNaturalStore *>(kvDB_)->SetMaxCommitVersion(commitVersion);
-    LOGD("sync commit version:%llu", commitVersion);
+    LOGD("sync commit version:%" PRIu64 "", commitVersion);
 END:
     dataStorage_->ReleaseTransaction(transaction_);
     transaction_ = nullptr;

@@ -442,7 +442,7 @@ int KvDBManager::CalculateKvStoreSize(const KvDBProperties &properties, uint64_t
         if (innerErrCode != E_OK && innerErrCode != -E_NOT_FOUND) {
             return innerErrCode;
         }
-        LOGD("DB type [%d], size[%llu]", kvDbType, dbSize);
+        LOGD("DB type [%u], size[%" PRIu64 "]", static_cast<unsigned>(kvDbType), dbSize);
         totalSize = totalSize + dbSize;
     }
     // This represent Db file size(Unit is byte), It is small than max size(max uint64_t represent 2^64B)

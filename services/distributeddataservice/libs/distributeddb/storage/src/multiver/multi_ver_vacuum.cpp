@@ -356,8 +356,8 @@ int MultiVerVacuum::DealWithLeftBranchVacuumNeedRecord(VacuumTaskContext &inTask
     // No other thread will access handle, node and record field of a RUN_NING, PAUSE_WAIT, ABORT_WAIT status task
     // So it is concurrency safe to access or change these field without protection of lockguard
     const MultiVerRecordInfo &record = inTask.vacuumNeedRecords.front();
-    LOGD("[Vacuum][DealLeftRecord] Type=%d, Version=%llu, HashKey=%s.", record.type, ULL(record.version),
-        VEC_TO_STR(record.hashKey));
+    LOGD("[Vacuum][DealLeftRecord] Type=%u, Version=%llu, HashKey=%s.", static_cast<unsigned>(record.type),
+        ULL(record.version), VEC_TO_STR(record.hashKey));
     if (inTask.shadowRecords.empty()) {
         if (record.type == RecordType::CLEAR) {
             errCode = inTask.databaseHandle->GetShadowRecordsOfClearTypeRecord(record.version, record.hashKey,
@@ -368,7 +368,7 @@ int MultiVerVacuum::DealWithLeftBranchVacuumNeedRecord(VacuumTaskContext &inTask
         }
         if (errCode != E_OK) {
             LOGE("[Vacuum][DealLeftRecord] GetShadowRecords fail, Type=%d, Version=%llu, HashKey=%s, errCode=%d.",
-                record.type, ULL(record.version), VEC_TO_STR(record.hashKey), errCode);
+                static_cast<int>(record.type), ULL(record.version), VEC_TO_STR(record.hashKey), errCode);
             DoRollBackAndFinish(inTask);
             return errCode;
         }
@@ -391,7 +391,7 @@ int MultiVerVacuum::DealWithLeftBranchVacuumNeedRecord(VacuumTaskContext &inTask
     errCode = inTask.databaseHandle->MarkRecordAsVacuumDone(record.version, record.hashKey);
     if (errCode != E_OK) {
         LOGE("[Vacuum][DealLeftRecord] MarkRecordAsVacuumDone fail, Type=%d, Version=%llu, HashKey=%s, errCode=%d.",
-            record.type, ULL(record.version), VEC_TO_STR(record.hashKey), errCode);
+            static_cast<int>(record.type), ULL(record.version), VEC_TO_STR(record.hashKey), errCode);
         DoRollBackAndFinish(inTask);
         return errCode;
     }
@@ -477,8 +477,8 @@ int MultiVerVacuum::DoDeleteRecordOfLeftShadowOrRightVacuumNeed(VacuumTaskContex
     // No other thread will access handle, node and record field of a RUN_NING, PAUSE_WAIT, ABORT_WAIT status task
     // So it is concurrency safe to access or change these field without protection of lockguard
     const MultiVerRecordInfo &record = recordList.front();
-    LOGD("[Vacuum][DoDeleteRecord] Type=%d, Version=%llu, HashKey=%s.", record.type, ULL(record.version),
-        VEC_TO_STR(record.hashKey));
+    LOGD("[Vacuum][DoDeleteRecord] Type=%u, Version=%llu, HashKey=%s.", static_cast<unsigned>(record.type),
+        ULL(record.version), VEC_TO_STR(record.hashKey));
     errCode = StartTransactionIfNotYet(inTask);
     if (errCode != E_OK) {
         std::lock_guard<std::mutex> vacuumTaskLockGuard(vacuumTaskMutex_);
@@ -487,8 +487,8 @@ int MultiVerVacuum::DoDeleteRecordOfLeftShadowOrRightVacuumNeed(VacuumTaskContex
     }
     errCode = inTask.databaseHandle->DeleteRecordTotally(record.version, record.hashKey);
     if (errCode != E_OK) {
-        LOGE("[Vacuum][DoDeleteRecord] DeleteRecordTotally fail, Type=%d, Version=%llu, HashKey=%s, errCode=%d.",
-            record.type, ULL(record.version), VEC_TO_STR(record.hashKey), errCode);
+        LOGE("[Vacuum][DoDeleteRecord] DeleteRecordTotally fail, Type=%u, Version=%llu, HashKey=%s, errCode=%d.",
+            static_cast<unsigned>(record.type), ULL(record.version), VEC_TO_STR(record.hashKey), errCode);
         DoRollBackAndFinish(inTask);
         return errCode;
     }

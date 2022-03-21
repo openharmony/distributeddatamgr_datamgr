@@ -155,7 +155,8 @@ int SQLiteSingleVerStorageEngine::MigrateSyncDataByVersion(SQLiteSingleVerStorag
     }
 
     // next version need process
-    LOGD("MigrateVer[%llu], minVer[%llu] maxVer[%llu]", curMigrateVer, minVerIncurCacheDb, GetCacheRecordVersion());
+    LOGD("MigrateVer[%" PRIu64 "], minVer[%" PRIu64 "] maxVer[%" PRIu64 "]",
+        curMigrateVer, minVerIncurCacheDb, GetCacheRecordVersion());
     errCode = handle->MigrateSyncDataByVersion(curMigrateVer++, syncData, dataItems);
     if (errCode != E_OK) {
         LOGE("Migrate sync data fail and rollback, errCode = [%d]", errCode);
@@ -238,7 +239,7 @@ int SQLiteSingleVerStorageEngine::MigrateSyncData(SQLiteSingleVerStorageExecutor
         }
     }
 
-    LOGD("Begin migrate sync data, need migrate version[%llu]", GetCacheRecordVersion() - 1);
+    LOGD("Begin migrate sync data, need migrate version[%" PRIu64 "]", GetCacheRecordVersion() - 1);
     uint64_t curMigrateVer = 0; // The migration process is asynchronous and continuous
     NotifyMigrateSyncData syncData;
     auto kvdbManager = KvDBManager::GetInstance();
@@ -258,7 +259,7 @@ int SQLiteSingleVerStorageEngine::MigrateSyncData(SQLiteSingleVerStorageExecutor
     while (curMigrateVer < GetCacheRecordVersion()) {
         errCode = MigrateSyncDataByVersion(handle, syncData, curMigrateVer);
         if (errCode != E_OK) {
-            LOGE("Migrate version[%llu] failed! errCode = [%d]", curMigrateVer, errCode);
+            LOGE("Migrate version[%" PRIu64 "] failed! errCode = [%d]", curMigrateVer, errCode);
             break;
         }
         if (!syncData.isRemote) {
@@ -448,7 +449,7 @@ int SQLiteSingleVerStorageEngine::ExecuteMigrate()
     if (preState == EngineState::MIGRATING || preState == EngineState::INVALID ||
         !OS::CheckPathExistence(GetDbDir(option_.subdir, DbType::CACHE) + "/" + DBConstant::SINGLE_VER_CACHE_STORE +
         DBConstant::SQLITE_DB_EXTENSION)) {
-        LOGD("[SqlSingleVerEngine] Being single ver migrating or never create db! engine state [%d]", preState);
+        LOGD("[SqlSingleVerEngine] Being single ver migrating or never create db! engine state [%u]", preState);
         return E_OK;
     }
 
@@ -469,8 +470,8 @@ int SQLiteSingleVerStorageEngine::ExecuteMigrate()
         goto END;
     }
 
-    LOGD("[SqlSingleVerEngine] Current engineState [%d] executorState [%d], begin to executing singleVer db migrate!",
-        preState, executorState_);
+    LOGD("[SqlSingleVerEngine] Current engineState [%u] executorState [%u], begin to executing singleVer db migrate!",
+        static_cast<unsigned>(preState), static_cast<unsigned>(executorState_));
     // has been attached, Mark start of migration and it can migrate data
     errCode = MigrateLocalData(handle);
     if (errCode != E_OK) {

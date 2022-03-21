@@ -1228,7 +1228,8 @@ DataOperStatus SQLiteSingleVerStorageExecutor::JudgeSyncSaveType(DataItem &dataI
         if (itemGet.writeTimeStamp >= dataItem.writeTimeStamp) {
             // for multi user mode, no permit to forcewrite
             if ((!deviceName.empty()) && (itemGet.dev == deviceName) && isPermitForceWrite) {
-                LOGI("Force overwrite the data:%llu vs %llu", itemGet.writeTimeStamp, dataItem.writeTimeStamp);
+                LOGI("Force overwrite the data:%" PRIu64 " vs %" PRIu64 "",
+                    itemGet.writeTimeStamp, dataItem.writeTimeStamp);
                 status.isDefeated = false;
                 dataItem.writeTimeStamp = itemGet.writeTimeStamp + 1;
                 dataItem.timeStamp = itemGet.timeStamp;
@@ -1506,7 +1507,8 @@ int SQLiteSingleVerStorageExecutor::BindSavedSyncData(sqlite3_stmt *statement, c
 
     const int writeTimeIndex = isUpdate ? BIND_SYNC_UPDATE_W_TIME_INDEX : BIND_SYNC_W_TIME_INDEX;
     errCode = SQLiteUtils::BindInt64ToStatement(statement, writeTimeIndex, dataItem.writeTimeStamp);
-    LOGD("Write timestamp:%llu timestamp:%llu, %llu", dataItem.writeTimeStamp, dataItem.timeStamp, dataItem.flag);
+    LOGD("Write timestamp:%" PRIu64 " timestamp:%" PRIu64 ", %" PRIu64 "",
+        dataItem.writeTimeStamp, dataItem.timeStamp, dataItem.flag);
     if (errCode != E_OK) {
         LOGE("Bind saved sync data write stamp failed:%d", errCode);
         return errCode;

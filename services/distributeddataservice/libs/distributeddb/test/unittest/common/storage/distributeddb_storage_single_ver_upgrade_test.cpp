@@ -287,7 +287,6 @@ void DistributedDBStorageSingleVerUpgradeTest::SetUpTestCase(void)
     int errCode = g_passwd.SetValue(passwdBuffer1.data(), passwdBuffer1.size());
     ASSERT_EQ(errCode, CipherPassword::ErrorCode::OK);
     g_adapter = std::make_shared<ProcessSystemApiAdapterImpl>();
-    EXPECT_TRUE(g_adapter != nullptr);
     RuntimeContext::GetInstance()->SetProcessSystemApiAdapter(g_adapter);
     g_maindbPath = g_testDir + "/" + identifier + "/" + DBConstant::SINGLE_SUB_DIR + "/" + DBConstant::MAINDB_DIR +
         "/" + DBConstant::SINGLE_VER_DATA_STORE + DBConstant::SQLITE_DB_EXTENSION;
