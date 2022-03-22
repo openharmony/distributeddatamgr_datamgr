@@ -57,7 +57,7 @@ private:
     static std::string backupDirDe_;
 
     KvScheduler scheduler_ {};
-    constexpr uint64_t BACKUP_INTERVAL = 3600 * 1000 * 10; // 10 hours
+    static constexpr uint64_t BACKUP_INTERVAL = 3600 * 1000 * 10; // 10 hours
     int64_t backupSuccessTime_ = 0;
 };
 } // namespace OHOS::DistributedKv
