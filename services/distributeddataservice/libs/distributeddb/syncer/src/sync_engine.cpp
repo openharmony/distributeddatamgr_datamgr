@@ -140,6 +140,7 @@ int SyncEngine::Close()
         if (inMsg != nullptr) {
             queueCacheSize_ -= GetMsgSize(inMsg);
             delete inMsg;
+            inMsg = nullptr;
         }
     }
     // close db, rekey or import scene, need clear all remote query info
