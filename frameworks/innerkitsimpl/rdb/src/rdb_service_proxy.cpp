@@ -145,14 +145,14 @@ int32_t RdbServiceProxy::DoSync(const RdbSyncerParam& param, const SyncOption &o
     if (!DistributedKv::ITypesUtil::Marshalling(predicates, data)) {
         ZLOGE("write predicates failed");
     }
-    
+
     MessageParcel reply;
     MessageOption opt;
     if (Remote()->SendRequest(RDB_SERVICE_CMD_SYNC, data, reply, opt) != 0) {
         ZLOGE("send request failed");
         return RDB_ERROR;
     }
-    
+
     if (!DistributedKv::ITypesUtil::UnMarshalling(reply, result)) {
         ZLOGE("read result failed");
         return RDB_ERROR;
@@ -169,7 +169,7 @@ int32_t RdbServiceProxy::DoSync(const RdbSyncerParam& param, const SyncOption &o
         return RDB_ERROR;
     }
     ZLOGI("success");
-    
+
     if (callback != nullptr) {
         callback(result);
     }
@@ -199,14 +199,14 @@ int32_t RdbServiceProxy::DoAsync(const RdbSyncerParam& param, uint32_t seqNum, c
     if (!DistributedKv::ITypesUtil::Marshalling(predicates, data)) {
         ZLOGE("write predicates failed");
     }
-    
+
     MessageParcel reply;
     MessageOption opt;
     if (Remote()->SendRequest(RDB_SERVICE_CMD_ASYNC, data, reply, opt) != 0) {
         ZLOGE("send request failed");
         return RDB_ERROR;
     }
-    
+
     int32_t res = RDB_ERROR;
     return reply.ReadInt32(res) ? res : RDB_ERROR;
 }
@@ -220,13 +220,13 @@ int32_t RdbServiceProxy::DoAsync(const RdbSyncerParam& param, const SyncOption &
         return RDB_ERROR;
     }
     ZLOGI("num=%{public}u", num);
-    
+
     if (DoAsync(param, num, option, predicates) != RDB_OK) {
         ZLOGE("failed");
         syncCallbacks_.Erase(num);
         return RDB_ERROR;
     }
-    
+
     ZLOGI("success");
     return RDB_OK;
 }

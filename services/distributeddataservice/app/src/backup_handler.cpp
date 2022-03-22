@@ -99,7 +99,6 @@ void BackupHandler::SingleKvStoreBackup(const MetaData &metaData)
 
     auto *delegateMgr = new DistributedDB::KvStoreDelegateManager(metaData.kvStoreMetaData.appId,
         AccountDelegate::GetInstance()->GetCurrentAccountId(metaData.kvStoreMetaData.bundleName));
-
     std::string appDataStoragePath = KvStoreAppManager::GetDataStoragePath(metaData.kvStoreMetaData.deviceAccountId,
         metaData.kvStoreMetaData.bundleName, backupPara.pathType);
     DistributedDB::KvStoreConfig kvStoreConfig = {appDataStoragePath};
@@ -389,7 +388,7 @@ bool BackupHandler::CheckNeedBackup()
         return false;
     }
     uint64_t currentTime = TimeUtils::CurrentTimeMicros();
-    if (currentTime - backupSuccessTime_ < 36000000 && backupSuccessTime_ > 0) { // 36000000 is 10 hours
+    if (currentTime - backupSuccessTime_ < BACKUP_INTERVAL && backupSuccessTime_ > 0) {
         ZLOGE("no more than 10 hours since the last backup success.");
         return false;
     }

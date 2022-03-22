@@ -141,7 +141,7 @@ bool ITypesUtil::Unmarshalling(MessageParcel &parcel, ChangeNotification &output
         ZLOGE("WriteString deviceId_ failed.");
         return false;
     }
-    bool isClear;
+    bool isClear = false;
     if (!parcel.ReadBool(isClear)) {
         ZLOGE("WriteString deviceId_ failed.");
         return false;
@@ -206,7 +206,7 @@ bool ITypesUtil::Marshalling(const DistributedRdb::SyncResult &result, MessagePa
         ZLOGE("SyncResult write size failed");
         return false;
     }
-    
+
     for (const auto& entry : result) {
         if (!parcel.WriteString(entry.first)) {
             ZLOGE("SyncResult write device failed");
@@ -231,7 +231,7 @@ bool ITypesUtil::UnMarshalling(MessageParcel &parcel, DistributedRdb::SyncResult
         ZLOGE("SyncResult size invalid");
         return false;
     }
-    
+
     for (int32_t i = 0; i < size; i++) {
         std::string device;
         if (!parcel.ReadString(device)) {

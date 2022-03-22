@@ -890,7 +890,7 @@ napi_status JSUtil::GetValue(napi_env env, napi_value in, DistributedKv::Options
     if (status == napi_ok) {
         options.schema = jsSchema->Dump();
     }
-    
+
     int32_t level = 0;
     GetNamedProperty(env, in, "securityLevel", level);
     options.securityLevel = level;
