@@ -46,6 +46,7 @@ HWTEST_F(AccountDelegateTest, Test001, TestSize.Level0)
 {
     ZLOGD("start:");
     auto account = AccountDelegate::GetInstance();
+    EXPECT_NE(account, nullptr);
     auto observer = std::make_shared<AccountObserver>();
     ZLOGD("observer:");
     account->Subscribe(observer);

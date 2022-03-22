@@ -141,6 +141,7 @@ uint32_t ProcessCommunicatorImpl::GetMtuSize(const DeviceInfos &devInfo)
     }
     return MTU_SIZE;
 }
+
 DeviceInfos ProcessCommunicatorImpl::GetLocalDeviceInfos()
 {
     DeviceInfos localDevInfos;

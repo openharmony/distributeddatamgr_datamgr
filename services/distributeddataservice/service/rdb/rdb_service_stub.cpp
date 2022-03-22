@@ -180,7 +180,7 @@ bool RdbServiceStub::CheckInterfaceToken(MessageParcel& data)
 
 int RdbServiceStub::OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
-    ZLOGI("code=%{public}d", code);
+    ZLOGI("code=%{public}u", code);
     if (!CheckInterfaceToken(data)) {
         return RDB_ERROR;
     }

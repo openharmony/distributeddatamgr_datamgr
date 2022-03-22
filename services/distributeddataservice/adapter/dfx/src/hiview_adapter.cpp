@@ -87,6 +87,7 @@ void HiViewAdapter::ReportDbSize(const StatisticWrap<DbStat> &stat)
         OHOS::HiviewDFX::HiSysEvent::EventType::FAULT,
         USER_ID, userId, APP_ID, stat.val.appId, STORE_ID, stat.val.storeId, DB_SIZE, dbSize);
 }
+
 void HiViewAdapter::InvokeDbSize()
 {
     std::lock_guard<std::mutex> lock(dbMutex_);

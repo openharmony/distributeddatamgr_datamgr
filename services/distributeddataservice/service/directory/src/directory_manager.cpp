@@ -94,6 +94,8 @@ std::string ClientDirWorker::GetSecretKeyDir(ClientContext clientContext, PathTy
 
 std::string DirectoryManager::CreatePath(const ClientContext &context, PathType type)
 {
+    (void) context;
+    (void) type;
     return "";
 }
 
