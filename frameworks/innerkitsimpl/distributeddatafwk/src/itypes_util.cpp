@@ -28,7 +28,10 @@ bool ITypesUtil::Marshalling(const Blob &blob, MessageParcel &data)
 
 bool ITypesUtil::Unmarshalling(MessageParcel &data, Blob &output)
 {
-    return data.ReadUInt8Vector(&output);
+    std::vector<uint8_t> blob;
+    bool result = data.ReadUInt8Vector(&blob);
+    output = Blob;
+    return result;
 }
 
 bool ITypesUtil::Marshalling(const std::vector<Blob> &blobs, MessageParcel &data)
