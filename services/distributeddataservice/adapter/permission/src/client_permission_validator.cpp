@@ -34,7 +34,7 @@ std::int32_t ClientPermissionChangedCallback::GetPid()
 
 void ClientPermissionChangedCallback::OnChanged(const int32_t uid)
 {
-
+    (void) uid;
 }
 
 void ClientPermissionValidator::UpdatePermissionStatus(
@@ -48,6 +48,8 @@ void ClientPermissionValidator::UpdatePermissionStatus(
 
 bool ClientPermissionValidator::CheckClientSyncPermission(const KvStoreTuple &kvStoreTuple, std::int32_t curUid)
 {
+    (void) kvStoreTuple;
+    (void) curUid;
     return true;
 }
 
@@ -59,7 +61,7 @@ bool ClientPermissionValidator::RegisterPermissionChanged(
 
 void ClientPermissionValidator::UnregisterPermissionChanged(const KvStoreTuple &kvStoreTuple)
 {
-
+    (void) kvStoreTuple;
 }
 
 // after the BMS service restarted, rebuild BundleManager object and re-register permission callbacks for all apps.
@@ -71,7 +73,8 @@ void ClientPermissionValidator::RebuildBundleManager()
 void ClientPermissionValidator::UpdateKvStoreTupleMap(const KvStoreTuple &srcKvStoreTuple,
                                                       const KvStoreTuple &dstKvStoreTuple)
 {
-
+    (void) srcKvStoreTuple;
+    (void) dstKvStoreTuple;
 }
 } // namespace DistributedKv
 } // namespace OHOS

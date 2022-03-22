@@ -70,7 +70,7 @@ void UvQueue::AsyncCall(NapiCallbackGetter getter, NapiArgsGenerator genArgs)
             napi_value result;
             napi_status status = napi_call_function(entry->env, global, method, argc, argv, &result);
             if (status != napi_ok) {
-                ZLOGE("notify data change failed status:%{public}d callback:%{public}p", status, method);
+                ZLOGE("notify data change failed status:%{public}d.", status);
             }
         });
 }
