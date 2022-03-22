@@ -86,7 +86,6 @@ int32_t RdbServiceProxy::InitNotifier(const RdbSyncerParam& param)
     }
 
     if (InitNotifier(param, notifier_->AsObject()) != RDB_OK) {
-        delete notifier_;
         notifier_ = nullptr;
         return RDB_ERROR;
     }

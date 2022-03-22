@@ -104,7 +104,6 @@ napi_status JSUtil::GetValue(napi_env env, napi_value in, std::string& out)
             out = std::string(buf);
         }
         delete[] buf;
-        buf = nullptr;
     } else {
         status = napi_generic_failure;
     }
