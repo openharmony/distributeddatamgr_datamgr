@@ -16,7 +16,9 @@
 #ifndef DISTRIBUTEDDB_LOG_PRINT_H
 #define DISTRIBUTEDDB_LOG_PRINT_H
 
+#ifndef __STDC_FORMAT_MACROS
 #define __STDC_FORMAT_MACROS
+#endif
 #include <cinttypes>
 #include <cstdarg>
 #include <cstdio>
