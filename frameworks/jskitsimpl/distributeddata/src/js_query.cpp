@@ -286,7 +286,6 @@ napi_value JsQuery::IsNull(napi_env env, napi_callback_info info)
 /*
  * InNumber / NotInNumber
  * [NOTES] Recommended to use the napi_typedarray_type
- * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects#indexed_collections
  */
 enum class NumberType : uint8_t {
     NUMBER_INT,
