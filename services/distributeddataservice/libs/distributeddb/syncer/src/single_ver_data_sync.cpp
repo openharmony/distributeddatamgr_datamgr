@@ -661,7 +661,7 @@ void SingleVerDataSync::FillDataRequestPacket(DataRequestPacket *packet, SingleV
         packet->SetUpdateWaterMark();
     }
     LOGD("[DataSync] curType=%d,local=%" PRIu64 ",del=%" PRIu64 ",end=%" PRIu64 ",label=%s,dev=%s,queryId=%s,"
-        "isCompress=%d", curType, localMark, deleteMark, context->GetEndMark(), label_.c_str(),
+        "isCompress=%d", static_cast<int>(curType), localMark, deleteMark, context->GetEndMark(), label_.c_str(),
         STR_MASK(GetDeviceId()), STR_MASK(context->GetQuery().GetIdentify()), packet->IsCompressData());
 }
 
@@ -777,7 +777,8 @@ int SingleVerDataSync::PullRequestStart(SingleVerSyncTaskContext *context)
     SingleVerDataSyncUtils::SetPacketId(packet, context, version);
 
     LOGD("[DataSync][Pull] curType=%d,local=%" PRIu64 ",del=%" PRIu64 ",end=%" PRIu64 ",peer=%" PRIu64 ",label=%s,"
-        "dev=%s", syncType, localMark, deleteMark, endMark, peerMark, label_.c_str(), STR_MASK(GetDeviceId()));
+        "dev=%s", static_cast<int>(syncType), localMark, deleteMark, endMark, peerMark, label_.c_str(),
+        STR_MASK(GetDeviceId()));
     UpdateSendInfo(dataTime, context);
     return SendDataPacket(syncType, packet, context);
 }
@@ -942,9 +943,9 @@ int SingleVerDataSync::DataRequestRecv(SingleVerSyncTaskContext *context, const 
     const DataRequestPacket *packet = message->GetObject<DataRequestPacket>();
     const std::vector<SendDataItem> &data = packet->GetData();
     SyncType curType = SyncOperation::GetSyncType(packet->GetMode());
-    LOGI("[DataSync][DataRequestRecv] curType=%d,remote ver=%zu,size=%d,errCode=%d,queryId=%s,Label=%s,dev=%s",
-        curType, packet->GetVersion(), data.size(), packet->GetSendCode(), STR_MASK(packet->GetQueryId()),
-        label_.c_str(), STR_MASK(GetDeviceId()));
+    LOGI("[DataSync][DataRequestRecv] curType=%d, remote ver=%" PRIu32 ", size=%zu, errCode=%d, queryId=%s,"
+        " Label=%s, dev=%s", static_cast<int>(curType), packet->GetVersion(), data.size(), packet->GetSendCode(),
+        STR_MASK(packet->GetQueryId()), label_.c_str(), STR_MASK(GetDeviceId()));
     context->SetReceiveWaterMarkErr(false);
     UpdateWaterMark isUpdateWaterMark;
     SyncTimeRange dataTime = SingleVerDataSyncUtils::GetRecvDataTimeRange(curType, data, isUpdateWaterMark);

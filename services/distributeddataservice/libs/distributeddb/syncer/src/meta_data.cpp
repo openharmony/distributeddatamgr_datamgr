@@ -124,7 +124,7 @@ int Metadata::SavePeerWaterMark(const DeviceID &deviceId, uint64_t inValue, bool
     std::lock_guard<std::mutex> lockGuard(metadataLock_);
     GetMetaDataValue(deviceId, metadata, isNeedHash);
     metadata.peerWaterMark = inValue;
-    LOGD("Metadata::SavePeerWaterMark = %llu", inValue);
+    LOGD("Metadata::SavePeerWaterMark = %" PRIu64, inValue);
     return SaveMetaDataValue(deviceId, metadata);
 }
 
