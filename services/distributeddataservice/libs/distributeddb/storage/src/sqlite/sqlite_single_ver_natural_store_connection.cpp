@@ -1015,7 +1015,7 @@ int SQLiteSingleVerNaturalStoreConnection::SaveLocalEntry(const Entry &entry, bo
         dataItem.flag = DataItem::DELETE_FLAG;
     }
     dataItem.timeStamp = naturalStore->GetCurrentTimeStamp();
-    LOGD("TimeStamp is %" PRIu64 "", dataItem.timeStamp);
+    LOGD("TimeStamp is %" PRIu64, dataItem.timeStamp);
 
     if (IsCacheDBMode()) {
         return SaveLocalItemInCacheMode(dataItem);

@@ -988,7 +988,7 @@ int SQLiteSingleVerNaturalStore::RemoveDeviceDataInCacheMode(const std::string &
         return errCode;
     }
     uint64_t recordVersion = GetAndIncreaseCacheRecordVersion();
-    LOGI("Remove device data in cache mode isNeedNotify:%d, recordVersion:%" PRIu64 "", isNeedNotify, recordVersion);
+    LOGI("Remove device data in cache mode isNeedNotify:%d, recordVersion:%" PRIu64, isNeedNotify, recordVersion);
     errCode = handle->RemoveDeviceDataInCacheMode(deviceName, isNeedNotify, recordVersion);
     if (errCode != E_OK) {
         LOGE("[SingleVerNStore] RemoveDeviceDataInCacheMode failed:%d", errCode);
@@ -1159,7 +1159,7 @@ void SQLiteSingleVerNaturalStore::InitCurrentMaxStamp()
     }
 
     handle->InitCurrentMaxStamp(currentMaxTimeStamp_);
-    LOGD("Init max timestamp:%" PRIu64 "", currentMaxTimeStamp_);
+    LOGD("Init max timestamp:%" PRIu64, currentMaxTimeStamp_);
     ReleaseHandle(handle);
 }
 
@@ -2251,7 +2251,7 @@ int SQLiteSingleVerNaturalStore::RemoveSubscribe(const std::string &subscribeId)
 
 int SQLiteSingleVerNaturalStore::SetMaxLogSize(uint64_t limit)
 {
-    LOGI("Set the max log size to %" PRIu64 "", limit);
+    LOGI("Set the max log size to %" PRIu64, limit);
     maxLogSize_.store(limit);
     return E_OK;
 }

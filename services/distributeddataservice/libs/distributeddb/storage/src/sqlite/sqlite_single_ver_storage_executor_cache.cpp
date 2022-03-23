@@ -532,7 +532,7 @@ int SQLiteSingleVerStorageExecutor::BindSyncDataInCacheMode(sqlite3_stmt *statem
         return errCode;
     }
 
-    LOGD("Write timestamp:%" PRIu64 " timestamp:%llu, %" PRIu64 ", flag:%" PRIu64 ", version:%" PRIu64 "",
+    LOGD("Write timestamp:%" PRIu64 " timestamp:%" PRIu64 ", flag:%" PRIu64 ", version:%" PRIu64,
         dataItem.writeTimeStamp, dataItem.timeStamp, dataItem.flag, recordVersion);
     errCode = SQLiteUtils::BindInt64ToStatement(statement, BIND_CACHE_SYNC_FLAG_INDEX,
         static_cast<int64_t>(dataItem.flag));
@@ -800,7 +800,7 @@ int SQLiteSingleVerStorageExecutor::GetMinTimestampInCacheDB(TimeStamp &minStamp
     errCode = SQLiteUtils::StepWithRetry(statement, isMemDb_);
     if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_ROW)) {
         minStamp = static_cast<uint64_t>(sqlite3_column_int64(statement, 0)); // get the first column
-        LOGD("Min time stamp in cacheDB is %" PRIu64 "", minStamp);
+        LOGD("Min time stamp in cacheDB is %" PRIu64, minStamp);
         errCode = E_OK;
     } else {
         LOGE("GetMinTimestampInCacheDB failed, errCode = %d.", errCode);

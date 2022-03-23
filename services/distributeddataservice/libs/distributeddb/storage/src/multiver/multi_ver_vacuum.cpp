@@ -356,8 +356,8 @@ int MultiVerVacuum::DealWithLeftBranchVacuumNeedRecord(VacuumTaskContext &inTask
     // No other thread will access handle, node and record field of a RUN_NING, PAUSE_WAIT, ABORT_WAIT status task
     // So it is concurrency safe to access or change these field without protection of lockguard
     const MultiVerRecordInfo &record = inTask.vacuumNeedRecords.front();
-    LOGD("[Vacuum][DealLeftRecord] Type=%u, Version=%llu, HashKey=%s.", static_cast<unsigned>(record.type),
-        ULL(record.version), VEC_TO_STR(record.hashKey));
+    LOGD("[Vacuum][DealLeftRecord] Type=%" PRIu32 ", Version=%" PRIu64 ", HashKey=%s.",
+        static_cast<uint32_t>(record.type), record.version, VEC_TO_STR(record.hashKey));
     if (inTask.shadowRecords.empty()) {
         if (record.type == RecordType::CLEAR) {
             errCode = inTask.databaseHandle->GetShadowRecordsOfClearTypeRecord(record.version, record.hashKey,

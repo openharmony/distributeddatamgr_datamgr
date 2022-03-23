@@ -364,7 +364,7 @@ int SQLiteMultiVerTransaction::CheckToSaveRecord(const MultiVerKvEntry *entry, b
     (static_cast<const GenericMultiVerKvEntry *>(entry))->GetOperFlag(operFlag);
     entry->GetTimestamp(timestamp);
     if ((operFlag & OPERATE_MASK) == CLEAR_FLAG && version_ != 0) {
-        LOGD("Erase one version:%" PRIu64 "", version_);
+        LOGD("Erase one version:%" PRIu64, version_);
         errCode = GetPrePutValues(version_, timestamp, values);
         if (errCode != E_OK) {
             return errCode;
@@ -792,7 +792,7 @@ int SQLiteMultiVerTransaction::UpdateTimestampByVersion(const Version &version,
     if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_DONE)) {
         errCode = E_OK;
         currentMaxTimestamp_ = (stamp > currentMaxTimestamp_) ? stamp : currentMaxTimestamp_;
-        LOGD("Update the timestamp of version:%" PRIu64 " - %" PRIu64 "", version, stamp);
+        LOGD("Update the timestamp of version:%" PRIu64 " - %" PRIu64, version, stamp);
     } else {
         LOGE("Failed to update the timestamp of the version:%d", errCode);
     }
@@ -1079,7 +1079,7 @@ int SQLiteMultiVerTransaction::AddRecord(const Key &key, const Value &value,
         dataCopy.timestamp = currentMaxTimestamp_++;
         if ((dataCopy.operFlag & LOCAL_FLAG) != 0) {
             dataCopy.oriTimestamp = currentMaxTimestamp_;
-            LOGD("Origin timestamp:%" PRIu64 "", currentMaxTimestamp_);
+            LOGD("Origin timestamp:%" PRIu64, currentMaxTimestamp_);
         }
     }
 

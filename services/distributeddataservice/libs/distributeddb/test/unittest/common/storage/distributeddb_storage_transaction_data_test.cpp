@@ -1336,7 +1336,7 @@ HWTEST_F(DistributedDBStorageTransactionDataTest, CommitTimestamp001, TestSize.L
     // Tobe compare the timestamp.
     CommitID commitId;
     TimeStamp commitTimestamp = GetCommitTimestamp(commitId);
-    LOGD("TimeRecord:%" PRIu64 ", TimeCommit:%" PRIu64 "", *(timeSet.begin()), commitTimestamp);
+    LOGD("TimeRecord:%" PRIu64 ", TimeCommit:%" PRIu64, *(timeSet.begin()), commitTimestamp);
     ASSERT_EQ(*(timeSet.begin()), commitTimestamp);
     ASSERT_NE(commitTimestamp, 0UL);
 
@@ -1449,7 +1449,7 @@ HWTEST_F(DistributedDBStorageTransactionDataTest, CommitTimestamp002, TestSize.L
      */
     TimeStamp stampSecond = GetCommitTimestamp(commitId);
     ASSERT_NE(stampSecond, 0UL); // non-zero
-    LOGD("TimeFirst:%" PRIu64 ", TimeSecond:%" PRIu64 "", stampFirst, stampSecond);
+    LOGD("TimeFirst:%" PRIu64 ", TimeSecond:%" PRIu64, stampFirst, stampSecond);
     ASSERT_GT(stampSecond, stampFirst);
 }
 static void ReleaseKvEntries(std::vector<MultiVerKvEntry *> &entries)
@@ -1502,7 +1502,7 @@ HWTEST_F(DistributedDBStorageTransactionDataTest, CommitTimestamp003, TestSize.L
      * @tc.steps: expected. the timestamp of the sync commit is equal to the timestamp of the data record.
      */
     TimeStamp commitTimestamp = GetCommitTimestamp(commit.commitId);
-    LOGD("TimeRecord:%" PRIu64 ", TimeCommit:%" PRIu64 "", timestamp, commitTimestamp);
+    LOGD("TimeRecord:%" PRIu64 ", TimeCommit:%" PRIu64, timestamp, commitTimestamp);
     ASSERT_EQ(timestamp, commitTimestamp);
     ASSERT_NE(commitTimestamp, 0UL);
 }
