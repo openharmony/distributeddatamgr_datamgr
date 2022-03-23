@@ -341,7 +341,7 @@ int TimeSync::AckRecv(const Message *message, uint32_t targetSessionId)
     }
     // calculate timeoffset of two devices
     TimeOffset offset = CalculateTimeOffset(packetData);
-    LOGD("TimeSync::AckRecv, dev = %s{private}, sEnd = %" PRIu64 ", tEnd = %" PRIu64 ", sBegin = %" PRIu64 
+    LOGD("TimeSync::AckRecv, dev = %s{private}, sEnd = %" PRIu64 ", tEnd = %" PRIu64 ", sBegin = %" PRIu64
         ", tBegin = %" PRIu64 ", offset = %" PRId64,
         deviceId_.c_str(),
         packetData.GetSourceTimeEnd(),

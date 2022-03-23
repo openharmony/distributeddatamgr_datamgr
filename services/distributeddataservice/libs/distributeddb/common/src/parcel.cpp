@@ -164,14 +164,14 @@ int Parcel::WriteString(const std::string &inVal)
     uint64_t stepLen = sizeof(uint32_t) + static_cast<uint64_t>(inVal.size());
     len = HostToNet(len);
     if (stepLen > INT32_MAX || parcelLen_ + BYTE_8_ALIGN(stepLen) > totalLen_) {
-        LOGE("[WriteString] stepLen:%" PRIu64 ", totalLen:%" PRIu64 ", parcelLen:%" PRIu64 , stepLen, totalLen_,
+        LOGE("[WriteString] stepLen:%" PRIu64 ", totalLen:%" PRIu64 ", parcelLen:%" PRIu64, stepLen, totalLen_,
             parcelLen_);
         isError_ = true;
         return -E_PARSE_FAIL;
     }
     errno_t errCode = memcpy_s(bufPtr_, totalLen_ - parcelLen_, &len, sizeof(uint32_t));
     if (errCode != EOK) {
-        LOGE("[WriteString] bufPtr:%d, totalLen:%" PRIu64 ", parcelLen:%" PRIu64 , bufPtr_ != nullptr, totalLen_,
+        LOGE("[WriteString] bufPtr:%d, totalLen:%" PRIu64 ", parcelLen:%" PRIu64, bufPtr_ != nullptr, totalLen_,
             parcelLen_);
         isError_ = true;
         return -E_SECUREC_ERROR;
