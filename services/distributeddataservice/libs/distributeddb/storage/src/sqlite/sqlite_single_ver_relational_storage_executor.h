@@ -70,6 +70,8 @@ public:
 
     int CheckQueryObjectLegal(const TableInfo &table, QueryObject &query);
 
+    int GetMaxTimestamp(const std::vector<std::string> &tablesName, Timestamp &maxTimestamp) const;
+
 private:
     struct SaveSyncDataStmt {
         sqlite3_stmt *saveDataStmt = nullptr;

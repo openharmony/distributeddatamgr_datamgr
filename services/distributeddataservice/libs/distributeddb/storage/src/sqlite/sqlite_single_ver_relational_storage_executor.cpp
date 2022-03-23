@@ -1281,5 +1281,30 @@ int SQLiteSingleVerRelationalStorageExecutor::SaveSyncDataStmt::ResetStatements(
     }
     return errCode;
 }
+
+int SQLiteSingleVerRelationalStorageExecutor::GetMaxTimestamp(const std::vector<std::string> &tableNames,
+    Timestamp &maxTimestamp) const
+{
+    maxTimestamp = 0;
+    for (const auto &tableName : tableNames) {
+        const std::string sql = "SELECT max(timestamp) from " + DBConstant::RELATIONAL_PREFIX + tableName + "_log;";
+        sqlite3_stmt *stmt = nullptr;
+        int errCode = SQLiteUtils::GetStatement(dbHandle_, sql, stmt);
+        if (errCode != E_OK) {
+            return errCode;
+        }
+        errCode = SQLiteUtils::StepWithRetry(stmt, isMemDb_);
+        if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_ROW)) {
+            maxTimestamp = std::max(maxTimestamp, static_cast<Timestamp>(sqlite3_column_int64(stmt, 0))); // 0 is index
+            errCode = E_OK;
+        }
+        SQLiteUtils::ResetStatement(stmt, true, errCode);
+        if (errCode != E_OK) {
+            maxTimestamp = 0;
+            return errCode;
+        }
+    }
+    return E_OK;
+}
 } // namespace DistributedDB
 #endif

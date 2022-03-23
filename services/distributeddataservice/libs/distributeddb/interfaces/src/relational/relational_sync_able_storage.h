@@ -45,6 +45,9 @@ public:
     // Get the max timestamp of all entries in database.
     void GetMaxTimestamp(Timestamp &stamp) const override;
 
+    // Get the max timestamp of one table.
+    int GetMaxTimestamp(const std::string &tableName, Timestamp &stamp) const override;
+
     // Get meta data associated with the given key.
     int GetMetaData(const Key &key, Value &value) const override;
 
@@ -119,7 +122,6 @@ private:
     SQLiteSingleVerRelationalStorageExecutor *GetHandle(bool isWrite, int &errCode,
         OperatePerm perm = OperatePerm::NORMAL_PERM) const;
     void ReleaseHandle(SQLiteSingleVerRelationalStorageExecutor *&handle) const;
-    int SetMaxTimestamp(Timestamp timestamp);
 
     // get
     int GetSyncDataForQuerySync(std::vector<DataItem> &dataItems, SQLiteSingleVerRelationalContinueToken *&token,
@@ -131,9 +133,7 @@ private:
 
     // data
     SQLiteSingleRelationalStorageEngine *storageEngine_ = nullptr;
-    Timestamp currentMaxTimestamp_ = 0;
     KvDBProperties properties_;
-    mutable std::mutex maxTimestampMutex_;
 
     std::function<void()> onSchemaChanged_;
     mutable std::mutex onSchemaChangedMutex_;
