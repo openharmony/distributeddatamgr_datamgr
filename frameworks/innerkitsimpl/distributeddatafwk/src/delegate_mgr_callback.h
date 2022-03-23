@@ -32,11 +32,7 @@ public:
         if (IsDestruct()) {
             return false;
         }
-        DistributedDB::DBStatus ret = delegate_->GetKvStoreDiskSize(storeId, size);
-        if (ret != DistributedDB::DBStatus::OK) {
-            return false;
-        }
-        return true;
+        return delegate_->GetKvStoreDiskSize(storeId, size) == DistributedDB::DBStatus::OK;
     }
 
     void GetKvStoreKeys(std::vector<DistributedKv::StoreInfo> &entries) override

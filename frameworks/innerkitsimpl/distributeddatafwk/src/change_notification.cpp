@@ -151,8 +151,12 @@ ChangeNotification *ChangeNotification::Unmarshalling(Parcel &parcel)
     std::string deviceId = parcel.ReadString();
     bool isClear = parcel.ReadBool();
 
-    return new ChangeNotification(std::move(insertEntries), std::move(updateEntries), std::move(deleteEntries),
-        deviceId, isClear);
+    auto result = new(std::nothrow) ChangeNotification(std::move(insertEntries), std::move(updateEntries),
+        std::move(deleteEntries), deviceId, isClear);
+    if (result == nullptr) {
+        return nullptr
+    }
+    return result;
 }
 }  // namespace DistributedKv
 }  // namespace OHOS
