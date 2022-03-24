@@ -37,6 +37,7 @@ public:
 
     void GetKvStoreKeys(std::vector<DistributedKv::StoreInfo> &entries) override
     {
+
     }
 
     bool IsDestruct()
