@@ -168,6 +168,8 @@ int GenericKvDBConnection::UnRegisterObserver(const KvDBObserverHandle *observer
 
 int GenericKvDBConnection::SetConflictNotifier(int conflictType, const KvDBConflictAction &action)
 {
+    (void)conflictType;
+    (void)action;
     return -E_NOT_SUPPORT;
 }
 
@@ -203,6 +205,8 @@ std::string GenericKvDBConnection::GetIdentifier() const
 
 int GenericKvDBConnection::Pragma(int cmd, void *parameter)
 {
+    (void)cmd;
+    (void)parameter;
     return -E_NOT_SUPPORT;
 }
 
@@ -218,38 +222,53 @@ void GenericKvDBConnection::SetSafeDeleted()
 
 int GenericKvDBConnection::GetEntries(const IOption &option, const Key &keyPrefix, std::vector<Entry> &entries) const
 {
+    (void)option;
+    (void)keyPrefix;
+    (void)entries;
     return -E_NOT_SUPPORT;
 }
 
 int GenericKvDBConnection::GetEntries(const IOption &option, const Query &query, std::vector<Entry> &entries) const
 {
+    (void)option;
+    (void)query;
+    (void)entries;
     return -E_NOT_SUPPORT;
 }
 
-int GenericKvDBConnection::GetResultSet(const IOption &option, const Key &keyPrefix,
-    IKvDBResultSet *&resultSet) const
+int GenericKvDBConnection::GetResultSet(const IOption &option, const Key &keyPrefix, IKvDBResultSet *&resultSet) const
 {
+    (void)option;
+    (void)keyPrefix;
+    (void)resultSet;
     return -E_NOT_SUPPORT;
 }
 
 int GenericKvDBConnection::GetResultSet(const IOption &option, const Query &query, IKvDBResultSet *&resultSet) const
 {
+    (void)option;
+    (void)query;
+    (void)resultSet;
     return -E_NOT_SUPPORT;
 }
 
 int GenericKvDBConnection::GetCount(const IOption &option, const Query &query, int &count) const
 {
+    (void)option;
+    (void)query;
+    (void)count;
     return -E_NOT_SUPPORT;
 }
 
 void GenericKvDBConnection::ReleaseResultSet(IKvDBResultSet *&resultSet)
 {
+    (void)resultSet;
     return;
 }
 
 int GenericKvDBConnection::RegisterLifeCycleCallback(const DatabaseLifeCycleNotifier &notifier)
 {
-    (void) notifier;
+    (void)notifier;
     return -E_NOT_SUPPORT;
 }
 

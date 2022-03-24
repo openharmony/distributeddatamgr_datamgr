@@ -101,7 +101,10 @@ public:
         for (uint8_t i = 0; i < BUFF_LEN; i++) {
             info.userId[i] = localDbProperty_.userId[i];
         }
-        memcpy_s(data, totalLen, &info, sizeof(ExtendHeadInfo));
+        auto errCode = memcpy_s(data, totalLen, &info, sizeof(ExtendHeadInfo));
+        if (errCode != EOK) {
+            return DistributedDB::DB_ERROR;
+        }
         return DistributedDB::OK;
     };
     static constexpr int MAGIC_NUM = 0xF2;

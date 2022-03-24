@@ -164,6 +164,8 @@ int SQLiteRelationalStoreConnection::RemoveDeviceData(const std::string &device,
 
 int SQLiteRelationalStoreConnection::Pragma(int cmd, void *parameter) // reserve for interface function fix
 {
+    (void)cmd;
+    (void)parameter;
     return E_OK;
 }
 
