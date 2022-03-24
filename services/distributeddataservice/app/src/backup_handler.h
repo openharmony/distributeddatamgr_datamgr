@@ -56,7 +56,8 @@ private:
     static std::string backupDirCe_;
     static std::string backupDirDe_;
 
-    void SetDBOptions(DistributedDB::KvStoreNbDelegate::Option &dbOption, const BackupPara &backupPara, const MetaData &metaData);
+    void SetDBOptions(DistributedDB::KvStoreNbDelegate::Option &dbOption,
+                      const BackupPara &backupPara, const MetaData &metaData);
     KvScheduler scheduler_ {};
     static constexpr uint64_t BACKUP_INTERVAL = 3600 * 1000 * 10; // 10 hours
     int64_t backupSuccessTime_ = 0;
