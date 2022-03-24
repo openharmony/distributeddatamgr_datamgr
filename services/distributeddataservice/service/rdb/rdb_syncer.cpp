@@ -42,10 +42,8 @@ RdbSyncer::~RdbSyncer() noexcept
         manager_->CloseStore(delegate_);
     }
     delete manager_;
-    manager_ = nullptr;
     if (observer_ != nullptr) {
         delete observer_;
-        observer_ = nullptr;
     }
 }
 
