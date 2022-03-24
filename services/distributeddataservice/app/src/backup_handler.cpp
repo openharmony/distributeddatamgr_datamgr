@@ -134,7 +134,7 @@ void BackupHandler::SingleKvStoreBackup(const MetaData &metaData)
     delegateMgr->GetKvStore(metaData.kvStoreMetaData.storeId, dbOption, fun);
 }
 
-void BackupHandler::SetDBOptions(DistributedDB::KvStoreNbDelegate::Option dbOption,
+void BackupHandler::SetDBOptions(DistributedDB::KvStoreNbDelegate::Option &dbOption,
                                  const BackupHandler::BackupPara &backupPara, const MetaData &metaData)
 {
     dbOption.createIfNecessary = false;
