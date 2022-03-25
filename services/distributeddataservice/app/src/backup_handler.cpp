@@ -90,14 +90,12 @@ void BackupHandler::SingleKvStoreBackup(const MetaData &metaData)
         return;
     }
     DistributedDB::KvStoreNbDelegate::Option dbOption;
-    dbOption.createIfNecessary = false;
-    dbOption.isEncryptedDb = backupPara.password.GetSize() > 0;
-    dbOption.passwd = backupPara.password;
-    dbOption.createDirByStoreIdOnly = true;
-    dbOption.secOption = KvStoreAppManager::ConvertSecurity(metaData.kvStoreMetaData.securityLevel);
-
-    auto *delegateMgr = new DistributedDB::KvStoreDelegateManager(metaData.kvStoreMetaData.appId,
+    SetDBOptions(dbOption, backupPara, metaData);
+    auto *delegateMgr = new(std::nothrow) DistributedDB::KvStoreDelegateManager(metaData.kvStoreMetaData.appId,
         AccountDelegate::GetInstance()->GetCurrentAccountId(metaData.kvStoreMetaData.bundleName));
+    if (delegateMgr == nullptr) {
+        return;
+    }
     std::string appDataStoragePath = KvStoreAppManager::GetDataStoragePath(metaData.kvStoreMetaData.deviceAccountId,
         metaData.kvStoreMetaData.bundleName, backupPara.pathType);
     DistributedDB::KvStoreConfig kvStoreConfig = {appDataStoragePath};
@@ -134,6 +132,16 @@ void BackupHandler::SingleKvStoreBackup(const MetaData &metaData)
             del->CloseKvStore(delegate);
         };
     delegateMgr->GetKvStore(metaData.kvStoreMetaData.storeId, dbOption, fun);
+}
+
+void BackupHandler::SetDBOptions(DistributedDB::KvStoreNbDelegate::Option &dbOption,
+                                 const BackupHandler::BackupPara &backupPara, const MetaData &metaData)
+{
+    dbOption.createIfNecessary = false;
+    dbOption.isEncryptedDb = backupPara.password.GetSize() > 0;
+    dbOption.passwd = backupPara.password;
+    dbOption.createDirByStoreIdOnly = true;
+    dbOption.secOption = KvStoreAppManager::ConvertSecurity(metaData.kvStoreMetaData.securityLevel);
 }
 
 void BackupHandler::MultiKvStoreBackup(const MetaData &metaData)
