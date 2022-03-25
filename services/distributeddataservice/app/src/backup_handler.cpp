@@ -89,7 +89,6 @@ void BackupHandler::SingleKvStoreBackup(const MetaData &metaData)
     if (!initPara) {
         return;
     }
-
     DistributedDB::KvStoreNbDelegate::Option dbOption;
     dbOption.createIfNecessary = false;
     dbOption.isEncryptedDb = backupPara.password.GetSize() > 0;
