@@ -37,6 +37,7 @@
 #include "log_print.h"
 #include "metadata/capability_meta_data.h"
 #include "metadata/user_meta_data.h"
+#include "metadata/meta_data_manager.h"
 #include "rdb_types.h"
 #include "reporter.h"
 #include "serializable/serializable.h"
@@ -172,6 +173,7 @@ const KvStoreMetaManager::NbDelegate &KvStoreMetaManager::GetMetaKvStore()
     if (metaDelegate_ == nullptr) {
         metaDelegate_ = CreateMetaKvStore();
     }
+    MetaDataManager::GetInstance().SetMetaStore(metaDelegate_);
     return metaDelegate_;
 }
 
@@ -193,7 +195,7 @@ KvStoreMetaManager::NbDelegate KvStoreMetaManager::CreateMetaKvStore()
         });
 
     if (dbStatusTmp != DistributedDB::DBStatus::OK) {
-        ZLOGE("GetKvStore return error status: %d", static_cast<int>(dbStatusTmp));
+        ZLOGE("GetKvStore return error status: %{public}d", static_cast<int>(dbStatusTmp));
         return nullptr;
     }
     auto release = [this](DistributedDB::KvStoreNbDelegate *delegate) {
@@ -204,7 +206,7 @@ KvStoreMetaManager::NbDelegate KvStoreMetaManager::CreateMetaKvStore()
 
         auto result = kvStoreDelegateManager_.CloseKvStore(delegate);
         if (result != DistributedDB::DBStatus::OK) {
-            ZLOGE("CloseMetaKvStore return error status: %d", static_cast<int>(result));
+            ZLOGE("CloseMetaKvStore return error status: %{public}d", static_cast<int>(result));
         }
     };
     return NbDelegate(kvStoreNbDelegatePtr, release);

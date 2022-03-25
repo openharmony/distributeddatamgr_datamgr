@@ -25,6 +25,8 @@ config("module_public_config") {
     "//foundation/distributeddatamgr/distributeddatamgr/frameworks/common",
     "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/distributeddata/include",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/include",
+    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/libs/distributeddb/interfaces/include/",
+    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/libs/distributeddb/include/",
   ]
 }
 
@@ -37,6 +39,7 @@ ohos_shared_library("distributeddatasvcfwk") {
     "eventcenter/event_center.cpp",
     "metadata/capability_meta_data.cpp",
     "metadata/meta_data.cpp",
+    "metadata/meta_data_manager.cpp",
     "metadata/secret_key_meta_data.cpp",
     "metadata/store_meta_data.cpp",
     "metadata/strategy_meta_data.cpp",
