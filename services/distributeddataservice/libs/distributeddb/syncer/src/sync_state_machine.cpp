@@ -226,25 +226,18 @@ bool SyncStateMachine::StartSaveDataNotify(uint32_t sessionId, uint32_t sequence
     int errCode = RuntimeContext::GetInstance()->SetTimer(
         SAVE_DATA_NOTIFY_INTERVAL,
         [this, sessionId, sequenceId, inMsgId](TimerId timerId) {
-            {
-                std::lock_guard<std::mutex> lock(stateMachineLock_);
-                (void)ResetWatchDog();
-            }
-            std::lock_guard<std::mutex> innerLock(saveDataNotifyLock_);
-            if (saveDataNotifyCount_ >= MAXT_SAVE_DATA_NOTIFY_COUNT) {
-                StopSaveDataNotifyNoLock();
-                return E_OK;
-            }
-            SendSaveDataNotifyPacket(sessionId, sequenceId, inMsgId);
-            saveDataNotifyCount_++;
-            return E_OK;
-        },
-        [this]() {
-            int ret = RuntimeContext::GetInstance()->ScheduleTask([this](){ RefObject::DecObjRef(syncContext_); });
+            RefObject::IncObjRef(syncContext_);
+            int ret = RuntimeContext::GetInstance()->ScheduleTask([this, sessionId, sequenceId, inMsgId]() {
+                DoSaveDataNotify(sessionId, sequenceId, inMsgId);
+                RefObject::DecObjRef(syncContext_);
+            });
             if (ret != E_OK) {
-                LOGE("[SyncStateMachine] [SaveDataNotify] timer finalizer ScheduleTask, errCode %d", ret);
+                LOGE("[SyncStateMachine] [DoSaveDataNotify] ScheduleTask failed errCode %d", ret);
+                RefObject::DecObjRef(syncContext_);
             }
+            return ret;
         },
+        [this]() { RefObject::DecObjRef(syncContext_); },
         saveDataNotifyTimerId_);
     if (errCode != E_OK) {
         LOGW("[SyncStateMachine][SaveDataNotify] start timer failed err %d !", errCode);
@@ -301,24 +294,18 @@ bool SyncStateMachine::StartFeedDogForSync(uint32_t time, SyncDirectionFlag flag
     int errCode = RuntimeContext::GetInstance()->SetTimer(
         SAVE_DATA_NOTIFY_INTERVAL,
         [this, flag](TimerId timerId) {
-            {
-                std::lock_guard<std::mutex> lock(stateMachineLock_);
-                (void)ResetWatchDog();
-            }
-            std::lock_guard<std::mutex> innerLock(feedDogLock_[flag]);
-            if (watchDogController_[flag].feedDogCnt >= watchDogController_[flag].feedDogUpperLimit) {
-                StopFeedDogForSyncNoLock(flag);
-                return E_OK;
-            }
-            watchDogController_[flag].feedDogCnt++;
-            return E_OK;
-        },
-        [this]() {
-            int ret = RuntimeContext::GetInstance()->ScheduleTask([this](){ RefObject::DecObjRef(syncContext_); });
+            RefObject::IncObjRef(syncContext_);
+            int ret = RuntimeContext::GetInstance()->ScheduleTask([this, flag]() {
+                DoFeedDogForSync(flag);
+                RefObject::DecObjRef(syncContext_);
+            });
             if (ret != E_OK) {
-                LOGE("[SyncStateMachine] [feedDog] timer finalizer ScheduleTask, errCode %d", ret);
+                LOGE("[SyncStateMachine] [DoFeedDogForSync] ScheduleTask failed errCode %d", ret);
+                RefObject::DecObjRef(syncContext_);
             }
+            return ret;
         },
+        [this]() { RefObject::DecObjRef(syncContext_); },
         watchDogController_[flag].feedDogTimerId);
     if (errCode != E_OK) {
         LOGW("[SyncStateMachine][feedDog] start timer failed err %d !", errCode);
@@ -376,5 +363,35 @@ void SyncStateMachine::DecRefCountOfFeedDogTimer(SyncDirectionFlag flag)
         StopFeedDogForSyncNoLock(flag);
     }
     LOGD("af dec refcount = %d", watchDogController_[flag].refCount);
+}
+
+void SyncStateMachine::DoSaveDataNotify(uint32_t sessionId, uint32_t sequenceId, uint32_t inMsgId)
+{
+    {
+        std::lock_guard<std::mutex> lock(stateMachineLock_);
+        (void)ResetWatchDog();
+    }
+    std::lock_guard<std::mutex> innerLock(saveDataNotifyLock_);
+    if (saveDataNotifyCount_ >= MAXT_SAVE_DATA_NOTIFY_COUNT) {
+        StopSaveDataNotifyNoLock();
+        return;
+    }
+    SendSaveDataNotifyPacket(sessionId, sequenceId, inMsgId);
+    saveDataNotifyCount_++;
+    return;
+}
+
+void SyncStateMachine::DoFeedDogForSync(SyncDirectionFlag flag)
+{
+    {
+        std::lock_guard<std::mutex> lock(stateMachineLock_);
+        (void)ResetWatchDog();
+    }
+    std::lock_guard<std::mutex> innerLock(feedDogLock_[flag]);
+    if (watchDogController_[flag].feedDogCnt >= watchDogController_[flag].feedDogUpperLimit) {
+        StopFeedDogForSyncNoLock(flag);
+        return;
+    }
+    watchDogController_[flag].feedDogCnt++;
 }
 } // namespace DistributedDB

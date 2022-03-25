@@ -129,6 +129,10 @@ protected:
 
     void DecRefCountOfFeedDogTimer(SyncDirectionFlag flag);
 
+    void DoSaveDataNotify(uint32_t sessionId, uint32_t sequenceId, uint32_t inMsgId);
+
+    void DoFeedDogForSync(SyncDirectionFlag flag);
+
     DISABLE_COPY_ASSIGN_MOVE(SyncStateMachine);
 
     ISyncTaskContext *syncContext_;
