@@ -106,7 +106,7 @@ std::shared_ptr<RdbService> RdbManagerImpl::GetRdbService(const RdbSyncerParam& 
     if (service == nullptr) {
         return nullptr;
     }
-    if (((RdbServiceProxy *)service.GetRefPtr())->InitNotifier(param) != RDB_OK) {
+    if (reinterpret_cast<RdbServiceProxy *>(service.GetRefPtr())->InitNotifier(param) != RDB_OK) {
         ZLOGE("init notifier failed");
         return nullptr;
     }
