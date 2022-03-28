@@ -134,7 +134,7 @@ void KvStoreDataService::Initialize()
     accountEventObserver_ = std::make_shared<KvStoreAccountObserver>(*this);
     AccountDelegate::GetInstance()->Subscribe(accountEventObserver_);
     deviceInnerListener_ = std::make_unique<KvStoreDeviceListener>(*this);
-    KvStoreUtils::GetProviderInstance().StartWatchDeviceChange(deviceInnerListener_.get(), { "innerListener" });
+    AppDistributedKv::CommunicationProvider::GetInstance().StartWatchDeviceChange(deviceInnerListener_.get(), { "innerListener" });
 }
 
 Status KvStoreDataService::GetKvStore(const Options &options, const AppId &appId, const StoreId &storeId,
@@ -1221,14 +1221,14 @@ void KvStoreDataService::AccountEventChanged(const AccountEventInfo &eventInfo)
 
 Status KvStoreDataService::GetLocalDevice(DeviceInfo &device)
 {
-    auto tmpDevice = KvStoreUtils::GetProviderInstance().GetLocalBasicInfo();
+    auto tmpDevice = AppDistributedKv::CommunicationProvider::GetInstance().GetLocalBasicInfo();
     device = {tmpDevice.deviceId, tmpDevice.deviceName, tmpDevice.deviceType};
     return Status::SUCCESS;
 }
 
 Status KvStoreDataService::GetDeviceList(std::vector<DeviceInfo> &deviceInfoList, DeviceFilterStrategy strategy)
 {
-    auto devices = KvStoreUtils::GetProviderInstance().GetRemoteNodesBasicInfo();
+    auto devices = AppDistributedKv::CommunicationProvider::GetInstance().GetRemoteNodesBasicInfo();
     for (auto const &device : devices) {
         DeviceInfo deviceInfo = {device.deviceId, device.deviceName, device.deviceType};
         deviceInfoList.push_back(deviceInfo);
@@ -1250,7 +1250,7 @@ void KvStoreDataService::InitSecurityAdapter()
     auto dbStatus = DistributedDB::KvStoreDelegateManager::SetProcessSystemAPIAdapter(security_);
     ZLOGD("set distributed db system api adapter: %d.", static_cast<int>(dbStatus));
 
-    auto status = KvStoreUtils::GetProviderInstance().StartWatchDeviceChange(security_.get(), {"security"});
+    auto status = AppDistributedKv::CommunicationProvider::GetInstance().StartWatchDeviceChange(security_.get(), {"security"});
     if (status != AppDistributedKv::Status::SUCCESS) {
         ZLOGD("security register device change failed, status:%d", static_cast<int>(status));
     }
@@ -1266,7 +1266,7 @@ Status KvStoreDataService::StartWatchDeviceChange(sptr<IDeviceStatusChangeListen
     std::lock_guard<std::mutex> lck(deviceListenerMutex_);
     if (deviceListener_ == nullptr) {
         deviceListener_ = std::make_shared<DeviceChangeListenerImpl>(deviceListeners_);
-        KvStoreUtils::GetProviderInstance().StartWatchDeviceChange(deviceListener_.get(), {"serviceWatcher"});
+        AppDistributedKv::CommunicationProvider::GetInstance().StartWatchDeviceChange(deviceListener_.get(), {"serviceWatcher"});
     }
     IRemoteObject *objectPtr = observer->AsObject().GetRefPtr();
     auto listenerPair = std::make_pair(objectPtr, observer);

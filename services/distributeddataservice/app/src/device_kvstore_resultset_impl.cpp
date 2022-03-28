@@ -36,7 +36,7 @@ Status DeviceKvStoreResultSetImpl::GetEntry(Entry &entry)
         return ret;
     }
 
-    auto localDevId = KvStoreUtils::GetProviderInstance().GetLocalDevice().deviceId;
+    auto localDevId = AppDistributedKv::CommunicationProvider::GetInstance().GetLocalDevice().deviceId;
     if (localDevId.empty()) {
         ZLOGI("RS: localDevId empty");
         return Status::ILLEGAL_STATE;

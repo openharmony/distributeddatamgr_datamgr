@@ -54,7 +54,7 @@ void DeviceKvStoreObserverImpl::Transfer(const std::list<DistributedDB::Entry> &
                                          std::string &deviceId)
 {
     if (localDeviceId_.empty()) {
-        auto localDevId = KvStoreUtils::GetProviderInstance().GetLocalDevice().deviceId;
+        auto localDevId = AppDistributedKv::CommunicationProvider::GetInstance().GetLocalDevice().deviceId;
         if (localDevId.empty()) {
             return;
         }
@@ -69,9 +69,9 @@ void DeviceKvStoreObserverImpl::Transfer(const std::list<DistributedDB::Entry> &
             ZLOGI("Get deviceId from Entry.");
             auto uuid = std::string(entry.key.begin(), entry.key.begin() + localDeviceId_.length());
             if (localDeviceId_.compare(uuid) == 0) {
-                deviceId = KvStoreUtils::GetProviderInstance().GetLocalBasicInfo().deviceId;
+                deviceId = AppDistributedKv::CommunicationProvider::GetInstance().GetLocalBasicInfo().deviceId;
             } else {
-                deviceId = KvStoreUtils::GetProviderInstance().ToNodeId(uuid);
+                deviceId = AppDistributedKv::CommunicationProvider::GetInstance().ToNodeId(uuid);
             }
         }
         std::vector<uint8_t> decorateKey(entry.key.begin() + localDeviceId_.length(), entry.key.end() - sizeof(int));

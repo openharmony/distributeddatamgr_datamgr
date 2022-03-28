@@ -39,15 +39,6 @@ std::string KvStoreUtils::ToBeAnonymous(const std::string &name)
     return (name.substr(0, HEAD_SIZE) + REPLACE_CHAIN + name.substr(name.length() - END_SIZE, END_SIZE));
 }
 
-AppDistributedKv::CommunicationProvider &KvStoreUtils::GetProviderInstance()
-{
-#ifdef CONFIG_PUBLIC_VERSION
-    return AppDistributedKv::CommunicationProvider::GetInstance();
-#else
-    return *(AppDistributedKv::CommunicationProvider::MakeCommunicationProvider().get());
-#endif
-}
-
 uint64_t KvStoreUtils::GenerateSequenceId()
 {
     return ++sequenceId_;

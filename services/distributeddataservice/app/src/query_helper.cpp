@@ -549,7 +549,7 @@ void QueryHelper::HandleDeviceId(const std::vector<std::string> &words, int &poi
     }
     deviceId_ = StringToString(words.at(pointer + 1)); // deviceId
     ZLOGI("query devId string length:%zu", deviceId_.length());
-    deviceId_ = KvStoreUtils::GetProviderInstance().GetUuidByNodeId(deviceId_); // convert to UUId
+    deviceId_ = AppDistributedKv::CommunicationProvider::GetInstance().GetUuidByNodeId(deviceId_); // convert to UUId
     ZLOGI("query converted devId string length:%zu", deviceId_.length());
     if (!hasPrefixKey_) {
         ZLOGD("DeviceId as the only prefixKey.");

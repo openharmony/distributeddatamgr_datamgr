@@ -30,7 +30,7 @@ void DeviceChangeListenerImpl::OnDeviceChanged(const AppDistributedKv::DeviceInf
 {
     DeviceChangeType deviceType = type == AppDistributedKv::DeviceChangeType::DEVICE_ONLINE ?
             DeviceChangeType::DEVICE_ONLINE : DeviceChangeType::DEVICE_OFFLINE;
-    auto nodeid = KvStoreUtils::GetProviderInstance().ToNodeId(info.deviceId);
+    auto nodeid = AppDistributedKv::CommunicationProvider::GetInstance().ToNodeId(info.deviceId);
     ZLOGD("networkid:%s", nodeid.c_str());
     ZLOGD("uuid:%s", KvStoreUtils::ToBeAnonymous(info.deviceId).c_str());
     for (auto const &observer : observers_) {
