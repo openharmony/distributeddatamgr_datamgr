@@ -206,7 +206,6 @@ int AutoLaunch::GetKVConnectionInEnable(AutoLaunchItem &autoLaunchItem, const st
         return E_OK;
     }
     if (autoLaunchItem.conn == nullptr) {
-        std::lock_guard<std::mutex> autoLock(dataLock_);
         EraseAutoLauchItem(identifier, userId);
         return errCode;
     }
@@ -221,7 +220,6 @@ int AutoLaunch::GetKVConnectionInEnable(AutoLaunchItem &autoLaunchItem, const st
         errCode = KvDBManager::ReleaseDatabaseConnection(kvConn);
         if (errCode != E_OK) {
             LOGE("[AutoLaunch] GetKVConnectionInEnable ReleaseDatabaseConnection failed errCode:%d", errCode);
-            std::lock_guard<std::mutex> autoLock(dataLock_);
             EraseAutoLauchItem(identifier, userId);
             return errCode;
         }
@@ -238,7 +236,6 @@ int AutoLaunch::GetKVConnectionInEnable(AutoLaunchItem &autoLaunchItem, const st
     } else {
         LOGE("[AutoLaunch] GetKVConnectionInEnable RegisterObserverAndLifeCycleCallback err, do CloseConnection");
         TryCloseConnection(autoLaunchItem); // do nothing if failed
-        std::lock_guard<std::mutex> autoLock(dataLock_);
         EraseAutoLauchItem(identifier, userId);
     }
     return errCode;
@@ -428,7 +425,7 @@ int AutoLaunch::DisableKvStoreAutoLaunch(const std::string &normalIdentifier, co
             LOGE("[AutoLaunch] DisableKvStoreAutoLaunch identifier is not exist!");
             return -E_NOT_FOUND;
         }
-        if (autoLaunchItemMap_[identifier][userId].isDisable == true) {
+        if (autoLaunchItemMap_[identifier][userId].isDisable) {
             LOGI("[AutoLaunch] DisableKvStoreAutoLaunch already disabling in another thread, do nothing here");
             return -E_BUSY;
         }
@@ -449,19 +446,17 @@ int AutoLaunch::DisableKvStoreAutoLaunch(const std::string &normalIdentifier, co
     }
 
     int errCode = CloseConnectionStrict(autoLaunchItem);
-    if (errCode == E_OK) {
-        std::unique_lock<std::mutex> autoLock(dataLock_);
-        EraseAutoLauchItem(identifier, userId);
-        cv_.notify_all();
-        LOGI("[AutoLaunch] DisableKvStoreAutoLaunch CloseConnection ok");
-    } else {
+    if (errCode != E_OK) {
         LOGE("[AutoLaunch] DisableKvStoreAutoLaunch CloseConnection failed errCode:%d", errCode);
-        std::unique_lock<std::mutex> autoLock(dataLock_);
+        std::lock_guard<std::mutex> autoLock(dataLock_);
         autoLaunchItemMap_[identifier][userId].isDisable = false;
         autoLaunchItemMap_[identifier][userId].observerHandle = autoLaunchItem.observerHandle;
         cv_.notify_all();
         return errCode;
     }
+
+    EraseAutoLauchItem(identifier, userId);
+    cv_.notify_all();
     if (autoLaunchItem.isWriteOpenNotified && autoLaunchItem.notifier) {
         RuntimeContext::GetInstance()->ScheduleTask([autoLaunchItem] { CloseNotifier(autoLaunchItem); });
     }
@@ -1202,8 +1197,9 @@ void AutoLaunch::TryCloseRelationConnection(AutoLaunchItem &autoLaunchItem)
 
 void AutoLaunch::EraseAutoLauchItem(const std::string &identifier, const std::string &userId)
 {
+    std::lock_guard<std::mutex> autoLock(dataLock_);
     autoLaunchItemMap_[identifier].erase(userId);
-    if (autoLaunchItemMap_[identifier].size() == 0) {
+    if (autoLaunchItemMap_[identifier].empty()) {
         autoLaunchItemMap_.erase(identifier);
     }
 }
