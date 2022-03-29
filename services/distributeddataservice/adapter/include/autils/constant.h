@@ -44,7 +44,7 @@ public:
 class Constant {
 public:
     // concatenate strings and return a composition string.
-    KVSTORE_API static std::string Concatenate(std::initializer_list<std::string> stringList);
+    KVSTORE_API static std::string Concatenate(std::initializer_list<std::string> &stringList);
 
     // delete left bland in s by reference.
     template<typename T>
