@@ -20,12 +20,14 @@
 #include "db_constant.h"
 #include "kvdb_pragma.h"
 #include "performance_analysis.h"
+#include "runtime_context.h"
 #include "sync_able_kvdb.h"
 
 namespace DistributedDB {
 SyncAbleKvDBConnection::SyncAbleKvDBConnection(SyncAbleKvDB *kvDB)
     : GenericKvDBConnection(kvDB),
-      remotePushFinishedListener_(nullptr)
+      remotePushFinishedListener_(nullptr),
+      connectionId_(0)
 {
     OnKill([this]() {
         auto *db = GetDB<SyncAbleKvDB>();
@@ -34,7 +36,7 @@ SyncAbleKvDBConnection::SyncAbleKvDBConnection(SyncAbleKvDB *kvDB)
         }
         // Drop the lock before we call RemoveSyncOperation().
         UnlockObj();
-        db->StopSync();
+        db->StopSync(GetConnectionId());
         LockObj();
     });
 }
@@ -322,5 +324,14 @@ int SyncAbleKvDBConnection::SetPushDataInterceptor(const PushDataInterceptor &in
     }
     kvDB->SetDataInterceptor(interceptor);
     return E_OK;
+}
+
+uint64_t SyncAbleKvDBConnection::GetConnectionId()
+{
+    std::lock_guard<std::mutex> autoLock(connectionLock_);
+    if (connectionId_ == 0) {
+        connectionId_ = RuntimeContext::GetInstance()->GenerateSessionId();
+    }
+    return connectionId_;
 }
 }

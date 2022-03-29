@@ -490,5 +490,10 @@ RelationalDBProperties SQLiteRelationalStore::GetProperties() const
 {
     return properties_;
 }
+
+void SQLiteRelationalStore::StopSync(uint64_t connectionId)
+{
+    return syncAbleEngine_->StopSync(connectionId);
+}
 }
 #endif

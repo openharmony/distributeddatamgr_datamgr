@@ -264,9 +264,8 @@ int GenericSyncer::RemoveSyncOperation(int syncId)
     return -E_INVALID_ARGS;
 }
 
-int GenericSyncer::StopSync()
+int GenericSyncer::StopSync(uint64_t connectionId)
 {
-    uint64_t connectionId = 0;
     std::list<int> syncIdList;
     {
         std::lock_guard<std::mutex> lockGuard(syncIdLock_);

@@ -47,7 +47,7 @@ public:
     void EnableAutoSync(bool enable);
 
     // Stop a sync action in progress.
-    void StopSync();
+    void StopSync(uint64_t connectionId);
 
     // Get The current virtual timestamp
     uint64_t GetTimestamp();

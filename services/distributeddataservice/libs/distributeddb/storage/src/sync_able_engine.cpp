@@ -133,4 +133,11 @@ int SyncAbleEngine::GetLocalIdentity(std::string &outTarget)
     }
     return syncer_.GetLocalIdentity(outTarget);
 }
+
+void SyncAbleEngine::StopSync(uint64_t connectionId)
+{
+    if (started_) {
+        syncer_.StopSync(connectionId);
+    }
+}
 }

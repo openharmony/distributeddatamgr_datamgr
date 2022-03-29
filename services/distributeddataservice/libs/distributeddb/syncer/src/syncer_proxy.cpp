@@ -80,12 +80,12 @@ int SyncerProxy::RemoveSyncOperation(int syncId)
     return syncer_->RemoveSyncOperation(syncId);
 }
 
-int SyncerProxy::StopSync()
+int SyncerProxy::StopSync(uint64_t connectionId)
 {
     if (syncer_ == nullptr) {
         return -E_NOT_INIT;
     }
-    return syncer_->StopSync();
+    return syncer_->StopSync(connectionId);
 }
 
 uint64_t SyncerProxy::GetTimestamp()

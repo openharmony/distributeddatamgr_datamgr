@@ -64,6 +64,8 @@ public:
 
     RelationalDBProperties GetProperties() const override;
 
+    void StopSync(uint64_t connectionId);
+
 private:
     void ReleaseResources();
 

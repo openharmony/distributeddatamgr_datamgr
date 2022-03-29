@@ -113,6 +113,8 @@ public:
         EventType event) override;
     // Notify TIME_CHANGE_EVENT.
     int NotifyUserChanged() const override;
+
+    uint64_t GenerateSessionId() override;
 private:
     static constexpr int MAX_TP_THREADS = 10;  // max threads of the task pool.
     static constexpr int MIN_TP_THREADS = 1;   // min threads of the task pool.
@@ -167,6 +169,9 @@ private:
 
     mutable std::mutex userChangeMonitorLock_;
     std::unique_ptr<UserChangeMonitor> userChangeMonitor_;
+
+    mutable std::mutex sessionIdLock_;
+    uint64_t lastSessionId_;
 };
 } // namespace DistributedDB
 

@@ -103,10 +103,10 @@ void SyncAbleKvDB::WakeUpSyncer()
 }
 
 // Stop a sync action in progress.
-void SyncAbleKvDB::StopSync()
+void SyncAbleKvDB::StopSync(uint64_t connectionId)
 {
     if (started_) {
-        syncer_.StopSync();
+        syncer_.StopSync(connectionId);
     }
 }
 

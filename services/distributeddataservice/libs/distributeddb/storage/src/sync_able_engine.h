@@ -47,6 +47,8 @@ public:
 
     int GetLocalIdentity(std::string &outTarget);
 
+    // Stop a sync action in progress
+    void StopSync(uint64_t connectionId);
 private:
     // Start syncer
     void StartSyncer();

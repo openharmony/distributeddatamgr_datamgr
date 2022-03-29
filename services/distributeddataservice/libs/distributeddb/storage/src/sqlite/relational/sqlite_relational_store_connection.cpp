@@ -19,7 +19,18 @@
 
 namespace DistributedDB {
 SQLiteRelationalStoreConnection::SQLiteRelationalStoreConnection(SQLiteRelationalStore *store)
-    : RelationalStoreConnection(store) {}
+    : RelationalStoreConnection(store), connectionId_(0)
+{
+    OnKill([this]() {
+        auto *store = GetDB<SQLiteRelationalStore>();
+        if (store == nullptr) {
+            return;
+        }
+        UnlockObj();
+        store->StopSync(GetConnectionId());
+        LockObj();
+    });
+}
 // Close and release the connection.
 int SQLiteRelationalStoreConnection::Close()
 {
@@ -193,8 +204,7 @@ int SQLiteRelationalStoreConnection::SyncToDevice(SyncInfo &info)
         syncParam.relationOnComplete = info.onComplete;
         syncParam.syncQuery = QuerySyncObject(info.query);
         syncParam.onFinalize =  [this]() { DecObjRef(this); };
-        uint64_t connectionId = 0;
-        int errCode = store->Sync(syncParam, connectionId);
+        int errCode = store->Sync(syncParam, GetConnectionId());
         if (errCode != E_OK) {
             DecObjRef(this);
             return errCode;
@@ -217,6 +227,15 @@ int SQLiteRelationalStoreConnection::RegisterLifeCycleCallback(const DatabaseLif
 void SQLiteRelationalStoreConnection::RegisterObserverAction(const RelationalObserverAction &action)
 {
     static_cast<SQLiteRelationalStore *>(store_)->RegisterObserverAction(action);
+}
+
+uint64_t SQLiteRelationalStoreConnection::GetConnectionId()
+{
+    std::mutex connectionIdLock_;
+    if (connectionId_ == 0) {
+        connectionId_ = RuntimeContext::GetInstance()->GenerateSessionId();
+    }
+    return connectionId_;
 }
 }
 #endif

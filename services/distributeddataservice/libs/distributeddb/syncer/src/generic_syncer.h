@@ -56,7 +56,7 @@ public:
     // Remove the operation, with the given syncId, used to clean resource if sync finished or failed.
     int RemoveSyncOperation(int syncId) override;
 
-    int StopSync() override;
+    int StopSync(uint64_t connectionId) override;
 
     // Get The current virtual timestamp
     uint64_t GetTimestamp() override;

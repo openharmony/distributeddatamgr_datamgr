@@ -29,7 +29,8 @@ RuntimeContextImpl::RuntimeContextImpl()
       taskPoolReportsTimerId_(0),
       timeTickMonitor_(nullptr),
       systemApiAdapter_(nullptr),
-      lockStatusObserver_(nullptr)
+      lockStatusObserver_(nullptr),
+      lastSessionId_(0)
 {
 }
 
@@ -653,5 +654,12 @@ int RuntimeContextImpl::NotifyUserChanged() const
     }
     userChangeMonitor_->NotifyUserChanged();
     return E_OK;
+}
+
+uint64_t RuntimeContextImpl::GenerateSessionId()
+{
+    std::lock_guard<std::mutex> autoLock(sessionIdLock_);
+    lastSessionId_++;
+    return lastSessionId_;
 }
 } // namespace DistributedDB
