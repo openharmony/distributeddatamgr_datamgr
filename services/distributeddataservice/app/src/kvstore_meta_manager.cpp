@@ -95,7 +95,8 @@ void KvStoreMetaManager::SubscribeMeta(const std::string &keyPrefix, const Chang
 void KvStoreMetaManager::InitMetaListener()
 {
     InitMetaData();
-    auto status = KvStoreUtils::GetProviderInstance().StartWatchDeviceChange(&listener_, { "metaMgr" });
+    auto status = AppDistributedKv::CommunicationProvider::GetInstance().StartWatchDeviceChange(
+        &listener_, { "metaMgr" });
     if (status != AppDistributedKv::Status::SUCCESS) {
         ZLOGW("register failed.");
         return;
@@ -816,7 +817,7 @@ Status KvStoreMetaManager::DeleteStrategyMeta(const std::string &bundleName, con
 void KvStoreMetaManager::SyncMeta()
 {
     std::vector<std::string> devs;
-    auto deviceList = KvStoreUtils::GetProviderInstance().GetDeviceList();
+    auto deviceList = AppDistributedKv::CommunicationProvider::GetInstance().GetDeviceList();
     for (auto const &dev : deviceList) {
         devs.push_back(dev.deviceId);
     }

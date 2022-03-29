@@ -25,16 +25,14 @@ ohos_static_library("distributeddata_utils_static") {
     "../include/permission",
     "../include/utils",
     "../include/log",
+    "../include/communicator",
     "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/distributeddata/include",
     "//utils/native/base/include",
     "../include/dfx",
     "//foundation/distributeddatamgr/distributeddatamgr/frameworks/common",
   ]
   ldflags = [ "-Wl,--exclude-libs,ALL" ]
-  deps = [
-    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter:distributeddata_adapter",
-    "//utils/native/base:utils",
-  ]
+  deps = [ "//utils/native/base:utils" ]
 
   external_deps = [
     "ability_base:base",

@@ -685,7 +685,7 @@ Status SingleKvStoreImpl::RemoveDeviceData(const std::string &device)
         return Status::EXCEED_MAX_ACCESS_RATE;
     }
     // map UUID to UDID
-    std::string deviceUDID = KvStoreUtils::GetProviderInstance().GetUuidByNodeId(device);
+    std::string deviceUDID = AppDistributedKv::CommunicationProvider::GetInstance().GetUuidByNodeId(device);
     if (deviceUDID.empty()) {
         ZLOGE("can't get nodeid");
         return Status::ERROR;
@@ -898,7 +898,7 @@ std::vector<std::string> SingleKvStoreImpl::MapNodeIdToUuids(const std::vector<s
 {
     std::vector<std::string> deviceUuids;
     for (auto const &nodeId : deviceIds) {
-        std::string uuid = KvStoreUtils::GetProviderInstance().GetUuidByNodeId(nodeId);
+        std::string uuid = AppDistributedKv::CommunicationProvider::GetInstance().GetUuidByNodeId(nodeId);
         if (!uuid.empty()) {
             deviceUuids.push_back(uuid);
         }

@@ -162,7 +162,7 @@ std::string DeviceKvStoreImpl::GetLocalDeviceId()
         return localDeviceId_;
     }
 
-    localDeviceId_ = KvStoreUtils::GetProviderInstance().GetLocalDevice().deviceId;
+    localDeviceId_ = AppDistributedKv::CommunicationProvider::GetInstance().GetLocalDevice().deviceId;
     return localDeviceId_;
 }
 
@@ -185,7 +185,7 @@ Status DeviceKvStoreImpl::DeleteKeyPrefix(const Key &in, std::vector<uint8_t> &o
         return Status::ERROR;
     }
     std::string nodeid(inData.begin() + deviceIdPrefixLen, inData.begin() + deviceIdPrefixLen + localDeviceId_.size());
-    std::string deviceUuID = KvStoreUtils::GetProviderInstance().GetUuidByNodeId(nodeid);
+    std::string deviceUuID = AppDistributedKv::CommunicationProvider::GetInstance().GetUuidByNodeId(nodeid);
     if (deviceUuID.empty()) {
         ZLOGE("device uuid is empty.");
         return Status::KEY_NOT_FOUND;
