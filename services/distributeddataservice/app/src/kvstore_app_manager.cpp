@@ -592,7 +592,7 @@ Status KvStoreAppManager::DeleteKvStore(const std::string &storeId, PathType typ
     if (singleStores_[type].empty() && stores_[type].empty()) {
         SwitchDelegateManager(type, nullptr);
         delete delegateManager;
-        delegateManager = nullptr
+        delegateManager = nullptr;
     }
     return (status != DistributedDB::DBStatus::OK) ? Status::DB_ERROR : Status::SUCCESS;
 }
