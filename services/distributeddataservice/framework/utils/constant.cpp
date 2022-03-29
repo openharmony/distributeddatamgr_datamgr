@@ -95,7 +95,7 @@ std::vector<uint8_t> SecretMetaRow::GetKeyFor(const std::string &key)
     return std::vector<uint8_t>(str.begin(), str.end());
 }
 
-std::string Constant::Concatenate(std::initializer_list<std::string> stringList)
+std::string Constant::Concatenate(std::initializer_list<std::string> &stringList)
 {
     std::string result;
     size_t result_size = 0;
