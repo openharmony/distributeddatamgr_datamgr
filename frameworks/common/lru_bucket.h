@@ -25,7 +25,7 @@ template<typename _Key, typename _Tp>
 class LRUBucket {
 public:
     LRUBucket(size_t capacity)
-        : size_(0), capacity_(capacity) {};
+        : size_(0), capacity_(capacity) {}
 
     LRUBucket(LRUBucket &&bucket) noexcept = delete;
     LRUBucket(const LRUBucket &bucket) = delete;

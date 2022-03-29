@@ -28,6 +28,7 @@ public:
         std::string name;
         std::string testCase;
     };
+    static constexpr size_t TEST_CAPACITY = 10;
 
     static void SetUpTestCase(void) {}
 
@@ -37,8 +38,8 @@ protected:
     void SetUp()
     {
         bucket_.ResetCapacity(0);
-        bucket_.ResetCapacity(10);
-        for (int i = 0; i < 10; ++i) {
+        bucket_.ResetCapacity(TEST_CAPACITY);
+        for (int i = 0; i < TEST_CAPACITY; ++i) {
             std::string key = std::string("test_") + std::to_string(i);
             TestValue value = {key, key, "case"};
             bucket_.Set(key, value);
@@ -79,7 +80,7 @@ HWTEST_F(LRUBucketTest, insert, TestSize.Level0)
 HWTEST_F(LRUBucketTest, cap_one_insert, TestSize.Level0)
 {
     bucket_.ResetCapacity(1);
-    for (int i = 0; i < 11; ++i) {
+    for (int i = 0; i <= TEST_CAPACITY; ++i) {
         std::string key = std::string("test_") + std::to_string(i);
         TestValue value = {key, key, "find"};
         bucket_.Set(key, value);
@@ -99,7 +100,7 @@ HWTEST_F(LRUBucketTest, cap_one_insert, TestSize.Level0)
 HWTEST_F(LRUBucketTest, cap_zero_insert, TestSize.Level0)
 {
     bucket_.ResetCapacity(0);
-    for (int i = 0; i < 11; ++i) {
+    for (int i = 0; i <= TEST_CAPACITY; ++i) {
         std::string key = std::string("test_") + std::to_string(i);
         TestValue value = {key, key, "find"};
         bucket_.Set(key, value);
@@ -304,7 +305,7 @@ HWTEST_F(LRUBucketTest, update_several, TestSize.Level0)
     TestValue value;
     std::map<std::string, TestValue> values = {{"test_2", {"test_2", "test_2", "update"}},
                                                {"test_3", {"test_3", "test_3", "update"}},
-                                               {"test_6", {"test_6", "test_6", "update"}},};
+                                               {"test_6", {"test_6", "test_6", "update"}}};
     ASSERT_TRUE(bucket_.Update(values));
     ASSERT_TRUE(bucket_.ResetCapacity(3));
     ASSERT_TRUE(bucket_.Capacity() == 3);
