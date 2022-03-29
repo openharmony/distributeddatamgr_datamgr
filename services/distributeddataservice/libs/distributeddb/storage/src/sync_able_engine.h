@@ -29,7 +29,7 @@ public:
     void TriggerSync(int notifyEvent);
 
     // Start a sync action.
-    int Sync(const ISyncer::SyncParma &parm);
+    int Sync(const ISyncer::SyncParma &parm, uint64_t connectionId);
 
     void WakeUpSyncer();
     void Close();
@@ -39,9 +39,6 @@ public:
 
     int EnableManualSync(void);
     int DisableManualSync(void);
-
-    // Stop a sync action in progress.
-    void StopSync(int syncId);
 
     // Get The current virtual timestamp
     uint64_t GetTimestamp();

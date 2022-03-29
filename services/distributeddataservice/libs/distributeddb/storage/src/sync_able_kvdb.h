@@ -41,7 +41,7 @@ public:
     void Close() override;
 
     // Start a sync action.
-    int Sync(const ISyncer::SyncParma &parma);
+    int Sync(const ISyncer::SyncParma &parma, uint64_t connectionId);
 
     // Enable auto sync
     void EnableAutoSync(bool enable);

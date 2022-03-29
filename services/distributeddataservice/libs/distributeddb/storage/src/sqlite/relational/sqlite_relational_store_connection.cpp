@@ -193,8 +193,8 @@ int SQLiteRelationalStoreConnection::SyncToDevice(SyncInfo &info)
         syncParam.relationOnComplete = info.onComplete;
         syncParam.syncQuery = QuerySyncObject(info.query);
         syncParam.onFinalize =  [this]() { DecObjRef(this); };
-
-        int errCode = store->Sync(syncParam);
+        uint64_t connectionId = 0;
+        int errCode = store->Sync(syncParam, connectionId);
         if (errCode != E_OK) {
             DecObjRef(this);
             return errCode;

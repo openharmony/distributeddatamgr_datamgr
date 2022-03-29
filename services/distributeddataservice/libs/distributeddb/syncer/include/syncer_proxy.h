@@ -46,7 +46,7 @@ public:
         const std::function<void(void)> &onFinalize, bool wait) override;
 
     // Sync function. use SyncParma to reduce parameter.
-    int Sync(const SyncParma &param) override;
+    int Sync(const SyncParma &param, uint64_t connectionId) override;
 
     // Remove the operation, with the given syncId, used to clean resource if sync finished or failed.
     int RemoveSyncOperation(int syncId) override;
