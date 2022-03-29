@@ -63,6 +63,7 @@ int SQLiteStorageEngine::Upgrade(sqlite3 *db)
     // SQLiteLocalStorageEngine do not override this function so content upgrade can only be done by the Storage
     //      who use the SQLiteLocalKvDB.
     // MultiVerStorageEngine do not inherit SQLiteStorageEngine.
+    (void)db;
     return E_OK;
 }
 

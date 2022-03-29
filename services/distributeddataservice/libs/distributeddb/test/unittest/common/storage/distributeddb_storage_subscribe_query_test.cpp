@@ -144,7 +144,7 @@ std::string FbfFileToSchemaString(const std::string &fileName)
     }
 
     auto size = is.tellg();
-    LOGE("file size %d", size);
+    LOGE("file size %u", static_cast<unsigned>(size));
     std::string schema(size, '\0');
     is.seekg(0);
     if (is.read(&schema[0], size)) {
@@ -381,7 +381,7 @@ HWTEST_F(DistributedDBStorageSubscribeQueryTest, PutSyncDataTestWithQuery, TestS
      */
     Key key;
     Value value;
-    TimeStamp now = store->GetCurrentTimeStamp();
+    Timestamp now = store->GetCurrentTimestamp();
     LOGD("now time is : %ld", now);
     std::vector<DataItem> data;
     for (uint8_t i = 0; i < PRESET_DATA_SIZE; i++) {
@@ -431,7 +431,7 @@ HWTEST_F(DistributedDBStorageSubscribeQueryTest, PutSyncDataTestWithQuery002, Te
 
     Key key({'K', 'e', 'y'});
     Value value;
-    TimeStamp now = store->GetCurrentTimeStamp();
+    Timestamp now = store->GetCurrentTimestamp();
     /**
      * @tc.steps:step2. put sync data
      * @tc.expected: OK
@@ -489,7 +489,7 @@ HWTEST_F(DistributedDBStorageSubscribeQueryTest, PutSyncDataTestWithQuery003, Te
 
     Key key({'K', 'e', 'y'});
     Value value;
-    TimeStamp now = store->GetCurrentTimeStamp();
+    Timestamp now = store->GetCurrentTimestamp();
     /**
      * @tc.steps:step2. put sync data
      * @tc.expected: OK
@@ -545,7 +545,7 @@ HWTEST_F(DistributedDBStorageSubscribeQueryTest, PutSyncDataTestWithQuery004, Te
 
     Key key({'K', 'e', 'y'});
     Value value;
-    TimeStamp now = store->GetCurrentTimeStamp();
+    Timestamp now = store->GetCurrentTimestamp();
     /**
      * @tc.steps:step2. put sync data
      * @tc.expected: OK

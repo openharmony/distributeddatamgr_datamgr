@@ -61,7 +61,7 @@ int ValueObject::Parse(const uint8_t *dataBegin, const uint8_t *dataEnd, uint32_
         return -E_NOT_PERMIT;
     }
     if (dataBegin == nullptr || dataBegin >= dataEnd || offset >= static_cast<uint64_t>(dataEnd - dataBegin)) {
-        LOGE("[Value][Parse] Data range invalid: dataEnd - dataBegin=%lld, offset=%u",
+        LOGE("[Value][Parse] Data range invalid: dataEnd - dataBegin=%" PRId64 ", offset=%" PRIu32,
             static_cast<int64_t>(dataEnd - dataBegin), offset);
         return -E_INVALID_ARGS;
     }

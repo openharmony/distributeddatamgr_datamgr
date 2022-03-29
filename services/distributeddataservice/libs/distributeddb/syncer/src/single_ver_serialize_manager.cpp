@@ -453,7 +453,8 @@ int SingleVerSerializeManager::DataPacketSyncerPartDeSerialization(Parcel &parce
     }
     packLen = Parcel::GetEightByteAlign(packLen);
     if (parcel.IsError()) {
-        LOGE("[DataSync][DataPacketDeSerialization] deserialize failed! input len=%lu,packLen=%lu", length, packLen);
+        LOGE("[DataSync][DataPacketDeSerialization] deserialize failed! input len=%" PRIu32 ",packLen=%" PRIu32,
+            length, packLen);
         return -E_LENGTH_ERROR;
     }
     parcel.EightByteAlign();

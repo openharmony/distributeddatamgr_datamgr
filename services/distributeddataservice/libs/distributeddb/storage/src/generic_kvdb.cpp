@@ -342,11 +342,15 @@ uint32_t GenericKvDB::GetRegisterFunctionCount(RegisterFuncType type) const
 
 int GenericKvDB::TransObserverTypeToRegisterFunctionType(int observerType, RegisterFuncType &type) const
 {
+    (void)observerType;
+    (void)type;
     return -E_NOT_SUPPORT;
 }
 
 int GenericKvDB::TransConflictTypeToRegisterFunctionType(int conflictType, RegisterFuncType &type) const
 {
+    (void)conflictType;
+    (void)type;
     return -E_NOT_SUPPORT;
 }
 
@@ -371,6 +375,7 @@ bool GenericKvDB::IsDataMigrating() const
 
 void GenericKvDB::SetConnectionFlag(bool isExisted) const
 {
+    (void)isExisted;
     return;
 }
 

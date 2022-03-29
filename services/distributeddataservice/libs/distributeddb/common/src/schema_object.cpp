@@ -323,7 +323,7 @@ int SchemaObject::VerifyValue(ValueSource sourceType, const RawValue &inValue) c
         return -E_NOT_PERMIT;
     }
     if (inValue.second <= schemaSkipSize_) {
-        LOGE("[Schema][Verify] Value length=%zu invalid, skipsize=%u.", inValue.second, schemaSkipSize_);
+        LOGE("[Schema][Verify] Value length=%" PRIu32 " invalid, skipsize=%" PRIu32, inValue.second, schemaSkipSize_);
         return -E_FLATBUFFER_VERIFY_FAIL;
     }
 
@@ -442,8 +442,8 @@ int CheckOptionalMetaFieldCountAndType(const std::map<FieldPath, FieldType> &met
     }
     if (metaFieldPathType.size() != (SchemaConstant::SCHEMA_META_FEILD_COUNT_MIN + indexMetaFieldCount +
         skipSizeMetaFieldCount)) {
-        LOGE("[Schema][CheckMeta] Unrecognized metaField exist: total=%u, indexField=%u, skipSizeField=%u.",
-            metaFieldPathType.size(), indexMetaFieldCount, skipSizeMetaFieldCount);
+        LOGE("[Schema][CheckMeta] Unrecognized metaField exist: total=%zu, indexField=%" PRIu32 ", skipSizeField=%"
+            PRIu32, metaFieldPathType.size(), indexMetaFieldCount, skipSizeMetaFieldCount);
         return -E_SCHEMA_PARSE_FAIL;
     }
     return E_OK;
@@ -791,14 +791,14 @@ int SchemaObject::CompareSchemaDefine(const SchemaObject &newSchema) const
         }
         // No matter strict or compatible mode, newSchema can't have less field than oldSchema
         if (defineInNewSchema.size() < defineInOldSchema.size()) {
-            LOGE("[Schema][CompareDefine] newSize=%u less than oldSize=%u at depth=%u.", defineInNewSchema.size(),
-                defineInOldSchema.size(), depth);
+            LOGE("[Schema][CompareDefine] newSize=%zu less than oldSize=%zu at depth=%" PRIu32,
+                defineInNewSchema.size(), defineInOldSchema.size(), depth);
             return -E_SCHEMA_UNEQUAL_INCOMPATIBLE;
         }
         if (defineInNewSchema.size() > defineInOldSchema.size()) {
             // Strict mode not support increase fieldDefine
             if (schemaMode_ == SchemaMode::STRICT) {
-                LOGE("[Schema][CompareDefine] newSize=%u more than oldSize=%u at depth=%u in STRICT mode.",
+                LOGE("[Schema][CompareDefine] newSize=%zu more than oldSize=%zu at depth=%" PRIu32 " in STRICT mode.",
                     defineInNewSchema.size(), defineInOldSchema.size(), depth);
                 return -E_SCHEMA_UNEQUAL_INCOMPATIBLE;
             }
@@ -916,8 +916,8 @@ int SchemaObject::CompareSchemaDefaultValue(const SchemaAttribute &oldAttr, cons
         }
     } else if (oldAttr.type == FieldType::LEAF_FIELD_LONG) {
         if (oldAttr.defaultValue.longValue != newAttr.defaultValue.longValue) {
-            LOGE("[Schema][CompareDefault] OldDefault=%lld mismatch newDefault=%lld.", oldAttr.defaultValue.longValue,
-                newAttr.defaultValue.longValue);
+            LOGE("[Schema][CompareDefault] OldDefault=%" PRId64 " mismatch newDefault=%" PRId64 ".",
+                oldAttr.defaultValue.longValue, newAttr.defaultValue.longValue);
             return -E_SCHEMA_UNEQUAL_INCOMPATIBLE;
         }
     } else if (oldAttr.type == FieldType::LEAF_FIELD_DOUBLE) {

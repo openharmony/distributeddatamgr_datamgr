@@ -149,7 +149,7 @@ void SingleVerKVSyncer::RemoteDataChanged(const std::string &device)
         LOGI("no need to trigger auto subscribe");
         return;
     }
-    LOGI("[SingleVerKVSyncer] trigger local subscribe sync, queryNums=%d", syncQueries.size());
+    LOGI("[SingleVerKVSyncer] trigger local subscribe sync, queryNums=%zu", syncQueries.size());
     for (const auto &query : syncQueries) {
         TriggerSubscribe(device, query);
     }
@@ -272,8 +272,8 @@ void SingleVerKVSyncer::TriggerSubQuerySync(const std::vector<std::string> &devi
             if (lastTimestamp < queryWaterMark || lastTimestamp == 0) {
                 continue;
             }
-            LOGD("[Syncer] lastTime=%llu vs WaterMark=%llu,trigger queryId=%s,dev=%s", lastTimestamp, queryWaterMark,
-                STR_MASK(queryId), STR_MASK(device));
+            LOGD("[Syncer] lastTime=%" PRIu64 " vs WaterMark=%" PRIu64 ",trigger queryId=%s,dev=%s", lastTimestamp,
+                queryWaterMark, STR_MASK(queryId), STR_MASK(device));
             InternalSyncParma param;
             std::vector<std::string> targetDevices;
             targetDevices.push_back(device);

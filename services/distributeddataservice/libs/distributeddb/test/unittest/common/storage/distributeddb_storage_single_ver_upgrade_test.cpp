@@ -186,7 +186,7 @@ namespace {
         ASSERT_EQ(SQLiteUtils::GetStatement(db, CHECK_V1_LOCAL_UPGRADE, statement), E_OK);
         ASSERT_NE(statement, nullptr);
         ASSERT_EQ(SQLiteUtils::StepWithRetry(statement), SQLiteUtils::MapSQLiteErrno(SQLITE_ROW));
-        TimeStamp stamp = static_cast<uint64_t>(sqlite3_column_int64(statement, 0));
+        Timestamp stamp = static_cast<uint64_t>(sqlite3_column_int64(statement, 0));
         EXPECT_NE(stamp, 0UL);
 
         Value readHashValue;
@@ -287,7 +287,6 @@ void DistributedDBStorageSingleVerUpgradeTest::SetUpTestCase(void)
     int errCode = g_passwd.SetValue(passwdBuffer1.data(), passwdBuffer1.size());
     ASSERT_EQ(errCode, CipherPassword::ErrorCode::OK);
     g_adapter = std::make_shared<ProcessSystemApiAdapterImpl>();
-    EXPECT_TRUE(g_adapter != nullptr);
     RuntimeContext::GetInstance()->SetProcessSystemApiAdapter(g_adapter);
     g_maindbPath = g_testDir + "/" + identifier + "/" + DBConstant::SINGLE_SUB_DIR + "/" + DBConstant::MAINDB_DIR +
         "/" + DBConstant::SINGLE_VER_DATA_STORE + DBConstant::SQLITE_DB_EXTENSION;

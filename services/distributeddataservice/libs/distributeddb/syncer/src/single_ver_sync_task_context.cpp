@@ -119,7 +119,7 @@ int SingleVerSyncTaskContext::AddSyncOperation(SyncOperation *operation)
         return -E_OUT_OF_MEMORY;
     }
     newTarget->SetSyncOperation(operation);
-    TimeStamp timstamp = timeHelper_->GetTime();
+    Timestamp timstamp = timeHelper_->GetTime();
     newTarget->SetEndWaterMark(timstamp);
     newTarget->SetTaskType(ISyncTarget::REQUEST);
     AddSyncTarget(newTarget);
@@ -158,7 +158,7 @@ void SingleVerSyncTaskContext::ReleaseContinueToken()
 int SingleVerSyncTaskContext::PopResponseTarget(SingleVerSyncTarget &target)
 {
     std::lock_guard<std::mutex> lock(targetQueueLock_);
-    LOGD("[SingleVerSyncTaskContext] GetFrontExtWaterMarak size = %d", responseTargetQueue_.size());
+    LOGD("[SingleVerSyncTaskContext] GetFrontExtWaterMarak size = %zu", responseTargetQueue_.size());
     if (!responseTargetQueue_.empty()) {
         ISyncTarget *tmpTarget = responseTargetQueue_.front();
         responseTargetQueue_.pop_front();
@@ -240,7 +240,7 @@ void SingleVerSyncTaskContext::ClearAllSyncTask()
     std::list<ISyncTarget *> targetQueue;
     {
         std::lock_guard<std::mutex> lock(targetQueueLock_);
-        LOGI("[SingleVerSyncTaskContext] request taskcount=%d，responsecount=%d", requestTargetQueue_.size(),
+        LOGI("[SingleVerSyncTaskContext] request taskcount=%zu, responsecount=%zu", requestTargetQueue_.size(),
             responseTargetQueue_.size());
         while (!requestTargetQueue_.empty()) {
             ISyncTarget *tmpTarget = nullptr;
@@ -504,17 +504,17 @@ bool SingleVerSyncTaskContext::IsCurrentSyncTaskCanBeSkipped() const
         return false;
     }
 
-    TimeStamp maxTimeStampInDb;
-    syncInterface_->GetMaxTimeStamp(maxTimeStampInDb);
+    Timestamp maxTimestampInDb;
+    syncInterface_->GetMaxTimestamp(maxTimestampInDb);
     uint64_t localWaterMark = 0;
     int errCode = GetCorrectedSendWaterMarkForCurrentTask(localWaterMark);
     if (errCode != E_OK) {
         LOGE("GetLocalWaterMark in state machine failed: %d", errCode);
         return false;
     }
-    if (localWaterMark > maxTimeStampInDb) {
-        LOGI("skip current push task, deviceId_ = %s, localWaterMark = %llu, maxTimeStampInDb = %llu",
-            STR_MASK(deviceId_), localWaterMark, maxTimeStampInDb);
+    if (localWaterMark > maxTimestampInDb) {
+        LOGI("skip current push task, deviceId_ = %s, localWaterMark = %" PRIu64 ", maxTimestampInDb = %" PRIu64,
+            STR_MASK(deviceId_), localWaterMark, maxTimestampInDb);
         return true;
     }
     return false;

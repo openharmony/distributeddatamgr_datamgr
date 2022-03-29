@@ -129,7 +129,7 @@ int FrameCombiner::ContinueExistCombineWork(const uint8_t *bytes, uint32_t lengt
     uint32_t frameId = inPacketInfo.GetFrameId();
     CombineWork &oriWork = combineWorkPool_[sourceId][frameId]; // Be care here must be reference
     if (!CheckPacketWithOriWork(inPacketInfo, oriWork)) {
-        LOGE("[Combiner][ContinueWork] Check packet fail, sourceId=%llu, frameId=%u.", ULL(sourceId), ULL(frameId));
+        LOGE("[Combiner][ContinueWork] Check packet fail, sourceId=%" PRIu64 ", frameId=%" PRIu32, sourceId, frameId);
         return -E_COMBINE_FAIL;
     }
 
@@ -138,7 +138,7 @@ int FrameCombiner::ContinueExistCombineWork(const uint8_t *bytes, uint32_t lengt
     int errCode = ProtocolProto::CombinePacketIntoFrame(oriWork.buffer, bytes, length, fragOffset, fragLength);
     if (errCode != E_OK) {
         // We can consider abort this work, but here we choose not to affect it
-        LOGE("[Combiner][ContinueWork] Combine packet fail, sourceId=%llu, frameId=%u.", ULL(sourceId), ULL(frameId));
+        LOGE("[Combiner][ContinueWork] Combine packet fail, sourceId=%" PRIu64 ", frameId=%" PRIu32, sourceId, frameId);
         return -E_COMBINE_FAIL;
     }
 

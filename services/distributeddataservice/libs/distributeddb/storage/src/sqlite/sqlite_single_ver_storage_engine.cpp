@@ -155,7 +155,8 @@ int SQLiteSingleVerStorageEngine::MigrateSyncDataByVersion(SQLiteSingleVerStorag
     }
 
     // next version need process
-    LOGD("MigrateVer[%llu], minVer[%llu] maxVer[%llu]", curMigrateVer, minVerIncurCacheDb, GetCacheRecordVersion());
+    LOGD("MigrateVer[%" PRIu64 "], minVer[%" PRIu64 "] maxVer[%" PRIu64 "]",
+        curMigrateVer, minVerIncurCacheDb, GetCacheRecordVersion());
     errCode = handle->MigrateSyncDataByVersion(curMigrateVer++, syncData, dataItems);
     if (errCode != E_OK) {
         LOGE("Migrate sync data fail and rollback, errCode = [%d]", errCode);
@@ -164,10 +165,10 @@ int SQLiteSingleVerStorageEngine::MigrateSyncDataByVersion(SQLiteSingleVerStorag
 
     CommitNotifyForMigrateCache(syncData);
 
-    TimeStamp timestamp = 0;
-    errCode = handle->GetMaxTimeStampDuringMigrating(timestamp);
+    Timestamp timestamp = 0;
+    errCode = handle->GetMaxTimestampDuringMigrating(timestamp);
     if (errCode == E_OK) {
-        SetMaxTimeStamp(timestamp);
+        SetMaxTimestamp(timestamp);
     }
 
     errCode = ReleaseHandleTransiently(handle, 2ull); // temporary release handle 2ms
@@ -238,7 +239,7 @@ int SQLiteSingleVerStorageEngine::MigrateSyncData(SQLiteSingleVerStorageExecutor
         }
     }
 
-    LOGD("Begin migrate sync data, need migrate version[%llu]", GetCacheRecordVersion() - 1);
+    LOGD("Begin migrate sync data, need migrate version[%" PRIu64 "]", GetCacheRecordVersion() - 1);
     uint64_t curMigrateVer = 0; // The migration process is asynchronous and continuous
     NotifyMigrateSyncData syncData;
     auto kvdbManager = KvDBManager::GetInstance();
@@ -258,7 +259,7 @@ int SQLiteSingleVerStorageEngine::MigrateSyncData(SQLiteSingleVerStorageExecutor
     while (curMigrateVer < GetCacheRecordVersion()) {
         errCode = MigrateSyncDataByVersion(handle, syncData, curMigrateVer);
         if (errCode != E_OK) {
-            LOGE("Migrate version[%llu] failed! errCode = [%d]", curMigrateVer, errCode);
+            LOGE("Migrate version[%" PRIu64 "] failed! errCode = [%d]", curMigrateVer, errCode);
             break;
         }
         if (!syncData.isRemote) {
@@ -448,7 +449,7 @@ int SQLiteSingleVerStorageEngine::ExecuteMigrate()
     if (preState == EngineState::MIGRATING || preState == EngineState::INVALID ||
         !OS::CheckPathExistence(GetDbDir(option_.subdir, DbType::CACHE) + "/" + DBConstant::SINGLE_VER_CACHE_STORE +
         DBConstant::SQLITE_DB_EXTENSION)) {
-        LOGD("[SqlSingleVerEngine] Being single ver migrating or never create db! engine state [%d]", preState);
+        LOGD("[SqlSingleVerEngine] Being single ver migrating or never create db! engine state [%u]", preState);
         return E_OK;
     }
 
@@ -469,8 +470,8 @@ int SQLiteSingleVerStorageEngine::ExecuteMigrate()
         goto END;
     }
 
-    LOGD("[SqlSingleVerEngine] Current engineState [%d] executorState [%d], begin to executing singleVer db migrate!",
-        preState, executorState_);
+    LOGD("[SqlSingleVerEngine] Current engineState [%u] executorState [%u], begin to executing singleVer db migrate!",
+        static_cast<unsigned>(preState), static_cast<unsigned>(executorState_));
     // has been attached, Mark start of migration and it can migrate data
     errCode = MigrateLocalData(handle);
     if (errCode != E_OK) {
@@ -522,7 +523,7 @@ void SQLiteSingleVerStorageEngine::EndMigrate(SQLiteSingleVerStorageExecutor *&h
     }
     // Notify max timestamp offset for SyncEngine.
     // When time change offset equals 0, SyncEngine can adjust local time offset according to max timestamp.
-    RuntimeContext::GetInstance()->NotifyTimeStampChanged(0);
+    RuntimeContext::GetInstance()->NotifyTimestampChanged(0);
     if (isNeedTriggerSync) {
         commitNotifyFunc_(SQLITE_GENERAL_FINISH_MIGRATE_EVENT, nullptr);
     }
@@ -1063,7 +1064,7 @@ void SQLiteSingleVerStorageEngine::InitConflictNotifiedFlag(SingleVerNaturalStor
     committedData->SetConflictedNotifiedFlag(static_cast<int>(conflictFlag));
 }
 
-void SQLiteSingleVerStorageEngine::SetMaxTimeStamp(TimeStamp maxTimeStamp) const
+void SQLiteSingleVerStorageEngine::SetMaxTimestamp(Timestamp maxTimestamp) const
 {
     auto kvdbManager = KvDBManager::GetInstance();
     if (kvdbManager == nullptr) {
@@ -1072,12 +1073,12 @@ void SQLiteSingleVerStorageEngine::SetMaxTimeStamp(TimeStamp maxTimeStamp) const
     auto identifier = GetIdentifier();
     auto kvdb = kvdbManager->FindKvDB(identifier);
     if (kvdb == nullptr) {
-        LOGE("[SQLiteSingleVerStorageEngine::SetMaxTimeStamp] kvdb is null.");
+        LOGE("[SQLiteSingleVerStorageEngine::SetMaxTimestamp] kvdb is null.");
         return;
     }
 
     auto kvStore = static_cast<SQLiteSingleVerNaturalStore *>(kvdb);
-    kvStore->SetMaxTimeStamp(maxTimeStamp);
+    kvStore->SetMaxTimestamp(maxTimestamp);
     RefObject::DecObjRef(kvdb);
     return;
 }

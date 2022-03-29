@@ -94,8 +94,8 @@ void SingleVerDataMessageSchedule::ScheduleInfoHandle(bool isNeedHandleStatus, b
                 ClearMsgMapWithNoLock();
                 expectedSequenceId_ = 1;
             } else {
-                LOGI("[DataMsgSchedule] DealMsg seqId=%u finishedPacketId=%llu ok,label=%s,dev=%s", expectedSequenceId_,
-                    finishedPacketId_, label_.c_str(), STR_MASK(deviceId_));
+                LOGI("[DataMsgSchedule] DealMsg seqId=%" PRIu32 " finishedPacketId=%" PRIu64 " ok,label=%s,dev=%s",
+                    expectedSequenceId_, finishedPacketId_, label_.c_str(), STR_MASK(deviceId_));
                 expectedSequenceId_++;
             }
         }
@@ -246,7 +246,7 @@ void SingleVerDataMessageSchedule::StartTimer(SingleVerSyncTaskContext *context)
         return;
     }
     timerId_ = timerId;
-    LOGD("[DataMsgSchedule] StartTimer,TimerId=%llu", timerId_);
+    LOGD("[DataMsgSchedule] StartTimer,TimerId=%" PRIu64, timerId_);
 }
 
 void SingleVerDataMessageSchedule::StopTimer()
@@ -254,7 +254,7 @@ void SingleVerDataMessageSchedule::StopTimer()
     TimerId timerId;
     {
         std::lock_guard<std::mutex> lock(lock_);
-        LOGD("[DataMsgSchedule] StopTimer,remove TimerId=%llu", timerId_);
+        LOGD("[DataMsgSchedule] StopTimer,remove TimerId=%" PRIu64, timerId_);
         if (timerId_ == 0) {
             return;
         }
@@ -285,7 +285,7 @@ int SingleVerDataMessageSchedule::TimeOut(TimerId timerId)
     }
     {
         std::lock_guard<std::mutex> lock(lock_);
-        LOGI("[DataMsgSchedule] timeout handling, stop timerId_[%llu]", timerId, timerId_);
+        LOGI("[DataMsgSchedule] timeout handling, stop timerId_[%" PRIu64 "]", timerId);
         if (timerId == timerId_) {
             ClearMsgMapWithNoLock();
             timerId_ = 0;
@@ -308,6 +308,8 @@ int SingleVerDataMessageSchedule::UpdateMsgMapIfNeed(Message *msg)
     uint32_t sequenceId = msg->GetSequenceId();
     uint64_t packetId = packet->GetPacketId();
     if (prevSessionId_ != 0 && sessionId == prevSessionId_) {
+        LOGD("[DataMsgSchedule] recv prev sessionId msg, drop msg, label=%s, dev=%s", label_.c_str(),
+            STR_MASK(deviceId_));
         return -E_INVALID_ARGS;
     }
     if (sessionId != currentSessionId_) {
@@ -322,6 +324,8 @@ int SingleVerDataMessageSchedule::UpdateMsgMapIfNeed(Message *msg)
         const auto *cachePacket = messageMap_[sequenceId]->GetObject<DataRequestPacket>();
         if (cachePacket != nullptr) {
             if (packetId != 0 && packetId < cachePacket->GetPacketId()) {
+                LOGD("[DataMsgSchedule] drop msg packetId=%" PRIu64 ", cachePacketId=%" PRIu64 ", label=%s, dev=%s",
+                    packetId, cachePacket->GetPacketId(), label_.c_str(), STR_MASK(deviceId_));
                 return -E_INVALID_ARGS;
             }
         }
@@ -329,6 +333,8 @@ int SingleVerDataMessageSchedule::UpdateMsgMapIfNeed(Message *msg)
         messageMap_[sequenceId] = nullptr;
     }
     messageMap_[sequenceId] = msg;
+    LOGD("[DataMsgSchedule] put into msgMap seqId=%" PRIu32 ", packetId=%" PRIu64 ", label=%s, dev=%s", sequenceId,
+        packetId, label_.c_str(), STR_MASK(deviceId_));
     return E_OK;
 }
 }

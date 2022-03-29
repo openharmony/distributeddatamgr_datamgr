@@ -555,7 +555,6 @@ HWTEST_F(DistributedDBInterfacesDatabaseTest, GetKvStore003, TestSize.Level1)
      * @tc.expected: step1. Returns a null kvstore and error code is not OK.
      */
     std::shared_ptr<IProcessSystemApiAdapter> g_adapter = std::make_shared<ProcessSystemApiAdapterImpl>();
-    EXPECT_TRUE(g_adapter != nullptr);
     RuntimeContext::GetInstance()->SetProcessSystemApiAdapter(g_adapter);
     KvStoreNbDelegate::Option option = {true, false, false};
     int abnormalNum = -100;

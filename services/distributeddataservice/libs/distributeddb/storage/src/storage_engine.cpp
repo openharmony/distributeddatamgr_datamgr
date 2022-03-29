@@ -114,7 +114,7 @@ StorageExecutor *StorageEngine::FindWriteExecutor(OperatePerm perm, int &errCode
     std::unique_lock<std::mutex> lock(writeMutex_);
     errCode = -E_BUSY;
     if (perm_ == OperatePerm::DISABLE_PERM || perm_ != perm) {
-        LOGI("Not permitted to get the executor[%d]", perm_);
+        LOGI("Not permitted to get the executor[%u]", static_cast<unsigned>(perm_));
         return nullptr;
     }
     if (waitTime <= 0) { // non-blocking.
@@ -137,8 +137,9 @@ StorageExecutor *StorageEngine::FindWriteExecutor(OperatePerm perm, int &errCode
         return nullptr;
     }
     if (!result) {
-        LOGI("Get write handle result[%d], permissType[%d], operType[%d], write[%d-%d-%d]",
-            result, perm_, perm, writeIdleList_.size(), writeUsingList_.size(), engineAttr_.maxWriteNum);
+        LOGI("Get write handle result[%d], permissType[%u], operType[%u], write[%zu-%zu-%" PRIu32 "]", result,
+            static_cast<unsigned>(perm_), static_cast<unsigned>(perm), writeIdleList_.size(), writeUsingList_.size(),
+            engineAttr_.maxWriteNum);
         return nullptr;
     }
     return FetchStorageExecutor(true, writeIdleList_, writeUsingList_, errCode);
@@ -149,7 +150,7 @@ StorageExecutor *StorageEngine::FindReadExecutor(OperatePerm perm, int &errCode,
     std::unique_lock<std::mutex> lock(readMutex_);
     errCode = -E_BUSY;
     if (perm_ == OperatePerm::DISABLE_PERM || perm_ != perm) {
-        LOGI("Not permitted to get the executor[%d]", perm_);
+        LOGI("Not permitted to get the executor[%u]", static_cast<unsigned>(perm_));
         return nullptr;
     }
 
@@ -173,8 +174,9 @@ StorageExecutor *StorageEngine::FindReadExecutor(OperatePerm perm, int &errCode,
         return nullptr;
     }
     if (!result) {
-        LOGI("Get read handle result[%d], permissType[%d], operType[%d], read[%d-%d-%d]",
-            result, perm_, perm, readIdleList_.size(), readUsingList_.size(), engineAttr_.maxReadNum);
+        LOGI("Get read handle result[%d], permissType[%u], operType[%u], read[%zu-%zu-%" PRIu32 "]", result,
+            static_cast<unsigned>(perm_), static_cast<unsigned>(perm), readIdleList_.size(), readUsingList_.size(),
+            engineAttr_.maxReadNum);
         return nullptr;
     }
     return FetchStorageExecutor(false, readIdleList_, readUsingList_, errCode);
@@ -411,7 +413,7 @@ StorageExecutor *StorageEngine::FetchStorageExecutor(bool isWrite, std::list<Sto
     auto item = idleList.front();
     usingList.push_back(item);
     idleList.remove(item);
-    LOGD("Get executor[%d] from [%.6s], using[%d]", isWrite,
+    LOGD("Get executor[%d] from [%.6s], using[%zu]", isWrite,
         DBCommon::TransferStringToHex(identifier_).c_str(), usingList.size());
     errCode = E_OK;
     return item;

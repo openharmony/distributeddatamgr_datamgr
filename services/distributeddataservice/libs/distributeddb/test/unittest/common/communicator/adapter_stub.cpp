@@ -54,6 +54,7 @@ uint32_t AdapterStub::GetMtuSize()
 
 uint32_t AdapterStub::GetMtuSize(const std::string &target)
 {
+    (void)target;
     return GetMtuSize();
 }
 
@@ -64,7 +65,7 @@ uint32_t AdapterStub::GetTimeout()
 
 uint32_t AdapterStub::GetTimeout(const std::string &target)
 {
-    (void) target;
+    (void)target;
     return GetTimeout();
 }
 
@@ -129,7 +130,7 @@ int AdapterStub::RegSendableCallback(const SendableCallback &onSendable, const F
 
 bool AdapterStub::IsDeviceOnline(const std::string &device)
 {
-    (void) device;
+    (void)device;
     return true;
 }
 

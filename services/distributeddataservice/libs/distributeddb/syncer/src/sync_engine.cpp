@@ -140,6 +140,7 @@ int SyncEngine::Close()
         if (inMsg != nullptr) {
             queueCacheSize_ -= GetMsgSize(inMsg);
             delete inMsg;
+            inMsg = nullptr;
         }
     }
     // close db, rekey or import scene, need clear all remote query info
@@ -249,7 +250,7 @@ int SyncEngine::InitComunicator(const ISyncInterface *syncInterface)
         false);
     if (isSyncDualTupleMode) {
         std::vector<uint8_t> dualTuplelabel = syncInterface->GetDualTupleIdentifier();
-        LOGI("[SyncEngine] dual tuple mode, original identifier=%0.6s, target identifier=%0.6s", VEC_TO_STR(label),
+        LOGI("[SyncEngine] dual tuple mode, original identifier=%.6s, target identifier=%.6s", VEC_TO_STR(label),
             VEC_TO_STR(dualTuplelabel));
         communicator_ = communicatorAggregator->AllocCommunicator(dualTuplelabel, errCode);
     } else {
@@ -520,7 +521,7 @@ void SyncEngine::PutMsgIntoQueue(const std::string &targetDev, Message *inMsg, i
     inMsg->SetTarget(targetDev);
     msgQueue_.push_back(inMsg);
     queueCacheSize_ += msgSize;
-    LOGE("[SyncEngine] The quantity of executing threads is beyond maximum. msgQueueSize = %d", msgQueue_.size());
+    LOGE("[SyncEngine] The quantity of executing threads is beyond maximum. msgQueueSize = %zu", msgQueue_.size());
 }
 
 int SyncEngine::GetMsgSize(const Message *inMsg) const
@@ -962,10 +963,10 @@ int SyncEngine::InitTimeChangedListener()
             TimeOffset changedTimeOffset = *(reinterpret_cast<TimeOffset *>(changedOffset)) *
                 static_cast<TimeOffset>(TimeHelper::TO_100_NS);
             TimeOffset orgOffset = this->metadata_->GetLocalTimeOffset() - changedTimeOffset;
-            TimeStamp currentSysTime = TimeHelper::GetSysCurrentTime();
-            TimeStamp maxItemTime = 0;
-            this->syncInterface_->GetMaxTimeStamp(maxItemTime);
-            if ((currentSysTime + static_cast<TimeStamp>(orgOffset)) <= maxItemTime) {
+            Timestamp currentSysTime = TimeHelper::GetSysCurrentTime();
+            Timestamp maxItemTime = 0;
+            this->syncInterface_->GetMaxTimestamp(maxItemTime);
+            if ((currentSysTime + static_cast<Timestamp>(orgOffset)) <= maxItemTime) {
                 orgOffset = static_cast<TimeOffset>(maxItemTime - currentSysTime + TimeHelper::MS_TO_100_NS); // 1ms
             }
             this->metadata_->SaveLocalTimeOffset(orgOffset);

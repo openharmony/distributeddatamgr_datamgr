@@ -219,8 +219,8 @@ int SQLiteSingleVerStorageExecutor::AttachMainDbAndCacheDb(CipherType type, cons
     } else {
         return -E_INVALID_ARGS;
     }
-    LOGD("[singleVerExecutor][attachDb] current engineState[%d], executorState[%d]", engineState, executorState_);
-
+    LOGD("[singleVerExecutor][attachDb] current engineState[%u], executorState[%u]", static_cast<unsigned>(engineState),
+        static_cast<unsigned>(executorState_));
     return errCode;
 }
 
@@ -400,7 +400,7 @@ int SQLiteSingleVerStorageExecutor::MigrateSyncDataByVersion(uint64_t recordVer,
     }
 
     // fix dataItem timestamp for migrate
-    errCode = ProcessTimeStampForSyncDataInCacheDB(dataItems);
+    errCode = ProcessTimestampForSyncDataInCacheDB(dataItems);
     if (errCode != E_OK) {
         LOGE("Chang the time stamp for migrate failed! errCode = [%d]", errCode);
         goto END;
@@ -532,15 +532,15 @@ int SQLiteSingleVerStorageExecutor::BindSyncDataInCacheMode(sqlite3_stmt *statem
         return errCode;
     }
 
-    LOGD("Write timestamp:%llu timestamp%llu, %llu, version %llu", dataItem.writeTimeStamp, dataItem.timeStamp,
-        dataItem.flag, recordVersion);
+    LOGD("Write timestamp:%" PRIu64 " timestamp:%" PRIu64 ", flag:%" PRIu64 ", version:%" PRIu64,
+        dataItem.writeTimestamp, dataItem.timestamp, dataItem.flag, recordVersion);
     errCode = SQLiteUtils::BindInt64ToStatement(statement, BIND_CACHE_SYNC_FLAG_INDEX,
         static_cast<int64_t>(dataItem.flag));
     if (errCode != E_OK) {
         LOGE("Bind saved sync data flag failed:%d", errCode);
         return errCode;
     }
-    errCode = BindTimeStampSyncDataInCacheMode(statement, dataItem);
+    errCode = BindTimestampSyncDataInCacheMode(statement, dataItem);
     if (errCode != E_OK) {
         LOGE("Bind saved sync data time stamp failed:%d", errCode);
         return errCode;
@@ -563,16 +563,16 @@ int SQLiteSingleVerStorageExecutor::BindPrimaryKeySyncDataInCacheMode(
     return errCode;
 }
 
-int SQLiteSingleVerStorageExecutor::BindTimeStampSyncDataInCacheMode(
+int SQLiteSingleVerStorageExecutor::BindTimestampSyncDataInCacheMode(
     sqlite3_stmt *statement, const DataItem &dataItem) const
 {
-    int errCode = SQLiteUtils::BindInt64ToStatement(statement, BIND_CACHE_SYNC_STAMP_INDEX, dataItem.timeStamp);
+    int errCode = SQLiteUtils::BindInt64ToStatement(statement, BIND_CACHE_SYNC_STAMP_INDEX, dataItem.timestamp);
     if (errCode != E_OK) {
         LOGE("Bind saved sync data stamp failed:%d", errCode);
         return errCode;
     }
 
-    errCode = SQLiteUtils::BindInt64ToStatement(statement, BIND_CACHE_SYNC_W_TIME_INDEX, dataItem.writeTimeStamp);
+    errCode = SQLiteUtils::BindInt64ToStatement(statement, BIND_CACHE_SYNC_W_TIME_INDEX, dataItem.writeTimestamp);
     if (errCode != E_OK) {
         LOGE("Bind saved sync data write stamp failed:%d", errCode);
     }
@@ -633,7 +633,7 @@ END:
 }
 
 int SQLiteSingleVerStorageExecutor::SaveSyncDataItemInCacheMode(DataItem &dataItem, const DeviceInfo &deviceInfo,
-    TimeStamp &maxStamp, uint64_t recordVersion, const QueryObject &query)
+    Timestamp &maxStamp, uint64_t recordVersion, const QueryObject &query)
 {
     Key hashKey;
     int errCode = E_OK;
@@ -662,7 +662,7 @@ int SQLiteSingleVerStorageExecutor::SaveSyncDataItemInCacheMode(DataItem &dataIt
     dataItem.origDev = origDev;
     errCode = SaveSyncDataToCacheDatabase(dataItem, hashKey, recordVersion);
     if (errCode == E_OK) {
-        maxStamp = std::max(dataItem.timeStamp, maxStamp);
+        maxStamp = std::max(dataItem.timestamp, maxStamp);
     } else {
         LOGE("Save sync data to db failed:%d", errCode);
     }
@@ -739,7 +739,7 @@ int SQLiteSingleVerStorageExecutor::BindLocalDataInCacheMode(sqlite3_stmt *state
         return errCode;
     }
 
-    errCode = SQLiteUtils::BindInt64ToStatement(statement, BIND_CACHE_LOCAL_TIMESTAMP_INDEX, dataItem.timeStamp);
+    errCode = SQLiteUtils::BindInt64ToStatement(statement, BIND_CACHE_LOCAL_TIMESTAMP_INDEX, dataItem.timestamp);
     if (errCode != E_OK) {
         LOGE("[SingleVerExe][BindLocalData]Bind timestamp error:%d", errCode);
         return errCode;
@@ -783,7 +783,7 @@ int SQLiteSingleVerStorageExecutor::PutIntoConflictAndCommitForMigrateCache(Data
     return ResetForMigrateCacheData();
 }
 
-int SQLiteSingleVerStorageExecutor::GetMinTimestampInCacheDB(TimeStamp &minStamp) const
+int SQLiteSingleVerStorageExecutor::GetMinTimestampInCacheDB(Timestamp &minStamp) const
 {
     if (dbHandle_ == nullptr) {
         return E_OK;
@@ -800,7 +800,7 @@ int SQLiteSingleVerStorageExecutor::GetMinTimestampInCacheDB(TimeStamp &minStamp
     errCode = SQLiteUtils::StepWithRetry(statement, isMemDb_);
     if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_ROW)) {
         minStamp = static_cast<uint64_t>(sqlite3_column_int64(statement, 0)); // get the first column
-        LOGD("Min time stamp in cacheDB is %llu", minStamp);
+        LOGD("Min time stamp in cacheDB is %" PRIu64, minStamp);
         errCode = E_OK;
     } else {
         LOGE("GetMinTimestampInCacheDB failed, errCode = %d.", errCode);
@@ -811,7 +811,7 @@ ERROR:
     return errCode;
 }
 
-int SQLiteSingleVerStorageExecutor::InitMigrateTimeStampOffset()
+int SQLiteSingleVerStorageExecutor::InitMigrateTimestampOffset()
 {
     // Not first migrate, migrateTimeOffset_ has been set.
     if (migrateTimeOffset_ != 0) {
@@ -819,7 +819,7 @@ int SQLiteSingleVerStorageExecutor::InitMigrateTimeStampOffset()
     }
 
     // Get min timestamp of local data in sync_data, cacheDB.
-    TimeStamp minTimeInCache = 0;
+    Timestamp minTimeInCache = 0;
     int errCode = GetMinTimestampInCacheDB(minTimeInCache);
     if (errCode != E_OK) {
         return errCode;
@@ -833,40 +833,40 @@ int SQLiteSingleVerStorageExecutor::InitMigrateTimeStampOffset()
     }
 
     // Get max timestamp in mainDB.
-    TimeStamp maxTimeInMain = 0;
+    Timestamp maxTimeInMain = 0;
     InitCurrentMaxStamp(maxTimeInMain);
 
     // Get timestamp offset between mainDB and cacheDB.
     // The purpose of -1 is to ensure that the first data record in the original cacheDB is 1 greater than
     // the last data record in the original mainDB after the migration.
     migrateTimeOffset_ = minTimeInCache - maxTimeInMain - 1;
-    LOGI("Min timestamp in cacheDB is %llu, max timestamp in mainDB is %llu. Time offset during migrating is %lld.",
-        minTimeInCache, maxTimeInMain, migrateTimeOffset_);
+    LOGI("Min timestamp in cacheDB is %" PRIu64 ", max timestamp in mainDB is %" PRIu64 ". Time offset during migrating"
+        " is %" PRId64 ".", minTimeInCache, maxTimeInMain, migrateTimeOffset_);
     return E_OK;
 }
 
-int SQLiteSingleVerStorageExecutor::ProcessTimeStampForSyncDataInCacheDB(std::vector<DataItem> &dataItems)
+int SQLiteSingleVerStorageExecutor::ProcessTimestampForSyncDataInCacheDB(std::vector<DataItem> &dataItems)
 {
     if (dataItems.empty()) {
-        LOGE("[SQLiteSingleVerStorageExecutor::ProcessTimeStampForCacheDB] Invalid parameter : dataItems.");
+        LOGE("[SQLiteSingleVerStorageExecutor::ProcessTimestampForCacheDB] Invalid parameter : dataItems.");
         return -E_INVALID_ARGS;
     }
 
     // Get the offset between the min timestamp in dataitems and max timestamp in mainDB.
-    int errCode = InitMigrateTimeStampOffset();
+    int errCode = InitMigrateTimestampOffset();
     if (errCode != E_OK) {
         return errCode;
     }
 
     // Set real timestamp for DataItem in dataItems and get the max timestamp in these dataitems.
-    TimeStamp maxTimeInDataItems = 0;
+    Timestamp maxTimeInDataItems = 0;
     for (auto &item : dataItems) {
-        item.timeStamp -= migrateTimeOffset_;
-        maxTimeInDataItems = std::max(maxTimeInDataItems, item.timeStamp);
+        item.timestamp -= migrateTimeOffset_;
+        maxTimeInDataItems = std::max(maxTimeInDataItems, item.timestamp);
     }
 
     // Update max timestamp in mainDB.
-    maxTimeStampInMainDB_ = maxTimeInDataItems;
+    maxTimestampInMainDB_ = maxTimeInDataItems;
     return E_OK;
 }
 
@@ -907,7 +907,7 @@ int SQLiteSingleVerStorageExecutor::InitMigrateData()
         insertSQL = MIGRATE_INSERT_DATA_TO_MAINDB_FROM_CACHEHANDLE;
         updateSQL = MIGRATE_UPDATE_DATA_TO_MAINDB_FROM_CACHEHANDLE;
     } else {
-        LOGE("[InitMigrateData] executor in an error state[%d]!", executorState_);
+        LOGE("[InitMigrateData] executor in an error state[%u]!", static_cast<unsigned>(executorState_));
         return -E_INVALID_DB;
     }
     int errCode = PrepareForSavingData(querySQL, insertSQL, updateSQL, migrateSyncStatements_);
@@ -923,7 +923,7 @@ void SQLiteSingleVerStorageExecutor::ClearMigrateData()
 {
     // Reset data.
     migrateTimeOffset_ = 0;
-    maxTimeStampInMainDB_ = 0;
+    maxTimestampInMainDB_ = 0;
 
     // Reset statement.
     int errCode = migrateSyncStatements_.ResetStatement();
@@ -934,12 +934,12 @@ void SQLiteSingleVerStorageExecutor::ClearMigrateData()
     isSyncMigrating_ = false;
 }
 
-int SQLiteSingleVerStorageExecutor::GetMaxTimeStampDuringMigrating(TimeStamp &maxTimeStamp) const
+int SQLiteSingleVerStorageExecutor::GetMaxTimestampDuringMigrating(Timestamp &maxTimestamp) const
 {
-    if (maxTimeStampInMainDB_ == 0) {
+    if (maxTimestampInMainDB_ == 0) {
         return -E_NOT_INIT;
     }
-    maxTimeStamp = maxTimeStampInMainDB_;
+    maxTimestamp = maxTimestampInMainDB_;
     return E_OK;
 }
 

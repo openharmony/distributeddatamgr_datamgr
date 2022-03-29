@@ -423,10 +423,6 @@ int MultiVerNaturalStore::Open(const KvDBProperties &kvDBProp)
     }
 
     multiVerEngine_ = std::make_unique<MultiVerStorageEngine>();
-    if (multiVerEngine_ == nullptr) {
-        errCode = -E_OUT_OF_MEMORY;
-        goto ERROR;
-    }
     errCode = multiVerEngine_->InitDatabases(this, multiVerData_, commitHistory_, multiVerKvStorage_, poolSize);
     if (errCode != E_OK) {
         goto ERROR;
@@ -505,13 +501,13 @@ std::string MultiVerNaturalStore::GetStringIdentifier() const
 }
 
 // Get the max timestamp of all entries in database.
-void MultiVerNaturalStore::GetMaxTimeStamp(TimeStamp &stamp) const
+void MultiVerNaturalStore::GetMaxTimestamp(Timestamp &stamp) const
 {
     std::lock_guard<std::mutex> lock(maxTimeMutex_);
     stamp = maxRecordTimestamp_;
 }
 
-void MultiVerNaturalStore::SetMaxTimeStamp(TimeStamp stamp)
+void MultiVerNaturalStore::SetMaxTimestamp(Timestamp stamp)
 {
     std::lock_guard<std::mutex> lock(maxTimeMutex_);
     maxRecordTimestamp_ = (stamp > maxRecordTimestamp_) ? stamp : maxRecordTimestamp_;
@@ -825,9 +821,9 @@ END:
     return errCode;
 }
 
-uint64_t MultiVerNaturalStore::GetCurrentTimeStamp()
+uint64_t MultiVerNaturalStore::GetCurrentTimestamp()
 {
-    return GetTimeStamp();
+    return GetTimestamp();
 }
 
 int MultiVerNaturalStore::GetDiffEntries(const CommitID &begin, const CommitID &end, MultiVerDiffData &data) const

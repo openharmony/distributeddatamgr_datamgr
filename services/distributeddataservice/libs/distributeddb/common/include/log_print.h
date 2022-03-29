@@ -16,6 +16,7 @@
 #ifndef DISTRIBUTEDDB_LOG_PRINT_H
 #define DISTRIBUTEDDB_LOG_PRINT_H
 
+#include <cinttypes>
 #include <cstdarg>
 #include <cstdio>
 #include <string>

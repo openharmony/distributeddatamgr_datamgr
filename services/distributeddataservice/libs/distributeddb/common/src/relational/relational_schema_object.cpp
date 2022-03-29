@@ -376,10 +376,6 @@ std::map<FieldPath, SchemaAttribute> TableInfo::GetSchemaDefine() const
     return schemaDefine;
 }
 
-namespace {
-    const std::string MAGIC = "relational_opinion";
-}
-
 bool RelationalSchemaObject::IsSchemaValid() const
 {
     return isValid_;
@@ -510,7 +506,8 @@ int GetMemberFromJsonObject(const JsonObject &inJsonObject, const std::string &f
     }
 
     if (fieldType != expectType) {
-        LOGE("[RelationalSchema][Parse] Expect %s fieldType %d but: %d.", fieldName.c_str(), expectType, fieldType);
+        LOGE("[RelationalSchema][Parse] Expect %s fieldType %d but: %d.", fieldName.c_str(),
+            static_cast<int>(expectType), static_cast<int>(fieldType));
         return -E_SCHEMA_PARSE_FAIL;
     }
 

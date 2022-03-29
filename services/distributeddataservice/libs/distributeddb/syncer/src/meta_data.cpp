@@ -80,7 +80,7 @@ int Metadata::SaveTimeOffset(const DeviceID &deviceId, TimeOffset inValue)
     GetMetaDataValue(deviceId, metadata, true);
     metadata.timeOffset = inValue;
     metadata.lastUpdateTime = TimeHelper::GetSysCurrentTime();
-    LOGD("Metadata::SaveTimeOffset = %lld dev %s", inValue, STR_MASK(deviceId));
+    LOGD("Metadata::SaveTimeOffset = %" PRId64 " dev %s", inValue, STR_MASK(deviceId));
     return SaveMetaDataValue(deviceId, metadata);
 }
 
@@ -106,7 +106,7 @@ int Metadata::SaveLocalWaterMark(const DeviceID &deviceId, uint64_t inValue)
     std::lock_guard<std::mutex> lockGuard(metadataLock_);
     GetMetaDataValue(deviceId, metadata, true);
     metadata.localWaterMark = inValue;
-    LOGD("Metadata::SaveLocalWaterMark = %llu", inValue);
+    LOGD("Metadata::SaveLocalWaterMark = %" PRIu64, inValue);
     return SaveMetaDataValue(deviceId, metadata);
 }
 
@@ -124,7 +124,7 @@ int Metadata::SavePeerWaterMark(const DeviceID &deviceId, uint64_t inValue, bool
     std::lock_guard<std::mutex> lockGuard(metadataLock_);
     GetMetaDataValue(deviceId, metadata, isNeedHash);
     metadata.peerWaterMark = inValue;
-    LOGD("Metadata::SavePeerWaterMark = %llu", inValue);
+    LOGD("Metadata::SavePeerWaterMark = %" PRIu64, inValue);
     return SaveMetaDataValue(deviceId, metadata);
 }
 
@@ -137,7 +137,7 @@ int Metadata::SaveLocalTimeOffset(TimeOffset timeOffset)
 
     std::lock_guard<std::mutex> lockGuard(localTimeOffsetLock_);
     localTimeOffset_ = timeOffset;
-    LOGD("Metadata::SaveLocalTimeOffset offset = %lld", timeOffset);
+    LOGD("Metadata::SaveLocalTimeOffset offset = %" PRId64, timeOffset);
     int errCode = SetMetadataToDb(localTimeOffsetValue, timeOffsetValue);
     if (errCode != E_OK) {
         LOGE("Metadata::SaveLocalTimeOffset SetMetadataToDb failed errCode:%d", errCode);
@@ -181,7 +181,7 @@ int Metadata::EraseDeviceWaterMark(const std::string &deviceId, bool isNeedHash,
     return E_OK;
 }
 
-void Metadata::SetLastLocalTime(TimeStamp lastLocalTime)
+void Metadata::SetLastLocalTime(Timestamp lastLocalTime)
 {
     std::lock_guard<std::mutex> lock(lastLocalTimeLock_);
     if (lastLocalTime > lastLocalTime_) {
@@ -189,7 +189,7 @@ void Metadata::SetLastLocalTime(TimeStamp lastLocalTime)
     }
 }
 
-TimeStamp Metadata::GetLastLocalTime() const
+Timestamp Metadata::GetLastLocalTime() const
 {
     std::lock_guard<std::mutex> lock(lastLocalTimeLock_);
     return lastLocalTime_;
@@ -284,7 +284,7 @@ int64_t Metadata::StringToLong(const std::vector<uint8_t> &value) const
 {
     std::string valueString(value.begin(), value.end());
     int64_t longData = std::strtoll(valueString.c_str(), nullptr, STR_TO_LL_BY_DEVALUE);
-    LOGD("Metadata::StringToLong longData = %lld", longData);
+    LOGD("Metadata::StringToLong longData = %" PRId64, longData);
     return longData;
 }
 
@@ -365,7 +365,7 @@ uint64_t Metadata::GetRandTimeOffset() const
     // use a 16 bit rand data to make a rand timeoffset
     uint64_t randTimeOffset = (static_cast<uint16_t>(randBytes[1]) << 8) | randBytes[0]; // 16 bit data, 8 is offset
     randTimeOffset = randTimeOffset * 1000 * 1000 * 10; // second, 1000 is scale
-    LOGD("[Metadata] GetRandTimeOffset %llu", randTimeOffset);
+    LOGD("[Metadata] GetRandTimeOffset %" PRIu64, randTimeOffset);
     return randTimeOffset;
 }
 
@@ -427,21 +427,21 @@ int Metadata::SetSendQueryWaterMark(const std::string &queryIdentify,
     return querySyncWaterMarkHelper_.SetSendQueryWaterMark(queryIdentify, deviceId, waterMark);
 }
 
-int Metadata::GetLastQueryTime(const std::string &queryIdentify, const std::string &deviceId, TimeStamp &timeStamp)
+int Metadata::GetLastQueryTime(const std::string &queryIdentify, const std::string &deviceId, Timestamp &timestamp)
 {
     QueryWaterMark queryWaterMark;
     int errCode = querySyncWaterMarkHelper_.GetQueryWaterMark(queryIdentify, deviceId, queryWaterMark);
     if (errCode != E_OK) {
         return errCode;
     }
-    timeStamp = queryWaterMark.lastQueryTime;
+    timestamp = queryWaterMark.lastQueryTime;
     return E_OK;
 }
 
 int Metadata::SetLastQueryTime(const std::string &queryIdentify, const std::string &deviceId,
-    const TimeStamp &timeStamp)
+    const Timestamp &timestamp)
 {
-    return querySyncWaterMarkHelper_.SetLastQueryTime(queryIdentify, deviceId, timeStamp);
+    return querySyncWaterMarkHelper_.SetLastQueryTime(queryIdentify, deviceId, timestamp);
 }
 
 int Metadata::GetSendDeleteSyncWaterMark(const DeviceID &deviceId, WaterMark &waterMark, bool isAutoLift)
@@ -514,10 +514,11 @@ int Metadata::SetDbCreateTime(const DeviceID &deviceId, uint64_t inValue, bool i
         metadata = metadataMap_[hashDeviceId];
         if (metadata.dbCreateTime != 0 && metadata.dbCreateTime != inValue) {
             metadata.clearDeviceDataMark = REMOVE_DEVICE_DATA_MARK;
-            LOGI("Metadata::SetDbCreateTime,set cleardata mark,dev=%s,dbCreateTime=%llu", STR_MASK(deviceId), inValue);
+            LOGI("Metadata::SetDbCreateTime,set cleardata mark,dev=%s,dbCreateTime=%" PRIu64,
+                STR_MASK(deviceId), inValue);
         }
         if (metadata.dbCreateTime == 0) {
-            LOGI("Metadata::SetDbCreateTime,update dev=%s,dbCreateTime=%llu", STR_MASK(deviceId), inValue);
+            LOGI("Metadata::SetDbCreateTime,update dev=%s,dbCreateTime=%" PRIu64, STR_MASK(deviceId), inValue);
         }
     }
     metadata.dbCreateTime = inValue;

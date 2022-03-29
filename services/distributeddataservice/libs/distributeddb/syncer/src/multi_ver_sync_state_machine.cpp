@@ -29,16 +29,16 @@
 
 namespace DistributedDB {
 namespace {
-void ChangeEntriesTimeStamp(std::vector<MultiVerKvEntry *> &entries, TimeOffset outOffset, TimeOffset timefixOffset)
+void ChangeEntriesTimestamp(std::vector<MultiVerKvEntry *> &entries, TimeOffset outOffset, TimeOffset timefixOffset)
 {
     for (MultiVerKvEntry *entry : entries) {
         if (entry == nullptr) {
             continue;
         }
-        TimeStamp timeStamp;
-        entry->GetTimestamp(timeStamp);
-        timeStamp = timeStamp - static_cast<TimeStamp>(outOffset + timefixOffset);
-        entry->SetTimestamp(timeStamp);
+        Timestamp timestamp;
+        entry->GetTimestamp(timestamp);
+        timestamp = timestamp - static_cast<Timestamp>(outOffset + timefixOffset);
+        entry->SetTimestamp(timestamp);
     }
 }
 }
@@ -305,7 +305,9 @@ int MultiVerSyncStateMachine::PrepareNextSyncTask()
 
 void MultiVerSyncStateMachine::SendSaveDataNotifyPacket(uint32_t sessionId, uint32_t sequenceId, uint32_t inMsgId)
 {
-    (void) sequenceId;
+    (void)sessionId;
+    (void)sequenceId;
+    (void)inMsgId;
 }
 
 void MultiVerSyncStateMachine::CommErrAbort()
@@ -467,16 +469,16 @@ int MultiVerSyncStateMachine::OneCommitSyncFinish()
             LOGI("MultiVerSyncStateMachine::OneCommitSyncFinish GetTimeOffset fail errCode:%d", errCode);
             return errCode;
         }
-        TimeStamp currentLocalTime = context_->GetCurrentLocalTime();
-        commit.timestamp -= static_cast<TimeStamp>(outOffset);
+        Timestamp currentLocalTime = context_->GetCurrentLocalTime();
+        commit.timestamp -= static_cast<Timestamp>(outOffset);
 
         // Due to time sync error, commit timestamp may bigger than currentLocalTime, we need to fix the timestamp
         TimeOffset timefixOffset = (commit.timestamp < currentLocalTime) ? 0 : (commit.timestamp -
-            static_cast<TimeStamp>(currentLocalTime));
-        LOGD("MultiVerSyncStateMachine::OneCommitSyncFinish src=%s, timefixOffset = %lld",
+            static_cast<Timestamp>(currentLocalTime));
+        LOGD("MultiVerSyncStateMachine::OneCommitSyncFinish src=%s, timefixOffset = %" PRId64,
             STR_MASK(context_->GetDeviceId()), timefixOffset);
-        commit.timestamp -= static_cast<TimeStamp>(timefixOffset);
-        ChangeEntriesTimeStamp(entries, outOffset, timefixOffset);
+        commit.timestamp -= static_cast<Timestamp>(timefixOffset);
+        ChangeEntriesTimestamp(entries, outOffset, timefixOffset);
         PerformanceAnalysis *performance = PerformanceAnalysis::GetInstance();
         if (performance != nullptr) {
             performance->StepTimeRecordStart(MV_TEST_RECORDS::RECORD_PUT_COMMIT_DATA);
@@ -595,7 +597,7 @@ int MultiVerSyncStateMachine::SyncResponseTimeout(TimerId timerId)
             return info.timerId == timerId;
         });
         if (iter == responseInfos_.end()) {
-            LOGW("[MultiVerSyncStateMachine][SyncResponseTimeout] Can't find sync response timerId %d", timerId);
+            LOGW("[MultiVerSyncStateMachine][SyncResponseTimeout] Can't find sync response timerId %" PRIu64, timerId);
             return E_OK;
         }
         sessionId = iter->sessionId;

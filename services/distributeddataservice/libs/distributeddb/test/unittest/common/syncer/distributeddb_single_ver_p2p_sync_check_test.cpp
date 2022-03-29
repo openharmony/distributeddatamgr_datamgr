@@ -92,7 +92,6 @@ void DistributedDBSingleVerP2PSyncCheckTest::SetUpTestCase(void)
     RuntimeContext::GetInstance()->SetCommunicatorAggregator(g_communicatorAggregator);
 
     std::shared_ptr<ProcessSystemApiAdapterImpl> g_adapter = std::make_shared<ProcessSystemApiAdapterImpl>();
-    EXPECT_TRUE(g_adapter != nullptr);
     RuntimeContext::GetInstance()->SetProcessSystemApiAdapter(g_adapter);
 }
 
@@ -526,7 +525,7 @@ void RegOnDispatchWithOffline(bool &offlineFlag, bool &invalid, condition_variab
                 offlineFlag = true;
                 conditionOffline.notify_all();
                 LOGW("[Dispatch] NOTIFY OFFLINE");
-                std::this_thread::sleep_for(std::chrono::microseconds (EIGHT_HUNDRED));
+                std::this_thread::sleep_for(std::chrono::microseconds(EIGHT_HUNDRED));
             }
         } else if (!invalid && inMsg->GetMessageType() == TYPE_REQUEST) {
             LOGW("[Dispatch] NOW INVALID THIS MSG");
@@ -635,7 +634,7 @@ HWTEST_F(DistributedDBSingleVerP2PSyncCheckTest, AckSessionCheck001, TestSize.Le
 
     Key key = {'1'};
     Value value = {'1'};
-    TimeStamp currentTime;
+    Timestamp currentTime;
     (void)OS::GetCurrentSysTimeInMicrosecond(currentTime);
     EXPECT_TRUE(g_deviceB->PutData(key, value, currentTime, 0) == OK);
     EXPECT_TRUE(g_deviceB->Sync(SYNC_MODE_PUSH_ONLY, true) == OK);
@@ -1002,7 +1001,7 @@ HWTEST_F(DistributedDBSingleVerP2PSyncCheckTest, SyncMergeCheck005, TestSize.Lev
      * @tc.steps: step2. deviceA call sync and don't wait
      * @tc.expected: step2. sync should return TIME_OUT.
      */
-    status =g_kvDelegatePtr->Sync(devices, SYNC_MODE_PUSH_ONLY,
+    status = g_kvDelegatePtr->Sync(devices, SYNC_MODE_PUSH_ONLY,
         [&sendRequestCount, devices, this](const std::map<std::string, DBStatus>& statusMap) {
         ASSERT_TRUE(statusMap.size() == devices.size());
         for (const auto &deviceId : devices) {

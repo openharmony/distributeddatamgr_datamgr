@@ -38,10 +38,10 @@ int KvVirtualDevice::GetData(const Key &key, Value &value)
     return syncInterface->GetData(key, value);
 }
 
-int KvVirtualDevice::PutData(const Key &key, const Value &value, const TimeStamp &time, int flag)
+int KvVirtualDevice::PutData(const Key &key, const Value &value, const Timestamp &time, int flag)
 {
     VirtualSingleVerSyncDBInterface *syncAble = static_cast<VirtualSingleVerSyncDBInterface *>(storage_);
-    LOGI("dev %s put data time %llu", deviceId_.c_str(), time);
+    LOGI("dev %s put data time %" PRIu64, deviceId_.c_str(), time);
     return syncAble->PutData(key, value, time, flag);
 }
 

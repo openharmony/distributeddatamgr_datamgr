@@ -39,13 +39,13 @@ public:
 
     void SetOrigDevice(const std::string &dev) override;
 
-    TimeStamp GetTimestamp() const override;
+    Timestamp GetTimestamp() const override;
 
-    void SetTimestamp(TimeStamp time) override;
+    void SetTimestamp(Timestamp time) override;
 
-    TimeStamp GetWriteTimestamp() const override;
+    Timestamp GetWriteTimestamp() const override;
 
-    void SetWriteTimestamp(TimeStamp time) override;
+    void SetWriteTimestamp(Timestamp time) override;
 
     void GetKey(Key &key) const;
     const Key &GetKey() const override;
@@ -78,7 +78,7 @@ public:
     static int Compress(const std::vector<SingleVerKvEntry *> &kvEntries, std::vector<uint8_t> &destData,
         const CompressInfo &compressInfo);
     static int Uncompress(const std::vector<uint8_t> &srcData, std::vector<SingleVerKvEntry *> &kvEntries,
-        unsigned long destLen, CompressAlgorithm algo);
+        uint32_t destLen, CompressAlgorithm algo);
     static int SerializeCompressedDatas(const std::vector<SingleVerKvEntry *> &kvEntries,
         const std::vector<uint8_t> &compressedEntries, Parcel &parcel, uint32_t targetVersion, CompressAlgorithm algo);
     static int DeSerializeCompressedDatas(std::vector<SingleVerKvEntry *> &kvEntries, Parcel &parcel);

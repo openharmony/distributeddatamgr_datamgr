@@ -67,10 +67,10 @@ int DataTransformer::SerializeDataItem(const RowDataWithLog &data,
         return errCode;
     }
     const LogInfo &logInfo = data.logInfo;
-    dataItem.timeStamp = logInfo.timestamp;
+    dataItem.timestamp = logInfo.timestamp;
     dataItem.dev = logInfo.device;
     dataItem.origDev = logInfo.originDev;
-    dataItem.writeTimeStamp = logInfo.wTimeStamp;
+    dataItem.writeTimestamp = logInfo.wTimestamp;
     dataItem.flag = logInfo.flag;
     dataItem.hashKey = logInfo.hashKey;
     return E_OK;
@@ -88,10 +88,10 @@ int DataTransformer::DeSerializeDataItem(const DataItem &dataItem, OptRowDataWit
     }
 
     LogInfo &logInfo = data.logInfo;
-    logInfo.timestamp = dataItem.timeStamp;
+    logInfo.timestamp = dataItem.timestamp;
     logInfo.device = dataItem.dev;
     logInfo.originDev = dataItem.origDev;
-    logInfo.wTimeStamp = dataItem.writeTimeStamp;
+    logInfo.wTimestamp = dataItem.writeTimestamp;
     logInfo.flag = dataItem.flag;
     logInfo.hashKey = dataItem.hashKey;
     return E_OK;
@@ -261,7 +261,7 @@ int SerializeDataValue(const DataValue &dataValue, Parcel &parcel)
     StorageType type = dataValue.GetType();
     parcel.WriteUInt32(static_cast<uint32_t>(type));
     if (type < StorageType::STORAGE_TYPE_NULL || type > StorageType::STORAGE_TYPE_BLOB) {
-        LOGE("Cannot serialize %u", type);
+        LOGE("Cannot serialize %u", static_cast<unsigned>(type));
         return -E_NOT_SUPPORT;
     }
     return funcs[static_cast<uint32_t>(type) - 1](dataValue, parcel);

@@ -131,8 +131,8 @@ uint8_t DbAbility::GetAbilityItem(const AbilityItem &abilityType) const
     auto iter = dbAbilityItemSet_.find(abilityType);
     if (iter != dbAbilityItemSet_.end()) {
         if ((iter->first + iter->second) > dbAbility_.size()) {
-            LOGE("[DbAbility] abilityType is error, start=%d, use_bit=%d, totalLen=%d", iter->first, iter->second,
-                dbAbility_.size());
+            LOGE("[DbAbility] abilityType is error, start=%" PRIu32 ", use_bit=%" PRIu32 ", totalLen=%zu",
+                iter->first, iter->second, dbAbility_.size());
             return 0;
         }
         uint32_t skip = 0;

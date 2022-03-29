@@ -54,12 +54,12 @@ int SQLiteSingleVerStorageExecutor::CheckMissQueryDataItem(sqlite3_stmt *stmt, c
             LOGE("Get data device info failed. %d", errCode);
             return errCode;
         }
-        auto timeStamp = static_cast<TimeStamp>(sqlite3_column_int64(stmt, SYNC_RES_TIME_INDEX));
+        auto timestamp = static_cast<Timestamp>(sqlite3_column_int64(stmt, SYNC_RES_TIME_INDEX));
         std::string device = std::string(dev.begin(), dev.end());
         // this data item should be neglected when it's out of date of it's from same device
         // otherwise, it should be erased after resolved the conflict
-        item.neglect = (timeStamp > item.timeStamp) ||
-            (timeStamp == item.timeStamp && device == DBCommon::TransferHashString(deviceName));
+        item.neglect = (timestamp > item.timestamp) ||
+            (timestamp == item.timestamp && device == DBCommon::TransferHashString(deviceName));
         return E_OK;
     } else if (errCode == SQLiteUtils::MapSQLiteErrno(SQLITE_DONE)) {
         // the value with same hashKey in DB does not match the query, this data item should be neglected.
@@ -172,13 +172,14 @@ int SQLiteSingleVerStorageExecutor::AddSubscribeTrigger(QueryObject &query, cons
         std::string subscribeCondition;
         errCode = helper.GetSubscribeSql(subscribeId, mode, subscribeCondition);
         if (errCode != E_OK) {
-            LOGE("Get subscribe trigger create sql failed. mode: %d, errCode: %d", mode, errCode);
+            LOGE("Get subscribe trigger create sql failed. mode: %u, errCode: %d", static_cast<unsigned>(mode),
+                errCode);
             return errCode;
         }
         std::string sql = FormatSubscribeTriggerSql(subscribeId, subscribeCondition, mode);
         errCode = SQLiteUtils::ExecuteRawSQL(dbHandle_, sql);
         if (errCode != E_OK) {
-            LOGE("Add subscribe trigger failed. mode: %d, errCode: %d", mode, errCode);
+            LOGE("Add subscribe trigger failed. mode: %u, errCode: %d", static_cast<unsigned>(mode), errCode);
             return errCode;
         }
     }

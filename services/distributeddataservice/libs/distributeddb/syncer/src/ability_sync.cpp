@@ -145,7 +145,7 @@ uint32_t AbilitySyncRequestPacket::CalculateLen() const
     // the reason why not 8-byte align is that old version is not 8-byte align
     // so it is not possible to set 8-byte align for high version.
     if (len > INT32_MAX) {
-        LOGE("[AbilitySyncRequestPacket][CalculateLen]  err len:%llu", len);
+        LOGE("[AbilitySyncRequestPacket][CalculateLen]  err len:%" PRIu64, len);
         return 0;
     }
     return len;
@@ -299,7 +299,7 @@ uint32_t AbilitySyncAckPacket::CalculateLen() const
     len += DbAbility::CalculateLen(dbAbility_); // dbAbility_
     len += SchemaNegotiate::CalculateParcelLen(relationalSyncOpinion_);
     if (len > INT32_MAX) {
-        LOGE("[AbilitySyncAckPacket][CalculateLen]  err len:%llu", len);
+        LOGE("[AbilitySyncAckPacket][CalculateLen]  err len:%" PRIu64, len);
         return 0;
     }
     return len;
@@ -459,7 +459,7 @@ int AbilitySync::AckNotifyRecv(const Message *message, ISyncTaskContext *context
     }
     int errCode = packet->GetAckCode();
     if (errCode != E_OK) {
-        LOGE("[AbilitySync][AckNotifyRecv] received a errCode %d", errCode);
+        LOGE("[AbilitySync][AckNotifyRecv] received an errCode %d", errCode);
         return errCode;
     }
     std::string schema = packet->GetSchema();
@@ -891,9 +891,9 @@ int AbilitySync::SetAbilityRequestBodyInfo(AbilitySyncRequestPacket &packet, uin
 {
     uint64_t dbCreateTime;
     int errCode =
-        (static_cast<SyncGenericInterface *>(storageInterface_))->GetDatabaseCreateTimeStamp(dbCreateTime);
+        (static_cast<SyncGenericInterface *>(storageInterface_))->GetDatabaseCreateTimestamp(dbCreateTime);
     if (errCode != E_OK) {
-        LOGE("[AbilitySync][FillAbilityRequest] GetDatabaseCreateTimeStamp failed, err %d", errCode);
+        LOGE("[AbilitySync][FillAbilityRequest] GetDatabaseCreateTimestamp failed, err %d", errCode);
         return errCode;
     }
     SecurityOption option;
@@ -930,7 +930,7 @@ int AbilitySync::SetAbilityRequestBodyInfo(AbilitySyncRequestPacket &packet, uin
     packet.SetSecFlag(option.securityFlag);
     packet.SetDbCreateTime(dbCreateTime);
     packet.SetDbAbility(dbAbility);
-    LOGI("[AbilitySync][FillRequest] ver=%u,Lab=%d,Flag=%d,dbCreateTime=%llu", SOFTWARE_VERSION_CURRENT,
+    LOGI("[AbilitySync][FillRequest] ver=%u,Lab=%d,Flag=%d,dbCreateTime=%" PRId64, SOFTWARE_VERSION_CURRENT,
         option.securityLabel, option.securityFlag, dbCreateTime);
     return E_OK;
 }
@@ -947,9 +947,9 @@ int AbilitySync::SetAbilityAckBodyInfo(AbilitySyncAckPacket &ackPacket, int ackC
         ackPacket.SetSecFlag(option.securityFlag);
         uint64_t dbCreateTime = 0;
         errCode =
-            (static_cast<SyncGenericInterface *>(storageInterface_))->GetDatabaseCreateTimeStamp(dbCreateTime);
+            (static_cast<SyncGenericInterface *>(storageInterface_))->GetDatabaseCreateTimestamp(dbCreateTime);
         if (errCode != E_OK) {
-            LOGE("[AbilitySync][SyncStart] GetDatabaseCreateTimeStamp failed, err %d", errCode);
+            LOGE("[AbilitySync][SyncStart] GetDatabaseCreateTimestamp failed, err %d", errCode);
             ackCode = errCode;
         }
         DbAbility dbAbility;

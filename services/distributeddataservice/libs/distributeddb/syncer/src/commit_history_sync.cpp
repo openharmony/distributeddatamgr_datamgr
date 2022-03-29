@@ -312,7 +312,7 @@ int CommitHistorySync::AckRecvCallback(MultiVerSyncTaskContext *context, const M
     context->SetCommits(commits);
     context->SetCommitIndex(0);
     context->SetCommitsSize(static_cast<int>(commits.size()));
-    LOGD("CommitHistorySync::AckRecvCallback end, CommitsSize = %llu, dst = %s{private}, ver = %d, myversion = %u",
+    LOGD("CommitHistorySync::AckRecvCallback end, CommitsSize = %zu, dst = %s{private}, ver = %d, myversion = %u",
         commits.size(), context->GetDeviceId().c_str(), ver, SOFTWARE_VERSION_CURRENT);
     return E_OK;
 }
@@ -386,7 +386,7 @@ int CommitHistorySync::RequestPacketDeSerialization(const uint8_t *buffer, uint3
     Parcel parcel(const_cast<uint8_t *>(buffer), length);
     packLen += parcel.ReadUInt64(len);
     if (len > DBConstant::MAX_DEVICES_SIZE) {
-        LOGE("CommitHistorySync::RequestPacketDeSerialization : commitMap size too large = %llu", len);
+        LOGE("CommitHistorySync::RequestPacketDeSerialization : commitMap size too large = %" PRIu64, len);
         return -E_INVALID_ARGS;
     }
     // commitMap DeSerialization
@@ -408,8 +408,8 @@ int CommitHistorySync::RequestPacketDeSerialization(const uint8_t *buffer, uint3
     packLen += parcel.ReadVector<uint64_t>(reserved);
     packLen = Parcel::GetEightByteAlign(packLen);
     if (packLen != length || parcel.IsError()) {
-        LOGE("CommitHistorySync::RequestPacketDeSerialization : length error, input len = %lu, cac len = %llu",
-            length, packLen);
+        LOGE("CommitHistorySync::RequestPacketDeSerialization : length error, input len = %" PRIu32
+            ", cac len = %" PRIu64, length, packLen);
         return -E_INVALID_ARGS;
     }
     CommitHistorySyncRequestPacket *packet = new (std::nothrow) CommitHistorySyncRequestPacket();

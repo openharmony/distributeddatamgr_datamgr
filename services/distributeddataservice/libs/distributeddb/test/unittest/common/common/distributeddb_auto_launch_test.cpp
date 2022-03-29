@@ -52,7 +52,7 @@ namespace {
     const int WAIT_TIME = 1000; // 1000ms
     const int LIFE_CYCLE_TIME = 5000; // 5000ms
     const int WAIT_SHORT_TIME = 200; // 20ms
-    const TimeStamp TIME_ADD = 1000; // not zero is ok
+    const Timestamp TIME_ADD = 1000; // not zero is ok
     const std::string REMOTE_DEVICE_ID = "remote_device";
     const std::string THIS_DEVICE = "real_device";
 
@@ -172,10 +172,10 @@ static void PutSyncData(const KvDBProperties &prop, const Key &key, const Value 
     ASSERT_NE(connection, nullptr);
     if (kvStore != nullptr) {
         std::vector<DataItem> vect;
-        TimeStamp time;
-        kvStore->GetMaxTimeStamp(time);
+        Timestamp time;
+        kvStore->GetMaxTimestamp(time);
         time += TIME_ADD;
-        LOGD("time:%lld", time);
+        LOGD("time:%" PRIu64, time);
         vect.push_back({key, value, time, 0, DBCommon::TransferHashString(REMOTE_DEVICE_ID)});
         EXPECT_EQ(DistributedDBToolsUnitTest::PutSyncDataTest(kvStore, vect, REMOTE_DEVICE_ID), E_OK);
     }
@@ -350,7 +350,7 @@ HWTEST_F(DistributedDBAutoLaunchUnitTest, AutoLaunch003, TestSize.Level3)
             std::string identifier = DBCommon::TransferHashString(userId + "-" + appId + "-" + storeId);
             std::unique_lock<std::mutex> lock(cvMutex);
             statusMap[identifier] = status;
-            LOGD("int AutoLaunch002 notifier statusMap.size():%d", statusMap.size());
+            LOGD("int AutoLaunch002 notifier statusMap.size():%zu", statusMap.size());
             finished = true;
             cv.notify_one();
         };
@@ -494,7 +494,7 @@ HWTEST_F(DistributedDBAutoLaunchUnitTest, AutoLaunch005, TestSize.Level3)
             std::string identifier = DBCommon::TransferHashString(userId + "-" + appId + "-" + storeId);
             std::unique_lock<std::mutex> lock(cvMutex);
             statusMap[identifier] = status;
-            LOGD("int AutoLaunch002 notifier statusMap.size():%d", statusMap.size());
+            LOGD("int AutoLaunch002 notifier statusMap.size():%zu", statusMap.size());
             finished = true;
             cv.notify_one();
         };

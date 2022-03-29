@@ -51,7 +51,7 @@ void SetFrameType(uint8_t &inPacketType, FrameType inFrameType)
 }
 FrameType GetFrameType(uint8_t inPacketType)
 {
-    uint8_t frameType = ((inPacketType & 0xF0) >> 4); // Use 0x0F to get high 4 bits
+    uint8_t frameType = ((inPacketType & 0xF0) >> 4); // Use 0xF0 to get high 4 bits
     if (frameType >= static_cast<uint8_t>(FrameType::INVALID_MAX_FRAME_TYPE)) {
         return FrameType::INVALID_MAX_FRAME_TYPE;
     }
@@ -811,7 +811,7 @@ int ProtocolProto::ParseCommDivergeHeader(const uint8_t *bytes, uint32_t length,
     }
     uint16_t version = NetToHost(*(reinterpret_cast<const uint16_t *>(bytes + sizeof(CommPhyHeader))));
     if (version != PROTOCOL_VERSION) {
-        LOGE("[Proto][ParseDiverge] Version=%u not support.", version);
+        LOGE("[Proto][ParseDiverge] Version=%" PRIu16 " not support.", version);
         return -E_VERSION_NOT_SUPPORT;
     }
 
@@ -930,7 +930,7 @@ int ProtocolProto::FrameFragmentation(const uint8_t *splitStartBytes, const Fram
     const CommPhyHeader &framePhyHeader, std::vector<std::pair<std::vector<uint8_t>, uint32_t>> &outPieces)
 {
     // It can be guaranteed that fragCount >= 2 and also won't be too large
-    if (fragmentInfo.fragCount < 2) {
+    if (fragmentInfo.fragCount < MIN_FRAGMENT_COUNT) {
         return -E_INVALID_ARGS;
     }
     outPieces.resize(fragmentInfo.fragCount); // Note: should use resize other than reserve
@@ -979,7 +979,8 @@ int ProtocolProto::FrameFragmentation(const uint8_t *splitStartBytes, const Fram
             pieceFragLen, packet);
         entry.second = fragmentInfo.extendHeadSize;
         if (err != E_OK) {
-            LOGE("[Proto][FrameFrag] Fill packet fail, fragCount=%u, fragNo=%u", fragmentInfo.fragCount, fragNo);
+            LOGE("[Proto][FrameFrag] Fill packet fail, fragCount=%" PRIu16 ", fragNo=%" PRIu16, fragmentInfo.fragCount,
+                fragNo);
             return err;
         }
 

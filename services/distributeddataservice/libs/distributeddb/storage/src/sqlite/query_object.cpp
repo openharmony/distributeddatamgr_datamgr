@@ -302,7 +302,8 @@ int QueryObject::CheckEqualFormat(const std::list<QueryObjNode>::iterator &iter)
     FieldType schemaFieldType = FieldType::LEAF_FIELD_BOOL;
     errCode = schema_.CheckQueryableAndGetFieldType(fieldPath, schemaFieldType);
     if (errCode != E_OK) {
-        LOGE("Get field type fail when check compare format! errCode = %d, fieldType = %d", errCode, schemaFieldType);
+        LOGE("Get field type fail when check compare format! errCode = %d, fieldType = %u",
+            errCode, static_cast<unsigned>(schemaFieldType));
         return -E_INVALID_QUERY_FIELD;
     }
 
@@ -343,7 +344,8 @@ int QueryObject::CheckLinkerFormat(const std::list<QueryObjNode>::iterator &iter
     }
     SymbolType symbolType = SqliteQueryHelper::GetSymbolType(nextIter->operFlag);
     if (symbolType == INVALID_SYMBOL || symbolType == LINK_SYMBOL || symbolType == SPECIAL_SYMBOL) {
-        LOGE("Must be followed by comparison operation! operflag[%d], symbolType[%d]", nextIter->operFlag, symbolType);
+        LOGE("Must be followed by comparison operation! operflag[%u], symbolType[%u]",
+            static_cast<unsigned>(nextIter->operFlag), static_cast<unsigned>(symbolType));
         return -E_INVALID_QUERY_FORMAT;
     }
     return CheckLinkerBefore(iter);
