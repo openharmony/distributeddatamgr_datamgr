@@ -23,21 +23,17 @@
 namespace OHOS {
 namespace DistributedKv {
 // client implement this class to watch kvstore change.
-class KvStoreObserver {
+class API_EXPORT KvStoreObserver {
 public:
-    KVSTORE_API KvStoreObserver() = default;
+    API_EXPORT KvStoreObserver() = default;
 
-    KVSTORE_API virtual ~KvStoreObserver()
-    {}
+    API_EXPORT virtual ~KvStoreObserver() {}
 
     // client override this function to receive change notification.
-    KVSTORE_API
     virtual void OnChange(const ChangeNotification &changeNotification, std::shared_ptr<KvStoreSnapshot> snapshot) = 0;
 
     // client override this function to receive change notification.
-    KVSTORE_API
-    virtual void OnChange(const ChangeNotification &changeNotification)
-    {}
+    API_EXPORT virtual void OnChange(const ChangeNotification &changeNotification) {}
 };
 }  // namespace DistributedKv
 }  // namespace OHOS

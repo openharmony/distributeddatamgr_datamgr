@@ -32,13 +32,13 @@ public:
 
     StoreId GetStoreId() const override;
 
-    Status GetEntries(const Key &prefixKey, std::vector<Entry> &entries) const override;
+    Status GetEntries(const Key &prefix, std::vector<Entry> &entries) const override;
 
     Status GetEntriesWithQuery(const std::string &query, std::vector<Entry> &entries) const override;
 
     Status GetEntriesWithQuery(const DataQuery &query, std::vector<Entry> &entries) const override;
 
-    Status GetResultSet(const Key &prefixKey, std::shared_ptr<KvStoreResultSet> &resultSet) const override;
+    Status GetResultSet(const Key &prefix, std::shared_ptr<KvStoreResultSet> &resultSet) const override;
 
     Status GetResultSetWithQuery(const std::string &query, std::shared_ptr<KvStoreResultSet> &resultSet) const override;
 
@@ -46,11 +46,11 @@ public:
 
     Status CloseResultSet(std::shared_ptr<KvStoreResultSet> &resultSet) override;
 
-    Status GetCountWithQuery(const std::string &query, int &result) const override;
+    Status GetCountWithQuery(const std::string &query, int &count) const override;
 
-    Status GetCountWithQuery(const DataQuery &query, int &result) const override;
+    Status GetCountWithQuery(const DataQuery &query, int &count) const override;
 
-    Status Sync(const std::vector<std::string> &deviceIds, SyncMode mode, uint32_t allowedDelayMs) override;
+    Status Sync(const std::vector<std::string> &devices, SyncMode mode, uint32_t allowedDelayMs) override;
 
     Status RemoveDeviceData(const std::string &device) override;
 
@@ -85,14 +85,14 @@ public:
     Status GetSyncParam(KvSyncParam &syncParam) override;
     Status SetCapabilityEnabled(bool enabled) const override;
     Status SetCapabilityRange(const std::vector<std::string> &localLabels,
-                              const std::vector<std::string> &remoteSupportLabels) const override;
+                              const std::vector<std::string> &remoteLabels) const override;
 
     Status GetSecurityLevel(SecurityLevel &securityLevel) const override;
-    Status SyncWithCondition(const std::vector<std::string> &deviceIds, SyncMode mode, const DataQuery &query,
-                             std::shared_ptr<KvStoreSyncCallback> syncCallback = nullptr) override;
+    Status SyncWithCondition(const std::vector<std::string> &devices, SyncMode mode, const DataQuery &query,
+                             std::shared_ptr<KvStoreSyncCallback> syncCallback) override;
 
-    Status SubscribeWithQuery(const std::vector<std::string> &deviceIds, const DataQuery &query) override;
-    Status UnsubscribeWithQuery(const std::vector<std::string> &deviceIds, const DataQuery &query) override;
+    Status SubscribeWithQuery(const std::vector<std::string> &devices, const DataQuery &query) override;
+    Status UnsubscribeWithQuery(const std::vector<std::string> &devices, const DataQuery &query) override;
     Status GetKvStoreSnapshot(std::shared_ptr<KvStoreObserver> observer,
                               std::shared_ptr<KvStoreSnapshot> &snapshot) const override;
     Status ReleaseKvStoreSnapshot(std::shared_ptr<KvStoreSnapshot> &snapshot) override;

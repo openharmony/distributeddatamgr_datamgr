@@ -91,6 +91,7 @@ bool ITypesUtil::Unmarshalling(MessageParcel &data, DeviceInfo &output)
     }
     return data.ReadString(output.deviceType);
 }
+
 bool ITypesUtil::Marshalling(const std::vector<DeviceInfo> &input, MessageParcel &data)
 {
     return WriteVector(data, input, ITypesUtil::GetParcelWriter<DeviceInfo>());
@@ -175,7 +176,7 @@ bool ITypesUtil::Marshalling(const DistributedRdb::RdbSyncerParam& param, Messag
     }
     return true;
 }
-bool ITypesUtil::UnMarshalling(MessageParcel& parcel, DistributedRdb::RdbSyncerParam& param)
+bool ITypesUtil::Unmarshalling(MessageParcel& parcel, DistributedRdb::RdbSyncerParam& param)
 {
     if (!parcel.ReadString(param.bundleName_)) {
         ZLOGE("RdbStoreParam read bundle name failed");
@@ -220,7 +221,7 @@ bool ITypesUtil::Marshalling(const DistributedRdb::SyncResult &result, MessagePa
     return true;
 }
 
-bool ITypesUtil::UnMarshalling(MessageParcel &parcel, DistributedRdb::SyncResult &result)
+bool ITypesUtil::Unmarshalling(MessageParcel &parcel, DistributedRdb::SyncResult &result)
 {
     int32_t size = 0;
     if (!parcel.ReadInt32(size)) {
@@ -261,7 +262,7 @@ bool ITypesUtil::Marshalling(const DistributedRdb::SyncOption &option, MessagePa
     return true;
 }
 
-bool ITypesUtil::UnMarshalling(MessageParcel &parcel, DistributedRdb::SyncOption &option)
+bool ITypesUtil::Unmarshalling(MessageParcel &parcel, DistributedRdb::SyncOption &option)
 {
     int32_t mode;
     if (!parcel.ReadInt32(mode)) {
@@ -307,7 +308,7 @@ bool ITypesUtil::Marshalling(const DistributedRdb::RdbPredicates &predicates, Me
     return true;
 }
 
-bool ITypesUtil::UnMarshalling(MessageParcel &parcel, DistributedRdb::RdbPredicates &predicates)
+bool ITypesUtil::Unmarshalling(MessageParcel &parcel, DistributedRdb::RdbPredicates &predicates)
 {
     if (!parcel.ReadString(predicates.table_)) {
         ZLOGE("predicate read table failed");

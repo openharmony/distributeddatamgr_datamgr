@@ -25,37 +25,34 @@ namespace DistributedKv {
 class ChangeNotification final : public virtual Parcelable {
 public:
     // Constructor of ChangeNotification.
-    ChangeNotification(std::vector<Entry> &&insertEntries,
-                       std::vector<Entry> &&updateEntries,
-                       std::vector<Entry> &&deleteEntries,
-                       const std::string &deviceId,
-                       bool isClear);
+    ChangeNotification(std::vector<Entry> &&insertEntries, std::vector<Entry> &&updateEntries,
+                       std::vector<Entry> &&deleteEntries, const std::string &deviceId, bool isClear);
 
-    KVSTORE_API ~ChangeNotification();
+    API_EXPORT ~ChangeNotification();
 
     // Get all inserted entries in this change.
-    KVSTORE_API const std::vector<Entry> &GetInsertEntries() const;
+    API_EXPORT const std::vector<Entry> &GetInsertEntries() const;
 
     // Get all updated entries in this changing.
-    KVSTORE_API const std::vector<Entry> &GetUpdateEntries() const;
+    API_EXPORT const std::vector<Entry> &GetUpdateEntries() const;
 
     // Get all deleted entries in this changing.
-    KVSTORE_API const std::vector<Entry> &GetDeleteEntries() const;
+    API_EXPORT const std::vector<Entry> &GetDeleteEntries() const;
 
     // Get the device ID.
-    KVSTORE_API const std::string &GetDeviceId() const;
+    API_EXPORT const std::string &GetDeviceId() const;
 
     // Check if this change is made by calling the Clear function.
-    KVSTORE_API bool IsClear() const;
+    API_EXPORT bool IsClear() const;
 
     // Write a parcelable object to the given parcel.
     // The object position is saved into Parcel if asRemote_ is set to
     // true, and this intends to use in kernel data transaction.
     // Returns true if the writing is successful; returns false otherwise.
-    KVSTORE_API bool Marshalling(Parcel &parcel) const override;
+    API_EXPORT bool Marshalling(Parcel &parcel) const override;
 
     // Unmarshall the given parcel from this parcelable object.
-    KVSTORE_API static ChangeNotification *Unmarshalling(Parcel &parcel);
+    API_EXPORT static ChangeNotification *Unmarshalling(Parcel &parcel);
 
 private:
     std::vector<Entry> insertEntries_;

@@ -24,16 +24,15 @@ namespace DistributedKv {
 // client implement this class to watch kvstore change.
 class KvStoreSyncCallback {
 public:
-    KVSTORE_API KvStoreSyncCallback() = default;
+    API_EXPORT KvStoreSyncCallback() = default;
 
-    KVSTORE_API virtual ~KvStoreSyncCallback()
-    {}
+    API_EXPORT virtual ~KvStoreSyncCallback()  {}
 
     // This virtual function will be called on sync callback.
     // Client needs to override this function to receive sync results.
     // Parameters:
     //     results: sync results for devices set in Sync function.
-    KVSTORE_API virtual void SyncCompleted(const std::map<std::string, Status> &results) = 0;
+    API_EXPORT virtual void SyncCompleted(const std::map<std::string, Status> &results) = 0;
 };
 }  // namespace DistributedKv
 }  // namespace OHOS

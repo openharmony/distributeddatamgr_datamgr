@@ -28,12 +28,11 @@ namespace OHOS {
 namespace DistributedKv {
 // This is a public interface. Implementation of this class is in AppKvStoreImpl.
 // This class provides put, delete, search, sync and subscribe functions of a key-value store.
-class SingleKvStore : public virtual KvStore {
+class API_EXPORT SingleKvStore : public virtual KvStore {
 public:
-    KVSTORE_API SingleKvStore() = default;
+    API_EXPORT SingleKvStore() = default;
 
-    KVSTORE_API virtual ~SingleKvStore()
-    {}
+    API_EXPORT virtual ~SingleKvStore() {}
 
     // Get all entries in this store which key start with prefixKey.
     // Parameters:
@@ -41,7 +40,7 @@ public:
     //     entries: entries will be returned in this parameter.
     // Return:
     //     Status of this GetEntries operation.
-    KVSTORE_API virtual Status GetEntries(const Key &prefixKey, std::vector<Entry> &entries) const = 0;
+    virtual Status GetEntries(const Key &prefix, std::vector<Entry> &entries) const = 0;
 
     // Get all entries in this store by query.
     // Parameters:
@@ -49,7 +48,7 @@ public:
     //     entries: entries will be returned in this parameter.
     // Return:
     //     Status of this GetEntries operation.
-    KVSTORE_API virtual Status GetEntriesWithQuery(const std::string &query, std::vector<Entry> &entries) const = 0;
+    virtual Status GetEntriesWithQuery(const std::string &query, std::vector<Entry> &entries) const = 0;
 
     // Get all entries in this store by query.
     // Parameters:
@@ -57,7 +56,7 @@ public:
     //     entries: entries will be returned in this parameter.
     // Return:
     //     Status of this GetEntries operation.
-    KVSTORE_API virtual Status GetEntriesWithQuery(const DataQuery &query, std::vector<Entry> &entries) const = 0;
+    virtual Status GetEntriesWithQuery(const DataQuery &query, std::vector<Entry> &entries) const = 0;
 
     // Get ResultSet in this store which key start with prefixKey.
     // Parameters:
@@ -65,8 +64,7 @@ public:
     //     resultSet: resultSet will be returned in this parameter.
     // Return:
     //     Status of this GetResultSet operation.
-    KVSTORE_API virtual Status GetResultSet(const Key &prefixKey,
-                                            std::shared_ptr<KvStoreResultSet> &resultSet) const = 0;
+    virtual Status GetResultSet(const Key &prefix, std::shared_ptr<KvStoreResultSet> &resultSet) const = 0;
 
     // Get ResultSet in this store by Query.
     // Parameters:
@@ -74,8 +72,8 @@ public:
     //     resultSet: resultSet will be returned in this parameter.
     // Return:
     //     Status of this GetResultSet operation.
-    KVSTORE_API virtual Status GetResultSetWithQuery(const std::string &query,
-                                                     std::shared_ptr<KvStoreResultSet> &resultSet) const = 0;
+    virtual Status GetResultSetWithQuery(const std::string &query,
+                                         std::shared_ptr<KvStoreResultSet> &resultSet) const = 0;
 
     // Get ResultSet in this store by Query.
     // Parameters:
@@ -83,15 +81,15 @@ public:
     //     resultSet: resultSet will be returned in this parameter.
     // Return:
     //     Status of this GetResultSet operation.
-    KVSTORE_API virtual Status GetResultSetWithQuery(const DataQuery &query,
-                                                     std::shared_ptr<KvStoreResultSet> &resultSet) const = 0;
+    virtual Status GetResultSetWithQuery(const DataQuery &query,
+                                         std::shared_ptr<KvStoreResultSet> &resultSet) const = 0;
 
     // Close the ResultSet returned by GetResultSet.
     // Parameters:
     //     resultSet: resultSet will be returned in this parameter.
     // Return:
     //     Status of this CloseResultSet operation.
-    KVSTORE_API virtual Status CloseResultSet(std::shared_ptr<KvStoreResultSet> &resultSet) = 0;
+    virtual Status CloseResultSet(std::shared_ptr<KvStoreResultSet> &resultSet) = 0;
 
     // Get the number of result by query.
     // Parameters:
@@ -99,7 +97,7 @@ public:
     //     result: result will be returned in this parameter.
     // Return:
     //     Status of this CloseResultSet operation.
-    virtual Status GetCountWithQuery(const std::string &query, int &result) const = 0;
+    virtual Status GetCountWithQuery(const std::string &query, int &count) const = 0;
 
     // Get the number of result by query.
     // Parameters:
@@ -107,7 +105,7 @@ public:
     //     result: result will be returned in this parameter.
     // Return:
     //     Status of this CloseResultSet operation.
-    KVSTORE_API virtual Status GetCountWithQuery(const DataQuery &query, int &result) const = 0;
+    virtual Status GetCountWithQuery(const DataQuery &query, int &count) const = 0;
 
     // Sync store with other devices. This is an asynchronous method,
     // sync will fail if there is a syncing operation in progress.
@@ -115,18 +113,22 @@ public:
     //     deviceIds: device list to sync.
     //     mode: mode can be set to SyncMode::PUSH, SyncMode::PULL and SyncMode::PUTH_PULL. PUSH_PULL will firstly
     //           push all not-local store to listed devices, then pull these stores back.
-    //     allowedDelayMs: allowed delay milli-second to sync. default value is 0 for compatibility.
+    //     allowedDelayMs: allowed delay milli-second to sync.
     // Return:
     //     Status of this Sync operation.
-    KVSTORE_API virtual Status Sync(const std::vector<std::string> &deviceIds, SyncMode mode,
-                                    uint32_t allowedDelayMs = 0) = 0;
+    virtual Status Sync(const std::vector<std::string> &devices, SyncMode mode, uint32_t allowedDelayMs) = 0;
+
+    API_EXPORT inline Status Sync(const std::vector<std::string> &devices, SyncMode mode)
+    {
+        return Sync(devices, mode, 0);
+    }
 
     // Remove the device data synced from remote.
     // Parameters:
     //     device: device id.
     // Return:
     //     Status of this remove operation.
-    KVSTORE_API virtual Status RemoveDeviceData(const std::string &device) = 0;
+    virtual Status RemoveDeviceData(const std::string &device) = 0;
 
     // Get value from AppKvStore by its key.
     // Parameters:
@@ -134,14 +136,13 @@ public:
     //     value: value will be returned in this parameter.
     // Return:
     //     Status of this get operation.
-    KVSTORE_API virtual Status Get(const Key &key, Value &value) = 0;
+    virtual Status Get(const Key &key, Value &value) = 0;
 
     // register message for sync operation.
     // Parameters:
     //     callback: callback to register.
     // Return:
     //     Status of this register operation.
-    KVSTORE_API
     virtual Status RegisterSyncCallback(std::shared_ptr<KvStoreSyncCallback> callback) = 0;
 
     // un-register message for sync operation.
@@ -149,7 +150,6 @@ public:
     //     callback: callback to register.
     // Return:
     //     Status of this register operation.
-    KVSTORE_API
     virtual Status UnRegisterSyncCallback() = 0;
 
     // set synchronization parameters of this store.
@@ -157,21 +157,21 @@ public:
     //     syncParam: sync policy parameter.
     // Return:
     //     Status of this operation.
-    KVSTORE_API virtual Status SetSyncParam(const KvSyncParam &syncParam) = 0;
+    virtual Status SetSyncParam(const KvSyncParam &syncParam) = 0;
 
     // get synchronization parameters of this store.
     // Parameters:
     //     syncParam: sync policy parameter.
     // Return:
     //     Status of this operation.
-    KVSTORE_API virtual Status GetSyncParam(KvSyncParam &syncParam) = 0;
+    virtual Status GetSyncParam(KvSyncParam &syncParam) = 0;
 
-    KVSTORE_API virtual Status SetCapabilityEnabled(bool enabled) const = 0;
+    virtual Status SetCapabilityEnabled(bool enabled) const = 0;
 
-    KVSTORE_API virtual Status SetCapabilityRange(const std::vector<std::string> &localLabels,
-                                                  const std::vector<std::string> &remoteSupportLabels) const = 0;
+    virtual Status SetCapabilityRange(const std::vector<std::string> &localLabels,
+                                      const std::vector<std::string> &remoteLabels) const = 0;
 
-    KVSTORE_API virtual Status GetSecurityLevel(SecurityLevel &securityLevel) const = 0;
+    virtual Status GetSecurityLevel(SecurityLevel &securityLevel) const = 0;
 
     /*
      * Sync store with other devices only syncing the data which is satisfied with the condition.
@@ -184,8 +184,14 @@ public:
      * Return:
      *     Status of this Sync operation.
      */
-    KVSTORE_API virtual Status SyncWithCondition(const std::vector<std::string> &deviceIds, SyncMode mode,
-            const DataQuery &query, std::shared_ptr<KvStoreSyncCallback> syncCallback = nullptr) = 0;
+    virtual Status SyncWithCondition(const std::vector<std::string> &devices, SyncMode mode, const DataQuery &query,
+                                     std::shared_ptr<KvStoreSyncCallback> syncCallback) = 0;
+
+    API_EXPORT inline Status SyncWithCondition(const std::vector<std::string> &devices, SyncMode mode,
+                                               const DataQuery &query)
+    {
+        return SyncWithCondition(devices, mode, query, nullptr);
+    }
 
     /*
      * Subscribe store with other devices consistently Synchronize the data which is satisfied with the condition.
@@ -195,8 +201,7 @@ public:
      * Return:
      *     Status of this Subscribe operation.
      */
-    KVSTORE_API virtual Status SubscribeWithQuery(const std::vector<std::string> &deviceIds,
-                                                  const DataQuery &query) = 0;
+    virtual Status SubscribeWithQuery(const std::vector<std::string> &devices, const DataQuery &query) = 0;
 
     /*
      * UnSubscribe store with other devices which is satisfied with the condition.
@@ -206,8 +211,7 @@ public:
      * Return:
      *     Status of this UnSubscribe operation.
      */
-    KVSTORE_API virtual Status UnsubscribeWithQuery(const std::vector<std::string> &deviceIds,
-                                                    const DataQuery &query) = 0;
+    virtual Status UnsubscribeWithQuery(const std::vector<std::string> &devices, const DataQuery &query) = 0;
 
 protected:
     // control this store.
@@ -216,7 +220,7 @@ protected:
     //     output: output data, nullptr if no data is returned.
     // Return:
     //     Status of this control operation.
-    KVSTORE_API virtual Status Control(KvControlCmd cmd, const KvParam &inputParam, KvParam &output) = 0;
+    virtual Status Control(KvControlCmd cmd, const KvParam &inputParam, KvParam &output) = 0;
 };
 }  // namespace DistributedKv
 }  // namespace OHOS

@@ -99,8 +99,6 @@ private:
                   uint64_t sequenceId);
     Status DoQuerySync(const std::vector<std::string> &deviceIds, SyncMode mode, const std::string &query,
                        const KvStoreSyncManager::SyncEnd &syncEnd, uint64_t sequenceId);
-    Status AddAutoSync();
-    Status DoAutoSync(const KvStoreSyncManager::SyncEnd &);
     Status RebuildKvStoreObserver(DistributedDB::KvStoreNbDelegate *kvStoreNbDelegate);
     Status RebuildKvStoreResultSet();
     int ConvertToDbObserverMode(SubscribeType subscribeType) const;
