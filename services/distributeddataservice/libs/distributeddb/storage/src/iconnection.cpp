@@ -18,14 +18,14 @@
 
 namespace DistributedDB {
 IConnection::IConnection()
-    : connectionId_(0)
+    : connectionId_(INVALID_CONNECTION_ID)
 {
 }
 
 uint64_t IConnection::GetConnectionId()
 {
     std::mutex connectionIdLock_;
-    if (connectionId_ == 0) {
+    if (connectionId_ == INVALID_CONNECTION_ID) {
         connectionId_ = RuntimeContext::GetInstance()->GenerateSessionId();
     }
     return connectionId_;

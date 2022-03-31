@@ -58,8 +58,6 @@ private:
     // Roll back the transaction
     int RollBack();
 
-    uint64_t GetConnectionId();
-
     SQLiteSingleVerRelationalStorageExecutor *writeHandle_ = nullptr;
     mutable std::mutex transactionMutex_; // used for transaction
 };

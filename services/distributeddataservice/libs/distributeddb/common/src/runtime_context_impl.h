@@ -170,7 +170,7 @@ private:
     mutable std::mutex userChangeMonitorLock_;
     std::unique_ptr<UserChangeMonitor> userChangeMonitor_;
 
-    mutable std::mutex sessionIdLock_;
+    std::mutex sessionIdLock_;
     uint64_t lastSessionId_;
 };
 } // namespace DistributedDB

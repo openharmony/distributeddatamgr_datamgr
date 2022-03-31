@@ -152,8 +152,7 @@ int SyncAbleKvDBConnection::PragmaSyncAction(const PragmaSync *syncParameter)
     syncParam.onFinalize =  [this]() { DecObjRef(this); };
     syncParam.onComplete = std::bind(&SyncAbleKvDBConnection::OnSyncComplete, this, std::placeholders::_1,
         syncParameter->onComplete_, syncParameter->wait_);
-    uint64_t connectionId = 0;
-    int errCode = kvDB->Sync(syncParam, connectionId);
+    int errCode = kvDB->Sync(syncParam, GetConnectionId());
     if (errCode != E_OK) {
         DecObjRef(this);
     }

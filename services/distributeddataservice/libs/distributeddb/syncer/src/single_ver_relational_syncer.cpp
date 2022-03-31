@@ -30,7 +30,7 @@ int SingleVerRelationalSyncer::Initialize(ISyncInterface *syncInterface, bool is
         RegisterSchemaChangedCallback(callback);
 }
 
-int SingleVerRelationalSyncer::Sync(const SyncParma &param)
+int SingleVerRelationalSyncer::Sync(const SyncParma &param, uint64_t connectionId)
 {
     if (param.mode == SYNC_MODE_PUSH_PULL) {
         return -E_NOT_SUPPORT;
@@ -38,7 +38,7 @@ int SingleVerRelationalSyncer::Sync(const SyncParma &param)
     if (param.syncQuery.GetRelationTableName().empty()) {
         return -E_NOT_SUPPORT;
     }
-    return GenericSyncer::Sync(param);
+    return GenericSyncer::Sync(param, connectionId);
 }
 
 int SingleVerRelationalSyncer::PrepareSync(const SyncParma &param, uint32_t syncId, uint64_t connectionId)

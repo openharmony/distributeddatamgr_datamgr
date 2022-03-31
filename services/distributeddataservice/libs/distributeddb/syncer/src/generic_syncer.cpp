@@ -183,6 +183,11 @@ int GenericSyncer::Sync(const InternalSyncParma &param)
     return Sync(syncParam);
 }
 
+int GenericSyncer::Sync(const SyncParma &param)
+{
+    return Sync(param, IConnection::INVALID_CONNECTION_ID);
+}
+
 int GenericSyncer::Sync(const SyncParma &param, uint64_t connectionId)
 {
     int errCode = SyncParamCheck(param);
@@ -222,7 +227,7 @@ int GenericSyncer::PrepareSync(const SyncParma &param, uint32_t syncId, uint64_t
         AddSyncOperation(operation);
         PerformanceAnalysis::GetInstance()->StepTimeRecordEnd(PT_TEST_RECORDS::RECORD_SYNC_TOTAL);
     }
-    if (!param.wait) {
+    if (!param.wait && connectionId != IConnection::INVALID_CONNECTION_ID) {
         std::lock_guard<std::mutex> lockGuard(syncIdLock_);
         connectionIdMap_[connectionId].push_back(static_cast<int>(syncId));
         syncIdMap_[static_cast<int>(syncId)] = connectionId;
@@ -254,6 +259,9 @@ int GenericSyncer::RemoveSyncOperation(int syncId)
         RefObject::KillAndDecObjRef(operation);
         operation = nullptr;
         std::lock_guard<std::mutex> lockGuard(syncIdLock_);
+        if (syncIdMap_.find(syncId) == syncIdMap_.end()) {
+            return E_OK;
+        }
         uint64_t connectionId = syncIdMap_[syncId];
         if (connectionIdMap_.find(connectionId) != connectionIdMap_.end()) {
             connectionIdMap_[connectionId].remove(syncId);
@@ -269,6 +277,9 @@ int GenericSyncer::StopSync(uint64_t connectionId)
     std::list<int> syncIdList;
     {
         std::lock_guard<std::mutex> lockGuard(syncIdLock_);
+        if (connectionIdMap_.find(connectionId) == connectionIdMap_.end()) {
+            return E_OK;
+        }
         syncIdList = connectionIdMap_[connectionId];
         connectionIdMap_.erase(connectionId);
     }
@@ -468,6 +479,11 @@ void GenericSyncer::ClearSyncOperations(bool isClosedOperation)
             iter.second = nullptr;
         }
         syncOperationMap_.clear();
+    }
+    {
+        std::lock_guard<std::mutex> lock(syncIdLock_);
+        connectionIdMap_.clear();
+        syncIdMap_.clear();
     }
 }
 

@@ -29,6 +29,8 @@ public:
 
     DISABLE_COPY_ASSIGN_MOVE(IConnection);
 
+    static constexpr uint64_t INVALID_CONNECTION_ID = 0;
+
 protected:
     uint64_t GetConnectionId();
 
