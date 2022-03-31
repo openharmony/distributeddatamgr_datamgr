@@ -185,7 +185,7 @@ int GenericSyncer::Sync(const InternalSyncParma &param)
 
 int GenericSyncer::Sync(const SyncParma &param)
 {
-    return Sync(param, IConnection::INVALID_CONNECTION_ID);
+    return Sync(param, DBConstant::IGNORE_CONNECTION_ID);
 }
 
 int GenericSyncer::Sync(const SyncParma &param, uint64_t connectionId)
@@ -227,7 +227,7 @@ int GenericSyncer::PrepareSync(const SyncParma &param, uint32_t syncId, uint64_t
         AddSyncOperation(operation);
         PerformanceAnalysis::GetInstance()->StepTimeRecordEnd(PT_TEST_RECORDS::RECORD_SYNC_TOTAL);
     }
-    if (!param.wait && connectionId != IConnection::INVALID_CONNECTION_ID) {
+    if (!param.wait && connectionId != DBConstant::IGNORE_CONNECTION_ID) {
         std::lock_guard<std::mutex> lockGuard(syncIdLock_);
         connectionIdMap_[connectionId].push_back(static_cast<int>(syncId));
         syncIdMap_[static_cast<int>(syncId)] = connectionId;

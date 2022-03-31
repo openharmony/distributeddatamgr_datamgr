@@ -29,12 +29,10 @@ public:
 
     DISABLE_COPY_ASSIGN_MOVE(IConnection);
 
-    static constexpr uint64_t INVALID_CONNECTION_ID = 0;
-
 protected:
     uint64_t GetConnectionId();
 
-    std::mutex connectionLock_;
+    std::mutex connectionIdLock_;
     uint64_t connectionId_;
 };
 } // namespace DistributedDB
