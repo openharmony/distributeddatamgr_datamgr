@@ -59,4 +59,4 @@ bool SemaphoreUtils::CompareCount() const
 {
     return count_ > 0;
 }
-}
+} // namespace DistributedDB

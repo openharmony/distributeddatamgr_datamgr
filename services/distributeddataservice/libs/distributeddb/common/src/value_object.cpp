@@ -41,7 +41,7 @@ int ValueObject::Parse(const std::string &inString)
         return -E_NOT_PERMIT;
     }
     int errCode = value_.Parse(inString);
-    isValid_ = ((errCode == E_OK) ? true : false);
+    isValid_ = (errCode == E_OK);
     return errCode;
 }
 
@@ -51,7 +51,7 @@ int ValueObject::Parse(const std::vector<uint8_t> &inData)
         return -E_NOT_PERMIT;
     }
     int errCode = value_.Parse(inData);
-    isValid_ = ((errCode == E_OK) ? true : false);
+    isValid_ = (errCode == E_OK);
     return errCode;
 }
 

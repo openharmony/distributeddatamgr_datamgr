@@ -32,7 +32,7 @@ SyncOpinion SchemaNegotiate::MakeLocalSyncOpinion(const SchemaObject &localSchem
     // Logic below only be correct in current version, should be redesigned if new type added in the future
     // 1. If remote-type unrecognized(Include Relative-type), Do not permit sync.
     if (remoteType == SchemaType::UNRECOGNIZED) {
-        LOGE("[Schema][Opinion] Remote-type=%u unrecognized.", remoteSchemaType);
+        LOGE("[Schema][Opinion] Remote-type=%" PRIu8 " unrecognized.", remoteSchemaType);
         return SyncOpinion{false, true, true};
     }
     // 2. If local-type is KV(Here remote-type is within recognized), Always permit sync.

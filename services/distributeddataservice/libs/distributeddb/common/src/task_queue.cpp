@@ -70,9 +70,6 @@ bool TaskQueue::IsEmptyAndUnlocked() const
             return false;
         }
     }
-    if (!tasks_.empty()) {
-        return false;
-    }
-    return true;
+    return tasks_.empty();
 }
-}
+} // namespace DistributedDB

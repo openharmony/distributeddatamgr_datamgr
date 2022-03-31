@@ -98,21 +98,27 @@ int SchemaUtils::SplitSchemaAttribute(const std::string &inAttrString, std::vect
             return -E_SCHEMA_PARSE_FAIL;
         }
         state = STATE_TRANSFER[state][id];
-        if (state == 1) { // state 1 :Indicates that only type information is currently available
-            outAttrString[0].push_back(inAttrString[i]);
-        } else if (state == 3) { // state 3 :Gets the NOT_NULL keyword
-            outAttrString[1] = SchemaConstant::KEYWORD_ATTR_NOT_NULL;
-        } else if (state == 7) { // state 7 :Contains complete information
-            // Get default string. Now transfer matrix can ensure > 1, but you should pay attention when fix it
-            if (i <= 1) {
-                LOGE("default string size must be over 1.");
-                return -E_SCHEMA_PARSE_FAIL;
-            }
-            outAttrString[2] = inAttrString.substr(i - 1);
-            break;
-        } else if (state < 0) {
+        if (state < 0) {
             LOGD("Split Schema Attribute err, err state [%d]", state);
             return -E_SCHEMA_PARSE_FAIL;
+        }
+        switch (state) {
+            case 1: // state 1 :Indicates that only type information is currently available
+                outAttrString[0].push_back(inAttrString[i]);
+                break;
+            case 3: // state 3 :Gets the NOT_NULL keyword
+                outAttrString[1] = SchemaConstant::KEYWORD_ATTR_NOT_NULL;
+                break;
+            case 7: // state 7 :Contains complete information
+                // Get default string. Now transfer matrix can ensure > 1, but you should pay attention when fix it
+                if (i <= 1) {
+                    LOGE("default string size must be over 1.");
+                    return -E_SCHEMA_PARSE_FAIL;
+                }
+                outAttrString[2] = inAttrString.substr(i - 1);
+                return E_OK;
+            default:
+                break;
         }
     }
     // Only these states are legal, The meaning of the state can be seen in the matrix STATE_TRANSFER explanation

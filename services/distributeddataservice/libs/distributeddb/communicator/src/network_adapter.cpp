@@ -396,14 +396,11 @@ void NetworkAdapter::CheckDeviceOfflineAfterSendFail(const DeviceInfos &devInfo)
 bool NetworkAdapter::IsDeviceOnline(const std::string &device)
 {
     std::lock_guard<std::mutex> onlineRemoteDevLockGuard(onlineRemoteDevMutex_);
-    if (onlineRemoteDev_.find(device) != onlineRemoteDev_.end()) {
-        return true;
-    }
-    return false;
+    return (onlineRemoteDev_.find(device) != onlineRemoteDev_.end());
 }
 
 std::shared_ptr<ExtendHeaderHandle> NetworkAdapter::GetExtendHeaderHandle(const ExtendInfo &paramInfo)
 {
     return processCommunicator_->GetExtendHeaderHandle(paramInfo);
 }
-}
+} // namespace DistributedDB

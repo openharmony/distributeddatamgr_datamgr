@@ -21,4 +21,4 @@ int MessageTransform::RegTransformFunction(uint32_t msgId, const TransformFunc &
 {
     return ProtocolProto::RegTransformFunction(msgId, inFunc);
 }
-}
+} // namespace DistributedDB

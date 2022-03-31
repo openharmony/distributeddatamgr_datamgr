@@ -259,4 +259,4 @@ std::pair<const uint8_t *, uint32_t> SerialBuffer::GetReadOnlyBytesForPayload() 
         return std::make_pair(nullptr, 0);
     }
 }
-}
+} // namespace DistributedDB
