@@ -710,13 +710,8 @@ int SchemaObject::FlatBufferSchema::ParseCheckStructDefine(const reflection::Sch
 namespace {
 inline bool IsNotCompositeIndex(const std::string &indexStr)
 {
-    if (indexStr.empty()) {
-        return true;
-    }
-    if (indexStr == std::string("0")) { // In fact, test found that attrValue will be "0" if not exist
-        return true;
-    }
-    return false;
+    // In fact, test found that attrValue will be "0" if not exist
+    return indexStr.empty() || indexStr == std::string("0");
 }
 }
 

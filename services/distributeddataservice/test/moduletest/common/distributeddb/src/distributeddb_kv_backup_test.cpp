@@ -206,7 +206,7 @@ HWTEST_F(DistributeddbKvBackupTest, ExportTest003, TestSize.Level3)
     DBStatus status = g_kvBackupDelegate->Export(filePath, NULL_PASSWD);
 
     /**
-     * @tc.steps: step2. start thread to commit transaction and check the number od files in the exportion directory.
+     * @tc.steps: step2. start thread to commit transaction and check the number of files in the exportion directory.
      * @tc.expected: step2. commit successfully and the number of files is 1.
      */
     bool exportFlag = false;
@@ -235,7 +235,7 @@ HWTEST_F(DistributeddbKvBackupTest, ExportTest003, TestSize.Level3)
     filePath = exportPath + "/bkpDB2.bin";
 
     /**
-     * @tc.steps: step3. start thread to rollback transaction and check the number od files in the exportion directory.
+     * @tc.steps: step3. start thread to rollback transaction and check the number of files in the exportion directory.
      * @tc.expected: step3. rollback successfully and the number of files is 2.
      */
     thread subThread2([&]() {

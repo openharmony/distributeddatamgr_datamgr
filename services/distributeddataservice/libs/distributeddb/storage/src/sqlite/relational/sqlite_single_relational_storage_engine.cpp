@@ -69,7 +69,7 @@ int SQLiteSingleRelationalStorageEngine::CreateNewExecutor(bool isWrite, Storage
             break;
         }
 
-        errCode = Upgrade(db); // cerate meta_data table.
+        errCode = Upgrade(db); // create meta_data table.
         if (errCode != E_OK) {
             break;
         }

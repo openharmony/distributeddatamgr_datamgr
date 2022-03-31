@@ -249,7 +249,7 @@ bool JsonObject::IsFieldPathExist(const FieldPath &inPath) const
     }
     int errCode = E_OK;
     (void)GetJsonValueByFieldPath(inPath, errCode); // Ignore return const reference
-    return (errCode == E_OK) ? true : false;
+    return (errCode == E_OK);
 }
 
 int JsonObject::GetFieldTypeByFieldPath(const FieldPath &inPath, FieldType &outType) const
@@ -456,13 +456,8 @@ bool InsertFieldCheckParameter(const FieldPath &inPath, FieldType inType, const 
 
 void LeafJsonNodeAppendValue(Json::Value &leafNode, FieldType inType, const FieldValue &inValue)
 {
-    switch (inType) {
-        case FieldType::LEAF_FIELD_STRING:
-            leafNode.append(Json::Value(inValue.stringValue));
-            break;
-        default:
-            // Do nothing.
-            break;
+    if (inType == FieldType::LEAF_FIELD_STRING) {
+        leafNode.append(Json::Value(inValue.stringValue));
     }
 }
 

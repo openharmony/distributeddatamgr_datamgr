@@ -140,7 +140,7 @@ HWTEST_F(DistributedDBMockSyncModuleTest, StateMachineCheck003, TestSize.Level1)
     EXPECT_CALL(syncTaskContext, IsCurrentSyncTaskCanBeSkipped())
         .WillOnce(Return(true))
         .WillOnce(Return(false));
-    // we expect machine dont change context status when queue not empty
+    // we expect machine don't change context status when queue not empty
     EXPECT_CALL(syncTaskContext, SetOperationStatus(_)).WillOnce(Return());
     EXPECT_CALL(syncTaskContext, SetTaskExecStatus(_)).Times(0);
 
@@ -220,7 +220,7 @@ HWTEST_F(DistributedDBMockSyncModuleTest, StateMachineCheck006, TestSize.Level1)
     EXPECT_CALL(syncTaskContext, IsCurrentSyncTaskCanBeSkipped())
         .WillRepeatedly(Return(syncTaskContext.CallIsCurrentSyncTaskCanBeSkipped()));
     EXPECT_CALL(syncTaskContext, MoveToNextTarget()).WillOnce(Return());
-    // we expect machine dont change context status when queue not empty
+    // we expect machine don't change context status when queue not empty
     EXPECT_CALL(syncTaskContext, SetOperationStatus(_)).WillOnce(Return());
     EXPECT_CALL(syncTaskContext, SetTaskExecStatus(_)).WillOnce(Return());
     EXPECT_CALL(syncTaskContext, Clear()).WillOnce(Return());
@@ -546,7 +546,7 @@ HWTEST_F(DistributedDBMockSyncModuleTest, AbilitySync003, TestSize.Level1)
     context->SetIsNeedResetAbilitySync(true);
     EXPECT_EQ(context->GetSyncStrategy(query).permitSync, true);
     /**
-     * @tc.steps: step3. set table is schema change now it dont permit sync
+     * @tc.steps: step3. set table is schema change now it don't permit sync
      */
     context->SchemaChange();
     EXPECT_EQ(context->GetSyncStrategy(query).permitSync, false);

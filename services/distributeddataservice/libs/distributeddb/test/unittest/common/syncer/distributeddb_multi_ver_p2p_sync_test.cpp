@@ -1503,7 +1503,7 @@ HWTEST_F(DistributedDBMultiVerP2PSyncTest, NetDisconnectSync001, TestSize.Level3
 
 /**
   * @tc.name: SyncQueue006
-  * @tc.desc: multi version not surport sync queue
+  * @tc.desc: multi version not support sync queue
   * @tc.type: FUNC
   * @tc.require: AR000D4876
   * @tc.author: wangchuanqing

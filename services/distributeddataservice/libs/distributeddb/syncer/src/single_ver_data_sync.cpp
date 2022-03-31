@@ -1639,7 +1639,7 @@ void SingleVerDataSync::FillRequestReSendPacket(const SingleVerSyncTaskContext *
     GetPeerWaterMark(curType, context->GetQuerySyncId(), context->GetDeviceId(),
         peerMark);
     uint32_t version = std::min(context->GetRemoteSoftwareVersion(), SOFTWARE_VERSION_CURRENT);
-    // transer reSend mode, RESPONSE_PULL transfer to push or query push
+    // transfer reSend mode, RESPONSE_PULL transfer to push or query push
     // PUSH_AND_PULL mode which sequenceId lager than first transfer to push or query push
     int reSendMode = SingleVerDataSyncUtils::GetReSendMode(context->GetMode(), reSendInfo.sequenceId, curType);
     if (GetSessionEndTimestamp() == std::max(reSendInfo.end, reSendInfo.deleteDataEnd) ||

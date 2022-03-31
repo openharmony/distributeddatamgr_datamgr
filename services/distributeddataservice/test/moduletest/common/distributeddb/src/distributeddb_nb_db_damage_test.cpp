@@ -61,7 +61,7 @@ void DistributedbNbDbDamageTest::TearDown(void)
 
 /*
  * @tc.name: DbDamageRecover 001
- * @tc.desc: Verify that set isNeedIntegrityCheck and isNeedRmCorruptedDb when open db, if open failed the calback will
+ * @tc.desc: Verify that set isNeedIntegrityCheck and isNeedRmCorruptedDb when open db, if open failed the callback will
  *  be triggered  when has register corruption callback.
  * @tc.type: FUNC
  * @tc.require: SR000D4878

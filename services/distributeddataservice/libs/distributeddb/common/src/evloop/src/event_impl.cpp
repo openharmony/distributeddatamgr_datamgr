@@ -368,7 +368,7 @@ int EventImpl::Dispatch()
 bool EventImpl::IsValidArg(EventsMask events) const
 {
     EventsMask allEvents = ET_READ | ET_WRITE | ET_ERROR | ET_TIMEOUT;
-    return events && !(events & (~allEvents));
+    return ((events != 0) && ((events & (~allEvents)) == 0));
 }
 
 bool EventImpl::IsValidArg(EventTime timeout) const

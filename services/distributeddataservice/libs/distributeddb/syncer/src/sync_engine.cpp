@@ -619,7 +619,7 @@ int SyncEngine::ExecSyncTask(ISyncTaskContext *context)
     if (!context->IsTargetQueueEmpty()) {
         context->MoveToNextTarget();
         int checkErrCode = E_OK;
-        // rdb dont support PermissionCheck
+        // rdb don't support PermissionCheck
         if (syncInterface_->GetInterfaceType() != ISyncInterface::SYNC_RELATION) {
             checkErrCode = RunPermissionCheck(context->GetDeviceId(),
                 GetPermissionCheckFlag(context->IsAutoSync(), context->GetMode()));
@@ -1013,8 +1013,8 @@ bool SyncEngine::IsEngineActive() const
 void SyncEngine::SchemaChange()
 {
     std::lock_guard<std::mutex> lock(contextMapLock_);
-    for (auto &enrty : syncTaskContextMap_) {
-        auto context = enrty.second;
+    for (auto &entry : syncTaskContextMap_) {
+        auto context = entry.second;
         if (context->IsKilled()) {
             continue;
         }

@@ -1599,7 +1599,7 @@ HWTEST_F(DistributedDBInterfacesRegisterSyncDBTest, SnapshotUnRegisterObserver00
 
 /**
   * @tc.name: SnapshotUnRegisterObserver002
-  * @tc.desc: Unregister a null snaphot observer
+  * @tc.desc: Unregister a null snapshot observer
   * @tc.require: AR000BVDFP AR000CQDVI
   * @tc.author: liujialei
   */
@@ -1616,7 +1616,7 @@ HWTEST_F(DistributedDBInterfacesRegisterSyncDBTest, SnapshotUnRegisterObserver00
 
 /**
   * @tc.name: SnapshotUnRegisterObserver003
-  * @tc.desc: Unregister a unregister snaphot observer
+  * @tc.desc: Unregister a unregister snapshot observer
   * @tc.require: AR000BVDFP AR000CQDVI
   * @tc.author: liujialei
   */
@@ -1675,7 +1675,7 @@ static void SnapshotUnRegisterObserver004Inner()
 
 /**
   * @tc.name: SnapshotUnRegisterObserver004
-  * @tc.desc: Check a unregister snaphot observer
+  * @tc.desc: Check a unregister snapshot observer
   * @tc.require: AR000BVDFP AR000CQDVI
   * @tc.author: liujialei
   */
@@ -1869,4 +1869,3 @@ HWTEST_F(DistributedDBInterfacesRegisterSyncDBTest, GetSnapshotObserverData001, 
     EXPECT_EQ(g_kvDelegatePtr->ReleaseKvStoreSnapshot(g_snapshotDelegatePtr), OK);
     g_snapshotDelegatePtr = nullptr;
 }
-

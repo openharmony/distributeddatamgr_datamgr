@@ -264,7 +264,7 @@ HWTEST_F(DistributedDBInterfacesSpaceManagementTest, GetKvStoreDiskSize002, Test
      * @tc.steps: step5/6. Get Db size by GetKvStoreDiskSize.
      * @tc.expected: step5/6. Return right size and ok.
      */
-    std::this_thread::sleep_for(std::chrono::milliseconds(100)); // for vaccum
+    std::this_thread::sleep_for(std::chrono::milliseconds(100)); // for vacuum
     singleAndMultiDbSize = 0;
     EXPECT_EQ(g_mgr.GetKvStoreDiskSize(g_storeId, singleAndMultiDbSize), OK);
     ASSERT_TRUE(dbSizeForCheck != singleAndMultiDbSize);

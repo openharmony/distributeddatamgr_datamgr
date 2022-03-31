@@ -102,7 +102,7 @@ void SingleVerKVSyncer::LocalDataChanged(int notifyEvent)
         RefObject::DecObjRef(syncEngine_);
     });
     // if task schedule failed, but triggerSyncTask_ is not set to true, other thread may skip the schedule time
-    // when task schedule failed, it means unormal status, it is unable to shedule next time probably
+    // when task schedule failed, it means unormal status, it is unable to schedule next time probably
     // so it is ok if other thread skip the schedule if last task schedule failed
     if (errCode != E_OK) {
         triggerSyncTask_ = true;
