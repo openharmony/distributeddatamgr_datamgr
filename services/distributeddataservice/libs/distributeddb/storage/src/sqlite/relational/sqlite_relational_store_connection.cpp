@@ -19,7 +19,7 @@
 
 namespace DistributedDB {
 SQLiteRelationalStoreConnection::SQLiteRelationalStoreConnection(SQLiteRelationalStore *store)
-    : RelationalStoreConnection(store), connectionId_(0)
+    : RelationalStoreConnection(store)
 {
     OnKill([this]() {
         auto *store = GetDB<SQLiteRelationalStore>();
@@ -227,15 +227,6 @@ int SQLiteRelationalStoreConnection::RegisterLifeCycleCallback(const DatabaseLif
 void SQLiteRelationalStoreConnection::RegisterObserverAction(const RelationalObserverAction &action)
 {
     static_cast<SQLiteRelationalStore *>(store_)->RegisterObserverAction(action);
-}
-
-uint64_t SQLiteRelationalStoreConnection::GetConnectionId()
-{
-    std::mutex connectionIdLock_;
-    if (connectionId_ == 0) {
-        connectionId_ = RuntimeContext::GetInstance()->GenerateSessionId();
-    }
-    return connectionId_;
 }
 }
 #endif

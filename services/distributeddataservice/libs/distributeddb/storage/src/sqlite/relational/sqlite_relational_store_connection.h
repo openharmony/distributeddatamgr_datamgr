@@ -62,9 +62,6 @@ private:
 
     SQLiteSingleVerRelationalStorageExecutor *writeHandle_ = nullptr;
     mutable std::mutex transactionMutex_; // used for transaction
-
-    std::mutex connectionIdLock_;
-    uint64_t connectionId_;
 };
 } // namespace DistributedDB
 #endif

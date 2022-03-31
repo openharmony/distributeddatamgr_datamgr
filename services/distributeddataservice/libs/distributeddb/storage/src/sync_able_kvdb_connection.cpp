@@ -26,8 +26,7 @@
 namespace DistributedDB {
 SyncAbleKvDBConnection::SyncAbleKvDBConnection(SyncAbleKvDB *kvDB)
     : GenericKvDBConnection(kvDB),
-      remotePushFinishedListener_(nullptr),
-      connectionId_(0)
+      remotePushFinishedListener_(nullptr)
 {
     OnKill([this]() {
         auto *db = GetDB<SyncAbleKvDB>();
@@ -324,14 +323,5 @@ int SyncAbleKvDBConnection::SetPushDataInterceptor(const PushDataInterceptor &in
     }
     kvDB->SetDataInterceptor(interceptor);
     return E_OK;
-}
-
-uint64_t SyncAbleKvDBConnection::GetConnectionId()
-{
-    std::lock_guard<std::mutex> autoLock(connectionLock_);
-    if (connectionId_ == 0) {
-        connectionId_ = RuntimeContext::GetInstance()->GenerateSessionId();
-    }
-    return connectionId_;
 }
 }

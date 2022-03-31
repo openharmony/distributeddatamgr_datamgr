@@ -73,9 +73,6 @@ private:
     std::mutex remotePushFinishedListenerLock_;
     NotificationChain::Listener *remotePushFinishedListener_;
     std::map<int, std::function<void(void *, int &errCode)>> pragmaFunc_{};
-
-    std::mutex connectionLock_;
-    uint64_t connectionId_;
 };
 }
 #endif // SYNC_ABLE_KVDB_CONNECTION_H
