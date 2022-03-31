@@ -43,7 +43,7 @@ StoreId SingleKvStoreClient::GetStoreId() const
     return storeId;
 }
 
-Status SingleKvStoreClient::GetEntries(const Key &prefixKey, std::vector<Entry> &entries) const
+Status SingleKvStoreClient::GetEntries(const Key &prefix, std::vector<Entry> &entries) const
 {
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
 
@@ -52,7 +52,7 @@ Status SingleKvStoreClient::GetEntries(const Key &prefixKey, std::vector<Entry> 
         return Status::SERVER_UNAVAILABLE;
     }
 
-    return kvStoreProxy_->GetEntries(prefixKey, entries);
+    return kvStoreProxy_->GetEntries(prefix, entries);
 }
 
 Status SingleKvStoreClient::GetEntriesWithQuery(const std::string &query, std::vector<Entry> &entries) const
@@ -72,7 +72,7 @@ Status SingleKvStoreClient::GetEntriesWithQuery(const DataQuery &query, std::vec
     return GetEntriesWithQuery(query.ToString(), entries);
 }
 
-Status SingleKvStoreClient::GetResultSet(const Key &prefixKey, std::shared_ptr<KvStoreResultSet> &resultSet) const
+Status SingleKvStoreClient::GetResultSet(const Key &prefix, std::shared_ptr<KvStoreResultSet> &resultSet) const
 {
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
     resultSet = nullptr;
@@ -86,7 +86,7 @@ Status SingleKvStoreClient::GetResultSet(const Key &prefixKey, std::shared_ptr<K
         statusTmp = status;
         resultSetTmp = proxy;
     };
-    kvStoreProxy_->GetResultSet(prefixKey, callFun);
+    kvStoreProxy_->GetResultSet(prefix, callFun);
     if (statusTmp != Status::SUCCESS) {
         ZLOGE("return error: %d.", static_cast<int>(statusTmp));
         return statusTmp;
@@ -155,7 +155,7 @@ Status SingleKvStoreClient::CloseResultSet(std::shared_ptr<KvStoreResultSet> &re
     return kvStoreProxy_->CloseResultSet(resultSetClient->GetKvStoreResultSetProxy());
 }
 
-Status SingleKvStoreClient::GetCountWithQuery(const std::string &query, int &result) const
+Status SingleKvStoreClient::GetCountWithQuery(const std::string &query, int &count) const
 {
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
 
@@ -164,29 +164,29 @@ Status SingleKvStoreClient::GetCountWithQuery(const std::string &query, int &res
         return Status::SERVER_UNAVAILABLE;
     }
     ZLOGD("Cpp client GetCountWithQuery");
-    return kvStoreProxy_->GetCountWithQuery(query, result);
+    return kvStoreProxy_->GetCountWithQuery(query, count);
 }
 
-Status SingleKvStoreClient::GetCountWithQuery(const DataQuery &query, int &result) const
+Status SingleKvStoreClient::GetCountWithQuery(const DataQuery &query, int &count) const
 {
-    return GetCountWithQuery(query.ToString(), result);
+    return GetCountWithQuery(query.ToString(), count);
 }
 
-Status SingleKvStoreClient::Sync(const std::vector<std::string> &deviceIds, SyncMode mode, uint32_t allowedDelayMs)
+Status SingleKvStoreClient::Sync(const std::vector<std::string> &devices, SyncMode mode, uint32_t allowedDelayMs)
 {
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
     if (kvStoreProxy_ == nullptr) {
         ZLOGE("kvstore proxy is nullptr.");
         return Status::SERVER_UNAVAILABLE;
     }
-    if (deviceIds.empty()) {
+    if (devices.empty()) {
         ZLOGW("deviceIds is empty.");
         return Status::INVALID_ARGUMENT;
     }
     uint64_t sequenceId = KvStoreUtils::GenerateSequenceId();
     syncCallbackClient_->AddSyncCallback(syncObserver_, sequenceId);
     RegisterCallback();
-    return kvStoreProxy_->Sync(deviceIds, mode, allowedDelayMs, sequenceId);
+    return kvStoreProxy_->Sync(devices, mode, allowedDelayMs, sequenceId);
 }
 
 Status SingleKvStoreClient::RemoveDeviceData(const std::string &device)
@@ -455,10 +455,10 @@ Status SingleKvStoreClient::SetCapabilityEnabled(bool enabled) const
 }
 
 Status SingleKvStoreClient::SetCapabilityRange(const std::vector<std::string> &localLabels,
-                                               const std::vector<std::string> &remoteSupportLabels) const
+                                               const std::vector<std::string> &remoteLabels) const
 {
     if (kvStoreProxy_ != nullptr) {
-        return kvStoreProxy_->SetCapabilityRange(localLabels, remoteSupportLabels);
+        return kvStoreProxy_->SetCapabilityRange(localLabels, remoteLabels);
     }
     ZLOGE("singleKvstore proxy is nullptr.");
     return Status::SERVER_UNAVAILABLE;
@@ -473,14 +473,14 @@ Status SingleKvStoreClient::GetSecurityLevel(SecurityLevel &securityLevel) const
     return Status::SERVER_UNAVAILABLE;
 }
 
-Status SingleKvStoreClient::SyncWithCondition(const std::vector<std::string> &deviceIds, SyncMode mode,
+Status SingleKvStoreClient::SyncWithCondition(const std::vector<std::string> &devices, SyncMode mode,
                                               const DataQuery &query, std::shared_ptr<KvStoreSyncCallback> callback)
 {
     if (kvStoreProxy_ == nullptr) {
         ZLOGE("singleKvstore proxy is nullptr.");
         return Status::SERVER_UNAVAILABLE;
     }
-    if (deviceIds.empty()) {
+    if (devices.empty()) {
         ZLOGW("deviceIds is empty.");
         return Status::INVALID_ARGUMENT;
     }
@@ -491,23 +491,23 @@ Status SingleKvStoreClient::SyncWithCondition(const std::vector<std::string> &de
         syncCallbackClient_->AddSyncCallback(syncObserver_, sequenceId);
     }
     RegisterCallback();
-    return kvStoreProxy_->Sync(deviceIds, mode, query.ToString(), sequenceId);
+    return kvStoreProxy_->Sync(devices, mode, query.ToString(), sequenceId);
 }
 
-Status SingleKvStoreClient::SubscribeWithQuery(const std::vector<std::string> &deviceIds, const DataQuery &query)
+Status SingleKvStoreClient::SubscribeWithQuery(const std::vector<std::string> &devices, const DataQuery &query)
 {
     if (kvStoreProxy_ == nullptr) {
         ZLOGE("singleKvstore proxy is nullptr.");
         return Status::SERVER_UNAVAILABLE;
     }
-    if (deviceIds.empty()) {
+    if (devices.empty()) {
         ZLOGW("deviceIds is empty.");
         return Status::INVALID_ARGUMENT;
     }
     uint64_t sequenceId = KvStoreUtils::GenerateSequenceId();
     syncCallbackClient_->AddSyncCallback(syncObserver_, sequenceId);
     RegisterCallback();
-    return kvStoreProxy_->Subscribe(deviceIds, query.ToString(), sequenceId);
+    return kvStoreProxy_->Subscribe(devices, query.ToString(), sequenceId);
 }
 
 Status SingleKvStoreClient::UnsubscribeWithQuery(const std::vector<std::string> &deviceIds, const DataQuery &query)

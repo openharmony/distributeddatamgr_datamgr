@@ -14,15 +14,15 @@
  */
 
 #include "reporter.h"
-#include "communication_fault_impl.h"
-#include "database_fault_impl.h"
-#include "runtime_fault_impl.h"
-#include "service_fault_impl.h"
+#include "fault/communication_fault_impl.h"
+#include "fault/database_fault_impl.h"
+#include "fault/runtime_fault_impl.h"
+#include "fault/service_fault_impl.h"
 
-#include "traffic_statistic_impl.h"
-#include "visit_statistic_impl.h"
-#include "database_statistic_impl.h"
-#include "api_performance_statistic_impl.h"
+#include "statistic/traffic_statistic_impl.h"
+#include "statistic/visit_statistic_impl.h"
+#include "statistic/database_statistic_impl.h"
+#include "statistic/api_performance_statistic_impl.h"
 
 namespace OHOS {
 namespace DistributedKv {

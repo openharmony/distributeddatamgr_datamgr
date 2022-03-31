@@ -17,6 +17,7 @@
 
 #include "idevice_status_change_listener.h"
 #include "log_print.h"
+#include "itypes_util.h"
 
 namespace OHOS {
 namespace DistributedKv {
@@ -35,7 +36,7 @@ void DeviceStatusChangeListenerProxy::OnChange(const DeviceInfo &results, const 
         ZLOGE("write descriptor failed");
         return;
     }
-    if (!data.WriteInt32(static_cast<int>(type)) || !results.Marshalling(data)) {
+    if (!data.WriteInt32(static_cast<int>(type)) || !ITypesUtil::Marshalling(results, data)) {
         ZLOGW("SendRequest write parcel type failed.");
         return;
     }
@@ -59,11 +60,9 @@ int DeviceStatusChangeListenerStub::OnRemoteRequest(uint32_t code, MessageParcel
     switch (code) {
         case ONCHANGE: {
             DeviceChangeType type = static_cast<DeviceChangeType>(data.ReadInt32());
-            DeviceInfo *deviceInfoPtr = DeviceInfo::UnMarshalling(data);
-            if (deviceInfoPtr != nullptr) {
-                OnChange(*deviceInfoPtr, type);
-                delete deviceInfoPtr;
-                deviceInfoPtr = nullptr;
+            DeviceInfo deviceInfo;
+            if (ITypesUtil::Unmarshalling(data, deviceInfo)) {
+                OnChange(deviceInfo, type);
             } else {
                 ZLOGW("device info is null");
             }

@@ -13,10 +13,7 @@
  * limitations under the License.
  */
 
-#include <cstdint>
-#include <thread>
 #include <memory>
-#include <vector>
 #include "kvstore_client_death_observer.h"
 #include "kvstore_data_service.h"
 #include "bootstrap.h"
@@ -57,12 +54,10 @@ HWTEST_F(KvStoreDataServiceTest, RegisterClientDeathObserver001, TestSize.Level1
 {
     AppId appId;
     appId.appId = "app0";
-
     KvStoreDataService kvDataService;
     Bootstrap::GetInstance().LoadComponents();
     Bootstrap::GetInstance().LoadCheckers();
     KvStoreMetaManager::GetInstance().InitMetaParameter();
     Status status = kvDataService.RegisterClientDeathObserver(appId, new KvStoreClientDeathObserver());
-
     EXPECT_EQ(status, Status::SUCCESS) << "RegisterClientDeathObserver failed";
 }

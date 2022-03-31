@@ -22,19 +22,18 @@
 
 namespace OHOS {
 namespace DistributedKv {
-class KvStore {
+class API_EXPORT KvStore {
 public:
-    KVSTORE_API KvStore() = default;
+    API_EXPORT KvStore() = default;
 
     // forbidden copy constructor.
     KvStore(const KvStore &) = delete;
     KvStore &operator=(const KvStore &) = delete;
 
-    KVSTORE_API virtual ~KvStore()
-    {}
+    API_EXPORT virtual ~KvStore() {}
 
     // Get kvstore name of this kvstore instance.
-    KVSTORE_API virtual StoreId GetStoreId() const = 0;
+    virtual StoreId GetStoreId() const = 0;
 
     // Creates a snapshot of the kvstore, allowing the client app to read a
     // consistent data of the content of the kvstore.
@@ -42,11 +41,11 @@ public:
     // kvstore newer than the resulting snapshot.
     // observer: observer for subscribe.
     // snapshot: [output] the KvStoreSnapshot instance.
-    KVSTORE_API virtual Status GetKvStoreSnapshot(std::shared_ptr<KvStoreObserver> observer,
-        std::shared_ptr<KvStoreSnapshot> &snapshot) const = 0;
+    virtual Status GetKvStoreSnapshot(std::shared_ptr<KvStoreObserver> observer,
+                                      std::shared_ptr<KvStoreSnapshot> &snapshot) const = 0;
 
     // Release snapshot created by calling GetKvStoreSnapshot.
-    KVSTORE_API virtual Status ReleaseKvStoreSnapshot(std::shared_ptr<KvStoreSnapshot> &snapshot) = 0;
+    virtual Status ReleaseKvStoreSnapshot(std::shared_ptr<KvStoreSnapshot> &snapshot) = 0;
 
     // Mutation operations.
     // Key level operations.
@@ -56,44 +55,44 @@ public:
     // Put one entry with key-value into kvstore,
     // key length should not be greater than 256, and can not be empty.
     // value size should be less than IPC transport limit, and can not be empty.
-    KVSTORE_API virtual Status Put(const Key &key, const Value &value) = 0;
+    virtual Status Put(const Key &key, const Value &value) = 0;
 
     // see Put, PutBatch put a list of entries to kvstore,
     // all entries will be put in a transaction,
     // if entries contains invalid entry, PutBatch will all fail.
     // entries's size should be less than 128 and memory size must be less than IPC transport limit.
-    KVSTORE_API virtual Status PutBatch(const std::vector<Entry> &entries) = 0;
+    virtual Status PutBatch(const std::vector<Entry> &entries) = 0;
 
     // delete one entry in the kvstore,
     // delete non-exist key still return KEY NOT FOUND error,
     // key length should not be greater than 256, and can not be empty.
-    KVSTORE_API virtual Status Delete(const Key &key) = 0;
+    virtual Status Delete(const Key &key) = 0;
 
     // delete a list of entries in the kvstore,
     // delete key not exist still return success,
     // key length should not be greater than 256, and can not be empty.
     // if keys contains invalid key, all delete will fail.
     // keys memory size should not be greater than IPC transport limit, and can not be empty.
-    KVSTORE_API virtual Status DeleteBatch(const std::vector<Key> &keys) = 0;
+    virtual Status DeleteBatch(const std::vector<Key> &keys) = 0;
 
     // clear all entries in the kvstore.
     // after this call, IsClear function in ChangeNotification in subscription return true.
-    KVSTORE_API virtual Status Clear() = 0;
+    virtual Status Clear() = 0;
 
     // start transaction.
     // all changes to this kvstore will be in a same transaction and will not change the store until Commit() or
     // Rollback() is called.
     // before this transaction is committed or rollbacked, all attemption to close this store will fail.
-    KVSTORE_API virtual Status StartTransaction() = 0;
+    virtual Status StartTransaction() = 0;
 
     // commit current transaction. all changes to this store will be done after calling this method.
     // any calling of this method outside a transaction will fail.
-    KVSTORE_API virtual Status Commit() = 0;
+    virtual Status Commit() = 0;
 
     // rollback current transaction.
     // all changes to this store during this transaction will be rollback after calling this method.
     // any calling of this method outside a transaction will fail.
-    KVSTORE_API virtual Status Rollback() = 0;
+    virtual Status Rollback() = 0;
 
     // subscribe kvstore to watch data change in the kvstore,
     // OnChange in he observer will be called when data changed, with all the changed contents.
@@ -103,7 +102,6 @@ public:
     // subscribeType: strategy for this subscribe, default right now.
     // observer: callback client provided, client must implement KvStoreObserver and override OnChange function, when
     // data changed in store, OnChange will called in Observer.
-    KVSTORE_API
     virtual Status SubscribeKvStore(SubscribeType subscribeType, std::shared_ptr<KvStoreObserver> observer) = 0;
 
     // unSubscribe kvstore to un-watch data change in the kvstore,
@@ -113,7 +111,6 @@ public:
     // Parameters:
     // subscribeType: strategy for this subscribe, default right now.
     // observer: callback client provided in SubscribeKvStore.
-    KVSTORE_API
     virtual Status UnSubscribeKvStore(SubscribeType subscribeType, std::shared_ptr<KvStoreObserver> observer) = 0;
 };
 }  // namespace DistributedKv

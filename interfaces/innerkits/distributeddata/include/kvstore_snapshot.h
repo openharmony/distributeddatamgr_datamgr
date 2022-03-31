@@ -22,10 +22,9 @@ namespace OHOS {
 namespace DistributedKv {
 class KvStoreSnapshot {
 public:
-    KVSTORE_API KvStoreSnapshot() = default;
+    API_EXPORT KvStoreSnapshot() = default;
 
-    KVSTORE_API virtual ~KvStoreSnapshot()
-    {}
+    API_EXPORT virtual ~KvStoreSnapshot() {}
 
     // Deprecated. use the GetEntries interface without nextKey as parameter instead.
     // Get a list of entries from kvstore by keyPrefix,
@@ -40,7 +39,7 @@ public:
     // nextKey: The first key to start in this search.
     // callback: all entries satisfied prefixKey, status of this call and the first key of the next part of data.
     [[deprecated]]
-    KVSTORE_API virtual Status GetEntries(const Key &prefixKey, Key &nextKey, std::vector<Entry> &entries) = 0;
+    virtual Status GetEntries(const Key &prefixKey, Key &nextKey, std::vector<Entry> &entries) = 0;
 
     // Get a list of entries from kvstore by keyPrefix,
     // key length must be less than 1024,
@@ -51,7 +50,7 @@ public:
     // parameters:
     // prefixKey: prefix key to search
     // callback: all entries satisfies prefixKey, and Stauts for this call.
-    KVSTORE_API virtual Status GetEntries(const Key &prefixKey, std::vector<Entry> &entries) = 0;
+    virtual Status GetEntries(const Key &prefixKey, std::vector<Entry> &entries) = 0;
 
     // Deprecated. use the GetKeys interface without nextKey as parameter instead.
     // Get a list of keys from kvstore by keyPrefix,
@@ -66,7 +65,7 @@ public:
     // nextKey: The first key to start in this search.
     // callback: all keys satisfies prefixKey, status of this call and the first key of the next part of data.
     [[deprecated]]
-    KVSTORE_API virtual Status GetKeys(const Key &prefixKey, Key &nextKey, std::vector<Key> &entries) = 0;
+    virtual Status GetKeys(const Key &prefixKey, Key &nextKey, std::vector<Key> &entries) = 0;
 
     // Get a list of keys from kvstore by keyPrefix,
     // key length must be less than 1024,
@@ -75,7 +74,6 @@ public:
     // parameters:
     // prefixKey: prefix key to search
     // callback: all keys satisfies prefixKey, and Stauts for this call.
-    KVSTORE_API
     virtual Status GetKeys(const Key &prefixKey, std::vector<Key> &entries) = 0;
 
     // Get value by key from kvstore, key length must be less than 256 and can not be empty.
@@ -84,7 +82,7 @@ public:
     // parameters:
     // key: key specified by client,
     // value: value stored in kvstore, or empty and KEY_NOT_FOUND returned.
-    KVSTORE_API virtual Status Get(const Key &key, Value &value) = 0;
+    virtual Status Get(const Key &key, Value &value) = 0;
 };
 }  // namespace DistributedKv
 }  // namespace OHOS

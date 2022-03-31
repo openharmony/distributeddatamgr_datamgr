@@ -144,8 +144,7 @@ struct Entry : public virtual Parcelable {
         return entry;
     }
 
-    KVSTORE_API virtual ~Entry()
-    {}
+    KVSTORE_API virtual ~Entry() {}
 };
 
 enum class SyncPolicy {
@@ -198,25 +197,6 @@ struct DeviceInfo {
     std::string deviceId;
     std::string deviceName;
     std::string deviceType;
-
-    bool Marshalling(Parcel &data) const
-    {
-        data.WriteString(deviceId);
-        data.WriteString(deviceName);
-        data.WriteString(deviceType);
-        return true;
-    }
-
-    static DeviceInfo* UnMarshalling(Parcel &data)
-    {
-        auto deviceInfoPtr = new (std::nothrow)DeviceInfo();
-        if (deviceInfoPtr != nullptr) {
-            data.ReadString(deviceInfoPtr->deviceId);
-            data.ReadString(deviceInfoPtr->deviceName);
-            data.ReadString(deviceInfoPtr->deviceType);
-        }
-        return deviceInfoPtr;
-    }
 };
 
 enum class DeviceFilterStrategy {

@@ -25,14 +25,14 @@ namespace OHOS {
 namespace DistributedKv {
 class DataQuery {
 public:
-    KVSTORE_API DataQuery();
+    API_EXPORT DataQuery();
 
-    KVSTORE_API ~DataQuery() = default;
+    API_EXPORT ~DataQuery() = default;
 
     // Reset the query.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& Reset();
+    API_EXPORT DataQuery &Reset();
 
     // Equal to int value.
     // Parameters:
@@ -40,7 +40,7 @@ public:
     //     value: the field value.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& EqualTo(const std::string &field, const int value);
+    API_EXPORT DataQuery &EqualTo(const std::string &field, const int value);
 
     // Equal to long value.
     // Parameters:
@@ -48,7 +48,7 @@ public:
     //     value: the field value.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& EqualTo(const std::string &field, const int64_t value);
+    API_EXPORT DataQuery &EqualTo(const std::string &field, const int64_t value);
 
     // Equal to double value.
     // Parameters:
@@ -56,7 +56,7 @@ public:
     //     value: the field value.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& EqualTo(const std::string &field, const double value);
+    API_EXPORT DataQuery &EqualTo(const std::string &field, const double value);
 
     // Equal to String value.
     // Parameters:
@@ -64,7 +64,7 @@ public:
     //     value: the field value.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& EqualTo(const std::string &field, const std::string &value);
+    API_EXPORT DataQuery &EqualTo(const std::string &field, const std::string &value);
 
     // Equal to boolean value.
     // Parameters:
@@ -72,7 +72,7 @@ public:
     //     value: the field value.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& EqualTo(const std::string &field, const bool value);
+    API_EXPORT DataQuery &EqualTo(const std::string &field, const bool value);
 
     // Not equal to int value.
     // Parameters:
@@ -80,7 +80,7 @@ public:
     //     value: the field value.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& NotEqualTo(const std::string &field, const int value);
+    API_EXPORT DataQuery &NotEqualTo(const std::string &field, const int value);
 
     // Not equal to long value.
     // Parameters:
@@ -88,7 +88,7 @@ public:
     //     value: the field value.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& NotEqualTo(const std::string &field, const int64_t value);
+    API_EXPORT DataQuery &NotEqualTo(const std::string &field, const int64_t value);
 
     // Not equal to double value.
     // Parameters:
@@ -96,7 +96,7 @@ public:
     //     value: the field value.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& NotEqualTo(const std::string &field, const double value);
+    API_EXPORT DataQuery &NotEqualTo(const std::string &field, const double value);
 
     // Not equal to String value.
     // Parameters:
@@ -104,7 +104,7 @@ public:
     //     value: the field value.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& NotEqualTo(const std::string &field, const std::string &value);
+    API_EXPORT DataQuery &NotEqualTo(const std::string &field, const std::string &value);
 
     // Not equal to boolean value.
     // Parameters:
@@ -112,7 +112,7 @@ public:
     //     value: the field value.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& NotEqualTo(const std::string &field, const bool value);
+    API_EXPORT DataQuery &NotEqualTo(const std::string &field, const bool value);
 
     // Greater than int value.
     // Parameters:
@@ -120,7 +120,7 @@ public:
     //     value: the field value.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& GreaterThan(const std::string &field, const int value);
+    API_EXPORT DataQuery &GreaterThan(const std::string &field, const int value);
 
     // Greater than long value.
     // Parameters:
@@ -128,7 +128,7 @@ public:
     //     value: the field value.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& GreaterThan(const std::string &field, const int64_t value);
+    API_EXPORT DataQuery &GreaterThan(const std::string &field, const int64_t value);
 
     // Greater than double value.
     // Parameters:
@@ -136,7 +136,7 @@ public:
     //     value: the field value.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& GreaterThan(const std::string &field, const double value);
+    API_EXPORT DataQuery &GreaterThan(const std::string &field, const double value);
 
     // Greater than String value.
     // Parameters:
@@ -144,7 +144,7 @@ public:
     //     value: the field value.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& GreaterThan(const std::string &field, const std::string &value);
+    API_EXPORT DataQuery &GreaterThan(const std::string &field, const std::string &value);
 
     // Less than int value.
     // Parameters:
@@ -152,7 +152,7 @@ public:
     //     value: the field value.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& LessThan(const std::string &field, const int value);
+    API_EXPORT DataQuery &LessThan(const std::string &field, const int value);
 
     // Less than long value.
     // Parameters:
@@ -160,7 +160,7 @@ public:
     //     value: the field value.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& LessThan(const std::string &field, const int64_t value);
+    API_EXPORT DataQuery &LessThan(const std::string &field, const int64_t value);
 
     // Less than double value.
     // Parameters:
@@ -168,7 +168,7 @@ public:
     //     value: the field value.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& LessThan(const std::string &field, const double value);
+    API_EXPORT DataQuery &LessThan(const std::string &field, const double value);
 
     // Less than String value.
     // Parameters:
@@ -176,7 +176,7 @@ public:
     //     value: the field value.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& LessThan(const std::string &field, const std::string &value);
+    API_EXPORT DataQuery &LessThan(const std::string &field, const std::string &value);
 
     // Greater than or equal to int value.
     // Parameters:
@@ -184,7 +184,7 @@ public:
     //     value: the field value.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& GreaterThanOrEqualTo(const std::string &field, const int value);
+    API_EXPORT DataQuery &GreaterThanOrEqualTo(const std::string &field, const int value);
 
     // Greater than or equal to long value.
     // Parameters:
@@ -192,7 +192,7 @@ public:
     //     value: the field value.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& GreaterThanOrEqualTo(const std::string &field, const int64_t value);
+    API_EXPORT DataQuery &GreaterThanOrEqualTo(const std::string &field, const int64_t value);
 
     // Greater than or equal to double value.
     // Parameters:
@@ -200,7 +200,7 @@ public:
     //     value: the field value.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& GreaterThanOrEqualTo(const std::string &field, const double value);
+    API_EXPORT DataQuery &GreaterThanOrEqualTo(const std::string &field, const double value);
 
     // Greater than or equal to String value.
     // Parameters:
@@ -208,7 +208,7 @@ public:
     //     value: the field value.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& GreaterThanOrEqualTo(const std::string &field, const std::string &value);
+    API_EXPORT DataQuery &GreaterThanOrEqualTo(const std::string &field, const std::string &value);
 
     // Less than or equal to int value.
     // Parameters:
@@ -216,7 +216,7 @@ public:
     //     value: the field value.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& LessThanOrEqualTo(const std::string &field, const int value);
+    API_EXPORT DataQuery &LessThanOrEqualTo(const std::string &field, const int value);
 
     // Less than or equal to long value.
     // Parameters:
@@ -224,7 +224,7 @@ public:
     //     value: the field value.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& LessThanOrEqualTo(const std::string &field, const int64_t value);
+    API_EXPORT DataQuery &LessThanOrEqualTo(const std::string &field, const int64_t value);
 
     // Less than or equal to double value.
     // Parameters:
@@ -232,7 +232,7 @@ public:
     //     value: the field value.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& LessThanOrEqualTo(const std::string &field, const double value);
+    API_EXPORT DataQuery &LessThanOrEqualTo(const std::string &field, const double value);
 
     // Less than or equal to String value.
     // Parameters:
@@ -240,21 +240,21 @@ public:
     //     value: the field value.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& LessThanOrEqualTo(const std::string &field, const std::string &value);
+    API_EXPORT DataQuery &LessThanOrEqualTo(const std::string &field, const std::string &value);
 
     // Is null field value.
     // Parameters:
     //     field: the field name.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& IsNull(const std::string &field);
+    API_EXPORT DataQuery &IsNull(const std::string &field);
 
     // Is not null field value.
     // Parameters:
     //     field: the field name.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& IsNotNull(const std::string &field);
+    API_EXPORT DataQuery &IsNotNull(const std::string &field);
 
     // In int value list.
     // Parameters:
@@ -262,7 +262,7 @@ public:
     //     value: the field value list.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& InInt(const std::string &field, const std::vector<int> &valueList);
+    API_EXPORT DataQuery &InInt(const std::string &field, const std::vector<int> &valueList);
 
     // In long value list.
     // Parameters:
@@ -270,7 +270,7 @@ public:
     //     value: the field value list.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& InLong(const std::string &field, const std::vector<int64_t> &valueList);
+    API_EXPORT DataQuery &InLong(const std::string &field, const std::vector<int64_t> &valueList);
 
     // In Double value list.
     // Parameters:
@@ -278,7 +278,7 @@ public:
     //     value: the field value list.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& InDouble(const std::string &field, const std::vector<double> &valueList);
+    API_EXPORT DataQuery &InDouble(const std::string &field, const std::vector<double> &valueList);
 
     // In String value list.
     // Parameters:
@@ -286,7 +286,7 @@ public:
     //     value: the field value list.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& InString(const std::string &field, const std::vector<std::string> &valueList);
+    API_EXPORT DataQuery &InString(const std::string &field, const std::vector<std::string> &valueList);
 
     // Not in int value list.
     // Parameters:
@@ -294,7 +294,7 @@ public:
     //     value: the field value list.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& NotInInt(const std::string &field, const std::vector<int> &valueList);
+    API_EXPORT DataQuery &NotInInt(const std::string &field, const std::vector<int> &valueList);
 
     // Not in long value list.
     // Parameters:
@@ -302,7 +302,7 @@ public:
     //     value: the field value list.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& NotInLong(const std::string &field, const std::vector<int64_t> &valueList);
+    API_EXPORT DataQuery &NotInLong(const std::string &field, const std::vector<int64_t> &valueList);
 
     // Not in Double value list.
     // Parameters:
@@ -310,7 +310,7 @@ public:
     //     value: the field value list.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& NotInDouble(const std::string &field, const std::vector<double> &valueList);
+    API_EXPORT DataQuery &NotInDouble(const std::string &field, const std::vector<double> &valueList);
 
     // Not in String value list.
     // Parameters:
@@ -318,7 +318,7 @@ public:
     //     value: the field value list.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& NotInString(const std::string &field, const std::vector<std::string> &valueList);
+    API_EXPORT DataQuery &NotInString(const std::string &field, const std::vector<std::string> &valueList);
 
     // Like String value.
     // Parameters:
@@ -326,7 +326,7 @@ public:
     //     value: the field value list.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& Like(const std::string &field, const std::string &value);
+    API_EXPORT DataQuery &Like(const std::string &field, const std::string &value);
 
     // Unlike String value.
     // Parameters:
@@ -334,31 +334,31 @@ public:
     //     value: the field value list.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& Unlike(const std::string &field, const std::string &value);
+    API_EXPORT DataQuery &Unlike(const std::string &field, const std::string &value);
 
     // And operator.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& And();
+    API_EXPORT DataQuery &And();
 
     // Or operator.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& Or();
+    API_EXPORT DataQuery &Or();
 
     // Order by ascent.
     // Parameters:
     //     field: the field name.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& OrderByAsc(const std::string &field);
+    API_EXPORT DataQuery &OrderByAsc(const std::string &field);
 
     // Order by descent.
     // Parameters:
     //     field: the field name.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& OrderByDesc(const std::string &field);
+    API_EXPORT DataQuery &OrderByDesc(const std::string &field);
 
     // Limit result size.
     // Parameters:
@@ -366,50 +366,50 @@ public:
     //     offset: the start position.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& Limit(const int number, const int offset);
+    API_EXPORT DataQuery &Limit(const int number, const int offset);
 
     // Begin group.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& BeginGroup();
+    API_EXPORT DataQuery &BeginGroup();
 
     // End group.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& EndGroup();
+    API_EXPORT DataQuery &EndGroup();
 
     // Select results with specified key prefix.
     // Parameters:
     //     prefix: key prefix.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& KeyPrefix(const std::string &prefix);
+    API_EXPORT DataQuery &KeyPrefix(const std::string &prefix);
 
     // Select results with specified device Identifier.
     // Parameters:
     //     deviceId: device Identifier.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& DeviceId(const std::string &deviceId);
+    API_EXPORT DataQuery &DeviceId(const std::string &deviceId);
 
     // Select results with suggested index.
     // Parameters:
     //     index: suggested index.
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& SetSuggestIndex(const std::string &index);
+    API_EXPORT DataQuery &SetSuggestIndex(const std::string &index);
 
     // Select results with many keys.
     // Parameters:
     //     keys: the vector of keys for query
     // Return:
     //     This Query.
-    KVSTORE_API DataQuery& InKeys(const std::vector<std::string> &keys);
+    API_EXPORT DataQuery &InKeys(const std::vector<std::string> &keys);
 
     // Get string representation
     // Return:
     //     String representation of this query.
-    KVSTORE_API std::string ToString() const;
+    API_EXPORT std::string ToString() const;
 
     // equal to
     static const std::string EQUAL_TO;
@@ -530,20 +530,20 @@ private:
     template<typename T>
     void AppendCommon(const std::string &keyword, const std::string &fieldType, std::string &field, const T &value);
 
-    void AppendCommonString(const std::string &keyword, const std::string &fieldType,
-                            std::string &field, std::string &value);
+    void AppendCommonString(const std::string &keyword, const std::string &fieldType, std::string &field,
+                            std::string &value);
 
-    void AppendCommonBoolean(const std::string &keyword, const std::string &fieldType,
-                             std::string &field, const bool &value);
+    void AppendCommonBoolean(const std::string &keyword, const std::string &fieldType, std::string &field,
+                             const bool &value);
 
     void AppendCommonString(const std::string &keyword, std::string &field, std::string &value);
 
     template<typename T>
-    void AppendCommonList(const std::string &keyword, const std::string &fieldType,
-                          std::string &field, const std::vector<T> &valueList);
+    void AppendCommonList(const std::string &keyword, const std::string &fieldType, std::string &field,
+                          const std::vector<T> &valueList);
 
-    void AppendCommonListString(const std::string &keyword, const std::string &fieldType,
-                                std::string &field, std::vector<std::string> &valueList);
+    void AppendCommonListString(const std::string &keyword, const std::string &fieldType, std::string &field,
+                                std::vector<std::string> &valueList);
 
     void EscapeSpace(std::string &input);
 

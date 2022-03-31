@@ -20,9 +20,9 @@
 
 namespace OHOS {
 namespace DistributedKv {
-class KvStoreDeathRecipient {
+class API_EXPORT KvStoreDeathRecipient {
 public:
-    KVSTORE_API virtual void OnRemoteDied() = 0;
+    virtual void OnRemoteDied() = 0;
 };
 }  // namespace DistributedKv
 }  // namespace OHOS

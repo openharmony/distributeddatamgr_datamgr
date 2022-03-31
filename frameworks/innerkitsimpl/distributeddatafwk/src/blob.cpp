@@ -93,6 +93,11 @@ const std::vector<uint8_t> &Blob::Data() const
     return blob_;
 }
 
+Blob::operator const std::vector<uint8_t> &() const
+{
+    return Data();
+}
+
 size_t Blob::Size() const
 {
     return blob_.size();

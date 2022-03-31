@@ -26,13 +26,11 @@
 
 namespace OHOS {
 namespace DistributedKv {
-class DistributedKvDataManager final {
+class API_EXPORT DistributedKvDataManager final {
 public:
-    KVSTORE_API
-    DistributedKvDataManager();
+    API_EXPORT DistributedKvDataManager();
 
-    KVSTORE_API
-    ~DistributedKvDataManager();
+    API_EXPORT ~DistributedKvDataManager();
 
     // Open kvstore instance with the given storeId, creating it if needed.
     // It is allowed to open the same kvstore concurrently
@@ -49,8 +47,8 @@ public:
     // if storeId is not valid, INVALID_ARGUMENT and nullptr,
     // if appId has no permission, PERMISSION_DENIED and nullptr,
     // otherwise, SUCCESS and the unipue_ptr of kvstore, which client can use to operate kvstore, will be returned.
-    KVSTORE_API Status GetKvStore(const Options &options, const AppId &appId, const StoreId &storeId,
-        std::shared_ptr<KvStore> &kvStore);
+    API_EXPORT Status GetKvStore(const Options &options, const AppId &appId, const StoreId &storeId,
+                                 std::shared_ptr<KvStore> &kvStore);
 
     // Open kvstore instance with the given storeId, creating it if needed.
     // It is allowed to open the same kvstore concurrently
@@ -67,11 +65,11 @@ public:
     // if storeId is not valid, INVALID_ARGUMENT and nullptr,
     // if appId has no permission, PERMISSION_DENIED and nullptr,
     // otherwise, SUCCESS and the unipue_ptr of kvstore, which client can use to operate kvstore, will be returned.
-    KVSTORE_API Status GetSingleKvStore(const Options &options, const AppId &appId, const StoreId &storeId,
-        std::shared_ptr<SingleKvStore> &singleKvStore);
+    API_EXPORT Status GetSingleKvStore(const Options &options, const AppId &appId, const StoreId &storeId,
+                                       std::shared_ptr<SingleKvStore> &singleKvStore);
 
     // get all existed kvstore names.
-    KVSTORE_API Status GetAllKvStoreId(const AppId &appId, std::vector<StoreId> &storeIds);
+    API_EXPORT Status GetAllKvStoreId(const AppId &appId, std::vector<StoreId> &storeIds);
 
     // WARNING: try to close a KvStore while other thread(s) still using it may cause process crash.
     // Disconnect kvstore instance from kvstoreimpl with the given storeId,
@@ -83,7 +81,7 @@ public:
     // Parameters:
     // appId: the name of the application.
     // storeId: the name of the kvstore.
-    KVSTORE_API Status CloseKvStore(const AppId &appId, const StoreId &storeId);
+    API_EXPORT Status CloseKvStore(const AppId &appId, const StoreId &storeId);
 
     // WARNING: try to close a KvStore while other thread(s) still using it may cause process crash.
     //
@@ -96,11 +94,11 @@ public:
     // Parameters:
     // appId: the name of the application.
     // kvStorePtr: the pointer of the kvstore.
-    KVSTORE_API Status CloseKvStore(const AppId &appId, std::shared_ptr<SingleKvStore> &kvStorePtr);
+    API_EXPORT Status CloseKvStore(const AppId &appId, std::shared_ptr<SingleKvStore> &kvStore);
 
     // WARNING: try to close a KvStore while other thread(s) still using it may cause process crash.
     // close all opened kvstores for this appId.
-    KVSTORE_API Status CloseAllKvStore(const AppId &appId);
+    API_EXPORT Status CloseAllKvStore(const AppId &appId);
 
     // delete kvstore file with the given storeId.
     // client should first close all connections to it and then delete it,
@@ -110,15 +108,14 @@ public:
     // Parameters:
     // appId: the name of the application.
     // storeId: the name of the kvstore.
-    KVSTORE_API Status DeleteKvStore(const AppId &appId, const StoreId &storeId);
+    API_EXPORT Status DeleteKvStore(const AppId &appId, const StoreId &storeId);
 
     // delete all kvstore.
-    KVSTORE_API Status DeleteAllKvStore(const AppId &appId);
+    API_EXPORT Status DeleteAllKvStore(const AppId &appId);
 
-    KVSTORE_API void RegisterKvStoreServiceDeathRecipient(std::shared_ptr<KvStoreDeathRecipient> kvStoreDeathRecipient);
+    API_EXPORT void RegisterKvStoreServiceDeathRecipient(std::shared_ptr<KvStoreDeathRecipient> deathRecipient);
 
-    KVSTORE_API
-    void UnRegisterKvStoreServiceDeathRecipient(std::shared_ptr<KvStoreDeathRecipient> kvStoreDeathRecipient);
+    API_EXPORT void UnRegisterKvStoreServiceDeathRecipient(std::shared_ptr<KvStoreDeathRecipient> deathRecipient);
 
     // Subscribe device status change, like online or offline.
     // Client should override AppDeviceChangeListener and register it by this function, observer->OnDeviceChanged
@@ -127,7 +124,7 @@ public:
     //     observer: callback for device status change event.
     // Return:
     //     Status of this subscribe operation.
-    KVSTORE_API Status StartWatchDeviceChange(std::shared_ptr<DeviceStatusChangeListener> observer);
+    API_EXPORT Status StartWatchDeviceChange(std::shared_ptr<DeviceStatusChangeListener> observer);
 
     // Unsubscribe device status change, like online or offline.
     // client should override AppDeviceChangeListener and register it by calling this function, then
@@ -136,7 +133,7 @@ public:
     //     observer: callback for device status change event.
     // Return:
     //     Status of this unsubscribe operation.
-    KVSTORE_API Status StopWatchDeviceChange(std::shared_ptr<DeviceStatusChangeListener> observer);
+    API_EXPORT Status StopWatchDeviceChange(std::shared_ptr<DeviceStatusChangeListener> observer);
 
     // Get all connected devices.
     // Client can use this method to retrieve all devices that have already connected,
@@ -145,7 +142,7 @@ public:
     //     deviceInfoList: list of all connected device will be returned by this parameter.
     // Return:
     //     Status of this get device list operation.
-    KVSTORE_API Status GetDeviceList(std::vector<DeviceInfo> &deviceInfoList, DeviceFilterStrategy strategy);
+    API_EXPORT Status GetDeviceList(std::vector<DeviceInfo> &deviceInfoList, DeviceFilterStrategy strategy);
 
     // Get device.
     // Client can use this method to retrieve local device,
@@ -153,7 +150,7 @@ public:
     //     localDevice: DeviceInfo will be returned by this parameter.
     // Return:
     //     Status of this get device operation.
-    KVSTORE_API Status GetLocalDevice(DeviceInfo &localDevice);
+    API_EXPORT Status GetLocalDevice(DeviceInfo &localDevice);
 };
 }  // namespace DistributedKv
 }  // namespace OHOS

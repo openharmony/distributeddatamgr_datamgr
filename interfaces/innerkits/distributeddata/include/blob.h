@@ -27,74 +27,76 @@ namespace DistributedKv {
 // declared its interface as visible.
 class Blob : public virtual Parcelable {
 public:
-    KVSTORE_API Blob();
+    API_EXPORT Blob();
 
-    KVSTORE_API ~Blob() = default;
+    API_EXPORT ~Blob() = default;
 
     // copy constructor for Blob.
-    KVSTORE_API Blob(const Blob &blob);
-    KVSTORE_API Blob &operator=(const Blob &blob);
+    API_EXPORT Blob(const Blob &blob);
+    API_EXPORT Blob &operator=(const Blob &blob);
 
     // move constructor for Blob.
-    KVSTORE_API Blob(Blob &&blob);
-    KVSTORE_API Blob &operator=(Blob &&blob);
+    API_EXPORT Blob(Blob &&blob);
+    API_EXPORT Blob &operator=(Blob &&blob);
 
     // construct a Blob use std::string.
-    KVSTORE_API Blob(const std::string &str);
+    API_EXPORT Blob(const std::string &str);
 
     // construct a Blob use char pointer and len.
-    KVSTORE_API Blob(const char *str, size_t n);
+    API_EXPORT Blob(const char *str, size_t n);
 
     // construct a Blob use char pointer.
-    KVSTORE_API Blob(const char *str);
+    API_EXPORT Blob(const char *str);
 
     // construct a Blob use std::vector<uint8_t>
-    KVSTORE_API Blob(const std::vector<uint8_t> &bytes);
+    API_EXPORT Blob(const std::vector<uint8_t> &bytes);
 
     // construct a Blob use std::vector<uint8_t>
-    KVSTORE_API Blob(std::vector<uint8_t> &&bytes);
+    API_EXPORT Blob(std::vector<uint8_t> &&bytes);
 
     // Return a reference to the data of the blob.
-    KVSTORE_API const std::vector<uint8_t> &Data() const;
+    API_EXPORT const std::vector<uint8_t> &Data() const;
+
+    API_EXPORT operator const std::vector<uint8_t> &() const;
 
     // Return the length (in bytes) of the referenced data
-    KVSTORE_API size_t Size() const;
+    API_EXPORT size_t Size() const;
 
     // Return the occupied length when write this blob to rawdata
     int RawSize() const;
 
     // Return true if the length of the referenced data is zero
-    KVSTORE_API bool Empty() const;
+    API_EXPORT bool Empty() const;
 
     // Return the the byte in the referenced data.
     // REQUIRES: n < size()
-    KVSTORE_API uint8_t operator[](size_t n) const;
+    API_EXPORT uint8_t operator[](size_t n) const;
 
-    KVSTORE_API bool operator==(const Blob &) const;
+    API_EXPORT bool operator==(const Blob &) const;
 
     // Change this blob to refer to an empty array
-    KVSTORE_API void Clear();
+    API_EXPORT void Clear();
 
     // change vector<uint8_t> to std::string
-    KVSTORE_API std::string ToString() const;
+    API_EXPORT std::string ToString() const;
 
     // comparison.  Returns value:
     //   <  0 if "*this" <  "blob",
     //   == 0 if "*this" == "blob",
     //   >  0 if "*this" >  "blob"
-    KVSTORE_API int Compare(const Blob &blob) const;
+    API_EXPORT int Compare(const Blob &blob) const;
 
     // Return true if "blob" is a prefix of "*this"
-    KVSTORE_API bool StartsWith(const Blob &blob) const;
+    API_EXPORT bool StartsWith(const Blob &blob) const;
 
     // Write a parcelable object to the given parcel.
     // The object position is saved into Parcel if set asRemote_ to
     // true, and this intends to use in kernel data transaction.
     // Returns true being written on success or false if any error occur.
-    KVSTORE_API bool Marshalling(Parcel &parcel) const override;
+    API_EXPORT bool Marshalling(Parcel &parcel) const override;
 
     // get data from the given parcel into this parcelable object.
-    KVSTORE_API static Blob *Unmarshalling(Parcel &parcel);
+    API_EXPORT static Blob *Unmarshalling(Parcel &parcel);
 
     /* write blob size and data to memory buffer. return error when bufferLeftSize not enough. */
     bool WriteToBuffer(uint8_t *&cursorPtr, int &bufferLeftSize) const;

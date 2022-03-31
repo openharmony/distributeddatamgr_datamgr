@@ -44,7 +44,7 @@ int32_t RdbServiceStub::OnRemoteInitNotifier(MessageParcel &data, MessageParcel 
 {
     int32_t error = RDB_ERROR;
     RdbSyncerParam param;
-    if (!DistributedKv::ITypesUtil::UnMarshalling(data, param)) {
+    if (!DistributedKv::ITypesUtil::Unmarshalling(data, param)) {
         ZLOGE("read param failed");
         reply.WriteInt32(RDB_ERROR);
         return RDB_OK;
@@ -68,7 +68,7 @@ int32_t RdbServiceStub::OnRemoteInitNotifier(MessageParcel &data, MessageParcel 
 int32_t RdbServiceStub::OnRemoteSetDistributedTables(MessageParcel &data, MessageParcel &reply)
 {
     RdbSyncerParam param;
-    if (!DistributedKv::ITypesUtil::UnMarshalling(data, param)) {
+    if (!DistributedKv::ITypesUtil::Unmarshalling(data, param)) {
         ZLOGE("read param failed");
         reply.WriteInt32(RDB_ERROR);
         return RDB_OK;
@@ -82,19 +82,19 @@ int32_t RdbServiceStub::OnRemoteSetDistributedTables(MessageParcel &data, Messag
 int32_t RdbServiceStub::OnRemoteDoSync(MessageParcel &data, MessageParcel &reply)
 {
     RdbSyncerParam param;
-    if (!DistributedKv::ITypesUtil::UnMarshalling(data, param)) {
+    if (!DistributedKv::ITypesUtil::Unmarshalling(data, param)) {
         ZLOGE("read param failed");
         reply.WriteInt32(RDB_ERROR);
         return RDB_OK;
     }
     SyncOption option {};
-    if (!DistributedKv::ITypesUtil::UnMarshalling(data, option)) {
+    if (!DistributedKv::ITypesUtil::Unmarshalling(data, option)) {
         ZLOGE("read option failed");
         reply.WriteInt32(RDB_ERROR);
         return RDB_OK;
     }
     RdbPredicates predicates;
-    if (!DistributedKv::ITypesUtil::UnMarshalling(data, predicates)) {
+    if (!DistributedKv::ITypesUtil::Unmarshalling(data, predicates)) {
         ZLOGE("read predicates failed");
         reply.WriteInt32(RDB_ERROR);
         return RDB_OK;
@@ -115,7 +115,7 @@ int32_t RdbServiceStub::OnRemoteDoSync(MessageParcel &data, MessageParcel &reply
 int32_t RdbServiceStub::OnRemoteDoAsync(MessageParcel &data, MessageParcel &reply)
 {
     RdbSyncerParam param;
-    if (!DistributedKv::ITypesUtil::UnMarshalling(data, param)) {
+    if (!DistributedKv::ITypesUtil::Unmarshalling(data, param)) {
         ZLOGE("read param failed");
         reply.WriteInt32(RDB_ERROR);
         return RDB_OK;
@@ -127,13 +127,13 @@ int32_t RdbServiceStub::OnRemoteDoAsync(MessageParcel &data, MessageParcel &repl
         return RDB_OK;
     }
     SyncOption option {};
-    if (!DistributedKv::ITypesUtil::UnMarshalling(data, option)) {
+    if (!DistributedKv::ITypesUtil::Unmarshalling(data, option)) {
         ZLOGE("read option failed");
         reply.WriteInt32(RDB_ERROR);
         return RDB_OK;
     }
     RdbPredicates predicates;
-    if (!DistributedKv::ITypesUtil::UnMarshalling(data, predicates)) {
+    if (!DistributedKv::ITypesUtil::Unmarshalling(data, predicates)) {
         ZLOGE("read predicates failed");
         reply.WriteInt32(RDB_ERROR);
         return RDB_OK;
@@ -146,7 +146,7 @@ int32_t RdbServiceStub::OnRemoteDoAsync(MessageParcel &data, MessageParcel &repl
 int32_t RdbServiceStub::OnRemoteDoSubscribe(MessageParcel &data, MessageParcel &reply)
 {
     RdbSyncerParam param;
-    if (!DistributedKv::ITypesUtil::UnMarshalling(data, param)) {
+    if (!DistributedKv::ITypesUtil::Unmarshalling(data, param)) {
         ZLOGE("read param failed");
         reply.WriteInt32(RDB_ERROR);
         return RDB_OK;
@@ -158,7 +158,7 @@ int32_t RdbServiceStub::OnRemoteDoSubscribe(MessageParcel &data, MessageParcel &
 int32_t RdbServiceStub::OnRemoteDoUnSubscribe(MessageParcel &data, MessageParcel &reply)
 {
     RdbSyncerParam param;
-    if (!DistributedKv::ITypesUtil::UnMarshalling(data, param)) {
+    if (!DistributedKv::ITypesUtil::Unmarshalling(data, param)) {
         ZLOGE("read param failed");
         reply.WriteInt32(RDB_ERROR);
         return RDB_OK;

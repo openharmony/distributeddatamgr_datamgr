@@ -20,11 +20,12 @@
 
 namespace OHOS {
 namespace DistributedKv {
-class DeviceStatusChangeListener {
+class API_EXPORT DeviceStatusChangeListener {
 public:
-    KVSTORE_API virtual ~DeviceStatusChangeListener() {}
-    KVSTORE_API virtual void OnDeviceChanged(const DeviceInfo &info, const DeviceChangeType &type) const = 0;
-    KVSTORE_API virtual DeviceFilterStrategy GetFilterStrategy() const = 0;
+    API_EXPORT virtual ~DeviceStatusChangeListener() {}
+
+    virtual void OnDeviceChanged(const DeviceInfo &info, const DeviceChangeType &type) const = 0;
+    virtual DeviceFilterStrategy GetFilterStrategy() const = 0;
 };
 }  // namespace DistributedKv
 }  // namespace OHOS
