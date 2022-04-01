@@ -137,7 +137,7 @@ bool MetaDataManager::DelMeta(const std::string &key)
     }
 
     DistributedDB::Value data;
-    auto status = metaStore_->Delete({key.begin(), key.end()});
+    auto status = metaStore_->Delete({ key.begin(), key.end() });
     return ((status == DistributedDB::DBStatus::OK) || (status == DistributedDB::DBStatus::NOT_FOUND));
 }
 

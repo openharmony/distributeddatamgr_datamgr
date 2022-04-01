@@ -163,7 +163,7 @@ group("unittest") {
     ":DistributedKvDataManagerTest",
     ":LocalSubscribeStoreTest",
     ":SingleKvStoreClientQueryTest",
-    ":SingleKvStoreClientTest"
+    ":SingleKvStoreClientTest",
   ]
 }
 ###############################################################################
