@@ -37,13 +37,13 @@ public:
     void TearDown();
 
     static DistributedKvDataManager manager;
-    static std::shared_ptr<KvStore> kvStorePtr;  // declare kvstore instance.
+    static std::shared_ptr<SingleKvStore> kvStore;  // declare kvstore instance.
     static Status statusGetKvStore;
     static AppId appId;
     static StoreId storeId;
     static int usleepTime;
 };
-std::shared_ptr<KvStore> LocalSubscribeStoreTest::kvStorePtr = nullptr;
+std::shared_ptr<SingleKvStore> LocalSubscribeStoreTest::kvStore = nullptr;
 Status LocalSubscribeStoreTest::statusGetKvStore = Status::ERROR;
 DistributedKvDataManager LocalSubscribeStoreTest::manager;
 AppId LocalSubscribeStoreTest::appId;
@@ -55,20 +55,28 @@ void LocalSubscribeStoreTest::SetUpTestCase(void)
     options.createIfMissing = true;
     options.encrypt = false;  // not supported yet.
     options.autoSync = true;  // not supported yet.
-    options.kvStoreType = KvStoreType::MULTI_VERSION;
+    options.kvStoreType = KvStoreType::SINGLE_VERSION;
 
     appId.appId = "odmf";         // define app name.
     storeId.storeId = "student";  // define kvstore(database) name
     manager.DeleteKvStore(appId, storeId);
     // [create and] open and initialize kvstore instance.
-    statusGetKvStore = manager.GetKvStore(options, appId, storeId, kvStorePtr);
+    statusGetKvStore = manager.GetSingleKvStore(options, appId, storeId, kvStore);
 }
 
 void LocalSubscribeStoreTest::TearDownTestCase(void)
-{}
+{
+    manager.CloseKvStore(appId, kvStore);
+    kvStore = nullptr;
+    manager.DeleteKvStore(appId, storeId);
+}
 
 void LocalSubscribeStoreTest::SetUp(void)
-{}
+{
+    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
+    EXPECT_NE(nullptr, kvStore) << "kvStorePtr is nullptr";
+    kvStore->Clear();
+}
 
 void LocalSubscribeStoreTest::TearDown(void)
 {}
@@ -116,24 +124,9 @@ void KvStoreObserverUnitTest::OnChange(const ChangeNotification &changeNotificat
 {
     ZLOGD("begin.");
     callCount_++;
-    const auto &insert = changeNotification.GetInsertEntries();
-    insertEntries_.clear();
-    for (const auto &entry : insert) {
-        insertEntries_.push_back(entry);
-    }
-
-    const auto &update = changeNotification.GetUpdateEntries();
-    updateEntries_.clear();
-    for (const auto &entry : update) {
-        updateEntries_.push_back(entry);
-    }
-
-    const auto &del = changeNotification.GetDeleteEntries();
-    deleteEntries_.clear();
-    for (const auto &entry : del) {
-        deleteEntries_.push_back(entry);
-    }
-
+    insertEntries_ = changeNotification.GetInsertEntries();
+    updateEntries_ = changeNotification.GetUpdateEntries();
+    deleteEntries_ = changeNotification.GetDeleteEntries();
     changeNotification.GetDeviceId();
     isClear_ = changeNotification.IsClear();
 }
@@ -163,18 +156,15 @@ uint64_t KvStoreObserverUnitTest::GetCallCount() const
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore001, TestSize.Level1)
 {
     ZLOGI("KvStoreDdmSubscribeKvStore001 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 0);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
     observer = nullptr;
 }
@@ -189,12 +179,9 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore001, TestSize.Level1
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore002, TestSize.Level1)
 {
     ZLOGI("KvStoreDdmSubscribeKvStore002 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
     std::shared_ptr<KvStoreObserverUnitTest> observer = nullptr;
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::INVALID_ARGUMENT, status) << "SubscribeKvStore return wrong status";
 }
 
@@ -208,25 +195,21 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore002, TestSize.Level1
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore003, TestSize.Level1)
 {
     ZLOGI("KvStoreDdmSubscribeKvStore003 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
-
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
     Key key = "Id1";
     Value value = "subscribe";
-    status = kvStorePtr->Put(key, value);  // insert or update key-value
+    status = kvStore->Put(key, value);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 1);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
     observer = nullptr;
 }
@@ -241,29 +224,25 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore003, TestSize.Level1
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore004, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStore004 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
-
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
-    status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::STORE_ALREADY_SUBSCRIBE, status) << "SubscribeKvStore return wrong status";
-    status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::STORE_ALREADY_SUBSCRIBE, status) << "SubscribeKvStore return wrong status";
 
     Key key = "Id1";
     Value value = "subscribe";
-    status = kvStorePtr->Put(key, value);  // insert or update key-value
+    status = kvStore->Put(key, value);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 1);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -277,10 +256,6 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore004, TestSize.Level2
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore005, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStore005 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
-
     std::shared_ptr<KvStoreObserverUnitTest> observer1 = std::make_shared<KvStoreObserverUnitTest>();
     observer1->ResetToZero();
     std::shared_ptr<KvStoreObserverUnitTest> observer2 = std::make_shared<KvStoreObserverUnitTest>();
@@ -289,27 +264,27 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore005, TestSize.Level2
     observer3->ResetToZero();
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer1);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer1);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore failed, wrong status";
-    status = kvStorePtr->SubscribeKvStore(subscribeType, observer2);
+    status = kvStore->SubscribeKvStore(subscribeType, observer2);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore failed, wrong status";
-    status = kvStorePtr->SubscribeKvStore(subscribeType, observer3);
+    status = kvStore->SubscribeKvStore(subscribeType, observer3);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore failed, wrong status";
 
     Key key = "Id1";
     Value value = "subscribe";
-    status = kvStorePtr->Put(key, value);  // insert or update key-value
+    status = kvStore->Put(key, value);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "Putting data to KvStore failed, wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer1->GetCallCount()), 1);
     EXPECT_EQ(static_cast<int>(observer2->GetCallCount()), 1);
     EXPECT_EQ(static_cast<int>(observer3->GetCallCount()), 1);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer1);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer1);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer2);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer2);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer3);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer3);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -323,45 +298,41 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore005, TestSize.Level2
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore006, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStore006 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
-
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
     Key key1 = "Id1";
     Value value1 = "subscribe";
-    status = kvStorePtr->Put(key1, value1);  // insert or update key-value
+    status = kvStore->Put(key1, value1);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 1);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 
     Key key2 = "Id2";
     Value value2 = "subscribe";
-    status = kvStorePtr->Put(key2, value2);  // insert or update key-value
+    status = kvStore->Put(key2, value2);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 1);
 
-    kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 1);
     Key key3 = "Id3";
     Value value3 = "subscribe";
-    status = kvStorePtr->Put(key3, value3);  // insert or update key-value
+    status = kvStore->Put(key3, value3);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 2);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -375,36 +346,32 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore006, TestSize.Level2
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore007, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStore007 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
-
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
     Key key1 = "Id1";
     Value value1 = "subscribe";
-    status = kvStorePtr->Put(key1, value1);  // insert or update key-value
+    status = kvStore->Put(key1, value1);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
 
     Key key2 = "Id2";
     Value value2 = "subscribe";
-    status = kvStorePtr->Put(key2, value2);  // insert or update key-value
+    status = kvStore->Put(key2, value2);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
 
     Key key3 = "Id3";
     Value value3 = "subscribe";
-    status = kvStorePtr->Put(key3, value3);  // insert or update key-value
+    status = kvStore->Put(key3, value3);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
 
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 3);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -418,36 +385,32 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore007, TestSize.Level2
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore008, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStore008 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
-
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
     Key key1 = "Id1";
     Value value1 = "subscribe";
-    status = kvStorePtr->Put(key1, value1);  // insert or update key-value
+    status = kvStore->Put(key1, value1);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
 
     Key key2 = "Id2";
     Value value2 = "subscribe";
-    status = kvStorePtr->Put(key2, value2);  // insert or update key-value
+    status = kvStore->Put(key2, value2);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
 
     Key key3 = "Id1";
     Value value3 = "subscribe03";
-    status = kvStorePtr->Put(key3, value3);  // insert or update key-value
+    status = kvStore->Put(key3, value3);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
 
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 3);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -461,15 +424,11 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore008, TestSize.Level2
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore009, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStore009 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
-
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
     // before update.
@@ -494,14 +453,14 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore009, TestSize.Level2
     entries2.push_back(entry4);
     entries2.push_back(entry5);
 
-    status = kvStorePtr->PutBatch(entries1);
+    status = kvStore->PutBatch(entries1);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
-    status = kvStorePtr->PutBatch(entries2);
+    status = kvStore->PutBatch(entries2);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
     usleep(1000000);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 2);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -515,15 +474,11 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore009, TestSize.Level2
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore010, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStore010 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
-
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
     // before update.
@@ -548,14 +503,14 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore010, TestSize.Level2
     entries2.push_back(entry4);
     entries2.push_back(entry5);
 
-    status = kvStorePtr->PutBatch(entries1);
+    status = kvStore->PutBatch(entries1);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
-    status = kvStorePtr->PutBatch(entries2);
+    status = kvStore->PutBatch(entries2);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 2);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -569,9 +524,6 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore010, TestSize.Level2
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore011, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStore011 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
@@ -587,18 +539,18 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore011, TestSize.Level2
     entries.push_back(entry2);
     entries.push_back(entry3);
 
-    Status status = kvStorePtr->PutBatch(entries);
+    Status status = kvStore->PutBatch(entries);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
-    status = kvStorePtr->Delete("Id1");
+    status = kvStore->Delete("Id1");
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore Delete data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 1);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -612,9 +564,6 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore011, TestSize.Level2
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore012, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStore012 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
@@ -630,18 +579,18 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore012, TestSize.Level2
     entries.push_back(entry2);
     entries.push_back(entry3);
 
-    Status status = kvStorePtr->PutBatch(entries);
+    Status status = kvStore->PutBatch(entries);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
-    status = kvStorePtr->Delete("Id4");
+    status = kvStore->Delete("Id4");
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore Delete data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 0);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -655,9 +604,6 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore012, TestSize.Level2
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore013, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStore013 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
@@ -673,18 +619,18 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore013, TestSize.Level2
     entries.push_back(entry2);
     entries.push_back(entry3);
 
-    Status status = kvStorePtr->PutBatch(entries);
+    Status status = kvStore->PutBatch(entries);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
-    status = kvStorePtr->Clear();
+    status = kvStore->Clear();
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore Clear data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 1);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -698,21 +644,18 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore013, TestSize.Level2
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore014, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStore014 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
-    status = kvStorePtr->Clear();
+    status = kvStore->Clear();
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore Clear data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 1);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -726,9 +669,6 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore014, TestSize.Level2
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore015, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStore015 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
@@ -748,19 +688,19 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore015, TestSize.Level2
     keys.push_back("Id1");
     keys.push_back("Id2");
 
-    Status status = kvStorePtr->PutBatch(entries);
+    Status status = kvStore->PutBatch(entries);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
-    status = kvStorePtr->DeleteBatch(keys);
+    status = kvStore->DeleteBatch(keys);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore DeleteBatch data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 1);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -774,9 +714,6 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore015, TestSize.Level2
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore016, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStore016 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
@@ -796,19 +733,19 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore016, TestSize.Level2
     keys.push_back("Id4");
     keys.push_back("Id5");
 
-    Status status = kvStorePtr->PutBatch(entries);
+    Status status = kvStore->PutBatch(entries);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
-    status = kvStorePtr->DeleteBatch(keys);
+    status = kvStore->DeleteBatch(keys);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore DeleteBatch data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 0);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -822,19 +759,16 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore016, TestSize.Level2
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore020, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStore020 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::STORE_NOT_SUBSCRIBE, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -848,20 +782,16 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore020, TestSize.Level2
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification001, TestSize.Level1)
 {
     ZLOGI("KvStoreDdmSubscribeKvStoreNotification001 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
-
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
     Key key = "Id1";
     Value value = "subscribe";
-    status = kvStorePtr->Put(key, value);  // insert or update key-value
+    status = kvStore->Put(key, value);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 1);
@@ -871,7 +801,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification001, Tes
     EXPECT_EQ("subscribe", observer->insertEntries_[0].value.ToString());
     ZLOGD("kvstore_ddm_subscribekvstore_003 size:%zu.", observer->insertEntries_.size());
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -885,24 +815,20 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification001, Tes
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification002, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStoreNotification002 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
-
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
-    status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::STORE_ALREADY_SUBSCRIBE, status) << "SubscribeKvStore return wrong status";
-    status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::STORE_ALREADY_SUBSCRIBE, status) << "SubscribeKvStore return wrong status";
 
     Key key = "Id1";
     Value value = "subscribe";
-    status = kvStorePtr->Put(key, value);  // insert or update key-value
+    status = kvStore->Put(key, value);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 1);
@@ -910,7 +836,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification002, Tes
     EXPECT_EQ("Id1", observer->insertEntries_[0].key.ToString());
     EXPECT_EQ("subscribe", observer->insertEntries_[0].value.ToString());
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -924,10 +850,6 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification002, Tes
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification003, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStoreNotification003 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
-
     std::shared_ptr<KvStoreObserverUnitTest> observer1 = std::make_shared<KvStoreObserverUnitTest>();
     observer1->ResetToZero();
     std::shared_ptr<KvStoreObserverUnitTest> observer2 = std::make_shared<KvStoreObserverUnitTest>();
@@ -936,16 +858,16 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification003, Tes
     observer3->ResetToZero();
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer1);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer1);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
-    status = kvStorePtr->SubscribeKvStore(subscribeType, observer2);
+    status = kvStore->SubscribeKvStore(subscribeType, observer2);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
-    status = kvStorePtr->SubscribeKvStore(subscribeType, observer3);
+    status = kvStore->SubscribeKvStore(subscribeType, observer3);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
     Key key = "Id1";
     Value value = "subscribe";
-    status = kvStorePtr->Put(key, value);  // insert or update key-value
+    status = kvStore->Put(key, value);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer1->GetCallCount()), 1);
@@ -963,11 +885,11 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification003, Tes
     EXPECT_EQ("Id1", observer3->insertEntries_[0].key.ToString());
     EXPECT_EQ("subscribe", observer3->insertEntries_[0].value.ToString());
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer1);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer1);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer2);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer2);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer3);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer3);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -981,20 +903,16 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification003, Tes
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification004, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStoreNotification004 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
-
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
     Key key1 = "Id1";
     Value value1 = "subscribe";
-    status = kvStorePtr->Put(key1, value1);  // insert or update key-value
+    status = kvStore->Put(key1, value1);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 1);
@@ -1002,12 +920,12 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification004, Tes
     EXPECT_EQ("Id1", observer->insertEntries_[0].key.ToString());
     EXPECT_EQ("subscribe", observer->insertEntries_[0].value.ToString());
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 
     Key key2 = "Id2";
     Value value2 = "subscribe";
-    status = kvStorePtr->Put(key2, value2);  // insert or update key-value
+    status = kvStore->Put(key2, value2);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 1);
@@ -1015,12 +933,12 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification004, Tes
     EXPECT_EQ("Id1", observer->insertEntries_[0].key.ToString());
     EXPECT_EQ("subscribe", observer->insertEntries_[0].value.ToString());
 
-    kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 1);
     Key key3 = "Id3";
     Value value3 = "subscribe";
-    status = kvStorePtr->Put(key3, value3);  // insert or update key-value
+    status = kvStore->Put(key3, value3);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 2);
@@ -1028,7 +946,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification004, Tes
     EXPECT_EQ("Id3", observer->insertEntries_[0].key.ToString());
     EXPECT_EQ("subscribe", observer->insertEntries_[0].value.ToString());
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -1042,20 +960,16 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification004, Tes
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification005, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStoreNotification005 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
-
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
     Key key1 = "Id1";
     Value value1 = "subscribe";
-    status = kvStorePtr->Put(key1, value1);  // insert or update key-value
+    status = kvStore->Put(key1, value1);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->insertEntries_.size()), 1);
@@ -1064,7 +978,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification005, Tes
 
     Key key2 = "Id2";
     Value value2 = "subscribe";
-    status = kvStorePtr->Put(key2, value2);  // insert or update key-value
+    status = kvStore->Put(key2, value2);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->insertEntries_.size()), 1);
@@ -1073,7 +987,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification005, Tes
 
     Key key3 = "Id3";
     Value value3 = "subscribe";
-    status = kvStorePtr->Put(key3, value3);  // insert or update key-value
+    status = kvStore->Put(key3, value3);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->insertEntries_.size()), 1);
@@ -1083,7 +997,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification005, Tes
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 3);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -1097,20 +1011,16 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification005, Tes
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification006, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStoreNotification006 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
-
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
     Key key1 = "Id1";
     Value value1 = "subscribe";
-    status = kvStorePtr->Put(key1, value1);  // insert or update key-value
+    status = kvStore->Put(key1, value1);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->insertEntries_.size()), 1);
@@ -1119,7 +1029,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification006, Tes
 
     Key key2 = "Id1";
     Value value2 = "subscribe";
-    status = kvStorePtr->Put(key2, value2);  // insert or update key-value
+    status = kvStore->Put(key2, value2);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->updateEntries_.size()), 1);
@@ -1128,7 +1038,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification006, Tes
 
     Key key3 = "Id1";
     Value value3 = "subscribe";
-    status = kvStorePtr->Put(key3, value3);  // insert or update key-value
+    status = kvStore->Put(key3, value3);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->updateEntries_.size()), 1);
@@ -1138,7 +1048,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification006, Tes
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 3);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -1152,30 +1062,26 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification006, Tes
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification007, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStoreNotification007 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
-
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
     Key key1 = "Id1";
     Value value1 = "subscribe";
-    Status status = kvStorePtr->Put(key1, value1);  // insert or update key-value
+    Status status = kvStore->Put(key1, value1);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
 
     Key key2 = "Id2";
     Value value2 = "subscribe";
-    status = kvStorePtr->Put(key2, value2);  // insert or update key-value
+    status = kvStore->Put(key2, value2);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
     Key key3 = "Id1";
     Value value3 = "subscribe03";
-    status = kvStorePtr->Put(key3, value3);  // insert or update key-value
+    status = kvStore->Put(key3, value3);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
 
     usleep(USLEEP_TIME);
@@ -1184,7 +1090,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification007, Tes
     EXPECT_EQ("Id1", observer->updateEntries_[0].key.ToString());
     EXPECT_EQ("subscribe03", observer->updateEntries_[0].value.ToString());
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -1198,10 +1104,6 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification007, Tes
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification008, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStoreNotification008 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
-
     std::vector<Entry> entries;
     Entry entry1, entry2, entry3;
 
@@ -1215,13 +1117,13 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification008, Tes
     entries.push_back(entry2);
     entries.push_back(entry3);
 
-    Status status = kvStorePtr->PutBatch(entries);
+    Status status = kvStore->PutBatch(entries);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
 
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
     entries.clear();
     entry1.key = "Id1";
@@ -1230,7 +1132,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification008, Tes
     entry2.value = "subscribe_modify";
     entries.push_back(entry1);
     entries.push_back(entry2);
-    status = kvStorePtr->PutBatch(entries);
+    status = kvStore->PutBatch(entries);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
 
     usleep(USLEEP_TIME);
@@ -1241,7 +1143,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification008, Tes
     EXPECT_EQ("Id2", observer->updateEntries_[1].key.ToString());
     EXPECT_EQ("subscribe_modify", observer->updateEntries_[1].value.ToString());
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -1255,15 +1157,11 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification008, Tes
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification009, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStoreNotification009 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
-
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
     std::vector<Entry> entries;
@@ -1279,7 +1177,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification009, Tes
     entries.push_back(entry2);
     entries.push_back(entry3);
 
-    status = kvStorePtr->PutBatch(entries);
+    status = kvStore->PutBatch(entries);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 1);
@@ -1291,7 +1189,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification009, Tes
     EXPECT_EQ("Id3", observer->insertEntries_[2].key.ToString());
     EXPECT_EQ("subscribe", observer->insertEntries_[2].value.ToString());
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -1305,15 +1203,11 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification009, Tes
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification010, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStoreNotification010 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
-
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
     std::vector<Entry> entries;
@@ -1329,7 +1223,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification010, Tes
     entries.push_back(entry2);
     entries.push_back(entry3);
 
-    status = kvStorePtr->PutBatch(entries);
+    status = kvStore->PutBatch(entries);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 1);
@@ -1341,7 +1235,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification010, Tes
     EXPECT_EQ(static_cast<int>(observer->updateEntries_.size()), 0);
     EXPECT_EQ(static_cast<int>(observer->deleteEntries_.size()), 0);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -1355,15 +1249,11 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification010, Tes
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification011, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStoreNotification011 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
-
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
     std::vector<Entry> entries;
@@ -1379,7 +1269,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification011, Tes
     entries.push_back(entry2);
     entries.push_back(entry3);
 
-    status = kvStorePtr->PutBatch(entries);
+    status = kvStore->PutBatch(entries);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 1);
@@ -1389,7 +1279,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification011, Tes
     EXPECT_EQ(static_cast<int>(observer->updateEntries_.size()), 0);
     EXPECT_EQ(static_cast<int>(observer->deleteEntries_.size()), 0);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -1403,15 +1293,11 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification011, Tes
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification012, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStoreNotification012 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
-
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
     std::vector<Entry> entries1;
@@ -1436,7 +1322,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification012, Tes
     entries2.push_back(entry4);
     entries2.push_back(entry5);
 
-    status = kvStorePtr->PutBatch(entries1);
+    status = kvStore->PutBatch(entries1);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->insertEntries_.size()), 3);
@@ -1447,7 +1333,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification012, Tes
     EXPECT_EQ("Id3", observer->insertEntries_[2].key.ToString());
     EXPECT_EQ("subscribe", observer->insertEntries_[2].value.ToString());
 
-    status = kvStorePtr->PutBatch(entries2);
+    status = kvStore->PutBatch(entries2);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->insertEntries_.size()), 2);
@@ -1458,7 +1344,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification012, Tes
 
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 2);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -1472,15 +1358,11 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification012, Tes
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification013, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStoreNotification013 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
-
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
     std::vector<Entry> entries1;
@@ -1505,7 +1387,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification013, Tes
     entries2.push_back(entry4);
     entries2.push_back(entry5);
 
-    status = kvStorePtr->PutBatch(entries1);
+    status = kvStore->PutBatch(entries1);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->insertEntries_.size()), 3);
@@ -1516,7 +1398,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification013, Tes
     EXPECT_EQ("Id3", observer->insertEntries_[2].key.ToString());
     EXPECT_EQ("subscribe", observer->insertEntries_[2].value.ToString());
 
-    status = kvStorePtr->PutBatch(entries2);
+    status = kvStore->PutBatch(entries2);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->updateEntries_.size()), 1);
@@ -1528,7 +1410,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification013, Tes
 
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 2);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -1542,15 +1424,11 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification013, Tes
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification014, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStoreNotification014 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
-
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
     std::vector<Entry> entries1;
@@ -1575,7 +1453,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification014, Tes
     entries2.push_back(entry4);
     entries2.push_back(entry5);
 
-    status = kvStorePtr->PutBatch(entries1);
+    status = kvStore->PutBatch(entries1);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->insertEntries_.size()), 3);
@@ -1586,7 +1464,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification014, Tes
     EXPECT_EQ("Id3", observer->insertEntries_[2].key.ToString());
     EXPECT_EQ("subscribe", observer->insertEntries_[2].value.ToString());
 
-    status = kvStorePtr->PutBatch(entries2);
+    status = kvStore->PutBatch(entries2);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->updateEntries_.size()), 2);
@@ -1597,7 +1475,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification014, Tes
 
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 2);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -1611,15 +1489,11 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification014, Tes
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification015, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStoreNotification015 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
-
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
     std::vector<Entry> entries1;
@@ -1644,7 +1518,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification015, Tes
     entries2.push_back(entry4);
     entries2.push_back(entry5);
 
-    status = kvStorePtr->PutBatch(entries1);
+    status = kvStore->PutBatch(entries1);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->updateEntries_.size()), 0);
@@ -1655,7 +1529,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification015, Tes
     EXPECT_EQ("Id3", observer->insertEntries_[1].key.ToString());
     EXPECT_EQ("subscribe", observer->insertEntries_[1].value.ToString());
 
-    status = kvStorePtr->PutBatch(entries2);
+    status = kvStore->PutBatch(entries2);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->updateEntries_.size()), 1);
@@ -1667,7 +1541,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification015, Tes
 
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 2);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -1681,15 +1555,11 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification015, Tes
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification016, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStoreNotification016 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
-
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
     const int ENTRIES_MAX_LEN = 100;
@@ -1701,14 +1571,14 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification016, Tes
         entries.push_back(entry);
     }
 
-    status = kvStorePtr->PutBatch(entries);
+    status = kvStore->PutBatch(entries);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
     usleep(USLEEP_TIME);
 
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 1);
     EXPECT_EQ(static_cast<int>(observer->insertEntries_.size()), 100);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -1722,9 +1592,6 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification016, Tes
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification017, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStoreNotification017 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
@@ -1740,13 +1607,13 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification017, Tes
     entries.push_back(entry2);
     entries.push_back(entry3);
 
-    Status status = kvStorePtr->PutBatch(entries);
+    Status status = kvStore->PutBatch(entries);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
-    status = kvStorePtr->Delete("Id1");
+    status = kvStore->Delete("Id1");
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore Delete data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 1);
@@ -1754,7 +1621,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification017, Tes
     EXPECT_EQ("Id1", observer->deleteEntries_[0].key.ToString());
     EXPECT_EQ("subscribe", observer->deleteEntries_[0].value.ToString());
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -1768,9 +1635,6 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification017, Tes
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification018, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStoreNotification018 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
@@ -1786,19 +1650,19 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification018, Tes
     entries.push_back(entry2);
     entries.push_back(entry3);
 
-    Status status = kvStorePtr->PutBatch(entries);
+    Status status = kvStore->PutBatch(entries);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
-    status = kvStorePtr->Delete("Id4");
+    status = kvStore->Delete("Id4");
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore Delete data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 0);
     EXPECT_EQ(static_cast<int>(observer->deleteEntries_.size()), 0);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -1812,9 +1676,6 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification018, Tes
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification019, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStoreNotification019 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
@@ -1830,13 +1691,13 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification019, Tes
     entries.push_back(entry2);
     entries.push_back(entry3);
 
-    Status status = kvStorePtr->PutBatch(entries);
+    Status status = kvStore->PutBatch(entries);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
-    status = kvStorePtr->Delete("Id1");
+    status = kvStore->Delete("Id1");
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore Delete data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 1);
@@ -1844,13 +1705,13 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification019, Tes
     EXPECT_EQ("Id1", observer->deleteEntries_[0].key.ToString());
     EXPECT_EQ("subscribe", observer->deleteEntries_[0].value.ToString());
 
-    status = kvStorePtr->Delete("Id1");
+    status = kvStore->Delete("Id1");
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore Delete data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 1);
     EXPECT_EQ(static_cast<int>(observer->deleteEntries_.size()), 1); // not callback so not clear
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -1864,9 +1725,6 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification019, Tes
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification020, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStoreNotification020 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
@@ -1886,14 +1744,14 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification020, Tes
     keys.push_back("Id1");
     keys.push_back("Id2");
 
-    Status status = kvStorePtr->PutBatch(entries);
+    Status status = kvStore->PutBatch(entries);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
-    status = kvStorePtr->DeleteBatch(keys);
+    status = kvStore->DeleteBatch(keys);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore DeleteBatch data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 1);
@@ -1903,7 +1761,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification020, Tes
     EXPECT_EQ("Id2", observer->deleteEntries_[1].key.ToString());
     EXPECT_EQ("subscribe", observer->deleteEntries_[1].value.ToString());
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -1917,9 +1775,6 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification020, Tes
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification021, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStoreNotification021 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
@@ -1939,20 +1794,20 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification021, Tes
     keys.push_back("Id4");
     keys.push_back("Id5");
 
-    Status status = kvStorePtr->PutBatch(entries);
+    Status status = kvStore->PutBatch(entries);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
-    status = kvStorePtr->DeleteBatch(keys);
+    status = kvStore->DeleteBatch(keys);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore DeleteBatch data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 0);
     EXPECT_EQ(static_cast<int>(observer->deleteEntries_.size()), 0);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -1967,9 +1822,6 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification021, Tes
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification022, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStoreNotification022 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
@@ -1989,14 +1841,14 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification022, Tes
     keys.push_back("Id1");
     keys.push_back("Id2");
 
-    Status status = kvStorePtr->PutBatch(entries);
+    Status status = kvStore->PutBatch(entries);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
-    status = kvStorePtr->DeleteBatch(keys);
+    status = kvStore->DeleteBatch(keys);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore DeleteBatch data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 1);
@@ -2006,13 +1858,13 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification022, Tes
     EXPECT_EQ("Id2", observer->deleteEntries_[1].key.ToString());
     EXPECT_EQ("subscribe", observer->deleteEntries_[1].value.ToString());
 
-    status = kvStorePtr->DeleteBatch(keys);
+    status = kvStore->DeleteBatch(keys);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore DeleteBatch data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 1);
     EXPECT_EQ(static_cast<int>(observer->deleteEntries_.size()), 2); // not callback so not clear
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -2026,14 +1878,11 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification022, Tes
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification023, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStoreNotification023 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
     Key key1 = "Id1";
@@ -2055,14 +1904,14 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification023, Tes
     keys.push_back("Id2");
     keys.push_back("Id3");
 
-    kvStorePtr->Clear();
-    status = kvStorePtr->Put(key1, value1);  // insert or update key-value
+    kvStore->Clear();
+    status = kvStore->Put(key1, value1);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
-    status = kvStorePtr->PutBatch(entries);
+    status = kvStore->PutBatch(entries);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
-    status = kvStorePtr->Delete(key1);
+    status = kvStore->Delete(key1);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore delete data return wrong status";
-    status = kvStorePtr->DeleteBatch(keys);
+    status = kvStore->DeleteBatch(keys);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore DeleteBatch data return wrong status";
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 5);
@@ -2075,7 +1924,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification023, Tes
     EXPECT_EQ(static_cast<int>(observer->updateEntries_.size()), 0);
     EXPECT_EQ(static_cast<int>(observer->insertEntries_.size()), 0);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -2090,13 +1939,13 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification024, Tes
 {
     ZLOGI("KvStoreDdmSubscribeKvStoreNotification024 begin.");
     EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
+    EXPECT_NE(nullptr, kvStore) << "kvStorePtr is nullptr";
+    kvStore->Clear();
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
     Key key1 = "Id1";
@@ -2118,24 +1967,24 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification024, Tes
     keys.push_back("Id2");
     keys.push_back("Id3");
 
-    status = kvStorePtr->StartTransaction();
+    status = kvStore->StartTransaction();
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore startTransaction return wrong status";
-    kvStorePtr->Clear();
-    status = kvStorePtr->Put(key1, value1);  // insert or update key-value
+    kvStore->Clear();
+    status = kvStore->Put(key1, value1);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
-    status = kvStorePtr->PutBatch(entries);
+    status = kvStore->PutBatch(entries);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
-    status = kvStorePtr->Delete(key1);
+    status = kvStore->Delete(key1);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore delete data return wrong status";
-    status = kvStorePtr->DeleteBatch(keys);
+    status = kvStore->DeleteBatch(keys);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore DeleteBatch data return wrong status";
-    status = kvStorePtr->Commit();
+    status = kvStore->Commit();
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore Commit return wrong status";
 
     usleep(USLEEP_TIME);
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 1);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 
@@ -2149,14 +1998,11 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification024, Tes
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification025, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStoreNotification025 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
     Key key1 = "Id1";
@@ -2178,18 +2024,18 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification025, Tes
     keys.push_back("Id2");
     keys.push_back("Id3");
 
-    status = kvStorePtr->StartTransaction();
+    status = kvStore->StartTransaction();
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore startTransaction return wrong status";
-    kvStorePtr->Clear();
-    status = kvStorePtr->Put(key1, value1);  // insert or update key-value
+    kvStore->Clear();
+    status = kvStore->Put(key1, value1);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
-    status = kvStorePtr->PutBatch(entries);
+    status = kvStore->PutBatch(entries);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
-    status = kvStorePtr->Delete(key1);
+    status = kvStore->Delete(key1);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore delete data return wrong status";
-    status = kvStorePtr->DeleteBatch(keys);
+    status = kvStore->DeleteBatch(keys);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore DeleteBatch data return wrong status";
-    status = kvStorePtr->Rollback();
+    status = kvStore->Rollback();
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore Commit return wrong status";
 
     usleep(USLEEP_TIME);
@@ -2198,7 +2044,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification025, Tes
     EXPECT_EQ(static_cast<int>(observer->updateEntries_.size()), 0);
     EXPECT_EQ(static_cast<int>(observer->deleteEntries_.size()), 0);
 
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
     observer = nullptr;
 }
@@ -2213,15 +2059,11 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification025, Tes
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification026, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStoreNotification026 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStorePtr) << "kvStorePtr is nullptr";
-    kvStorePtr->Clear();
-
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
-    Status status = kvStorePtr->SubscribeKvStore(subscribeType, observer);
+    Status status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
 
     std::vector<Entry> entries;
@@ -2258,7 +2100,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification026, Tes
     entries.push_back(entry3);
     entries.push_back(entry4);
 
-    status = kvStorePtr->PutBatch(entries);
+    status = kvStore->PutBatch(entries);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
 
     usleep(USLEEP_TIME);
@@ -2281,7 +2123,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification026, Tes
     updateEntries.push_back(entry5);
     updateEntries.push_back(entry6);
     updateEntries.push_back(entry7);
-    status = kvStorePtr->PutBatch(updateEntries);
+    status = kvStore->PutBatch(updateEntries);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putBatch update data return wrong status";
 
     usleep(USLEEP_TIME);
@@ -2292,14 +2134,14 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification026, Tes
     EXPECT_EQ("SingleKvStoreDdmPutBatch006_4", observer->updateEntries_[2].key.ToString());
     EXPECT_EQ(false, observer->isClear_);
 
-    status = kvStorePtr->Delete("SingleKvStoreDdmPutBatch006_3");
+    status = kvStore->Delete("SingleKvStoreDdmPutBatch006_3");
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore delete data return wrong status";
     usleep(1000000);
     EXPECT_EQ(static_cast<int>(observer->deleteEntries_.size()), 1);
     EXPECT_EQ("SingleKvStoreDdmPutBatch006_3", observer->deleteEntries_[0].key.ToString());
 
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 3);
-    status = kvStorePtr->UnSubscribeKvStore(subscribeType, observer);
+    status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
 }
 

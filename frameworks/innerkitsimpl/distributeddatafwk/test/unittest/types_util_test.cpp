@@ -43,3 +43,16 @@ HWTEST_F(TypesUtilTest, DeviceInfo, TestSize.Level0)
     ASSERT_EQ(clientDev.deviceName, serverDev.deviceName);
     ASSERT_EQ(clientDev.deviceType, serverDev.deviceType);
 }
+
+HWTEST_F(TypesUtilTest, Entry, TestSize.Level0)
+{
+    MessageParcel parcel;
+    Entry entryIn;
+    entryIn.key = "student_name_mali";
+    entryIn.value = "age:20";
+    ASSERT_TRUE(ITypesUtil::Marshalling(entryIn, parcel));
+    Entry entryOut;
+    ASSERT_TRUE(ITypesUtil::Unmarshalling(parcel, entryOut));
+    EXPECT_EQ(entryOut.key.ToString(), std::string("student_name_mali"));
+    EXPECT_EQ(entryOut.value.ToString(), std::string("age:20"));
+}
