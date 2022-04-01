@@ -23,6 +23,7 @@
 
 namespace OHOS {
 namespace DistributedKv {
+using namespace Security::AccessToken;
 ClientPermissionChangedCallback::ClientPermissionChangedCallback(std::int32_t pid, std::int32_t uid)
 {
     this->pid_ = pid;
@@ -51,8 +52,15 @@ void ClientPermissionValidator::UpdatePermissionStatus(
 bool ClientPermissionValidator::CheckClientSyncPermission(const KvStoreTuple &kvStoreTuple, std::uint32_t tokenId)
 {
     (void)kvStoreTuple;
-    return (Security::AccessToken::AccessTokenKit::VerifyAccessToken(tokenId, DISTRIBUTED_DATASYNC) ==
-            Security::AccessToken::PERMISSION_GRANTED);
+    if (AccessTokenKit::GetTokenTypeFlag(tokenId) == TOKEN_NATIVE) {
+        return true;
+    }
+    if (AccessTokenKit::GetTokenTypeFlag(tokenId) == TOKEN_HAP) {
+        return (AccessTokenKit::VerifyAccessToken(tokenId, DISTRIBUTED_DATASYNC) == PERMISSION_GRANTED);
+    }
+
+    ZLOGI("invalid token:%u", tokenId);
+    return false;
 }
 
 bool ClientPermissionValidator::RegisterPermissionChanged(
