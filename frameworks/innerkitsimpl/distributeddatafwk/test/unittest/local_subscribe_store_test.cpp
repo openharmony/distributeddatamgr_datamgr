@@ -37,7 +37,7 @@ public:
     void TearDown();
 
     static DistributedKvDataManager manager;
-    static std::shared_ptr<SingleKvStore> kvStore;  // declare kvstore instance.
+    static std::shared_ptr<SingleKvStore> kvStore;
     static Status statusGetKvStore;
     static AppId appId;
     static StoreId storeId;
@@ -51,17 +51,6 @@ StoreId LocalSubscribeStoreTest::storeId;
 
 void LocalSubscribeStoreTest::SetUpTestCase(void)
 {
-    Options options;
-    options.createIfMissing = true;
-    options.encrypt = false;  // not supported yet.
-    options.autoSync = true;  // not supported yet.
-    options.kvStoreType = KvStoreType::SINGLE_VERSION;
-
-    appId.appId = "odmf";         // define app name.
-    storeId.storeId = "student";  // define kvstore(database) name
-    manager.DeleteKvStore(appId, storeId);
-    // [create and] open and initialize kvstore instance.
-    statusGetKvStore = manager.GetSingleKvStore(options, appId, storeId, kvStore);
 }
 
 void LocalSubscribeStoreTest::TearDownTestCase(void)
@@ -73,13 +62,27 @@ void LocalSubscribeStoreTest::TearDownTestCase(void)
 
 void LocalSubscribeStoreTest::SetUp(void)
 {
+    Options options;
+    options.createIfMissing = true;
+    options.encrypt = false;  // not supported yet.
+    options.autoSync = true;  // not supported yet.
+    options.kvStoreType = KvStoreType::SINGLE_VERSION;
+
+    appId.appId = "odmf";         // define app name.
+    storeId.storeId = "student";  // define kvstore(database) name
+    manager.DeleteKvStore(appId, storeId);
+    // [create and] open and initialize kvstore instance.
+    statusGetKvStore = manager.GetSingleKvStore(options, appId, storeId, kvStore);
     EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStore) << "kvStorePtr is nullptr";
-    kvStore->Clear();
+    EXPECT_NE(nullptr, kvStore) << "kvStore is nullptr";
 }
 
 void LocalSubscribeStoreTest::TearDown(void)
-{}
+{
+    manager.CloseKvStore(appId, kvStore);
+    kvStore = nullptr;
+    manager.DeleteKvStore(appId, storeId);
+}
 
 class KvStoreObserverUnitTest : public KvStoreObserver {
 public:
@@ -625,10 +628,8 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore013, TestSize.Level2
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
     status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
-    status = kvStore->Clear();
-    EXPECT_EQ(Status::SUCCESS, status) << "KvStore Clear data return wrong status";
     usleep(USLEEP_TIME);
-    EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 1);
+    EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 0);
 
     status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
@@ -650,10 +651,8 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStore014, TestSize.Level2
     SubscribeType subscribeType = SubscribeType::SUBSCRIBE_TYPE_ALL;
     Status status = kvStore->SubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "SubscribeKvStore return wrong status";
-    status = kvStore->Clear();
-    EXPECT_EQ(Status::SUCCESS, status) << "KvStore Clear data return wrong status";
     usleep(USLEEP_TIME);
-    EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 1);
+    EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 0);
 
     status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
@@ -1904,7 +1903,6 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification023, Tes
     keys.push_back("Id2");
     keys.push_back("Id3");
 
-    kvStore->Clear();
     status = kvStore->Put(key1, value1);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
     status = kvStore->PutBatch(entries);
@@ -1914,7 +1912,7 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification023, Tes
     status = kvStore->DeleteBatch(keys);
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore DeleteBatch data return wrong status";
     usleep(USLEEP_TIME);
-    EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 5);
+    EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 4);
     // every callback will clear vector
     EXPECT_EQ(static_cast<int>(observer->deleteEntries_.size()), 2);
     EXPECT_EQ("Id2", observer->deleteEntries_[0].key.ToString());
@@ -1938,9 +1936,6 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification023, Tes
 HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification024, TestSize.Level2)
 {
     ZLOGI("KvStoreDdmSubscribeKvStoreNotification024 begin.");
-    EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
-    EXPECT_NE(nullptr, kvStore) << "kvStorePtr is nullptr";
-    kvStore->Clear();
     std::shared_ptr<KvStoreObserverUnitTest> observer = std::make_shared<KvStoreObserverUnitTest>();
     observer->ResetToZero();
 
@@ -1969,7 +1964,6 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification024, Tes
 
     status = kvStore->StartTransaction();
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore startTransaction return wrong status";
-    kvStore->Clear();
     status = kvStore->Put(key1, value1);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
     status = kvStore->PutBatch(entries);
@@ -2026,7 +2020,6 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification025, Tes
 
     status = kvStore->StartTransaction();
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore startTransaction return wrong status";
-    kvStore->Clear();
     status = kvStore->Put(key1, value1);  // insert or update key-value
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore put data return wrong status";
     status = kvStore->PutBatch(entries);
@@ -2143,44 +2136,4 @@ HWTEST_F(LocalSubscribeStoreTest, KvStoreDdmSubscribeKvStoreNotification026, Tes
     EXPECT_EQ(static_cast<int>(observer->GetCallCount()), 3);
     status = kvStore->UnSubscribeKvStore(subscribeType, observer);
     EXPECT_EQ(Status::SUCCESS, status) << "UnSubscribeKvStore return wrong status";
-}
-
-/**
-* @tc.name: ChangeNotificationMarshalling001
-* @tc.desc: Test changenotification marshalling and unmarshalling function
-* @tc.type: FUNC
-* @tc.require: AR000CIFGM
-* @tc.author: liuyuhui
-*/
-HWTEST_F(LocalSubscribeStoreTest, ChangeNotificationMarshalling001, TestSize.Level1)
-{
-    ZLOGI("ChangeNotificationMarshalling001 begin.");
-    Entry insert, update, del;
-    insert.key = "insert";
-    update.key = "update";
-    del.key = "delete";
-    insert.value = "insert_value";
-    update.value = "update_value";
-    del.value = "delete_value";
-    std::vector<Entry> inserts, updates, deleteds;
-    inserts.push_back(insert);
-    updates.push_back(update);
-    deleteds.push_back(del);
-
-    ChangeNotification changeIn(std::move(inserts), std::move(updates), std::move(deleteds), std::string(), false);
-    OHOS::Parcel parcel;
-    changeIn.Marshalling(parcel);
-    ChangeNotification *changeOut = ChangeNotification::Unmarshalling(parcel);
-    ASSERT_NE(changeOut, nullptr);
-    ASSERT_EQ(changeOut->GetInsertEntries().size(), 1UL);
-    EXPECT_EQ(changeOut->GetInsertEntries().front().key.ToString(), std::string("insert"));
-    EXPECT_EQ(changeOut->GetInsertEntries().front().value.ToString(), std::string("insert_value"));
-    ASSERT_EQ(changeOut->GetUpdateEntries().size(), 1UL);
-    EXPECT_EQ(changeOut->GetUpdateEntries().front().key.ToString(), std::string("update"));
-    EXPECT_EQ(changeOut->GetUpdateEntries().front().value.ToString(), std::string("update_value"));
-    ASSERT_EQ(changeOut->GetDeleteEntries().size(), 1UL);
-    EXPECT_EQ(changeOut->GetDeleteEntries().front().key.ToString(), std::string("delete"));
-    EXPECT_EQ(changeOut->GetDeleteEntries().front().value.ToString(), std::string("delete_value"));
-    EXPECT_EQ(changeOut->IsClear(), false);
-    delete changeOut;
 }
