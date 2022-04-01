@@ -32,27 +32,8 @@ class KvStoreSyncManagerTest : public testing::Test {
 public:
     class Waiter {
     public:
-        bool GetValue(uint32_t interval = CHECK_WAITING_TIME)
-        {
-            std::unique_lock<decltype(mutex_)> lg(mutex_);
-            if (isFinished) {
-                return isFinished;
-            }
-            KvStoreSyncManager::GetInstance()->AddSyncOperation(uintptr_t(this), interval, [this](const auto &end)->Status {
-                SetValue(true);
-                return SUCCESS;
-            }, nullptr);
-            cv_.wait(lg, [this] { return isFinished; });
-            return isFinished;
-        }
-
-        bool SetValue(bool value)
-        {
-            std::unique_lock<decltype(mutex_)> lg(mutex_);
-            isFinished = value;
-            cv_.notify_one();
-            return isFinished;
-        }
+        bool GetValue(uint32_t interval = CHECK_WAITING_TIME);
+        bool SetValue(bool value);
     private:
         std::mutex mutex_;
         std::condition_variable cv_;
@@ -71,6 +52,29 @@ public:
 protected:
     uint64_t seqId_ = 0;
 };
+
+bool KvStoreSyncManagerTest::Waiter::GetValue(uint32_t interval)
+{
+    std::unique_lock<decltype(mutex_)> lg(mutex_);
+    if (isFinished) {
+        return isFinished;
+    }
+    KvStoreSyncManager::GetInstance()->AddSyncOperation(uintptr_t(this), interval,
+        [this](const auto &end)->Status {
+            SetValue(true);
+            return SUCCESS;
+        }, nullptr);
+    cv_.wait(lg, [this] { return isFinished; });
+    return isFinished;
+}
+
+bool KvStoreSyncManagerTest::Waiter::SetValue(bool value)
+{
+    std::unique_lock<decltype(mutex_)> lg(mutex_);
+    isFinished = value;
+    cv_.notify_one();
+    return isFinished;
+}
 
 void KvStoreSyncManagerTest::SetUpTestCase(void)
 {}
