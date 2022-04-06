@@ -21,8 +21,8 @@
 namespace OHOS {
 namespace DistributedData {
 struct MetaData final : public Serializable {
-    int32_t kvStoreType;
-    StoreMetaData kvStoreMetaData;
+    int32_t storeType;
+    StoreMetaData storeMetaData;
     SecretKeyMetaData secretKeyMetaData;
     bool Marshal(json &node) const override;
     bool Unmarshal(const json &node) override;
