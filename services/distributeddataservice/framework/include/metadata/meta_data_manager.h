@@ -63,7 +63,7 @@ public:
             return false;
         }
         values.resize(entries.size());
-        for (int i = 0; i < entries.size(); ++i) {
+        for (size_t i = 0; i < entries.size(); ++i) {
             Serializable::Unmarshall({ entries[i].begin(), entries[i].end() }, values[i]);
         }
         return true;

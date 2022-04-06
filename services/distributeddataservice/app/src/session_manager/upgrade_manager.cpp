@@ -60,7 +60,8 @@ CapMetaData UpgradeManager::GetCapability(const std::string &deviceId, bool &sta
     if (status) {
         capabilityMap_.Insert(deviceId, capMetaData);
     }
-    ZLOGI("device:%{public}s, version:%{public}d, insert:%{public}d", Anonymous::Change(deviceId).c_str(), capMetaData.version);
+    ZLOGI("device:%{public}s, version:%{public}d, insert:%{public}d", Anonymous::Change(deviceId).c_str(),
+        capMetaData.version, status);
     return capMetaData;
 }
 
