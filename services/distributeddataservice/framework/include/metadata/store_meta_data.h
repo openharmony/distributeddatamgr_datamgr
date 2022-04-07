@@ -20,7 +20,7 @@
 #include "serializable/serializable.h"
 
 namespace OHOS::DistributedData {
-struct StoreMetaData final : public Serializable {
+struct API_EXPORT StoreMetaData final : public Serializable {
     // record meta version for compatible, should update when modify store meta data structure.
     static constexpr uint32_t CURRENT_VERSION = 0x03000003;
     // UID -> uid, deviceAccountId -> userId, userId -> user

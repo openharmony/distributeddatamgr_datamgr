@@ -20,7 +20,7 @@
 #include "serializable/serializable.h"
 namespace OHOS {
 namespace DistributedData {
-struct MetaData final : public Serializable {
+struct API_EXPORT MetaData final : public Serializable {
     int32_t storeType;
     StoreMetaData storeMetaData;
     SecretKeyMetaData secretKeyMetaData;
