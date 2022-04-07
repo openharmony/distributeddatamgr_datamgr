@@ -454,4 +454,4 @@ void CommunicatorLinker::SendLabelExchangeAck(const std::string &toTarget, Seria
 }
 
 DEFINE_OBJECT_TAG_FACILITIES(CommunicatorLinker)
-}
+} // namespace DistributedDB

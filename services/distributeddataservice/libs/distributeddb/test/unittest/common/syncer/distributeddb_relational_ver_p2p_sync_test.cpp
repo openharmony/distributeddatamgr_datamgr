@@ -935,7 +935,7 @@ HWTEST_F(DistributedDBRelationalVerP2PSyncTest, AutoLaunchSync003, TestSize.Leve
     g_mgr.CloseStore(g_rdbDelegatePtr);
     g_rdbDelegatePtr = nullptr;
     /**
-     * @tc.steps: step3. store cann't autoLaunch because callback is nullptr
+     * @tc.steps: step3. store can't autoLaunch because callback is nullptr
      */
     LabelType labelType(g_id.begin(), g_id.end());
     g_communicatorAggregator->RunCommunicatorLackCallback(labelType);

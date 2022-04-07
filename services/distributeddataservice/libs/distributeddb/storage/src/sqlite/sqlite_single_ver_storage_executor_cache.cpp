@@ -402,7 +402,7 @@ int SQLiteSingleVerStorageExecutor::MigrateSyncDataByVersion(uint64_t recordVer,
     // fix dataItem timestamp for migrate
     errCode = ProcessTimestampForSyncDataInCacheDB(dataItems);
     if (errCode != E_OK) {
-        LOGE("Chang the time stamp for migrate failed! errCode = [%d]", errCode);
+        LOGE("Change the time stamp for migrate failed! errCode = [%d]", errCode);
         goto END;
     }
 

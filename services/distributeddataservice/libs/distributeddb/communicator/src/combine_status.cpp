@@ -76,9 +76,6 @@ void CombineStatus::CheckInFragmentNo(uint16_t inFragNo)
 
 bool CombineStatus::IsCombineDone() const
 {
-    if (combinedFragmentNo_.size() < fragmentCount_) {
-        return false;
-    }
-    return true;
+    return (combinedFragmentNo_.size() >= fragmentCount_);
 }
 } // namespace DistributedDB

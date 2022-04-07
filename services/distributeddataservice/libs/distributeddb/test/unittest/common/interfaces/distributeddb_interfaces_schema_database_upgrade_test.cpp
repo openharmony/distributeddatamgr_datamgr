@@ -369,7 +369,7 @@ HWTEST_F(DistributedDBInterfacesSchemaDatabaseUpgradeTest, UpgradeFromSchema002,
   */
 HWTEST_F(DistributedDBInterfacesSchemaDatabaseUpgradeTest, UpgradeFromSchema003, TestSize.Level1)
 {
-    // Compatible schema can increase field, but must not be null without defaut.
+    // Compatible schema can increase field, but must not be null without default.
     g_baseSchema = SCHEMA_BASE;
     g_expectError = SCHEMA_MISMATCH;
     TestUpgradeFromSchema("UpgradeFromSchema003_1", std::vector<std::string>{"LACK", "BASE", "FULL", "FULL_NULL"},

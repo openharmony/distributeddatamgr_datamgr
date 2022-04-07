@@ -534,9 +534,6 @@ int Metadata::ResetMetaDataAfterRemoveData(const DeviceID &deviceId)
     if (metadataMap_.find(hashDeviceId) != metadataMap_.end()) {
         metadata = metadataMap_[hashDeviceId];
         metadata.clearDeviceDataMark = 0;
-        // when finished remove data, should reset send watermark between high version sync
-        // recv watermark has already reset in removedata func.
-        metadata.localWaterMark = 0;
         return SaveMetaDataValue(deviceId, metadata);
     }
     return -E_NOT_FOUND;

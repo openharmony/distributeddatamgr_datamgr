@@ -508,6 +508,7 @@ int SingleVerDataSync::RemoveDeviceDataHandle(SingleVerSyncTaskContext *context,
     WaterMark maxSendDataTime)
 {
     bool isNeedClearRemoteData = false;
+    std::lock_guard<std::mutex> autoLock(removeDeviceDataLock_);
     if (context->GetRemoteSoftwareVersion() > SOFTWARE_VERSION_RELEASE_3_0) {
         uint64_t clearDeviceDataMark = 0;
         metadata_->GetRemoveDataMark(context->GetDeviceId(), clearDeviceDataMark);
@@ -554,6 +555,7 @@ int SingleVerDataSync::DealRemoveDeviceDataByAck(SingleVerSyncTaskContext *conte
     const std::vector<uint64_t> &reserved)
 {
     bool isNeedClearRemoteData = false;
+    std::lock_guard<std::mutex> autoLock(removeDeviceDataLock_);
     SyncType curType = (context->IsQuerySync()) ? SyncType::QUERY_SYNC_TYPE : SyncType::MANUAL_FULL_SYNC_TYPE;
     if (context->GetRemoteSoftwareVersion() > SOFTWARE_VERSION_RELEASE_3_0) {
         uint64_t clearDeviceDataMark = 0;
@@ -1603,6 +1605,7 @@ int SingleVerDataSync::RemoveDeviceDataIfNeed(SingleVerSyncTaskContext *context)
         return E_OK;
     }
     uint64_t clearRemoteDataMark = 0;
+    std::lock_guard<std::mutex> autoLock(removeDeviceDataLock_);
     metadata_->GetRemoveDataMark(context->GetDeviceId(), clearRemoteDataMark);
     if (clearRemoteDataMark == 0) {
         return E_OK;
@@ -1638,7 +1641,7 @@ void SingleVerDataSync::FillRequestReSendPacket(const SingleVerSyncTaskContext *
     GetPeerWaterMark(curType, context->GetQuerySyncId(), context->GetDeviceId(),
         peerMark);
     uint32_t version = std::min(context->GetRemoteSoftwareVersion(), SOFTWARE_VERSION_CURRENT);
-    // transer reSend mode, RESPONSE_PULL transfer to push or query push
+    // transfer reSend mode, RESPONSE_PULL transfer to push or query push
     // PUSH_AND_PULL mode which sequenceId lager than first transfer to push or query push
     int reSendMode = SingleVerDataSyncUtils::GetReSendMode(context->GetMode(), reSendInfo.sequenceId, curType);
     if (GetSessionEndTimestamp() == std::max(reSendInfo.end, reSendInfo.deleteDataEnd) ||

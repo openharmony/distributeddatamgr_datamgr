@@ -63,19 +63,36 @@ std::vector<uint8_t> RelationalSyncAbleStorage::GetIdentifier() const
 }
 
 // Get the max timestamp of all entries in database.
-void RelationalSyncAbleStorage::GetMaxTimestamp(Timestamp &stamp) const
+void RelationalSyncAbleStorage::GetMaxTimestamp(Timestamp &timestamp) const
 {
-    std::lock_guard<std::mutex> lock(maxTimestampMutex_);
-    stamp = currentMaxTimestamp_;
+    int errCode = E_OK;
+    auto handle = GetHandle(false, errCode, OperatePerm::NORMAL_PERM);
+    if (handle == nullptr) {
+        return;
+    }
+    timestamp = 0;
+    errCode = handle->GetMaxTimestamp(storageEngine_->GetSchemaRef().GetTableNames(), timestamp);
+    if (errCode != E_OK) {
+        LOGE("GetMaxTimestamp failed, errCode:%d", errCode);
+    }
+    ReleaseHandle(handle);
+    return;
 }
 
-int RelationalSyncAbleStorage::SetMaxTimestamp(Timestamp timestamp)
+int RelationalSyncAbleStorage::GetMaxTimestamp(const std::string &tableName, Timestamp &timestamp) const
 {
-    std::lock_guard<std::mutex> lock(maxTimestampMutex_);
-    if (timestamp > currentMaxTimestamp_) {
-        currentMaxTimestamp_ = timestamp;
+    int errCode = E_OK;
+    auto handle = GetHandle(false, errCode, OperatePerm::NORMAL_PERM);
+    if (handle == nullptr) {
+        return errCode;
     }
-    return E_OK;
+    timestamp = 0;
+    errCode = handle->GetMaxTimestamp({ tableName }, timestamp);
+    if (errCode != E_OK) {
+        LOGE("GetMaxTimestamp failed, errCode:%d", errCode);
+    }
+    ReleaseHandle(handle);
+    return errCode;
 }
 
 SQLiteSingleVerRelationalStorageExecutor *RelationalSyncAbleStorage::GetHandle(bool isWrite, int &errCode,
@@ -392,11 +409,9 @@ int RelationalSyncAbleStorage::SaveSyncDataItems(const QueryObject &object, std:
     QueryObject query = object;
     query.SetSchema(storageEngine_->GetSchemaRef());
 
-    Timestamp maxTimestamp = 0;
     errCode = handle->SaveSyncItems(query, dataItems, deviceName,
-        storageEngine_->GetSchemaRef().GetTable(object.GetTableName()), maxTimestamp);
+        storageEngine_->GetSchemaRef().GetTable(object.GetTableName()));
     if (errCode == E_OK) {
-        (void)SetMaxTimestamp(maxTimestamp);
         // dataItems size > 0 now because already check before
         // all dataItems will write into db now, so need to observer notify here
         // if some dataItems will not write into db in the future, observer notify here need change

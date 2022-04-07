@@ -333,6 +333,13 @@ void VirtualRelationalVerSyncDBInterface::SetTableInfo(const TableInfo &tableInf
     schemaObj_.AddRelationalTable(tableInfo);
 }
 
+int VirtualRelationalVerSyncDBInterface::GetMaxTimestamp(const std::string &tableName, Timestamp &timestamp) const
+{
+    (void)tableName;
+    timestamp = 0;
+    return E_OK;
+}
+
 void ObjectData::PutDataValue(const std::string &fieldName, const DataValue &value)
 {
     fieldData[fieldName] = value;

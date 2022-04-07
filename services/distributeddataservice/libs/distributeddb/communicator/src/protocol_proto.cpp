@@ -535,7 +535,7 @@ void ProtocolProto::DisplayPacketInformation(const uint8_t *bytes, uint32_t leng
     bool isFragment = ((pktType & PACKET_TYPE_FRAGMENTED) != 0);
     FrameType frameType = GetFrameType(pktType);
     if (frameType == FrameType::INVALID_MAX_FRAME_TYPE) {
-        LOGW("[Proto][Display] This is unrecognized frame, pktType=%u.", pktType);
+        LOGW("[Proto][Display] This is unrecognized frame, pktType=%" PRIu8 ".", pktType);
         return;
     }
     if (isFragment) {
@@ -677,18 +677,12 @@ int ProtocolProto::DeSerializeMessage(const SerialBuffer *inBuff, Message *inMsg
 
 bool ProtocolProto::IsSupportMessageVersion(uint16_t version)
 {
-    if (version != MSG_VERSION_BASE && version != MSG_VERSION_EXT) {
-        return false;
-    }
-    return true;
+    return (version == MSG_VERSION_BASE || version == MSG_VERSION_EXT);
 }
 
 bool ProtocolProto::IsFeedbackErrorMessage(uint32_t errorNo)
 {
-    if (errorNo == E_FEEDBACK_UNKNOWN_MESSAGE || errorNo == E_FEEDBACK_COMMUNICATOR_NOT_FOUND) {
-        return true;
-    }
-    return false;
+    return (errorNo == E_FEEDBACK_UNKNOWN_MESSAGE || errorNo == E_FEEDBACK_COMMUNICATOR_NOT_FOUND);
 }
 
 int ProtocolProto::ParseCommPhyHeaderCheckMagicAndVersion(const uint8_t *bytes, uint32_t length)
@@ -1044,6 +1038,9 @@ int ProtocolProto::FillFragmentPacket(const CommPhyHeader &phyHeader, const Comm
         return -E_SUM_CALCULATE_FAIL;
     }
     auto ptrPhyHeader = reinterpret_cast<CommPhyHeader *>(outPacket.ptrPacket);
+    if (ptrPhyHeader == nullptr) {
+        return -E_INVALID_ARGS;
+    }
     ptrPhyHeader->checkSum = HostToNet(sumResult);
 
     return E_OK;

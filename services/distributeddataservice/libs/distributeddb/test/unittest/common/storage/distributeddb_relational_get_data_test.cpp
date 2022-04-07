@@ -998,24 +998,22 @@ HWTEST_F(DistributedDBRelationalGetDataTest, CompatibleData1, TestSize.Level1)
      * @tc.steps: step4. Put data into "data_plus" table from deviceA.
      * @tc.expected: Succeed, return OK.
      */
-    query = QueryObject(Query::Select(tableName));
+    QueryObject queryPlus(Query::Select(tableName));
     const DeviceID deviceID = "deviceA";
     ASSERT_EQ(E_OK, SQLiteUtils::CreateSameStuTable(db, store->GetSchemaInfo().GetTable(tableName),
         DBCommon::GetDistributedTableName(deviceID, tableName)));
-    EXPECT_EQ(const_cast<RelationalSyncAbleStorage *>(store)->PutSyncDataWithQuery(query, entries, deviceID), E_OK);
+    EXPECT_EQ(const_cast<RelationalSyncAbleStorage *>(store)->PutSyncDataWithQuery(queryPlus, entries, deviceID), E_OK);
     SingleVerKvEntry::Release(entries);
     /**
      * @tc.steps: step4. Get all data from "dataPlus" table.
      * @tc.expected: Succeed and the count is right.
      */
-    query = QueryObject(Query::Select(tableName));
-    EXPECT_EQ(store->GetSyncData(query, SyncTimeRange {}, DataSizeSpecInfo {}, token, entries), E_OK);
+    EXPECT_EQ(store->GetSyncData(queryPlus, SyncTimeRange {}, DataSizeSpecInfo {}, token, entries), E_OK);
     EXPECT_EQ(entries.size(), 1UL);
     /**
      * @tc.steps: step5. Put data into "data" table from deviceA.
      * @tc.expected: Succeed, return OK.
      */
-    query = QueryObject(Query::Select(g_tableName));
     ASSERT_EQ(E_OK, SQLiteUtils::CreateSameStuTable(db, store->GetSchemaInfo().GetTable(g_tableName),
         DBCommon::GetDistributedTableName(deviceID, g_tableName)));
     EXPECT_EQ(const_cast<RelationalSyncAbleStorage *>(store)->PutSyncDataWithQuery(query, entries, deviceID), E_OK);
@@ -1305,6 +1303,78 @@ HWTEST_F(DistributedDBRelationalGetDataTest, SaveNonexistDevdata1, TestSize.Leve
     EXPECT_EQ(const_cast<RelationalSyncAbleStorage *>(store)->PutSyncDataWithQuery(query, entries, deviceID),
         -1);  // -1 means error
     SingleVerKvEntry::Release(entries);
+
+    sqlite3_close(db);
+    RefObject::DecObjRef(g_store);
+}
+
+/**
+ * @tc.name: GetMaxTimestamp1
+ * @tc.desc: Get max timestamp.
+ * @tc.type: FUNC
+ * @tc.require: AR000GK58H
+ * @tc.author: lidongwei
+ */
+HWTEST_F(DistributedDBRelationalGetDataTest, GetMaxTimestamp1, TestSize.Level1)
+{
+    ASSERT_EQ(g_mgr.OpenStore(g_storePath, g_storeID, RelationalStoreDelegate::Option {}, g_delegate), DBStatus::OK);
+    ASSERT_NE(g_delegate, nullptr);
+    ASSERT_EQ(g_delegate->CreateDistributedTable(g_tableName), DBStatus::OK);
+    /**
+     * @tc.steps: step1. Create distributed table "dataPlus".
+     * @tc.expected: Succeed, return OK.
+     */
+    sqlite3 *db = nullptr;
+    ASSERT_EQ(sqlite3_open(g_storePath.c_str(), &db), SQLITE_OK);
+    const string tableName = g_tableName + "Plus";
+    ExecSqlAndAssertOK(db, "CREATE TABLE " + tableName + "(key INTEGER, value INTEGER NOT NULL, \
+        extra_field TEXT NOT NULL DEFAULT 'default_value');");
+    ASSERT_EQ(g_delegate->CreateDistributedTable(tableName), DBStatus::OK);
+
+    /**
+     * @tc.steps: step2. Get max timestamp when no data exists.
+     * @tc.expected: Succeed and the time is 0;
+     */
+    auto store = GetRelationalStore();
+    ASSERT_NE(store, nullptr);
+
+    Timestamp time1 = 0;
+    store->GetMaxTimestamp(time1);
+    EXPECT_EQ(time1, 0ull);
+
+    /**
+     * @tc.steps: step3. Put 1 record into data table and get max timestamp.
+     * @tc.expected: Succeed and the time is updated.
+     */
+    ASSERT_EQ(AddOrUpdateRecord(1, 101), E_OK);
+    Timestamp time2 = 0;
+    store->GetMaxTimestamp(time2);
+    EXPECT_GT(time2, time1);
+
+    /**
+     * @tc.steps: step4. Put 1 record into data table and get max timestamp.
+     * @tc.expected: Succeed and the time is updated.
+     */
+    ASSERT_EQ(AddOrUpdateRecord(2, 102), E_OK);
+    Timestamp time3 = 0;
+    store->GetMaxTimestamp(time3);
+    EXPECT_GT(time3, time2);
+
+    /**
+     * @tc.steps: step5. Put 1 record into data table and get the max timestamp of data table.
+     * @tc.expected: Succeed and the time is equals to max timestamp in DB.
+     */
+    Timestamp time4 = 0;
+    store->GetMaxTimestamp(g_tableName, time4);
+    EXPECT_EQ(time4, time3);
+
+    /**
+     * @tc.steps: step6. Put 1 record into data table and get the max timestamp of dataPlus table.
+     * @tc.expected: Succeed and the time is 0.
+     */
+    Timestamp time5 = 0;
+    store->GetMaxTimestamp(tableName, time5);
+    EXPECT_EQ(time5, 0ull);
 
     sqlite3_close(db);
     RefObject::DecObjRef(g_store);

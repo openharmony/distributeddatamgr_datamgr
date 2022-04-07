@@ -71,6 +71,9 @@ public:
 
     void GetMaxTimestamp(Timestamp &stamp) const override;
 
+    // Get the max timestamp of one table.
+    int GetMaxTimestamp(const std::string &tableName, Timestamp &timestamp) const override;
+
     int GetMetaData(const Key &key, Value &value) const override;
 
     int PutMetaData(const Key &key, const Value &value) override;
@@ -109,7 +112,6 @@ public:
     void SetTableInfo(const TableInfo &tableInfo);
 
 private:
-
     mutable std::map<std::vector<uint8_t>, std::vector<uint8_t>> metadata_;
     std::map<std::string, std::map<std::string, VirtualRowData>> syncData_;
     mutable std::map<std::string, std::map<std::string, VirtualRowData>> localData_;

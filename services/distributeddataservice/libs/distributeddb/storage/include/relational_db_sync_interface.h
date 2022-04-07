@@ -41,6 +41,9 @@ public:
     virtual int CreateDistributedDeviceTable(const std::string &device, const RelationalSyncStrategy &syncStrategy) = 0;
 
     virtual int RegisterSchemaChangedCallback(const std::function<void()> &callback) = 0;
+
+    using ISyncInterface::GetMaxTimestamp;
+    virtual int GetMaxTimestamp(const std::string &tableName, Timestamp &timestamp) const = 0;
 };
 }
 #endif // RELATIONAL_STORE
