@@ -852,9 +852,9 @@ Status KvStoreMetaManager::DeleteStrategyMeta(const std::string &bundleName, con
 void KvStoreMetaManager::SyncMeta()
 {
     std::vector<std::string> devs;
-    auto deviceList = AppDistributedKv::CommunicationProvider::GetInstance().GetDeviceList();
+    auto deviceList = AppDistributedKv::CommunicationProvider::GetInstance().GetRemoteDevices();
     for (auto const &dev : deviceList) {
-        devs.push_back(dev.deviceId);
+        devs.push_back(dev.uuid);
     }
 
     if (devs.empty()) {
