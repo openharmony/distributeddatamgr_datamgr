@@ -352,7 +352,7 @@ void SoftBusAdapter::UpdateRelationship(const DeviceInfo &deviceInfo, const Devi
         case DeviceChangeType::DEVICE_ONLINE: {
             deviceInfos_.InsertOrAssign(deviceInfo.networkId, deviceInfo);
             deviceInfos_.InsertOrAssign(deviceInfo.uuid, deviceInfo);
-            deviceInfos_.InsertOrAssign(deviceInfo.uuid, deviceInfo);
+            deviceInfos_.InsertOrAssign(deviceInfo.udid, deviceInfo);
             break;
         }
         default: {
