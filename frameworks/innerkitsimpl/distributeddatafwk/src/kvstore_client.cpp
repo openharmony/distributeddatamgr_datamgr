@@ -37,7 +37,7 @@ KvStoreClient::~KvStoreClient()
 
 StoreId KvStoreClient::GetStoreId() const
 {
-    return storeId_;
+    return { storeId_ };
 }
 Status KvStoreClient::GetKvStoreSnapshot(std::shared_ptr<KvStoreObserver> observer,
                                          std::shared_ptr<KvStoreSnapshot> &snapshot) const

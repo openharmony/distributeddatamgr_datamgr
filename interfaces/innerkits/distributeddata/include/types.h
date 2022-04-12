@@ -39,25 +39,6 @@ struct UserId {
 // app identifier from Bms
 struct API_EXPORT AppId {
     std::string appId;
-    // support std::string convert to AppId
-    AppId(const std::string &id = "") noexcept : appId(id)
-    {
-    }
-    AppId(std::string &&id) noexcept : appId(std::move(id))
-    {
-    }
-
-    // support std::string convert to AppId
-    AppId &operator=(std::string &&id) noexcept
-    {
-        appId = std::move(id);
-        return *this;
-    }
-    AppId &operator=(const std::string &id) noexcept
-    {
-        appId = id;
-        return *this;
-    }
 
     // support AppId convert to std::string
     operator std::string &() noexcept
@@ -95,25 +76,6 @@ private:
 // and can not be empty and all space.
 struct API_EXPORT StoreId {
     std::string storeId;
-    // support std::string convert to StoreId
-    StoreId(const std::string &id = "") noexcept : storeId(id)
-    {
-    }
-    StoreId(std::string &&id) noexcept : storeId(std::move(id))
-    {
-    }
-
-    // support std::string convert to StoreId
-    StoreId &operator=(std::string &&id) noexcept
-    {
-        storeId = std::move(id);
-        return *this;
-    }
-    StoreId &operator=(const std::string &id) noexcept
-    {
-        storeId = id;
-        return *this;
-    }
 
     // support StoreId convert to std::string
     operator std::string &() noexcept
