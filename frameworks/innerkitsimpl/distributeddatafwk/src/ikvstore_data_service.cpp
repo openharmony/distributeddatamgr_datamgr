@@ -16,6 +16,7 @@
 #define LOG_TAG "KvStoreDataServiceProxy"
 
 #include "ikvstore_data_service.h"
+#include <ipc_skeleton.h>
 #include "constant.h"
 #include "irdb_service.h"
 #include "rdb_service_proxy.h"
@@ -648,7 +649,7 @@ int32_t KvStoreDataServiceStub::GetRdbServiceOnRemote(MessageParcel &data, Messa
 int32_t KvStoreDataServiceStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
                                                 MessageParcel &reply, MessageOption &option)
 {
-    ZLOGD("%{public}u", code);
+    ZLOGD("code:%{public}u, callingPid:%{public}d", code, IPCSkeleton::GetCallingPid());
     std::u16string descriptor = KvStoreDataServiceStub::GetDescriptor();
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
     if (descriptor != remoteDescriptor) {
