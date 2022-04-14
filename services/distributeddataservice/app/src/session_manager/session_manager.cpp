@@ -23,6 +23,7 @@
 #include "checker/checker_manager.h"
 #include "log/log_print.h"
 #include "user_delegate.h"
+#include "utils/anonymous.h"
 
 namespace OHOS::DistributedData {
 using namespace OHOS::DistributedKv;
@@ -34,7 +35,7 @@ SessionManager &SessionManager::GetInstance()
 
 Session SessionManager::GetSession(const SessionPoint &from, const std::string &targetDeviceId) const
 {
-    ZLOGD("begin. peer device:%{public}.10s", targetDeviceId.c_str());
+    ZLOGD("begin. peer device:%{public}s", Anonymous::Change(targetDeviceId).c_str());
     auto users = UserDelegate::GetInstance().GetRemoteUserStatus(targetDeviceId);
     Session session;
     session.appId = from.appId;
