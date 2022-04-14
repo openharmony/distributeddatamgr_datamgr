@@ -30,7 +30,7 @@ RuntimeContextImpl::RuntimeContextImpl()
       timeTickMonitor_(nullptr),
       systemApiAdapter_(nullptr),
       lockStatusObserver_(nullptr),
-      lastSessionId_(0)
+      currentSessionId_(1)
 {
 }
 
@@ -658,8 +658,6 @@ int RuntimeContextImpl::NotifyUserChanged() const
 
 uint64_t RuntimeContextImpl::GenerateSessionId()
 {
-    std::lock_guard<std::mutex> autoLock(sessionIdLock_);
-    lastSessionId_++;
-    return lastSessionId_;
+    return currentSessionId_.fetch_add(1, std::memory_order_seq_cst);
 }
 } // namespace DistributedDB
