@@ -24,7 +24,11 @@ IConnection::IConnection()
 
 uint64_t IConnection::GetConnectionId()
 {
+    if (connectionId_ != 0) {
+        return connectionId_;
+    }
     std::lock_guard<std::mutex> autoLock(connectionIdLock_);
+    // check again here, may be generated after get lock
     if (connectionId_ == 0) {
         connectionId_ = RuntimeContext::GetInstance()->GenerateSessionId();
     }

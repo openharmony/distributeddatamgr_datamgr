@@ -16,6 +16,7 @@
 #ifndef I_CONNECTION_H
 #define I_CONNECTION_H
 
+#include <atomic>
 #include <mutex>
 
 #include "macro_utils.h"
@@ -33,7 +34,7 @@ protected:
     uint64_t GetConnectionId();
 
     std::mutex connectionIdLock_;
-    uint64_t connectionId_;
+    std::atomic<uint64_t> connectionId_;
 };
 } // namespace DistributedDB
 
