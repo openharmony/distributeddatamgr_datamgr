@@ -345,15 +345,11 @@ Status KvStoreAppManager::DeleteAllKvStore()
 Status KvStoreAppManager::MigrateAllKvStore(const std::string &harmonyAccountId)
 {
     ZLOGI("begin");
-    if (PermissionValidator::IsAutoLaunchEnabled(bundleName_)) {
+    if (PermissionValidator::GetInstance().IsAutoLaunchEnabled(bundleName_)) {
         return Status::SUCCESS;
     }
 
     std::lock_guard<std::mutex> lg(storeMutex_);
-    // update userid in kvstore tuple map of permission adapter.
-    KvStoreTuple srcKvStoreTuple {userId_, bundleName_};
-    KvStoreTuple dstKvStoreTuple {harmonyAccountId, bundleName_};
-    PermissionValidator::UpdateKvStoreTupleMap(srcKvStoreTuple, dstKvStoreTuple);
     userId_ = harmonyAccountId;
     ZLOGI("path de migration begin.");
     Status statusDE = MigrateAllKvStore(harmonyAccountId, PATH_DE);

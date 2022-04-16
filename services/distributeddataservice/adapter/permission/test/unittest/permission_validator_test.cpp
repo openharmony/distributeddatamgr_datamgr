@@ -51,21 +51,23 @@ void PermissionValidatorTest::TearDown(void)
   */
 HWTEST_F(PermissionValidatorTest, TestPermissionValidate001, TestSize.Level0)
 {
-    std::string userId = "ohos";
-    std::string appId = "ohosApp";
+    std::uint32_t tokenId = 0;
+    EXPECT_FALSE(PermissionValidator::GetInstance().CheckSyncPermission(tokenId));
 }
 
 /**
   * @tc.name: TestPermissionValidate002
-  * @tc.desc: test if CheckPermission can return correct permission.
+  * @tc.desc: test if IsSystemService can return correct permission.
   * @tc.type: FUNC
   * @tc.require:AR000DPSGU
   * @tc.author: liqiao
   */
 HWTEST_F(PermissionValidatorTest, TestPermissionValidate002, TestSize.Level0)
 {
-    std::string userId = "ohos";
-    std::string appId = "ohosApp";
+    std::string bundleName = "ohos.permissionvalidator.test";
+    pid_t uid = 0;
+    std::uint32_t tokenId = 0;
+    EXPECT_FALSE(PermissionValidator::GetInstance().IsSystemService(bundleName, uid, tokenId));
 }
 
 /**

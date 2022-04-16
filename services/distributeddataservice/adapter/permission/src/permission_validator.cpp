@@ -16,64 +16,44 @@
 #define LOG_TAG "PermissionValidator"
 
 #include "permission_validator.h"
-
 #include <regex>
 #include <string>
-#include "client_permission_validator.h"
+#include "accesstoken_kit.h"
+#include "checker/checker_manager.h"
 #include "log_print.h"
 
 namespace OHOS {
 namespace DistributedKv {
-// initialize system service full list.
-std::set<std::string> PermissionValidator::systemServiceList_ = {
-    "bundle_manager_service",  // BMS
-    "ivi_config_manager", // IVI
-    "form_storage"  // form
-};
-
+using namespace Security::AccessToken;
+using namespace OHOS::DistributedData;
 // initialize auto launch enabled applications white list.
-std::set<std::string> PermissionValidator::autoLaunchEnableList_ = {
-};
+std::set<std::string> PermissionValidator::autoLaunchEnableList_ = {};
 
 // check whether the client process have enough privilege to share data with the other devices.
-bool PermissionValidator::CheckSyncPermission(const std::string &userId, const std::string &appId,
-                                              std::uint32_t tokenId)
+bool PermissionValidator::CheckSyncPermission(std::uint32_t tokenId)
 {
-    KvStoreTuple kvStoreTuple {userId, appId};
-    return ClientPermissionValidator::GetInstance().CheckClientSyncPermission(kvStoreTuple, tokenId);
-}
+    if (AccessTokenKit::GetTokenTypeFlag(tokenId) == TOKEN_NATIVE) {
+        return true;
+    }
+    if (AccessTokenKit::GetTokenTypeFlag(tokenId) == TOKEN_HAP) {
+        return (AccessTokenKit::VerifyAccessToken(tokenId, DISTRIBUTED_DATASYNC) == PERMISSION_GRANTED);
+    }
 
-bool PermissionValidator::RegisterPermissionChanged(
-    const KvStoreTuple &kvStoreTuple, const AppThreadInfo &appThreadInfo)
-{
-    return ClientPermissionValidator::GetInstance().RegisterPermissionChanged(kvStoreTuple, appThreadInfo);
-}
-
-void PermissionValidator::UnregisterPermissionChanged(const KvStoreTuple &kvStoreTuple)
-{
-    return ClientPermissionValidator::GetInstance().UnregisterPermissionChanged(kvStoreTuple);
-}
-
-void PermissionValidator::UpdateKvStoreTupleMap(const KvStoreTuple &srcKvStoreTuple,
-                                                const KvStoreTuple &dstKvStoreTuple)
-{
-    return ClientPermissionValidator::GetInstance().UpdateKvStoreTupleMap(srcKvStoreTuple, dstKvStoreTuple);
+    ZLOGI("invalid tokenid:%u", tokenId);
+    return false;
 }
 
 // Check whether the bundle name is in the system service list.
-bool PermissionValidator::IsSystemService(const std::string &bundleName)
+bool PermissionValidator::IsSystemService(const std::string &bundleName, pid_t uid, std::uint32_t tokenId)
 {
-    auto it = systemServiceList_.find(bundleName);
-    if (it == systemServiceList_.end()) {
-        ZLOGD("bundleName:%s is not system service.", bundleName.c_str());
-        return false;
-    }
-    ZLOGD("bundleName:%s is system service.", bundleName.c_str());
-    return true;
+    (void)bundleName;
+    (void)uid;
+    (void)tokenId;
+    return false;
 }
 
 // Check whether the app with this bundle name is auto launch enabled.
-bool PermissionValidator::IsAutoLaunchEnabled(const std::string &bundleName)
+bool PermissionValidator::IsAutoLaunchEnabled(const std::string &bundleName) const
 {
     for (auto it : autoLaunchEnableList_) {
         size_t pos = bundleName.rfind(it);

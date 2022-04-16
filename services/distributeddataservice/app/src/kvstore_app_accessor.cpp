@@ -44,7 +44,7 @@ KvStoreAppAccessor &KvStoreAppAccessor::GetInstance()
 
 void KvStoreAppAccessor::EnableKvStoreAutoLaunch(const AppAccessorParam &param)
 {
-    if (!PermissionValidator::IsAutoLaunchEnabled(param.appId)) {
+    if (!PermissionValidator::GetInstance().IsAutoLaunchEnabled(param.appId)) {
         ZLOGI("AppId:%s is not allowed.", param.appId.c_str());
         return;
     }
@@ -69,7 +69,7 @@ void KvStoreAppAccessor::EnableKvStoreAutoLaunch()
         for (auto &meta : entries) {
             KvStoreMetaData &metaData = meta.second.kvStoreMetaData;
             ZLOGI("meta appId:%s", metaData.appId.c_str());
-            if (!PermissionValidator::IsAutoLaunchEnabled(metaData.appId)) {
+            if (!PermissionValidator::GetInstance().IsAutoLaunchEnabled(metaData.appId)) {
                 continue;
             }
             DistributedDB::CipherPassword password;

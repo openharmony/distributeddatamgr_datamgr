@@ -128,7 +128,7 @@ void AccountDelegateImpl::SubscribeAccountEvent()
 std::string AccountDelegateImpl::GetCurrentAccountId(const std::string &bundleName) const
 {
     ZLOGD("start");
-    if (!bundleName.empty() && PermissionValidator::IsAutoLaunchEnabled(bundleName)) {
+    if (!bundleName.empty() && PermissionValidator::GetInstance().IsAutoLaunchEnabled(bundleName)) {
         return Constant::DEFAULT_GROUP_ID;
     }
     auto ohosAccountInfo = AccountSA::OhosAccountKits::GetInstance().QueryOhosAccountInfo();
