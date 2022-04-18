@@ -16,10 +16,7 @@
 #define LOG_TAG "PermissionValidator"
 
 #include "permission_validator.h"
-#include <regex>
-#include <string>
 #include "accesstoken_kit.h"
-#include "checker/checker_manager.h"
 #include "log_print.h"
 
 namespace OHOS {

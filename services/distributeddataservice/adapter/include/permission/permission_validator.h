@@ -15,7 +15,6 @@
 
 #ifndef PERMISSION_VALIDATOR_H
 #define PERMISSION_VALIDATOR_H
-#include <set>
 #include <string>
 #include "types.h"
 #include "visibility.h"
