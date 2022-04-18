@@ -1035,8 +1035,10 @@ void SyncEngine::IncExecTaskCount()
 
 void SyncEngine::DecExecTaskCount()
 {
-    std::lock_guard<std::mutex> incLock(execTaskCountLock_);
-    execTaskCount_--;
+    {
+        std::lock_guard<std::mutex> decLock(execTaskCountLock_);
+        execTaskCount_--;
+    }
     execTaskCv_.notify_all();
 }
 } // namespace DistributedDB
