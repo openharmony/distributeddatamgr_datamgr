@@ -22,7 +22,6 @@
 namespace OHOS {
 namespace DistributedKv {
 using namespace Security::AccessToken;
-using namespace OHOS::DistributedData;
 PermissionValidator &PermissionValidator::GetInstance()
 {
     static PermissionValidator permissionValidator;
