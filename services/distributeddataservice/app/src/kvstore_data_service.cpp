@@ -1025,9 +1025,6 @@ bool KvStoreDataService::CheckPermissions(const std::string &userId, const std::
         return true;
     }
 
-    if (PermissionValidator::GetInstance().IsAutoLaunchEnabled(appId)) {
-        return true;
-    }
     bool ret = PermissionValidator::GetInstance().CheckSyncPermission(metaData.tokenId);
     ZLOGD("checking sync permission ret:%{public}d.", ret);
     return ret;

@@ -56,28 +56,13 @@ HWTEST_F(PermissionValidatorTest, TestPermissionValidate001, TestSize.Level0)
 }
 
 /**
-  * @tc.name: TestPermissionValidate002
-  * @tc.desc: test if IsSystemService can return correct permission.
-  * @tc.type: FUNC
-  * @tc.require:AR000DPSGU
-  * @tc.author: liqiao
-  */
-HWTEST_F(PermissionValidatorTest, TestPermissionValidate002, TestSize.Level0)
-{
-    std::string bundleName = "ohos.permissionvalidator.test";
-    pid_t uid = 0;
-    std::uint32_t tokenId = 0;
-    EXPECT_FALSE(PermissionValidator::GetInstance().IsSystemService(bundleName, uid, tokenId));
-}
-
-/**
   * @tc.name: TestPermissionValidate003
   * @tc.desc: test if account id sha256.
   * @tc.type: FUNC
   * @tc.require: AR000DPSH0 AR000DPSEC
   * @tc.author: liqiao
   */
-HWTEST_F(PermissionValidatorTest, TestPermissionValidate003, TestSize.Level0)
+HWTEST_F(PermissionValidatorTest, TestPermissionValidate002, TestSize.Level0)
 {
     std::string userId = "ohos";
     EXPECT_NE(Crypto::Sha256("ohos"), userId);

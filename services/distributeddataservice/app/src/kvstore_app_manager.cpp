@@ -345,10 +345,6 @@ Status KvStoreAppManager::DeleteAllKvStore()
 Status KvStoreAppManager::MigrateAllKvStore(const std::string &harmonyAccountId)
 {
     ZLOGI("begin");
-    if (PermissionValidator::GetInstance().IsAutoLaunchEnabled(bundleName_)) {
-        return Status::SUCCESS;
-    }
-
     std::lock_guard<std::mutex> lg(storeMutex_);
     userId_ = harmonyAccountId;
     ZLOGI("path de migration begin.");

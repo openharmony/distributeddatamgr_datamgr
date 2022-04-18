@@ -26,8 +26,11 @@ namespace OHOS {
 namespace DistributedKv {
 using namespace Security::AccessToken;
 using namespace OHOS::DistributedData;
-// initialize auto launch enabled applications white list.
-std::set<std::string> PermissionValidator::autoLaunchEnableList_ = {};
+PermissionValidator &PermissionValidator::GetInstance()
+{
+    static PermissionValidator permissionValidator;
+    return permissionValidator;
+}
 
 // check whether the client process have enough privilege to share data with the other devices.
 bool PermissionValidator::CheckSyncPermission(std::uint32_t tokenId)
@@ -40,28 +43,6 @@ bool PermissionValidator::CheckSyncPermission(std::uint32_t tokenId)
     }
 
     ZLOGI("invalid tokenid:%u", tokenId);
-    return false;
-}
-
-// Check whether the bundle name is in the system service list.
-bool PermissionValidator::IsSystemService(const std::string &bundleName, pid_t uid, std::uint32_t tokenId)
-{
-    (void)bundleName;
-    (void)uid;
-    (void)tokenId;
-    return false;
-}
-
-// Check whether the app with this bundle name is auto launch enabled.
-bool PermissionValidator::IsAutoLaunchEnabled(const std::string &bundleName) const
-{
-    for (auto it : autoLaunchEnableList_) {
-        size_t pos = bundleName.rfind(it);
-        if (pos != std::string::npos) {
-            return true;
-        }
-    }
-    ZLOGD("AppId:%s is not allowed.", bundleName.c_str());
     return false;
 }
 } // namespace DistributedKv

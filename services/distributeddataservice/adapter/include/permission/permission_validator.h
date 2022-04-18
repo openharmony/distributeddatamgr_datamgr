@@ -22,26 +22,15 @@
 
 namespace OHOS {
 namespace DistributedKv {
-const std::string DISTRIBUTED_DATASYNC = "ohos.permission.DISTRIBUTED_DATASYNC";
 class PermissionValidator {
 public:
-    API_EXPORT static PermissionValidator &GetInstance()
-    {
-        static PermissionValidator permissionValidator;
-        return permissionValidator;
-    }
+    API_EXPORT static PermissionValidator &GetInstance();
     // check whether the client process have enough privilege to share data with the other devices.
     // tokenId: client process tokenId
     API_EXPORT  bool CheckSyncPermission(std::uint32_t tokenId);
 
-    // Check whether the bundle name is in the system service list.
-    API_EXPORT  bool IsSystemService(const std::string &bundleName, pid_t uid, std::uint32_t tokenId);
-
-    // Check  the app with this bundle name is auto launch enabled.
-    API_EXPORT  bool IsAutoLaunchEnabled(const std::string &bundleName) const;
-
 private:
-    static std::set<std::string> autoLaunchEnableList_; // the list for auto launch enabled app.
+    static constexpr const char *DISTRIBUTED_DATASYNC = "ohos.permission.DISTRIBUTED_DATASYNC";
 };
 } // namespace DistributedKv
 } // namespace OHOS
