@@ -29,7 +29,7 @@ PermissionValidator &PermissionValidator::GetInstance()
 }
 
 // check whether the client process have enough privilege to share data with the other devices.
-bool PermissionValidator::CheckSyncPermission(std::uint32_t tokenId)
+bool PermissionValidator::CheckSyncPermission(uint32_t tokenId)
 {
     if (AccessTokenKit::GetTokenTypeFlag(tokenId) == TOKEN_NATIVE) {
         return true;
