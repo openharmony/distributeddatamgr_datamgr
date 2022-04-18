@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "meida_lib_checker.h"
+#include "media_lib_checker.h"
 
 #define LOG_TAG "MediaLibChecker"
 
