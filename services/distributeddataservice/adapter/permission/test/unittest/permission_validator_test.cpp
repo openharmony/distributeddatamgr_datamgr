@@ -51,7 +51,7 @@ void PermissionValidatorTest::TearDown(void)
   */
 HWTEST_F(PermissionValidatorTest, TestPermissionValidate001, TestSize.Level0)
 {
-    std::uint32_t tokenId = 0;
+    uint32_t tokenId = 0;
     EXPECT_FALSE(PermissionValidator::GetInstance().CheckSyncPermission(tokenId));
 }
 
