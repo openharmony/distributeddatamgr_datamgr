@@ -11,6 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import("//build/ohos.gni")
+import(
+    "//foundation/distributeddatamgr/distributeddatamgr/distributeddatamgr.gni")
 
 ohos_static_library("distributeddata_account_static") {
   sources = [
@@ -49,9 +51,14 @@ ohos_static_library("distributeddata_account_static") {
     "ces_standard:cesfwk_innerkits",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
-    "os_account_standard:libaccountkits",
-    "os_account_standard:os_account_innerkits",
   ]
+  if (os_account_part_is_enabled) {
+    cflags_cc += [ "-DOS_ACCOUNT_PART_IS_ENABLED" ]
+    external_deps += [
+      "os_account_standard:libaccountkits",
+      "os_account_standard:os_account_innerkits",
+    ]
+  }
   subsystem_name = "distributeddatamgr"
   part_name = "distributeddatamgr"
 }

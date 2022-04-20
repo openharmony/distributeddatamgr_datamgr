@@ -74,6 +74,7 @@ config("module_private_config") {
 }
 
 ohos_shared_library("distributeddataservice") {
+  cflags_cc = []
   sources = [
     "src/backup_handler.cpp",
     "src/device_change_listener_impl.cpp",
@@ -142,11 +143,15 @@ ohos_shared_library("distributeddataservice") {
     "hiviewdfx_hilog_native:libhilog",
     "huks:libhukssdk",
     "ipc:ipc_core",
-    "os_account_standard:os_account_innerkits",
     "safwk:system_ability_fwk",
     "samgr_standard:samgr_proxy",
     "startup_l2:syspara",
   ]
+
+  if (os_account_part_is_enabled) {
+    cflags_cc += [ "-DOS_ACCOUNT_PART_IS_ENABLED" ]
+    external_deps += [ "os_account_standard:os_account_innerkits" ]
+  }
 
   if (distributeddatamgr_power) {
     external_deps += [

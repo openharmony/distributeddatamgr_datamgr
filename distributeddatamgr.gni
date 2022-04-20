@@ -17,4 +17,11 @@ declare_args() {
       !defined(global_parts_info.battery_manager_native_batterysrv_client)) {
     distributeddatamgr_power = false
   }
+
+  if (!defined(global_parts_info) ||
+      defined(global_parts_info.account_os_account_standard)) {
+    os_account_part_is_enabled = true
+  } else {
+    os_account_part_is_enabled = false
+  }
 }
