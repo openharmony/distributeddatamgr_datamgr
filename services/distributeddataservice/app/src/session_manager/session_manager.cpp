@@ -19,7 +19,7 @@
 
 #include <algorithm>
 
-#include "auth/auth_delegate.h"
+#include "auth_delegate.h"
 #include "checker/checker_manager.h"
 #include "log/log_print.h"
 #include "user_delegate.h"

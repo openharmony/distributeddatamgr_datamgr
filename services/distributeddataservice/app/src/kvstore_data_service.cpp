@@ -25,7 +25,7 @@
 #include <chrono>
 #include <thread>
 
-#include "auth/auth_delegate.h"
+#include "auth_delegate.h"
 #include "auto_launch_export.h"
 #include "bootstrap.h"
 #include "checker/checker_manager.h"

@@ -18,12 +18,12 @@
 #include "single_kvstore_impl.h"
 #include <fstream>
 #include "account_delegate.h"
+#include "auth_delegate.h"
 #include "backup_handler.h"
 #include "checker/checker_manager.h"
 #include "constant.h"
 #include "dds_trace.h"
 #include "device_kvstore_impl.h"
-#include "auth/auth_delegate.h"
 #include "kvstore_data_service.h"
 #include "kvstore_utils.h"
 #include "ipc_skeleton.h"
