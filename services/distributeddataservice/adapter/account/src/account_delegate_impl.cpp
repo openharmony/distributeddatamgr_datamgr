@@ -23,8 +23,10 @@
 #include <unistd.h>
 #include <vector>
 #include "constant.h"
+#ifdef OS_ACCOUNT_PART_IS_ENABLED
 #include "ohos_account_kits.h"
 #include "os_account_manager.h"
+#endif // OS_ACCOUNT_PART_IS_ENABLED
 #include "permission_validator.h"
 #include "utils/crypto.h"
 
@@ -33,6 +35,12 @@ namespace DistributedKv {
 using namespace OHOS::EventFwk;
 using namespace OHOS::AAFwk;
 using namespace OHOS::DistributedData;
+
+#ifndef OS_ACCOUNT_PART_IS_ENABLED
+namespace {
+const std::string DEFAULT_OHOS_ACCOUNT_UID = ""; // default UID
+}
+#endif // OS_ACCOUNT_PART_IS_ENABLED
 
 EventSubscriber::EventSubscriber(const CommonEventSubscribeInfo &info) : CommonEventSubscriber(info) {}
 
@@ -128,6 +136,7 @@ void AccountDelegateImpl::SubscribeAccountEvent()
 std::string AccountDelegateImpl::GetCurrentAccountId(const std::string &bundleName) const
 {
     ZLOGD("start");
+#ifdef OS_ACCOUNT_PART_IS_ENABLED
     auto ohosAccountInfo = AccountSA::OhosAccountKits::GetInstance().QueryOhosAccountInfo();
     if (!ohosAccountInfo.first) {
         ZLOGE("get ohosAccountInfo from OhosAccountKits is null, return default");
@@ -139,16 +148,22 @@ std::string AccountDelegateImpl::GetCurrentAccountId(const std::string &bundleNa
     }
 
     return Sha256UserId(ohosAccountInfo.second.uid_);
+#else // OS_ACCOUNT_PART_IS_ENABLED
+    ZLOGE("There is no account part, return default");
+    return DEFAULT_OHOS_ACCOUNT_UID;
+#endif // OS_ACCOUNT_PART_IS_ENABLED
 }
 
 std::string AccountDelegateImpl::GetDeviceAccountIdByUID(int32_t uid) const
 {
     int userId = 0;
+#ifdef OS_ACCOUNT_PART_IS_ENABLED
     auto ret = AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(uid, userId);
     if (ret != 0) {
         ZLOGE("failed get os account local id from uid, ret:%{public}d", ret);
         return {};
     }
+#endif // OS_ACCOUNT_PART_IS_ENABLED
     return std::to_string(userId);
 }
 
