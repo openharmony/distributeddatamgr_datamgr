@@ -119,9 +119,11 @@ int SyncEngine::Close()
     StopAutoSubscribeTimer();
 
     std::unique_lock<std::mutex> closeLock(execTaskCountLock_);
-    execTaskCv_.wait(closeLock, [&]() {
-        return execTaskCount_ == 0;
-    });
+    bool isTimeout = execTaskCv_.wait_for(closeLock, std::chrono::milliseconds(DBConstant::MIN_TIMEOUT),
+        [this]() { return execTaskCount_ == 0; });
+    if (!isTimeout) {
+        LOGD("SyncEngine Close with executing task!");
+    }
     // Clear SyncContexts
     {
         std::unique_lock<std::mutex> lock(contextMapLock_);
@@ -366,6 +368,9 @@ void SyncEngine::ScheduleTaskOut(ISyncTaskContext *context, const ICommunicator 
 
 int SyncEngine::DealMsgUtilQueueEmpty()
 {
+    if (!isActive_) {
+        return -E_BUSY; // db is closing just return
+    }
     int errCode = E_OK;
     Message *inMsg = nullptr;
     {
