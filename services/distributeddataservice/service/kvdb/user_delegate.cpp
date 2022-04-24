@@ -90,8 +90,8 @@ void UserDelegate::UpdateUsers(const std::string &deviceId, const std::vector<Us
 bool UserDelegate::InitLocalUserMeta()
 {
     std::vector<int> users;
-    auto ret = AccountDelegate::GetInstance()->QueryUser(users);
-    if (!ret || osAccountIds.empty()) {
+    auto ret = AccountDelegate::GetInstance()->QueryUsers(users);
+    if (!ret || users.empty()) {
         ZLOGE("failed to query os accounts, ret:%{public}d", ret);
         return false;
     }
