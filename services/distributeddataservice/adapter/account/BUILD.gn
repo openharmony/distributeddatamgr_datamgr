@@ -44,20 +44,23 @@ ohos_static_library("distributeddata_account_static") {
   ]
 
   external_deps = [
-    "bundle_framework:appexecfwk_base",
-
-    # "ces:libcommonevent",
     "ability_base:want",
+    "bundle_framework:appexecfwk_base",
     "common_event_service:cesfwk_innerkits",
+    "ces_standard:cesfwk_innerkits",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
+
   if (os_account_part_is_enabled) {
+    sources += [ "src/account_delegate_normal_impl.cpp" ]
     cflags_cc += [ "-DOS_ACCOUNT_PART_IS_ENABLED" ]
     external_deps += [
       "os_account_standard:libaccountkits",
       "os_account_standard:os_account_innerkits",
     ]
+  } else {
+    sources += [ "src/account_delegate_default_impl.cpp" ]
   }
   subsystem_name = "distributeddatamgr"
   part_name = "distributeddatamgr"
