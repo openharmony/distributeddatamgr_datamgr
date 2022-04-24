@@ -130,7 +130,6 @@ std::string AccountDelegateNormalImpl::Sha256UserId(const std::string &plainText
         return plainText;
     }
 
-    std::string::size_type sizeType;
     int64_t plainVal;
     std::string::size_type int64MaxLen(std::to_string(INT64_MAX).size());
     // plain text length must be less than INT64_MAX string.
