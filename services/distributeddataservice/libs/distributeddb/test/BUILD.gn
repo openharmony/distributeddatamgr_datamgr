@@ -738,14 +738,12 @@ group("unittest") {
     ":RuntimeContextProcessSystemApiAdapterImplTest",
   ]
 }
+
 ###############################################################################
 
 group("fuzztest") {
   testonly = true
   deps = []
-  deps += [
-    "fuzztest/query_fuzzer:fuzztest",
- ]
+  deps += [ "fuzztest/query_fuzzer:fuzztest" ]
 }
-
 ###############################################################################
