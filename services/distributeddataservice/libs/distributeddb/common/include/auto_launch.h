@@ -143,7 +143,7 @@ protected:
 
     int AutoLaunchExt(const std::string &identifier, const std::string &userId);
 
-    void AutoLaunchExtTask(const std::string identifier, const std::string userId, AutoLaunchItem autoLaunchItem);
+    void AutoLaunchExtTask(const std::string &identifier, const std::string &userId, AutoLaunchItem &autoLaunchItem);
 
     void ExtObserverFunc(const KvDBCommitNotifyData &notifyData, const std::string &identifier,
         const std::string &userId);

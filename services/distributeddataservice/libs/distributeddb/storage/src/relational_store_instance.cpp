@@ -167,6 +167,10 @@ RelationalStoreConnection *RelationalStoreInstance::GetDatabaseConnection(const 
     std::string identifier = properties.GetStringProp(KvDBProperties::IDENTIFIER_DATA, "");
     LOGD("Begin to get [%s] database connection.", STR_MASK(DBCommon::TransferStringToHex(identifier)));
     RelationalStoreInstance *manager = RelationalStoreInstance::GetInstance();
+    if (manager == nullptr) {
+        errCode = -E_OUT_OF_MEMORY;
+        return nullptr;
+    }
     manager->EnterDBOpenCloseProcess(properties.GetStringProp(DBProperties::IDENTIFIER_DATA, ""));
     RelationalStoreConnection *connection = nullptr;
     std::string canonicalDir;
