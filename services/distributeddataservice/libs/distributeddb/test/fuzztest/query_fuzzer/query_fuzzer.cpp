@@ -33,7 +33,7 @@ namespace OHOS {
     void FuzzNotEqualTo(const uint8_t* data, size_t size)
     {
         std::string rawString(reinterpret_cast<const char *>(data), size);
-        Query query = Query::Select().NotEqualTo(TEST_FIELD_NAME,rawString);
+        Query query = Query::Select().NotEqualTo(TEST_FIELD_NAME, rawString);
     }
 
     void FuzzGreaterThan(const uint8_t* data, size_t size)
@@ -45,7 +45,7 @@ namespace OHOS {
     void FuzzLessThan(const uint8_t* data, size_t size)
     {
         std::string rawString(reinterpret_cast<const char *>(data), size);
-        Query query = Query::Select().LessThan(TEST_FIELD_NAME,rawString);
+        Query query = Query::Select().LessThan(TEST_FIELD_NAME, rawString);
     }
 
     void FuzzGreaterThanOrEqualTo(const uint8_t* data, size_t size)
@@ -57,7 +57,7 @@ namespace OHOS {
     void FuzzLessThanOrEqualTo(const uint8_t* data, size_t size)
     {
         std::string rawString(reinterpret_cast<const char *>(data), size);
-        Query query = Query::Select().LessThanOrEqualTo(TEST_FIELD_NAME,rawString);
+        Query query = Query::Select().LessThanOrEqualTo(TEST_FIELD_NAME, rawString);
     }
 
     void FuzzOrderBy(const uint8_t* data, size_t size)
@@ -81,14 +81,14 @@ namespace OHOS {
     void FuzzNotLike(const uint8_t* data, size_t size)
     {
         std::string rawString(reinterpret_cast<const char *>(data), size);
-        Query query = Query::Select().NotLike(TEST_FIELD_NAME,rawString);
+        Query query = Query::Select().NotLike(TEST_FIELD_NAME, rawString);
     }
 
     void FuzzIn(const uint8_t* data, size_t size)
     {
         std::string rawString(reinterpret_cast<const char *>(data), size);
         std::vector<std::string> values;
-        //512 max size
+        // 512 max size
         for (int i = 0; i < static_cast<int>(U32_AT(data) % 512); i++) {
             values.push_back(rawString);
         }
@@ -99,7 +99,7 @@ namespace OHOS {
     {
         std::string rawString(reinterpret_cast<const char *>(data), size);
         std::vector<std::string> values;
-        //512 max size
+        // 512 max size
         for (int i = 0; i < static_cast<int>(size % 512); i++) {
             values.push_back(rawString);
         }
@@ -116,24 +116,24 @@ namespace OHOS {
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    //u32 4 bytes
+    // u32 4 bytes
     if (size < 4) {
         return 0;
     }
-    //Run your code on data
-    OHOS::FuzzEqualTo(data,size);
-    OHOS::FuzzNotEqualTo(data,size);
-    OHOS::FuzzGreaterThan(data,size);
-    OHOS::FuzzLessThan(data,size);
-    OHOS::FuzzGreaterThanOrEqualTo(data,size);
-    OHOS::FuzzLessThanOrEqualTo(data,size);
-    OHOS::FuzzOrderBy(data,size);
-    OHOS::FuzzLimit(data,size);
-    OHOS::FuzzLike(data,size);
-    OHOS::FuzzNotLike(data,size);
-    OHOS::FuzzIn(data,size);
-    OHOS::FuzzNotIn(data,size);
-    OHOS::FuzzIsNull(data,size);
+    // Run your code on data
+    OHOS::FuzzEqualTo(data, size);
+    OHOS::FuzzNotEqualTo(data, size);
+    OHOS::FuzzGreaterThan(data, size);
+    OHOS::FuzzLessThan(data, size);
+    OHOS::FuzzGreaterThanOrEqualTo(data, size);
+    OHOS::FuzzLessThanOrEqualTo(data, size);
+    OHOS::FuzzOrderBy(data, size);
+    OHOS::FuzzLimit(data, size);
+    OHOS::FuzzLike(data, size);
+    OHOS::FuzzNotLike(data, size);
+    OHOS::FuzzIn(data, size);
+    OHOS::FuzzNotIn(data, size);
+    OHOS::FuzzIsNull(data, size);
     return 0;
 }
 
