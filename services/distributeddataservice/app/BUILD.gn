@@ -109,6 +109,7 @@ ohos_shared_library("distributeddataservice") {
   ]
 
   kv_sources = [
+    "../service/kvdb/auth_delegate.cpp",
     "../service/kvdb/executor_factory.cpp",
     "../service/kvdb/user_delegate.cpp",
   ]
@@ -121,7 +122,6 @@ ohos_shared_library("distributeddataservice") {
     "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/distributeddata:distributeddata_inner",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter:distributeddata_adapter",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/account:distributeddata_account_static",
-    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/auth:distributeddata_auth_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/broadcaster:distributeddata_broadcaster_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/permission:distributeddata_permission_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/utils:distributeddata_utils_static",
@@ -139,6 +139,7 @@ ohos_shared_library("distributeddataservice") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "dataclassification:data_transit_mgr",
+    "deviceauth_standard:deviceauth_sdk",
     "hiviewdfx_hilog_native:libhilog",
     "huks:libhukssdk",
     "ipc:ipc_core",
