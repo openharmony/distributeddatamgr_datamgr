@@ -20,7 +20,7 @@ using namespace DistributedDB;
 using namespace std;
 
 namespace {
-    const std::string TEST_FIELD_NAME = "$.test";
+    constexpr const char *TEST_FIELD_NAME = "$.test";
 }
 
 namespace OHOS {
