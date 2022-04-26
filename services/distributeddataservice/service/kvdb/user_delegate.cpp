@@ -23,24 +23,15 @@
 #include "executor_factory.h"
 #include "log_print.h"
 #include "metadata/meta_data_manager.h"
-#ifdef OS_ACCOUNT_PART_IS_ENABLED
-#include "os_account_manager.h"
-#endif // OS_ACCOUNT_PART_IS_ENABLED
 #include "utils/anonymous.h"
 namespace OHOS::DistributedData {
 using OHOS::AppDistributedKv::CommunicationProvider;
 using namespace OHOS::DistributedKv;
-#ifdef OS_ACCOUNT_PART_IS_ENABLED
-using namespace OHOS::AccountSA;
-#else // OS_ACCOUNT_PART_IS_ENABLED
-namespace {
-const int32_t DEFAULT_OS_ACCOUNT_ID = 0; // 0 is the default id when there is no os_account part
-}
-#endif // OS_ACCOUNT_PART_IS_ENABLED
 std::string GetLocalDeviceId()
 {
     return DeviceKvStoreImpl::GetLocalDeviceId();
 }
+
 std::vector<UserStatus> UserDelegate::GetLocalUserStatus()
 {
     ZLOGI("begin");
@@ -98,20 +89,14 @@ void UserDelegate::UpdateUsers(const std::string &deviceId, const std::vector<Us
 
 bool UserDelegate::InitLocalUserMeta()
 {
-    std::vector<int> osAccountIds = { { 0, true } }; // system user default
-#ifdef OS_ACCOUNT_PART_IS_ENABLED
-    auto ret = OsAccountManager::QueryActiveOsAccountIds(osAccountIds);
-    if (ret != 0 || osAccountIds.empty()) {
+    std::vector<int> users;
+    auto ret = AccountDelegate::GetInstance()->QueryUsers(users);
+    if (!ret || users.empty()) {
         ZLOGE("failed to query os accounts, ret:%{public}d", ret);
         return false;
     }
-#else // OS_ACCOUNT_PART_IS_ENABLED
-    osAccountIds.clear();
-    osAccountIds.push_back(DEFAULT_OS_ACCOUNT_ID);
-    ZLOGI("there has no os account part, use default id!");
-#endif // OS_ACCOUNT_PART_IS_ENABLED
     std::vector<UserStatus> userStatus = { { 0, true } };
-    for (const auto &user : osAccountIds) {
+    for (const auto &user : users) {
         userStatus.emplace_back(user, true);
     }
     UserMetaData userMetaData;

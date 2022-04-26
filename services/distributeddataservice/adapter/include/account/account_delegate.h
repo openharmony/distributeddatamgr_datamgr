@@ -41,19 +41,20 @@ class AccountDelegate {
 public:
     class Observer {
     public:
-        KVSTORE_API virtual ~Observer() = default;
-        KVSTORE_API virtual void OnAccountChanged(const AccountEventInfo &eventInfo) = 0;
+        API_EXPORT virtual ~Observer() = default;
+        API_EXPORT virtual void OnAccountChanged(const AccountEventInfo &eventInfo) = 0;
 
         // must specify unique name for observer
-        KVSTORE_API virtual std::string Name() = 0;
+        API_EXPORT virtual std::string Name() = 0;
     };
-    KVSTORE_API virtual ~AccountDelegate() = default;
-    KVSTORE_API virtual Status Subscribe(std::shared_ptr<Observer> observer) = 0;
-    KVSTORE_API virtual Status Unsubscribe(std::shared_ptr<Observer> observer) = 0;
-    KVSTORE_API virtual std::string GetCurrentAccountId(const std::string &bundleName = "") const = 0;
-    KVSTORE_API virtual std::string GetDeviceAccountIdByUID(int32_t uid) const = 0;
-    KVSTORE_API virtual void SubscribeAccountEvent() = 0;
-    KVSTORE_API static AccountDelegate *GetInstance();
+    API_EXPORT virtual ~AccountDelegate() = default;
+    API_EXPORT virtual Status Subscribe(std::shared_ptr<Observer> observer) = 0;
+    API_EXPORT virtual Status Unsubscribe(std::shared_ptr<Observer> observer) = 0;
+    API_EXPORT virtual std::string GetCurrentAccountId(const std::string &bundleName = "") const = 0;
+    API_EXPORT virtual std::string GetDeviceAccountIdByUID(int32_t uid) const = 0;
+    API_EXPORT virtual void SubscribeAccountEvent() = 0;
+    API_EXPORT virtual bool QueryUsers(std::vector<int> &users) = 0;
+    API_EXPORT static AccountDelegate *GetInstance();
 
 private:
     using BaseInstance = AccountDelegate *(*)();

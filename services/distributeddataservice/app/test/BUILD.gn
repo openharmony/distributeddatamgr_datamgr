@@ -55,7 +55,6 @@ config("module_private_config") {
 }
 
 ohos_unittest("KvStoreImplLogicalIsolationTest") {
-  cflags_cc = []
   module_out_path = module_output_path
   sources = [
     "../src/backup_handler.cpp",
@@ -96,11 +95,6 @@ ohos_unittest("KvStoreImplLogicalIsolationTest") {
     "samgr_standard:samgr_proxy",
   ]
 
-  if (os_account_part_is_enabled) {
-    cflags_cc += [ "-DOS_ACCOUNT_PART_IS_ENABLED" ]
-    external_deps += [ "os_account_standard:os_account_innerkits" ]
-  }
-
   if (distributeddatamgr_power) {
     external_deps += [
       "battery_manager_native:batterysrv_client",
@@ -135,7 +129,6 @@ ohos_unittest("KvStoreImplLogicalIsolationTest") {
 
 ohos_unittest("KvStoreImplPhysicalIsolationTest") {
   module_out_path = module_output_path
-  cflags_cc = []
   sources = [
     "../src/backup_handler.cpp",
     "../src/device_change_listener_impl.cpp",
@@ -181,11 +174,6 @@ ohos_unittest("KvStoreImplPhysicalIsolationTest") {
     "samgr_standard:samgr_proxy",
   ]
 
-  if (os_account_part_is_enabled) {
-    cflags_cc += [ "-DOS_ACCOUNT_PART_IS_ENABLED" ]
-    external_deps += [ "os_account_standard:os_account_innerkits" ]
-  }
-
   if (distributeddatamgr_power) {
     external_deps += [
       "battery_manager_native:batterysrv_client",
@@ -214,7 +202,6 @@ ohos_unittest("KvStoreImplPhysicalIsolationTest") {
 
 ohos_unittest("KvStoreDataServiceTest") {
   module_out_path = module_output_path
-  cflags_cc = []
   sources = [
     "../src/backup_handler.cpp",
     "../src/device_change_listener_impl.cpp",
@@ -258,11 +245,6 @@ ohos_unittest("KvStoreDataServiceTest") {
     "safwk:system_ability_fwk",
     "samgr_standard:samgr_proxy",
   ]
-
-  if (os_account_part_is_enabled) {
-    cflags_cc += [ "-DOS_ACCOUNT_PART_IS_ENABLED" ]
-    external_deps += [ "os_account_standard:os_account_innerkits" ]
-  }
 
   if (distributeddatamgr_power) {
     external_deps += [
@@ -338,11 +320,6 @@ ohos_unittest("KvStoreBackupTest") {
     "samgr_standard:samgr_proxy",
   ]
 
-  if (os_account_part_is_enabled) {
-    cflags_cc += [ "-DOS_ACCOUNT_PART_IS_ENABLED" ]
-    external_deps += [ "os_account_standard:os_account_innerkits" ]
-  }
-
   if (distributeddatamgr_power) {
     external_deps += [
       "battery_manager_native:batterysrv_client",
@@ -373,7 +350,6 @@ ohos_unittest("KvStoreBackupTest") {
 
 ohos_unittest("KvStoreFlowCtrlManagerTest") {
   module_out_path = module_output_path
-  cflags_cc = []
   sources = [ "unittest/kvstore_flowctrl_manager_test.cpp" ]
 
   configs = [ ":module_private_config" ]
@@ -386,11 +362,6 @@ ohos_unittest("KvStoreFlowCtrlManagerTest") {
     "safwk:system_ability_fwk",
     "samgr_standard:samgr_proxy",
   ]
-
-  if (os_account_part_is_enabled) {
-    cflags_cc += [ "-DOS_ACCOUNT_PART_IS_ENABLED" ]
-    external_deps += [ "os_account_standard:os_account_innerkits" ]
-  }
 
   if (distributeddatamgr_power) {
     external_deps += [
@@ -413,7 +384,6 @@ ohos_unittest("KvStoreFlowCtrlManagerTest") {
 
 ohos_unittest("KvStoreSyncManagerTest") {
   module_out_path = module_output_path
-  cflags_cc = []
   sources = [
     "../src/backup_handler.cpp",
     "../src/device_change_listener_impl.cpp",
@@ -457,11 +427,6 @@ ohos_unittest("KvStoreSyncManagerTest") {
     "samgr_standard:samgr_proxy",
   ]
 
-  if (os_account_part_is_enabled) {
-    cflags_cc += [ "-DOS_ACCOUNT_PART_IS_ENABLED" ]
-    external_deps += [ "os_account_standard:os_account_innerkits" ]
-  }
-
   if (distributeddatamgr_power) {
     external_deps += [
       "battery_manager_native:batterysrv_client",
@@ -490,7 +455,6 @@ ohos_unittest("KvStoreSyncManagerTest") {
 
 ohos_unittest("KvStoreUninstallerTest") {
   module_out_path = module_output_path
-  cflags_cc = []
   sources = [
     "../src/backup_handler.cpp",
     "../src/device_change_listener_impl.cpp",
@@ -553,11 +517,6 @@ ohos_unittest("KvStoreUninstallerTest") {
     "safwk:system_ability_fwk",
     "samgr_standard:samgr_proxy",
   ]
-
-  if (os_account_part_is_enabled) {
-    cflags_cc += [ "-DOS_ACCOUNT_PART_IS_ENABLED" ]
-    external_deps += [ "os_account_standard:os_account_innerkits" ]
-  }
 
   if (distributeddatamgr_power) {
     external_deps += [
