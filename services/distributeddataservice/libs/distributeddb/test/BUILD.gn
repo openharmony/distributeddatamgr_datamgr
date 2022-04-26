@@ -744,6 +744,9 @@ group("unittest") {
 group("fuzztest") {
   testonly = true
   deps = []
-  deps += [ "fuzztest/query_fuzzer:fuzztest" ]
+  deps += [
+    "fuzztest/fileoper_fuzzer:fuzztest",
+    "fuzztest/query_fuzzer:fuzztest",
+  ]
 }
 ###############################################################################
