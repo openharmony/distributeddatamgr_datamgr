@@ -375,7 +375,7 @@ Status KvStoreDataService::UpdateMetaData(const Options &options, const KvStoreP
     metaData.schema = options.schema;
     metaData.storeId = kvParas.storeId;
     metaData.tokenId = IPCSkeleton::GetCallingTokenID();
-    metaData.userId = AccountDelegate::GetInstance()->GetCurrentAccountId(kvParas.bundleName);
+    metaData.userId = AccountDelegate::GetInstance()->GetCurrentAccountId();
     metaData.uid = IPCSkeleton::GetCallingUid();
     metaData.version = STORE_VERSION;
     metaData.securityLevel = options.securityLevel;

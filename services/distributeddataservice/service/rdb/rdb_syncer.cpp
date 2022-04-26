@@ -118,7 +118,7 @@ int32_t RdbSyncer::CreateMetaData()
     newMeta.storeId = GetStoreId();
     newMeta.uid = uid_;
     newMeta.user = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(uid_);
-    newMeta.account = AccountDelegate::GetInstance()->GetCurrentAccountId(GetBundleName());
+    newMeta.account = AccountDelegate::GetInstance()->GetCurrentAccountId();
     newMeta.dataDir = GetPath();
 
     auto metaKey = StoreMetaData::GetKey({ newMeta.user, "default", newMeta.bundleName, newMeta.storeId });

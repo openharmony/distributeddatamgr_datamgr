@@ -27,7 +27,7 @@ class AccountDelegateNormalImpl final : public AccountDelegateImpl {
 public:
     static AccountDelegateNormalImpl *GetInstance();
     static AccountDelegate *GetBaseInstance();
-    std::string GetCurrentAccountId(const std::string &bundleName = "") const override;
+    std::string GetCurrentAccountId() const override;
     std::string GetDeviceAccountIdByUID(int32_t uid) const override;
     bool QueryUsers(std::vector<int> &users) override;
     void SubscribeAccountEvent() override;

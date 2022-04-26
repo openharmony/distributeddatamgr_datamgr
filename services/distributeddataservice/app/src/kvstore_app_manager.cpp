@@ -458,7 +458,7 @@ DistributedDB::KvStoreDelegateManager *KvStoreAppManager::GetDelegateManager(Pat
         return nullptr;
     }
 
-    userId_ = AccountDelegate::GetInstance()->GetCurrentAccountId(bundleName_);
+    userId_ = AccountDelegate::GetInstance()->GetCurrentAccountId();
     ZLOGD("accountId: %{public}s bundleName: %{public}s", deviceAccountId_.c_str(), bundleName_.c_str());
     delegateManagers_[type] = new (std::nothrow) DistributedDB::KvStoreDelegateManager(trueAppId_, deviceAccountId_);
     if (delegateManagers_[type] == nullptr) {

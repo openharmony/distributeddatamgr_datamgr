@@ -50,7 +50,7 @@ public:
     API_EXPORT virtual ~AccountDelegate() = default;
     API_EXPORT virtual Status Subscribe(std::shared_ptr<Observer> observer) = 0;
     API_EXPORT virtual Status Unsubscribe(std::shared_ptr<Observer> observer) = 0;
-    API_EXPORT virtual std::string GetCurrentAccountId(const std::string &bundleName = "") const = 0;
+    API_EXPORT virtual std::string GetCurrentAccountId() const = 0;
     API_EXPORT virtual std::string GetDeviceAccountIdByUID(int32_t uid) const = 0;
     API_EXPORT virtual void SubscribeAccountEvent() = 0;
     API_EXPORT virtual bool QueryUsers(std::vector<int> &users) = 0;
