@@ -23,6 +23,7 @@
 #include "communication_provider.h"
 #include "log_print.h"
 #include "utils/anonymous.h"
+#include "accesstoken_kit.h"
 
 using OHOS::DistributedKv::AccountDelegate;
 using OHOS::AppDistributedKv::CommunicationProvider;
@@ -118,6 +119,30 @@ bool RdbServiceImpl::CheckAccess(const RdbSyncerParam &param)
     return !CheckerManager::GetInstance().GetAppId(param.bundleName_, GetCallingUid()).empty();
 }
 
+RdbSyncerParam RdbServiceImpl::ToServiceParam(const RdbSyncerParam &param)
+{
+    Security::AccessToken::AccessTokenID callerToken = GetCallingTokenID();
+    if (Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callerToken) != Security::AccessToken::TOKEN_HAP) {
+        ZLOGD("not hap access");
+        return param;
+    }
+
+    ZLOGD("hap access");
+    auto prefixPos = param.path_.find("database");
+    if (prefixPos == std::string::npos) {
+        ZLOGE("not find 'database'");
+        return param;
+    }
+    auto prefix = param.path_.substr(0, prefixPos);
+    auto suffix = param.path_.substr(prefixPos + std::string("database").length());
+    prefix = prefix.replace(prefix.find("storage"), std::string("storage").length(), "app");
+
+    auto serviceParam = param;
+    auto userId = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(GetCallingUid());
+    serviceParam.path_ = prefix + userId + "/database/" + param.bundleName_ + suffix;
+    return serviceParam;
+}
+
 std::string RdbServiceImpl::ObtainDistributedTableName(const std::string &device, const std::string &table)
 {
     ZLOGI("device=%{public}s table=%{public}s", Anonymous::Change(device).c_str(), table.c_str());
@@ -135,7 +160,7 @@ int32_t RdbServiceImpl::InitNotifier(const RdbSyncerParam& param, const sptr<IRe
         ZLOGE("permission error");
         return RDB_ERROR;
     }
-    
+
     pid_t pid = GetCallingPid();
     auto recipient = new(std::nothrow) DeathRecipientImpl([this, pid] {
         OnClientDied(pid);
@@ -191,11 +216,6 @@ void RdbServiceImpl::SyncerTimeout(std::shared_ptr<RdbSyncer> syncer)
 
 std::shared_ptr<RdbSyncer> RdbServiceImpl::GetRdbSyncer(const RdbSyncerParam &param)
 {
-    if (!CheckAccess(param)) {
-        ZLOGE("permission error");
-        return nullptr;
-    }
-
     pid_t pid = GetCallingPid();
     pid_t uid = GetCallingUid();
     std::shared_ptr<RdbSyncer> syncer;
@@ -217,7 +237,8 @@ std::shared_ptr<RdbSyncer> RdbServiceImpl::GetRdbSyncer(const RdbSyncerParam &pa
             ZLOGE("no available syncer");
             return !syncers.empty();
         }
-        auto syncer_ = std::make_shared<RdbSyncer>(param, new (std::nothrow) RdbStoreObserverImpl(this, pid));
+        auto syncer_ = std::make_shared<RdbSyncer>(ToServiceParam(param),
+                                                   new (std::nothrow) RdbStoreObserverImpl(this, pid));
         if (syncer_->Init(pid, uid) != 0) {
             return !syncers.empty();
         }
@@ -240,6 +261,10 @@ std::shared_ptr<RdbSyncer> RdbServiceImpl::GetRdbSyncer(const RdbSyncerParam &pa
 int32_t RdbServiceImpl::SetDistributedTables(const RdbSyncerParam &param, const std::vector<std::string> &tables)
 {
     ZLOGI("enter");
+    if (!CheckAccess(param)) {
+        ZLOGE("permission error");
+        return RDB_ERROR;
+    }
     auto syncer = GetRdbSyncer(param);
     if (syncer == nullptr) {
         return RDB_ERROR;
@@ -250,6 +275,10 @@ int32_t RdbServiceImpl::SetDistributedTables(const RdbSyncerParam &param, const 
 int32_t RdbServiceImpl::DoSync(const RdbSyncerParam &param, const SyncOption &option,
                                const RdbPredicates &predicates, SyncResult &result)
 {
+    if (!CheckAccess(param)) {
+        ZLOGE("permission error");
+        return RDB_ERROR;
+    }
     auto syncer = GetRdbSyncer(param);
     if (syncer == nullptr) {
         return RDB_ERROR;
@@ -269,6 +298,10 @@ void RdbServiceImpl::OnAsyncComplete(pid_t pid, uint32_t seqNum, const SyncResul
 int32_t RdbServiceImpl::DoAsync(const RdbSyncerParam &param, uint32_t seqNum, const SyncOption &option,
                                 const RdbPredicates &predicates)
 {
+    if (!CheckAccess(param)) {
+        ZLOGE("permission error");
+        return RDB_ERROR;
+    }
     pid_t pid = GetCallingPid();
     ZLOGI("seq num=%{public}u", seqNum);
     auto syncer = GetRdbSyncer(param);
