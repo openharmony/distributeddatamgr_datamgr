@@ -121,25 +121,19 @@ bool RdbServiceImpl::CheckAccess(const RdbSyncerParam &param)
 
 RdbSyncerParam RdbServiceImpl::ToServiceParam(const RdbSyncerParam &param)
 {
-    Security::AccessToken::AccessTokenID callerToken = GetCallingTokenID();
-    if (Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callerToken) != Security::AccessToken::TOKEN_HAP) {
-        ZLOGD("not hap access");
-        return param;
-    }
-
-    ZLOGD("hap access");
-    auto prefixPos = param.path_.find("database");
-    if (prefixPos == std::string::npos) {
-        ZLOGE("not find 'database'");
-        return param;
-    }
-    auto prefix = param.path_.substr(0, prefixPos);
-    auto suffix = param.path_.substr(prefixPos + std::string("database").length());
-    prefix = prefix.replace(prefix.find("storage"), std::string("storage").length(), "app");
-
+    ZLOGI("%{public}s", param.relativePath_.c_str());
     auto serviceParam = param;
-    auto userId = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(GetCallingUid());
-    serviceParam.path_ = prefix + userId + "/database/" + param.bundleName_ + suffix;
+    Security::AccessToken::AccessTokenID callerToken = GetCallingTokenID();
+    auto accessToken = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callerToken);
+    if (accessToken == Security::AccessToken::TOKEN_NATIVE) {
+        ZLOGD("native access");
+        serviceParam.realPath_ = "/data/service/el1/public/database/" + param.bundleName_ + '/' + param.relativePath_;
+    } else if (accessToken == Security::AccessToken::TOKEN_HAP) {
+        ZLOGD("hap access %{public}s", param.secLevel_.c_str());
+        auto userId = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(GetCallingUid());
+        serviceParam.realPath_ = "/data/app/" + param.secLevel_ + '/' + userId + "/database/" +
+            param.bundleName_ + '/' + param.relativePath_;
+    }
     return serviceParam;
 }
 
