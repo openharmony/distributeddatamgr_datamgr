@@ -43,7 +43,7 @@ public:
         return "DistributedDataService";
     }
 
-    LevelType GetLevelType() override
+    LevelType GetLevel() override
     {
         return LevelType::LOW;
     }
