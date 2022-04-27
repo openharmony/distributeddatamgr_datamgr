@@ -16,8 +16,8 @@
 #ifndef KVSTORE_ACCOUNT_OBSERVER_H
 #define KVSTORE_ACCOUNT_OBSERVER_H
 
-#include "account_delegate.h"
 #include <atomic>
+#include "account_delegate.h"
 
 namespace OHOS {
 namespace DistributedKv {
@@ -41,6 +41,11 @@ public:
     std::string Name() override
     {
         return "DistributedDataService";
+    }
+
+    LevelType GetLevelType() override
+    {
+        return LevelType::LOW;
     }
 
 private:
