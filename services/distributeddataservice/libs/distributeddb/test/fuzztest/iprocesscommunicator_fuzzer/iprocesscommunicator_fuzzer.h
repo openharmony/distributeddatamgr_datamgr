@@ -18,4 +18,4 @@
 
 #define FUZZ_PROJECT_NAME "IprocessCommunicator_fuzzer"
 
-#endif //IPROCESSCOMMUNICATOR_FUZZER_H
+#endif // IPROCESSCOMMUNICATOR_FUZZER_H

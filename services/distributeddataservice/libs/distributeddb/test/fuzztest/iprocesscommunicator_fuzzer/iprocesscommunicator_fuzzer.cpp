@@ -21,8 +21,12 @@
 using namespace DistributedDB;
 using namespace DistributedDBTest;
 
-namespace OHOS{
-    class ProcessCommunicatorFuzzTest : public DistributedDB::IProcessCommunicator{
+class IProcessCommunicatorFuzzer {
+    /* Keep C++ file names the same as the class name */
+};
+
+namespace OHOS {
+class ProcessCommunicatorFuzzTest : public DistributedDB::IProcessCommunicator {
     public:
         ProcessCommunicatorFuzzTest() {}
         ~ProcessCommunicatorFuzzTest() {}
@@ -45,7 +49,8 @@ namespace OHOS{
             onDataReceive_ = callback;
             return DistributedDB::OK;
         }
-        DistributedDB::DBStatus SendData(const DistributedDB::DeviceInfos &dstDevInfo, const uint8_t *datas, uint32_t length) override
+        DistributedDB::DBStatus SendData(const DistributedDB::DeviceInfos &dstDevInfo, 
+            const uint8_t *datas, uint32_t length) override
         {
             return DistributedDB::OK;
         }
@@ -73,7 +78,7 @@ namespace OHOS{
 
         void FuzzOnDeviceChange(const DistributedDB::DeviceInfos &devInfo, bool isOnline)
         {
-            if(onDeviceChange_ == nullptr) {
+            if (onDeviceChange_ == nullptr) {
                 return;
             }
             onDeviceChange_(devInfo, isOnline);
@@ -81,7 +86,7 @@ namespace OHOS{
 
         void FuzzOnDataReceive(const  DistributedDB::DeviceInfos &devInfo, const uint8_t* data, size_t size)
         {
-            if(onDataReceive_ == nullptr) {
+            if (onDataReceive_ == nullptr) {
                 return;
             }
             onDataReceive_(devInfo, data, size);
@@ -106,8 +111,8 @@ namespace OHOS{
         kvManager.SetKvStoreConfig(config);
         KvStoreNbDelegate::Option option = {true, false, false};
         KvStoreNbDelegate *kvNbDelegatePtr = nullptr;
-        kvManager.GetKvStore(rawString,option, [&kvNbDelegatePtr](DBStatus status, 
-                             KvStoreNbDelegate* kvNbDelegate) {
+        kvManager.GetKvStore(rawString,option, 
+            [&kvNbDelegatePtr](DBStatus status, KvStoreNbDelegate* kvNbDelegate) {
             if (status == DBStatus::OK) {
                 kvNbDelegatePtr = kvNbDelegate;
             }
@@ -124,7 +129,7 @@ namespace OHOS{
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    //4 bytes is required
+    // 4 bytes is required
     if (size < 4) {
         return 0;
     }

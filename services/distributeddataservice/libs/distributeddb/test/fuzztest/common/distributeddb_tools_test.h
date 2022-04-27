@@ -34,7 +34,7 @@
 #include "query.h"
 
 namespace DistributedDBTest {  
-    class DistributedDBToolsTest final {
+class DistributedDBToolsTest final {
     public:
         DistributedDBToolsTest() {}
         ~DistributedDBToolsTest() {}
