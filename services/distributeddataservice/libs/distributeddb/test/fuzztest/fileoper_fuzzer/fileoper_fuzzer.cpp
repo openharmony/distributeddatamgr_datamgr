@@ -43,10 +43,10 @@ namespace OHOS {
 
         g_kvManager.GetKvStore("distributed_file_oper_single", nbOption, 
             [&kvNbDelegatePtr](DBStatus status, KvStoreNbDelegate * kvNbDelegate) {
-            if (status == DBStatus::OK) {
-                kvNbDelegatePtr = kvNbDelegate;
-            }
-        });
+                if (status == DBStatus::OK) {
+                    kvNbDelegatePtr = kvNbDelegate;
+                }
+            });
         if (kvNbDelegatePtr == nullptr) {
             return;
         }
@@ -72,10 +72,10 @@ namespace OHOS {
         KvStoreDelegate *kvDelegatePtr = nullptr;
         g_kvManager.GetKvStore("distributed_file_oper_multi", option, 
             [&kvDelegatePtr](DBStatus status, KvStoreDelegate* kvStoreDelegate) {
-            if (status == DBStatus::OK) {
-                kvDelegatePtr = kvStoreDelegate;
-            }
-        });
+                if (status == DBStatus::OK) {
+                    kvDelegatePtr = kvStoreDelegate;
+                }
+            });
         if (kvDelegatePtr == nullptr) {
             return;
         }

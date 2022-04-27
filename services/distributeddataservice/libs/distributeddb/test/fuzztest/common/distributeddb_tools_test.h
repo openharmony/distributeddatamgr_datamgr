@@ -35,14 +35,14 @@
 
 namespace DistributedDBTest {  
 class DistributedDBToolsTest final {
-    public:
-        DistributedDBToolsTest() {}
-        ~DistributedDBToolsTest() {}
-    
-        static void TestDirInit(std::string &);
-        // remove the test db files in the test directory of dir.
-        static int RemoveTestDbFiles(const std::string &);
-        static int GetCurrentDir(std::string& dir);
-    };
+public:
+    DistributedDBToolsTest() {}
+    ~DistributedDBToolsTest() {}
+
+    static void TestDirInit(std::string &);
+    // remove the test db files in the test directory of dir.
+    static int RemoveTestDbFiles(const std::string &);
+    static int GetCurrentDir(std::string& dir);
+};
 } // namespace DistributedDBTest
 #endif // DISTRIBUTEDDB_TOOLS_TEST_H

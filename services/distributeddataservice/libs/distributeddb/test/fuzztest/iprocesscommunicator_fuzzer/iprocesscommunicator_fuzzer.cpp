@@ -27,103 +27,103 @@ class IProcessCommunicatorFuzzer {
 
 namespace OHOS {
 class ProcessCommunicatorFuzzTest : public DistributedDB::IProcessCommunicator {
-    public:
-        ProcessCommunicatorFuzzTest() {}
-        ~ProcessCommunicatorFuzzTest() {}
-        DistributedDB::DBStatus Start(const std::string &processLabel) override
-        {
-            return DistributedDB::OK;
-        }
-        // The Stop should only be called after Start successfully
-        DistributedDB::DBStatus Stop() override
-        {
-            return DistributedDB::OK;
-        }
-        DistributedDB::DBStatus RegOnDeviceChange(const DistributedDB::OnDeviceChange &callback) override
-        {
-            onDeviceChange_ = callback;
-            return DistributedDB::OK;
-        }
-        DistributedDB::DBStatus RegOnDataReceive(const DistributedDB::OnDataReceive &callback) override
-        {
-            onDataReceive_ = callback;
-            return DistributedDB::OK;
-        }
-        DistributedDB::DBStatus SendData(const DistributedDB::DeviceInfos &dstDevInfo, 
-            const uint8_t *datas, uint32_t length) override
-        {
-            return DistributedDB::OK;
-        }
-        uint32_t GetMtuSize() override
-        {
-            return 1 * 1024  * 1024; // 1 * 1024 * 1024 Byte.
-        }
-        DistributedDB::DeviceInfos GetLocalDeviceInfos() override
-        {
-            DistributedDB::DeviceInfos info;
-            info.identifier = "default";
-            return info;
-        }
-
-        std::vector<DistributedDB::DeviceInfos> GetRemoteOnlineDeviceInfosList() override
-        {
-            std::vector<DistributedDB::DeviceInfos> info;
-            return info;
-        }
-
-        bool IsSameProcessLabelStartedOnPeerDevice(const DistributedDB::DeviceInfos &peerDevInfo) override
-        {
-            return true;
-        }
-
-        void FuzzOnDeviceChange(const DistributedDB::DeviceInfos &devInfo, bool isOnline)
-        {
-            if (onDeviceChange_ == nullptr) {
-                return;
-            }
-            onDeviceChange_(devInfo, isOnline);
-        }
-
-        void FuzzOnDataReceive(const  DistributedDB::DeviceInfos &devInfo, const uint8_t* data, size_t size)
-        {
-            if (onDataReceive_ == nullptr) {
-                return;
-            }
-            onDataReceive_(devInfo, data, size);
-        }
-
-    private:
-        DistributedDB::OnDeviceChange onDeviceChange_ = nullptr;
-        DistributedDB::OnDataReceive onDataReceive_ = nullptr;
-    };
-
-    void CommunicatorFuzzer(const uint8_t* data, size_t size)
+public:
+    ProcessCommunicatorFuzzTest() {}
+    ~ProcessCommunicatorFuzzTest() {}
+    DistributedDB::DBStatus Start(const std::string &processLabel) override
     {
-        static auto kvManager = KvStoreDelegateManager("APP_ID", "USER_ID");
-        std::string rawString(reinterpret_cast<const char*>(data), size);
-        KvStoreDelegateManager::SetProcessLabel(rawString, "defaut");
-        auto communicator = std::make_shared<ProcessCommunicatorFuzzTest>();
-        KvStoreDelegateManager::SetProcessCommunicator(communicator);
-        std::string testDir;
-        DistributedDBToolsTest::TestDirInit(testDir);
-        KvStoreConfig config;
-        config.dataDir = testDir;
-        kvManager.SetKvStoreConfig(config);
-        KvStoreNbDelegate::Option option = {true, false, false};
-        KvStoreNbDelegate *kvNbDelegatePtr = nullptr;
-        kvManager.GetKvStore(rawString,option, 
-            [&kvNbDelegatePtr](DBStatus status, KvStoreNbDelegate* kvNbDelegate) {
+        return DistributedDB::OK;
+    }
+    // The Stop should only be called after Start successfully
+    DistributedDB::DBStatus Stop() override
+    {
+        return DistributedDB::OK;
+    }
+    DistributedDB::DBStatus RegOnDeviceChange(const DistributedDB::OnDeviceChange &callback) override
+    {
+        onDeviceChange_ = callback;
+        return DistributedDB::OK;
+    }
+    DistributedDB::DBStatus RegOnDataReceive(const DistributedDB::OnDataReceive &callback) override
+    {
+        onDataReceive_ = callback;
+        return DistributedDB::OK;
+    }
+    DistributedDB::DBStatus SendData(const DistributedDB::DeviceInfos &dstDevInfo, 
+        const uint8_t *datas, uint32_t length) override
+    {
+        return DistributedDB::OK;
+    }
+    uint32_t GetMtuSize() override
+    {
+        return 1 * 1024  * 1024; // 1 * 1024 * 1024 Byte.
+    }
+    DistributedDB::DeviceInfos GetLocalDeviceInfos() override
+    {
+        DistributedDB::DeviceInfos info;
+        info.identifier = "default";
+        return info;
+    }
+
+    std::vector<DistributedDB::DeviceInfos> GetRemoteOnlineDeviceInfosList() override
+    {
+        std::vector<DistributedDB::DeviceInfos> info;
+        return info;
+    }
+
+    bool IsSameProcessLabelStartedOnPeerDevice(const DistributedDB::DeviceInfos &peerDevInfo) override
+    {
+        return true;
+    }
+
+    void FuzzOnDeviceChange(const DistributedDB::DeviceInfos &devInfo, bool isOnline)
+    {
+        if (onDeviceChange_ == nullptr) {
+            return;
+        }
+        onDeviceChange_(devInfo, isOnline);
+    }
+
+    void FuzzOnDataReceive(const  DistributedDB::DeviceInfos &devInfo, const uint8_t* data, size_t size)
+    {
+        if (onDataReceive_ == nullptr) {
+            return;
+        }
+        onDataReceive_(devInfo, data, size);
+    }
+
+private:
+    DistributedDB::OnDeviceChange onDeviceChange_ = nullptr;
+    DistributedDB::OnDataReceive onDataReceive_ = nullptr;
+};
+
+void CommunicatorFuzzer(const uint8_t* data, size_t size)
+{
+    static auto kvManager = KvStoreDelegateManager("APP_ID", "USER_ID");
+    std::string rawString(reinterpret_cast<const char*>(data), size);
+    KvStoreDelegateManager::SetProcessLabel(rawString, "defaut");
+    auto communicator = std::make_shared<ProcessCommunicatorFuzzTest>();
+    KvStoreDelegateManager::SetProcessCommunicator(communicator);
+    std::string testDir;
+    DistributedDBToolsTest::TestDirInit(testDir);
+    KvStoreConfig config;
+    config.dataDir = testDir;
+    kvManager.SetKvStoreConfig(config);
+    KvStoreNbDelegate::Option option = {true, false, false};
+    KvStoreNbDelegate *kvNbDelegatePtr = nullptr;
+    kvManager.GetKvStore(rawString,option, 
+        [&kvNbDelegatePtr](DBStatus status, KvStoreNbDelegate* kvNbDelegate) {
             if (status == DBStatus::OK) {
                 kvNbDelegatePtr = kvNbDelegate;
             }
         });
-        DeviceInfos device = {"defaut"};
-        communicator->FuzzOnDataReceive(device, data, size);
-        if (kvNbDelegatePtr != nullptr) {
-            kvManager.CloseKvStore(kvNbDelegatePtr);
-            kvManager.DeleteKvStore(rawString);
-        }
+    DeviceInfos device = {"defaut"};
+    communicator->FuzzOnDataReceive(device, data, size);
+    if (kvNbDelegatePtr != nullptr) {
+        kvManager.CloseKvStore(kvNbDelegatePtr);
+        kvManager.DeleteKvStore(rawString);
     }
+}
 }
 
 /* Fuzzer entry point */
