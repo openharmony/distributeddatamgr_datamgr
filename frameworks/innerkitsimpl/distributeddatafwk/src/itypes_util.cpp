@@ -156,7 +156,7 @@ bool ITypesUtil::Marshalling(const DistributedRdb::RdbSyncerParam &param, Messag
         ZLOGE("RdbStoreParam write store name failed");
         return false;
     }
-    if (!parcel.WriteString(param.secLevel_)) {
+    if (!parcel.WriteString(param.encryptLevel_)) {
         ZLOGE("RdbStoreParam write security level failed");
         return false;
     }
@@ -185,7 +185,7 @@ bool ITypesUtil::Unmarshalling(MessageParcel &parcel, DistributedRdb::RdbSyncerP
         ZLOGE("RdbStoreParam read store name failed");
         return false;
     }
-    if (!parcel.ReadString(param.secLevel_)) {
+    if (!parcel.ReadString(param.encryptLevel_)) {
         ZLOGE("RdbStoreParam read security level failed");
         return false;
     }

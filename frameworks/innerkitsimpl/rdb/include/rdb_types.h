@@ -36,7 +36,7 @@ struct RdbSyncerParam {
     std::string bundleName_;
     std::string relativePath_;
     std::string storeName_;
-    std::string secLevel_;
+    std::string encryptLevel_;
     std::string realPath_;
     int type_ = RDB_DEVICE_COLLABORATION;
     bool isAutoSync_ = false;
