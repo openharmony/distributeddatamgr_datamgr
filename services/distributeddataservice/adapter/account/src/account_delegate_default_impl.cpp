@@ -20,7 +20,7 @@
 namespace OHOS {
 namespace DistributedKv {
 namespace {
-    const std::string DEFAULT_OHOS_ACCOUNT_UID = ""; // default UID
+    constexpr const char *DEFAULT_OHOS_ACCOUNT_UID = ""; // default UID
 }
 
 AccountDelegate::BaseInstance AccountDelegate::getInstance_ = AccountDelegateDefaultImpl::GetBaseInstance;
@@ -36,9 +36,9 @@ AccountDelegate *AccountDelegateDefaultImpl::GetBaseInstance()
     return AccountDelegateDefaultImpl::GetInstance();
 }
 
-std::string AccountDelegateDefaultImpl::GetCurrentAccountId(const std::string &bundleName) const
+std::string AccountDelegateDefaultImpl::GetCurrentAccountId() const
 {
-    ZLOGD("no account part, return default. bundlename:%s", bundleName.c_str());
+    ZLOGD("no account part, return default.");
     return DEFAULT_OHOS_ACCOUNT_UID;
 }
 
@@ -51,7 +51,7 @@ std::string AccountDelegateDefaultImpl::GetDeviceAccountIdByUID(int32_t uid) con
 bool AccountDelegateDefaultImpl::QueryUsers(std::vector<int> &users)
 {
     ZLOGD("no account part.");
-    users.emplace_back(0); // default user
+    users = {0}; // default user
     return true;
 }
 

@@ -92,7 +92,7 @@ void BackupHandler::SingleKvStoreBackup(const MetaData &metaData)
     DistributedDB::KvStoreNbDelegate::Option dbOption;
     SetDBOptions(dbOption, backupPara, metaData);
     auto *delegateMgr = new(std::nothrow) DistributedDB::KvStoreDelegateManager(metaData.kvStoreMetaData.appId,
-        AccountDelegate::GetInstance()->GetCurrentAccountId(metaData.kvStoreMetaData.bundleName));
+        AccountDelegate::GetInstance()->GetCurrentAccountId());
     if (delegateMgr == nullptr) {
         return;
     }
@@ -160,7 +160,7 @@ void BackupHandler::MultiKvStoreBackup(const MetaData &metaData)
     option.createDirByStoreIdOnly = true;
 
     auto *delegateMgr = new DistributedDB::KvStoreDelegateManager(metaData.kvStoreMetaData.appId,
-        AccountDelegate::GetInstance()->GetCurrentAccountId(metaData.kvStoreMetaData.bundleName));
+        AccountDelegate::GetInstance()->GetCurrentAccountId());
     std::string appDataStoragePath = KvStoreAppManager::GetDataStoragePath(metaData.kvStoreMetaData.deviceAccountId,
         metaData.kvStoreMetaData.bundleName, backupPara.pathType);
     DistributedDB::KvStoreConfig kvStoreConfig;

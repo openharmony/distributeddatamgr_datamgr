@@ -16,7 +16,7 @@
 
 #define LOG_TAG "RouteHeadHandler"
 
-#include "auth/auth_delegate.h"
+#include "auth_delegate.h"
 #include "device_kvstore_impl.h"
 #include "kvstore_meta_manager.h"
 #include "log_print.h"
@@ -245,8 +245,8 @@ bool RouteHeadHandlerImpl::UnPackDataBody(const uint8_t *data, uint32_t totalLen
         return false;
     }
     const SessionDevicePair *devicePair = reinterpret_cast<const SessionDevicePair *>(ptr);
-    session_.sourceDeviceId.append(devicePair->sourceDeviceId, DEVICE_ID_SIZE_MAX);
-    session_.targetDeviceId.append(devicePair->targetDeviceId, DEVICE_ID_SIZE_MAX);
+    session_.sourceDeviceId.append(devicePair->sourceDeviceId, DEVICE_ID_SIZE_MAX - 1);
+    session_.targetDeviceId.append(devicePair->targetDeviceId, DEVICE_ID_SIZE_MAX - 1);
     ptr += sizeof(SessionDevicePair);
     leftSize -= sizeof(SessionDevicePair);
 

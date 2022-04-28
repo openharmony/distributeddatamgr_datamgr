@@ -62,7 +62,15 @@ void EventSubscriber::SetEventCallback(EventCallback callback)
 void AccountDelegateImpl::NotifyAccountChanged(const AccountEventInfo &accountEventInfo)
 {
     observerMap_.ForEach([&accountEventInfo] (const auto& key, const auto& val) {
-        val->OnAccountChanged(accountEventInfo);
+        if (val->GetLevel() == AccountDelegate::Observer::LevelType::HIGH) {
+            val->OnAccountChanged(accountEventInfo);
+        }
+        return false;
+    });
+    observerMap_.ForEach([&accountEventInfo] (const auto& key, const auto& val) {
+        if (val->GetLevel() == AccountDelegate::Observer::LevelType::LOW) {
+            val->OnAccountChanged(accountEventInfo);
+        }
         return false;
     });
 }

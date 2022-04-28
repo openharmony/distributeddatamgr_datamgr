@@ -46,6 +46,10 @@ private:
         explicit LocalUserObserver(UserDelegate &userDelegate);
         void OnAccountChanged(const DistributedKv::AccountEventInfo &eventInfo) override;
         std::string Name() override;
+        LevelType GetLevel() override
+        {
+            return LevelType::HIGH;
+        }
 
     private:
         UserDelegate &userDelegate_;

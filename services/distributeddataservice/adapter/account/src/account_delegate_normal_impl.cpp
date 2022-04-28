@@ -16,6 +16,7 @@
 
 #include "account_delegate_normal_impl.h"
 #include <algorithm>
+#include <endian.h>
 #include <list>
 #include <regex>
 #include <thread>
@@ -43,7 +44,7 @@ AccountDelegate *AccountDelegateNormalImpl::GetBaseInstance()
     return AccountDelegateNormalImpl::GetInstance();
 }
 
-std::string AccountDelegateNormalImpl::GetCurrentAccountId(const std::string &bundleName) const
+std::string AccountDelegateNormalImpl::GetCurrentAccountId() const
 {
     ZLOGD("start");
     auto ohosAccountInfo = AccountSA::OhosAccountKits::GetInstance().QueryOhosAccountInfo();
@@ -72,7 +73,7 @@ std::string AccountDelegateNormalImpl::GetDeviceAccountIdByUID(int32_t uid) cons
     
 bool AccountDelegateNormalImpl::QueryUsers(std::vector<int> &users)
 {
-    users.emplace_back(0); // default user
+    users = {0}; // default user
     return AccountSA::OsAccountManager::QueryActiveOsAccountIds(users) == 0;
 }
 
@@ -141,8 +142,8 @@ std::string AccountDelegateNormalImpl::Sha256AccountId(const std::string &plainT
         plainVal = atoll(plainText.substr(plainText.size() - int64MaxLen + 1, int64MaxLen - 1).c_str());
     }
 
-    int64_t pValBigEndian = htobe64(plainVal);
-    return Crypto::Sha256(std::to_string(pValBigEndian), true);
+    plainVal = htobe64(plainVal);
+    return Crypto::Sha256(std::to_string(plainVal), true);
 }
 }  // namespace DistributedKv
 }  // namespace OHOS
