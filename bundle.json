@@ -109,7 +109,8 @@
                             "visibility.h",
                             "data_query.h",
                             "device_status_change_listener.h",
-                            "store_errno.h"
+                            "store_errno.h",
+                            "kvdbstore_datashare_native.h"
                         ],
                         "header_base": "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/distributeddata/include"
                     }
