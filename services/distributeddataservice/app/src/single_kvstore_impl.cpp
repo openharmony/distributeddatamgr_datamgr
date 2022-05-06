@@ -1489,19 +1489,16 @@ void SingleKvStoreImpl::IncreaseOpenCount()
 bool SingleKvStoreImpl::Import(const std::string &bundleName) const
 {
     ZLOGI("Single KvStoreImpl Import start");
-    const std::string harmonyAccountId = AccountDelegate::GetInstance()->GetCurrentAccountId();
-    auto sKey = KvStoreMetaManager::GetMetaKey(deviceAccountId_, harmonyAccountId, bundleName, storeId_, "SINGLE_KEY");
-    std::vector<uint8_t> secretKey;
-    bool outdated = false;
-    KvStoreMetaManager::GetInstance().GetSecretKeyFromMeta(sKey, secretKey, outdated);
-    MetaData metaData{0};
-    metaData.kvStoreMetaData.deviceAccountId = deviceAccountId_;
-    metaData.kvStoreMetaData.userId = harmonyAccountId;
-    metaData.kvStoreMetaData.bundleName = bundleName;
-    metaData.kvStoreMetaData.appId = appId_;
-    metaData.kvStoreMetaData.storeId = storeId_;
-    metaData.kvStoreMetaData.securityLevel = options_.securityLevel;
-    metaData.secretKeyMetaData.secretKey = secretKey;
+    const std::string account = AccountDelegate::GetInstance()->GetCurrentAccountId();
+    DistributedData::StoreMetaData metaData;
+    metaData.user = deviceAccountId_;
+    metaData.account = account;
+    metaData.bundleName = bundleName;
+    metaData.appId = appId_;
+    metaData.storeId = storeId_;
+    metaData.securityLevel = options_.securityLevel;
+    metaData.isEncrypt = options_.encrypt;
+    metaData.storeType = options_.kvStoreType;
     std::shared_lock<std::shared_mutex> lock(storeNbDelegateMutex_);
     return std::make_unique<BackupHandler>()->SingleKvStoreRecover(metaData, kvStoreNbDelegate_);
 }
@@ -1608,9 +1605,15 @@ void SingleKvStoreImpl::OnDump(int fd) const
     dprintf(fd, "%s    createIfMissing : %d\n", prefix.c_str(), static_cast<int>(options_.createIfMissing));
     dprintf(fd, "%s    schema          : %s\n", prefix.c_str(), options_.schema.c_str());
 }
+
 std::string SingleKvStoreImpl::GetStoreId()
 {
     return storeId_;
+}
+
+std::string SingleKvStoreImpl::GetStorePath() const
+{
+    return storePath_;
 }
 
 void SingleKvStoreImpl::SetCompatibleIdentify(const std::string &changedDevice)

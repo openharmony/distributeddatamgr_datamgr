@@ -15,9 +15,12 @@
 
 #include "checker/checker_manager.h"
 #include "utils/crypto.h"
+#include "nativetoken_kit.h"
+#include "accesstoken_kit.h"
 #include <gtest/gtest.h>
 using namespace testing::ext;
 using namespace OHOS::DistributedData;
+using namespace OHOS::Security::AccessToken;
 class CheckerManagerTest : public testing::Test {
 public:
     static void SetUpTestCase(void) {}
@@ -51,8 +54,12 @@ HWTEST_F(CheckerManagerTest, Checkers, TestSize.Level0)
 */
 HWTEST_F(CheckerManagerTest, SystemCheckerBMS, TestSize.Level0)
 {
-    ASSERT_EQ("bundle_manager_service", CheckerManager::GetInstance().GetAppId("bundle_manager_service", 1000));
-    ASSERT_TRUE(CheckerManager::GetInstance().IsValid("bundle_manager_service", 1000));
+    CheckerManager::StoreInfo info;
+    info.uid = 1000;
+    info.tokenId = GetAccessTokenId("foundation", nullptr, 0, "system_core");
+    info.bundleName = "bundle_manager_service";
+    ASSERT_EQ("bundle_manager_service", CheckerManager::GetInstance().GetAppId(info));
+    ASSERT_TRUE(CheckerManager::GetInstance().IsValid(info));
 }
 
 /**
@@ -64,8 +71,12 @@ HWTEST_F(CheckerManagerTest, SystemCheckerBMS, TestSize.Level0)
 */
 HWTEST_F(CheckerManagerTest, SystemCheckerForm, TestSize.Level0)
 {
-    ASSERT_EQ("form_storage", CheckerManager::GetInstance().GetAppId("form_storage", 1000));
-    ASSERT_TRUE(CheckerManager::GetInstance().IsValid("form_storage", 1000));
+    CheckerManager::StoreInfo info;
+    info.uid = 1000;
+    info.tokenId = GetAccessTokenId("foundation", nullptr, 0, "system_core");
+    info.bundleName = "form_storage";
+    ASSERT_EQ("form_storage", CheckerManager::GetInstance().GetAppId(info));
+    ASSERT_TRUE(CheckerManager::GetInstance().IsValid(info));
 }
 
 /**
@@ -77,8 +88,12 @@ HWTEST_F(CheckerManagerTest, SystemCheckerForm, TestSize.Level0)
 */
 HWTEST_F(CheckerManagerTest, SystemCheckerIVI, TestSize.Level0)
 {
-    ASSERT_EQ("ivi_config_manager", CheckerManager::GetInstance().GetAppId("ivi_config_manager", 1000));
-    ASSERT_TRUE(CheckerManager::GetInstance().IsValid("ivi_config_manager", 1000));
+    CheckerManager::StoreInfo info;
+    info.uid = 1000;
+    info.tokenId = GetAccessTokenId("foundation", nullptr, 0, "system_core");
+    info.bundleName = "ivi_config_manager";
+    ASSERT_EQ("ivi_config_manager", CheckerManager::GetInstance().GetAppId(info));
+    ASSERT_TRUE(CheckerManager::GetInstance().IsValid(info));
 }
 
 /**
@@ -90,7 +105,10 @@ HWTEST_F(CheckerManagerTest, SystemCheckerIVI, TestSize.Level0)
 */
 HWTEST_F(CheckerManagerTest, BundleChecker, TestSize.Level0)
 {
-    ASSERT_EQ(Crypto::Sha256("ohos.test.demo"),
-        CheckerManager::GetInstance().GetAppId("ohos.test.demo", 100000));
-    ASSERT_TRUE(CheckerManager::GetInstance().IsValid("ohos.test.demo", 100000));
+    CheckerManager::StoreInfo info;
+    info.uid = 2000000;
+    info.tokenId = AccessTokenKit::GetHapTokenID(100, "ohos.test.demo", 0);
+    info.bundleName = "ohos.test.demo";
+    ASSERT_EQ(Crypto::Sha256("ohos.test.demo"), CheckerManager::GetInstance().GetAppId(info));
+    ASSERT_TRUE(CheckerManager::GetInstance().IsValid(info));
 }

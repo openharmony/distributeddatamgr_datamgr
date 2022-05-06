@@ -13,27 +13,10 @@
  * limitations under the License.
  */
 
-#include "utils/constant.h"
-#include <dirent.h>
-#include <unistd.h>
-#include <cerrno>
-
-namespace OHOS {
-namespace DistributedData {
-constexpr const char * Constant::KEY_SEPARATOR;
-
-std::string Constant::Concatenate(std::initializer_list<std::string> stringList)
+#include "utils/converter.h"
+namespace OHOS::DistributedData {
+CheckerManager::StoreInfo Converter::ConvertToStoreInfo(const StoreMetaData &metaData)
 {
-    std::string result;
-    size_t result_size = 0;
-    for (const std::string &str : stringList) {
-        result_size += str.size();
-    }
-    result.reserve(result_size);
-    for (const std::string &str : stringList) {
-        result.append(str.data(), str.size());
-    }
-    return result;
+    return { metaData.uid, metaData.tokenId, metaData.bundleName, metaData.storeId };
 }
-}  // namespace DistributedData
-}  // namespace OHOS
+} // namespace OHOS::DistributedData

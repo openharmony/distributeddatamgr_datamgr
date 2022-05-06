@@ -48,6 +48,7 @@ ohos_shared_library("distributeddatasvcfwk") {
     "utils/anonymous.cpp",
     "utils/block_integer.cpp",
     "utils/constant.cpp",
+    "utils/converter.cpp",
     "utils/crypto.cpp",
   ]
   cflags = [ "-Wno-multichar" ]
@@ -64,6 +65,7 @@ ohos_shared_library("distributeddatasvcfwk") {
   external_deps = [
     "ability_base:base",
     "ability_base:want",
+    "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "hiviewdfx_hilog_native:libhilog",

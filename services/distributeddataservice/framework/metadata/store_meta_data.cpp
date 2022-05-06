@@ -18,7 +18,6 @@
 #include "utils/constant.h"
 namespace OHOS {
 namespace DistributedData {
-using namespace OHOS::DistributedKv;
 constexpr uint32_t StoreMetaData::CURRENT_VERSION;
 constexpr uint32_t StoreMetaData::FIELD_CHANGED_TAG;
 constexpr const char *StoreMetaData::KEY_PREFIX;
@@ -119,6 +118,11 @@ std::string StoreMetaData::GetKey(const std::initializer_list<std::string> &fiel
         prefix.append(Constant::KEY_SEPARATOR).append(field);
     }
     return prefix;
+}
+
+std::string StoreMetaData::GetKey()
+{
+    return GetKey({ deviceId, user, "default", bundleName, storeId });
 }
 
 std::string StoreMetaData::GetPrefix(const std::initializer_list<std::string> &fields)

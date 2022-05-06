@@ -26,6 +26,7 @@ struct SessionPoint {
     std::string deviceId;
     uint32_t userId;
     std::string appId;
+    std::string storeId;
 };
 
 class Session : public Serializable {

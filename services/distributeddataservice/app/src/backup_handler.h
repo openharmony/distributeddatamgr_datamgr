@@ -16,25 +16,28 @@
 #ifndef DISTRIBUTEDDATAMGR_BACKUP_HANDLER_H
 #define DISTRIBUTEDDATAMGR_BACKUP_HANDLER_H
 
+#include "ikvstore_data_service.h"
 #include "kv_store_nb_delegate.h"
 #include "kv_store_delegate.h"
-#include "types.h"
+#include "kvstore_app_manager.h"
 #include "kv_scheduler.h"
 #include "kvstore_meta_manager.h"
-#include "ikvstore_data_service.h"
-#include "kvstore_app_manager.h"
+#include "metadata/store_meta_data.h"
+#include "metadata/secret_key_meta_data.h"
+#include "types.h"
 
 namespace OHOS::DistributedKv {
 class BackupHandler {
 public:
+    using StoreMetaData = DistributedData::StoreMetaData;
+    using SecretKeyMetaData = DistributedData::SecretKeyMetaData;
     explicit BackupHandler(IKvStoreDataService *kvStoreDataService);
     BackupHandler();
     ~BackupHandler();
     void BackSchedule();
-    void SingleKvStoreBackup(const MetaData &metaData);
-    void MultiKvStoreBackup(const MetaData &metaData);
-    bool SingleKvStoreRecover(MetaData &metaData, DistributedDB::KvStoreNbDelegate *delegate);
-    bool MultiKvStoreRecover(MetaData &metaData, DistributedDB::KvStoreDelegate *delegate);
+    void SingleKvStoreBackup(const StoreMetaData &metaData);
+    bool SingleKvStoreRecover(StoreMetaData &metaData, DistributedDB::KvStoreNbDelegate *delegate);
+    bool MultiKvStoreRecover(StoreMetaData &metaData, DistributedDB::KvStoreDelegate *delegate);
 
     static const std::string &GetBackupPath(const std::string &deviceAccountId, int pathType);
     static bool RenameFile(const std::string &oldPath, const std::string &newPath);
@@ -51,13 +54,13 @@ public:
 
 private:
     bool CheckNeedBackup();
-    bool InitBackupPara(const MetaData &metaData, BackupPara &backupPara);
-
+    bool InitBackupPara(const StoreMetaData &metaData, BackupPara &backupPara);
+    bool GetPassword(const StoreMetaData &metaData, DistributedDB::CipherPassword &password);
     static std::string backupDirCe_;
     static std::string backupDirDe_;
 
     void SetDBOptions(DistributedDB::KvStoreNbDelegate::Option &dbOption,
-                      const BackupPara &backupPara, const MetaData &metaData);
+                      const BackupPara &backupPara, const StoreMetaData &metaData);
     KvScheduler scheduler_ {};
     static constexpr uint64_t BACKUP_INTERVAL = 3600 * 1000 * 10; // 10 hours
     int64_t backupSuccessTime_ = 0;

@@ -26,19 +26,19 @@ namespace OHOS {
 namespace DistributedKv {
 class KvStoreUserManager {
 public:
+using StoreMetaData = DistributedData::StoreMetaData;
     explicit KvStoreUserManager(const std::string &userId);
 
     virtual ~KvStoreUserManager();
 
     template<typename T>
-    Status GetKvStore(const Options &options, const std::string &bundleName, const std::string &storeId, pid_t uid,
-        const std::vector<uint8_t> &cipherKey, sptr<T> &kvStore)
+    Status GetKvStore(const Options &options, const StoreMetaData &metaData, const std::vector<uint8_t> &cipherKey, sptr<T> &kvStore)
     {
         std::lock_guard<decltype(appMutex_)> lg(appMutex_);
-        auto it = appMap_.find(bundleName);
+        auto it = appMap_.find(metaData.bundleName);
         if (it == appMap_.end()) {
-            auto result = appMap_.emplace(
-                std::piecewise_construct, std::forward_as_tuple(bundleName), std::forward_as_tuple(bundleName, uid));
+            auto result = appMap_.emplace(std::piecewise_construct, std::forward_as_tuple(metaData.bundleName),
+                std::forward_as_tuple(metaData.bundleName, metaData.uid, metaData.tokenId));
             if (result.second) {
                 it = result.first;
             }
@@ -47,7 +47,7 @@ public:
             kvStore = nullptr;
             return Status::ERROR;
         }
-        return (it->second).GetKvStore(options, bundleName, storeId, cipherKey, kvStore);
+        return (it->second).GetKvStore(options, metaData, cipherKey, kvStore);
     }
 
     Status CloseKvStore(const std::string &appId, const std::string &storeId);
@@ -56,13 +56,13 @@ public:
 
     void CloseAllKvStore();
 
-    Status DeleteKvStore(const std::string &bundleName, pid_t uid, const std::string &storeId);
+    Status DeleteKvStore(const std::string &bundleName, pid_t uid, uint32_t token, const std::string &storeId);
 
     void DeleteAllKvStore();
 
     Status MigrateAllKvStore(const std::string &harmonyAccountId);
 
-    std::string GetDbDir(const std::string &bundleName, const Options &options);
+    std::string GetDbDir(const StoreMetaData &metaData);
 
     void Dump(int fd) const;
 

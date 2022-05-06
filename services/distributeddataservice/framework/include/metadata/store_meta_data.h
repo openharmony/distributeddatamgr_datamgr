@@ -50,6 +50,7 @@ struct API_EXPORT StoreMetaData final : public Serializable {
     API_EXPORT bool operator==(const StoreMetaData &metaData) const;
     API_EXPORT bool Marshal(json &node) const override;
     API_EXPORT bool Unmarshal(const json &node) override;
+    API_EXPORT std::string GetKey();
     API_EXPORT static std::string GetKey(const std::initializer_list<std::string> &fields);
     API_EXPORT static std::string GetPrefix(const std::initializer_list<std::string> &fields);
 

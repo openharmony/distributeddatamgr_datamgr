@@ -14,11 +14,12 @@
 */
 #define LOG_TAG "SystemChecker"
 #include "checker/default/system_checker.h"
+#include "accesstoken_kit.h"
 #include "log/log_print.h"
 namespace OHOS {
 namespace DistributedData {
+using namespace Security::AccessToken;
 SystemChecker SystemChecker::instance_;
-constexpr pid_t SystemChecker::SYSTEM_UID;
 SystemChecker::SystemChecker()
 {
     CheckerManager::GetInstance().RegisterPlugin(
@@ -39,19 +40,20 @@ bool SystemChecker::SetTrustInfo(const CheckerManager::Trust &trust)
     return true;
 }
 
-std::string SystemChecker::GetAppId(pid_t uid, const std::string &bundleName)
+std::string SystemChecker::GetAppId(const CheckerManager::StoreInfo &info)
 {
-    if (uid >= SYSTEM_UID || uid == CheckerManager::INVALID_UID) {
+    if (!IsValid(info)) {
         return "";
     }
-    std::string appId = (trusts_.find(bundleName) != trusts_.end()) ? trusts_[bundleName] : bundleName;
-    ZLOGD("bundleName:%{public}s, uid:%{public}d, appId:%{public}s", bundleName.c_str(), uid, appId.c_str());
+    std::string appId = (trusts_.find(info.bundleName) != trusts_.end()) ? trusts_[info.bundleName] : info.bundleName;
+    ZLOGD("bundleName:%{public}s, token:%{public}u, appId:%{public}s", info.bundleName.c_str(), info.tokenId,
+        appId.c_str());
     return appId;
 }
 
-bool SystemChecker::IsValid(pid_t uid, const std::string &bundleName)
+bool SystemChecker::IsValid(const CheckerManager::StoreInfo &info)
 {
-    return (uid < SYSTEM_UID && uid != CheckerManager::INVALID_UID);
+    return (AccessTokenKit::GetTokenTypeFlag(info.tokenId) == TOKEN_NATIVE || info.uid == CheckerManager::ROOT_UID);
 }
 } // namespace DistributedData
 } // namespace OHOS

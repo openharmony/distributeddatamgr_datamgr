@@ -25,10 +25,9 @@ public:
     ~SystemChecker();
     void Initialize() override;
     bool SetTrustInfo(const CheckerManager::Trust &trust) override;
-    std::string GetAppId(pid_t uid, const std::string &bundleName) override;
-    bool IsValid(pid_t uid, const std::string &bundleName) override;
+    std::string GetAppId(const CheckerManager::StoreInfo &info) override;
+    bool IsValid(const CheckerManager::StoreInfo &info) override;
 private:
-    static constexpr pid_t SYSTEM_UID = 10000;
     std::map<std::string, std::string> trusts_;
     static SystemChecker instance_;
 };

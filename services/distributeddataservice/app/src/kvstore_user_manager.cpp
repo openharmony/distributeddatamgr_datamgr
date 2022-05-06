@@ -75,7 +75,8 @@ void KvStoreUserManager::CloseAllKvStore()
     }
 }
 
-Status KvStoreUserManager::DeleteKvStore(const std::string &bundleName, pid_t uid, const std::string &storeId)
+Status KvStoreUserManager::DeleteKvStore(
+    const std::string &bundleName, pid_t uid, uint32_t token, const std::string &storeId)
 {
     ZLOGI("begin.");
     std::lock_guard<decltype(appMutex_)> lg(appMutex_);
@@ -88,7 +89,7 @@ Status KvStoreUserManager::DeleteKvStore(const std::string &bundleName, pid_t ui
         }
         return status;
     }
-    KvStoreAppManager kvStoreAppManager(bundleName, uid);
+    KvStoreAppManager kvStoreAppManager(bundleName, uid, token);
     return kvStoreAppManager.DeleteKvStore(storeId);
 }
 
@@ -119,16 +120,16 @@ Status KvStoreUserManager::MigrateAllKvStore(const std::string &harmonyAccountId
     return status;
 }
 
-std::string KvStoreUserManager::GetDbDir(const std::string &bundleName, const Options &options)
+std::string KvStoreUserManager::GetDbDir(const StoreMetaData &metaData)
 {
     ZLOGI("begin.");
-    if (options.kvStoreType == KvStoreType::MULTI_VERSION) {
+    if (metaData.storeType == KvStoreType::MULTI_VERSION) {
         return "default";
     }
     std::lock_guard<decltype(appMutex_)> lg(appMutex_);
-    auto it = appMap_.find(bundleName);
+    auto it = appMap_.find(metaData.bundleName);
     if (it != appMap_.end()) {
-        return (it->second).GetDbDir(options);
+        return (it->second).GetDbDir(metaData);
     }
     return "";
 }

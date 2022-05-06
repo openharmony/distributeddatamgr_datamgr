@@ -31,7 +31,7 @@ public:
     RdbSyncer(const RdbSyncerParam& param, RdbStoreObserverImpl* observer);
     ~RdbSyncer() noexcept;
 
-    int32_t Init(pid_t pid, pid_t uid);
+    int32_t Init(pid_t pid, pid_t uid, uint32_t token);
 
     pid_t GetPid() const;
 
@@ -69,6 +69,7 @@ private:
     RdbStoreObserverImpl *observer_ {};
     pid_t pid_ {};
     pid_t uid_ {};
+    uint32_t token_ {};
     uint32_t timerId_ {};
 
     static std::vector<std::string> GetConnectDevices();

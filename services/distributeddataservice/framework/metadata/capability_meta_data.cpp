@@ -17,8 +17,6 @@
 
 #include "utils/constant.h"
 namespace OHOS::DistributedData {
-using namespace OHOS::DistributedKv;
-
 bool CapMetaData::Marshal(json &node) const
 {
     bool ret = true;

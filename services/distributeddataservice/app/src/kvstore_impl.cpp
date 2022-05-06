@@ -776,22 +776,17 @@ KvStoreImpl::~KvStoreImpl()
 
 bool KvStoreImpl::Import(const std::string &bundleName) const
 {
-    ZLOGI("KvStoreImpl Import start");
-    const std::string harmonyAccountId = AccountDelegate::GetInstance()->GetCurrentAccountId();
-    auto metaSecretKey = KvStoreMetaManager::GetMetaKey(deviceAccountId_, harmonyAccountId, bundleName, storeId_,
-                                                        "KEY");
-    std::vector<uint8_t> secretKey;
-    bool outdated = false;
-    KvStoreMetaManager::GetInstance().GetSecretKeyFromMeta(metaSecretKey, secretKey, outdated);
-
-    MetaData metaData{0};
-    metaData.kvStoreMetaData.deviceAccountId = deviceAccountId_;
-    metaData.kvStoreMetaData.userId = harmonyAccountId;
-    metaData.kvStoreMetaData.bundleName = bundleName;
-    metaData.kvStoreMetaData.appId = appId_;
-    metaData.kvStoreMetaData.storeId = storeId_;
-    metaData.kvStoreMetaData.securityLevel = options_.securityLevel;
-    metaData.secretKeyMetaData.secretKey = secretKey;
+     ZLOGI("KvStoreImpl Import start");
+    const std::string account = AccountDelegate::GetInstance()->GetCurrentAccountId();
+    DistributedData::StoreMetaData metaData;
+    metaData.user = deviceAccountId_;
+    metaData.account = account;
+    metaData.bundleName = bundleName;
+    metaData.appId = appId_;
+    metaData.storeId = storeId_;
+    metaData.securityLevel = options_.securityLevel;
+    metaData.isEncrypt = options_.encrypt;
+    metaData.storeType = options_.kvStoreType;
     std::shared_lock<std::shared_mutex> lock(storeDelegateMutex_);
     return std::make_unique<BackupHandler>()->MultiKvStoreRecover(metaData, kvStoreDelegate_);
 }

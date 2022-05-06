@@ -16,14 +16,14 @@
 
 #include "checker/default/bundle_checker.h"
 #include <memory>
-#include "bundlemgr/bundle_mgr_client.h"
+#include "accesstoken_kit.h"
+#include "hap_token_info.h"
 #include "log/log_print.h"
 #include "utils/crypto.h"
 namespace OHOS {
 namespace DistributedData {
-using namespace AppExecFwk;
+using namespace Security::AccessToken;
 BundleChecker BundleChecker::instance_;
-constexpr pid_t BundleChecker::SYSTEM_UID;
 BundleChecker::BundleChecker()
 {
     CheckerManager::GetInstance().RegisterPlugin(
@@ -44,50 +44,43 @@ bool BundleChecker::SetTrustInfo(const CheckerManager::Trust &trust)
     return true;
 }
 
-std::string BundleChecker::GetAppId(pid_t uid, const std::string &bundleName)
+std::string BundleChecker::GetAppId(const CheckerManager::StoreInfo &info)
 {
-    if (uid < SYSTEM_UID && uid != CheckerManager::INVALID_UID) {
+    if (AccessTokenKit::GetTokenTypeFlag(info.tokenId) != TOKEN_HAP) {
         return "";
     }
 
-    BundleMgrClient bmsClient;
-    std::string bundle = bundleName;
-    if (uid != CheckerManager::INVALID_UID) {
-        auto success = bmsClient.GetBundleNameForUid(uid, bundle);
-        if (!success || bundle != bundleName) {
-            return "";
-        }
-    }
-
-    auto bundleInfo = std::make_unique<BundleInfo>();
-    auto success = bmsClient.GetBundleInfo(bundle, BundleFlag::GET_BUNDLE_DEFAULT, *bundleInfo, Constants::ANY_USERID);
-    if (!success) {
+    HapTokenInfo tokenInfo;
+    if (AccessTokenKit::GetHapTokenInfo(info.tokenId, tokenInfo) != RET_SUCCESS) {
         return "";
     }
-    auto it = trusts_.find(bundleName);
-    if (it != trusts_.end() && (it->second == bundleInfo->appId)) {
-        return bundleName;
+
+    if (tokenInfo.bundleName != info.bundleName) {
+        return "";
     }
-    ZLOGD("bundleName:%{public}s, uid:%{public}d, appId:%{public}s", bundleName.c_str(), uid,
-        bundleInfo->appId.c_str());
-    return Crypto::Sha256(bundleInfo->appId);
+
+    auto it = trusts_.find(info.bundleName);
+    if (it != trusts_.end() && (it->second == tokenInfo.appID)) {
+        return info.bundleName;
+    }
+
+    ZLOGD("bundleName:%{public}s, token:%{public}u, appId:%{public}s",
+        info.bundleName.c_str(), info.tokenId, tokenInfo.appID.c_str());
+    return Crypto::Sha256(tokenInfo.appID);
 }
 
-bool BundleChecker::IsValid(pid_t uid, const std::string &bundleName)
+bool BundleChecker::IsValid(const CheckerManager::StoreInfo &info)
 {
-    if (uid < SYSTEM_UID) {
+    if (AccessTokenKit::GetTokenTypeFlag(info.tokenId) != TOKEN_HAP) {
         return false;
     }
 
-    BundleMgrClient bmsClient;
-    std::string bundle = bundleName;
-    auto success = bmsClient.GetBundleNameForUid(uid, bundle);
-    if (!success || bundle != bundleName) {
+    HapTokenInfo tokenInfo;
+    if (AccessTokenKit::GetHapTokenInfo(info.tokenId, tokenInfo) != RET_SUCCESS) {
         return false;
     }
 
-    auto bundleInfo = std::make_unique<BundleInfo>();
-    return bmsClient.GetBundleInfo(bundle, BundleFlag::GET_BUNDLE_DEFAULT, *bundleInfo, Constants::ANY_USERID);
+    return tokenInfo.bundleName == info.bundleName;
 }
 } // namespace DistributedData
 } // namespace OHOS

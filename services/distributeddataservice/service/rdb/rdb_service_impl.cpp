@@ -116,7 +116,12 @@ void RdbServiceImpl::OnClientDied(pid_t pid)
 
 bool RdbServiceImpl::CheckAccess(const RdbSyncerParam &param)
 {
-    return !CheckerManager::GetInstance().GetAppId(param.bundleName_, GetCallingUid()).empty();
+    CheckerManager::StoreInfo storeInfo;
+    storeInfo.uid = GetCallingUid();
+    storeInfo.tokenId = GetCallingTokenID();
+    storeInfo.bundleName = param.bundleName_;
+    storeInfo.storeId = param.storeName_;
+    return !CheckerManager::GetInstance().GetAppId(storeInfo).empty();
 }
 
 RdbSyncerParam RdbServiceImpl::ToServiceParam(const RdbSyncerParam &param)
@@ -212,9 +217,10 @@ std::shared_ptr<RdbSyncer> RdbServiceImpl::GetRdbSyncer(const RdbSyncerParam &pa
 {
     pid_t pid = GetCallingPid();
     pid_t uid = GetCallingUid();
+    uint32_t tokenId = GetCallingTokenID();
     std::shared_ptr<RdbSyncer> syncer;
 
-    syncers_.Compute(pid, [this, &param, pid, uid, &syncer] (const auto& key, StoreSyncersType& syncers) {
+    syncers_.Compute(pid, [this, &param, pid, uid, tokenId, &syncer] (const auto& key, StoreSyncersType& syncers) {
         auto it = syncers.find(param.storeName_);
         if (it != syncers.end()) {
             syncer = it->second;
@@ -233,7 +239,7 @@ std::shared_ptr<RdbSyncer> RdbServiceImpl::GetRdbSyncer(const RdbSyncerParam &pa
         }
         auto syncer_ = std::make_shared<RdbSyncer>(ToServiceParam(param),
                                                    new (std::nothrow) RdbStoreObserverImpl(this, pid));
-        if (syncer_->Init(pid, uid) != 0) {
+        if (syncer_->Init(pid, uid, tokenId) != 0) {
             return !syncers.empty();
         }
         syncers[param.storeName_] = syncer_;
@@ -326,8 +332,10 @@ std::string RdbServiceImpl::TransferStringToHex(const std::string &origStr)
 std::string RdbServiceImpl::GenIdentifier(const RdbSyncerParam &param)
 {
     pid_t uid = GetCallingUid();
+    uint32_t token = GetCallingTokenID();
+    CheckerManager::StoreInfo storeInfo{ uid, token, param.bundleName_, param.storeName_ };
     std::string userId = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(uid);
-    std::string appId = CheckerManager::GetInstance().GetAppId(param.bundleName_, uid);
+    std::string appId = CheckerManager::GetInstance().GetAppId(storeInfo);
     std::string identifier = RelationalStoreManager::GetRelationalStoreIdentifier(userId, appId, param.storeName_);
     return TransferStringToHex(identifier);
 }

@@ -24,11 +24,10 @@ public:
     ~BundleChecker();
     void Initialize() override;
     bool SetTrustInfo(const CheckerManager::Trust &trust) override;
-    std::string GetAppId(pid_t uid, const std::string &bundleName) override;
-    bool IsValid(pid_t uid, const std::string &bundleName) override;
+    std::string GetAppId(const CheckerManager::StoreInfo &info) override;
+    bool IsValid(const CheckerManager::StoreInfo &info) override;
 private:
     static BundleChecker instance_;
-    static constexpr pid_t SYSTEM_UID = 10000;
     std::map<std::string, std::string> trusts_;
 };
 } // namespace DistributedData

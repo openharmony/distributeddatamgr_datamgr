@@ -81,7 +81,7 @@ std::string RdbSyncer::GetBundleName() const
 
 std::string RdbSyncer::GetAppId() const
 {
-    return DistributedData::CheckerManager::GetInstance().GetAppId(param_.bundleName_, uid_);
+    return DistributedData::CheckerManager::GetInstance().GetAppId({ uid_, token_, param_.bundleName_ });
 }
 
 std::string RdbSyncer::GetPath() const
@@ -94,11 +94,12 @@ std::string RdbSyncer::GetStoreId() const
     return param_.storeName_;
 }
 
-int32_t RdbSyncer::Init(pid_t pid, pid_t uid)
+int32_t RdbSyncer::Init(pid_t pid, pid_t uid, uint32_t token)
 {
     ZLOGI("enter");
     pid_ = pid;
     uid_ = uid;
+    token_ = token;
     if (CreateMetaData() != RDB_OK) {
         ZLOGE("create meta data failed");
         return RDB_ERROR;
@@ -117,6 +118,7 @@ int32_t RdbSyncer::CreateMetaData()
     newMeta.deviceId = CommunicationProvider::GetInstance().GetLocalDevice().uuid;
     newMeta.storeId = GetStoreId();
     newMeta.uid = uid_;
+    newMeta.tokenId = token_;
     newMeta.user = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(uid_);
     newMeta.account = AccountDelegate::GetInstance()->GetCurrentAccountId();
     newMeta.dataDir = GetPath();

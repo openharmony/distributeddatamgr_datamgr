@@ -79,6 +79,7 @@ public:
     void OnDump(int fd) const;
     void SetCompatibleIdentify(const std::string &changedDevice);
     void SetCompatibleIdentify();
+    std::string GetStorePath() const;
 
 protected:
     virtual KvStoreObserverImpl *CreateObserver(const SubscribeType subscribeType, sptr<IKvStoreObserver> observer);

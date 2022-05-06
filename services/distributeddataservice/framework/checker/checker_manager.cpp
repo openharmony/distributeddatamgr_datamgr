@@ -49,13 +49,13 @@ void CheckerManager::RegisterPlugin(const std::string &checker, std::function<Ch
     getters_[checker] = getter;
 }
 
-std::string CheckerManager::GetAppId(const std::string &bundleName, pid_t uid)
+std::string CheckerManager::GetAppId(const StoreInfo &info)
 {
     for (auto &[name, checker] : checkers_) {
         if (checker == nullptr) {
             continue;
         }
-        auto appId = checker->GetAppId(uid, bundleName);
+        auto appId = checker->GetAppId(info);
         if (appId.empty()) {
             continue;
         }
@@ -64,13 +64,13 @@ std::string CheckerManager::GetAppId(const std::string &bundleName, pid_t uid)
     return "";
 }
 
-bool CheckerManager::IsValid(const std::string &bundleName, pid_t uid)
+bool CheckerManager::IsValid(const StoreInfo &info)
 {
     for (auto &[name, checker] : checkers_) {
         if (checker == nullptr) {
             continue;
         }
-        if (!checker->IsValid(uid, bundleName)) {
+        if (!checker->IsValid(info)) {
             continue;
         }
         return true;

@@ -45,6 +45,7 @@ class KvStoreDataService : public SystemAbility, public KvStoreDataServiceStub {
     DECLARE_SYSTEM_ABILITY(KvStoreDataService);
 
 public:
+    using StoreMetaData = DistributedData::StoreMetaData;
     // record kvstore meta version for compatible, should update when modify kvstore meta structure.
     static constexpr uint32_t STORE_VERSION = 0x03000001;
 
@@ -84,7 +85,7 @@ public:
 
     void OnStop() override;
 
-    Status DeleteKvStoreOnly(const std::string &bundleName, pid_t uid, const std::string &storeId);
+    Status DeleteKvStoreOnly(const StoreMetaData &metaData);
 
     void AccountEventChanged(const AccountEventInfo &eventInfo);
 
@@ -93,14 +94,6 @@ public:
     bool CheckBackupFileExist(const std::string &userId, const std::string &bundleName,
                               const std::string &storeId, int pathType);
 
-    struct KvStoreParam {
-        std::string bundleName;
-        std::string storeId;
-        std::string trueAppId;
-        std::string userId;
-        pid_t uid;
-        Status status = Status::SUCCESS;
-    };
     struct SecretKeyPara {
         std::vector<uint8_t> metaKey;
         std::vector<uint8_t> secretKey;
@@ -113,7 +106,7 @@ public:
 private:
     class KvStoreClientDeathObserverImpl {
     public:
-        KvStoreClientDeathObserverImpl(const AppId &appId, pid_t uid,
+        KvStoreClientDeathObserverImpl(const AppId &appId, pid_t uid, uint32_t token,
                                        KvStoreDataService &service, sptr<IRemoteObject> observer);
 
         virtual ~KvStoreClientDeathObserverImpl();
@@ -131,6 +124,7 @@ private:
         void NotifyClientDie();
         AppId appId_;
         pid_t uid_;
+        uint32_t token_;
         KvStoreDataService &dataService_;
         sptr<IRemoteObject> observerProxy_;
         sptr<KvStoreDeathRecipient> deathRecipient_;
@@ -145,25 +139,22 @@ private:
     Status DeleteKvStore(const std::string &bundleName, const StoreId &storeId);
 
     template<class T>
-    Status RecoverKvStore(const Options &options, const std::string &bundleName, const std::string &storeId,
+    Status RecoverKvStore(const Options &options, const StoreMetaData &metaData,
         const std::vector<uint8_t> &secretKey, sptr<T> &kvStore);
-    Status GetSecretKey(const Options &options, const KvStoreParam &KvParas, SecretKeyPara &secretKeyParas);
+
+    Status GetSecretKey(const Options &options, const StoreMetaData &metaData, SecretKeyPara &secretKeyParas);
 
     Status RecoverSecretKey(const Status &alreadyCreated, bool &outdated, const std::vector<uint8_t> &metaSecretKey,
         std::vector<uint8_t> &secretKey, const std::string &secretKeyFile);
 
-    Status UpdateMetaData(const Options &options, const KvStoreParam &kvParas,
-        const std::vector<uint8_t> &metaKey, KvStoreUserManager &kvStoreUserManager);
+    Status UpdateMetaData(const Options &options, const StoreMetaData &metaData);
 
     void OnStoreMetaChanged(const std::vector<uint8_t> &key, const std::vector<uint8_t> &value, CHANGE_FLAG flag);
 
-    Status GetKvStoreFailDo(const Options &options, const KvStoreParam &kvParas, SecretKeyPara &secKeyParas,
-        KvStoreUserManager &kvUserManager, sptr<KvStoreImpl> &kvStore);
+    Status GetSingleKvStoreFailDo(Status status, const Options &options, const StoreMetaData &metaData,
+        SecretKeyPara &secKeyParas, KvStoreUserManager &kvUserManager, sptr<SingleKvStoreImpl> &kvStore);
 
-    Status GetSingleKvStoreFailDo(const Options &options, const KvStoreParam &kvParas, SecretKeyPara &secKeyParas,
-        KvStoreUserManager &kvUserManager, sptr<SingleKvStoreImpl> &kvStore);
-
-    Status AppExit(const AppId &appId, pid_t uid);
+    Status AppExit(const AppId &appId, pid_t uid, uint32_t token);
 
     bool CheckPermissions(const std::string &userId, const std::string &appId, const std::string &storeId,
                           const std::string &deviceId, uint8_t flag) const;
@@ -175,7 +166,7 @@ private:
     void CreateRdbService();
     bool IsStoreOpened(const std::string &userId, const std::string &appId, const std::string &storeId);
     static Status FillStoreParam(
-        const Options &options, const AppId &appId, const StoreId &storeId, KvStoreParam &param);
+        const Options &options, const AppId &appId, const StoreId &storeId, StoreMetaData &metaData);
 
     static constexpr int TEN_SEC = 10;
 

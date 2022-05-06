@@ -16,16 +16,22 @@
 #define LOG_TAG "KvStoreAppAccessor"
 
 #include "kvstore_app_accessor.h"
-#include <map>
 #include <autils/constant.h>
+#include <map>
 #include "broadcast_sender.h"
 #include "kv_store_delegate_manager.h"
 #include "kvstore_app_manager.h"
 #include "kvstore_meta_manager.h"
+#include "metadata/meta_data_manager.h"
+#include "metadata/store_meta_data.h"
+#include "metadata//secret_key_meta_data.h"
 #include "log_print.h"
 #include "permission_validator.h"
 
 namespace OHOS::DistributedKv {
+using MetaDataManager = DistributedData::MetaDataManager;
+using StoreMetaData = DistributedData::StoreMetaData;
+using SecKeyMetaData = DistributedData::SecretKeyMetaData;
 KvStoreAppAccessor::~KvStoreAppAccessor()
 {
     ZLOGD("destructor.");
@@ -62,33 +68,30 @@ void KvStoreAppAccessor::EnableKvStoreAutoLaunch()
 {
     ZLOGI("start");
     return;
-    std::map<std::string, MetaData> entries;
-    if (KvStoreMetaManager::GetInstance().GetFullMetaData(entries)) {
+    std::vector<StoreMetaData> entries;
+    if (MetaDataManager::GetInstance().LoadMeta(StoreMetaData::GetPrefix({}), entries)) {
         for (auto &meta : entries) {
-            KvStoreMetaData &metaData = meta.second.kvStoreMetaData;
-            ZLOGI("meta appId:%s", metaData.appId.c_str());
-            DistributedDB::CipherPassword password;
-            const std::vector<uint8_t> &secretKey = meta.second.secretKeyMetaData.secretKey;
-            if (password.SetValue(secretKey.data(), secretKey.size()) != DistributedDB::CipherPassword::OK) {
-                ZLOGE("Get secret key failed.");
-                return;
-            }
-            auto pathType =
-                KvStoreAppManager::ConvertPathType(metaData.uid, metaData.bundleName, metaData.securityLevel);
-            std::string appPath = KvStoreAppManager::GetDataStoragePath(
-                metaData.deviceAccountId, metaData.bundleName, pathType);
+            ZLOGI("meta appId:%s", meta.appId.c_str());
+            auto pathType = KvStoreAppManager::ConvertPathType(meta);
+            std::string appPath = KvStoreAppManager::GetDataStoragePath(meta.user, meta.bundleName, pathType);
             DistributedDB::AutoLaunchOption dbLaunchOption;
             dbLaunchOption.createIfNecessary = true;
             dbLaunchOption.createDirByStoreIdOnly = true;
-            dbLaunchOption.dataDir = Constant::Concatenate({appPath, "/", metaData.bundleName});
+            dbLaunchOption.dataDir = Constant::Concatenate({ appPath, "/", meta.bundleName });
             dbLaunchOption.observer = nullptr;
-            if (password.GetSize() > 0) {
+            if (meta.isEncrypt) {
                 dbLaunchOption.isEncryptedDb = true;
                 dbLaunchOption.cipher = DistributedDB::CipherType::AES_256_GCM;
-                dbLaunchOption.passwd = password;
+                SecKeyMetaData keyMeta;
+                MetaDataManager::GetInstance().LoadMeta(SecKeyMetaData::GetKey({}), keyMeta);
+                if (dbLaunchOption.passwd.SetValue(keyMeta.sKey.data(), keyMeta.sKey.size())
+                    != DistributedDB::CipherPassword::OK) {
+                    ZLOGE("Get secret key failed.");
+                    return;
+                }
             }
-            dbLaunchOption.secOption = KvStoreAppManager::ConvertSecurity(metaData.securityLevel);
-            EnableKvStoreAutoLaunch({metaData.userId, metaData.appId, metaData.storeId, dbLaunchOption});
+            dbLaunchOption.secOption = KvStoreAppManager::ConvertSecurity(meta.securityLevel);
+            EnableKvStoreAutoLaunch({ meta.user, meta.appId, meta.storeId, dbLaunchOption });
         }
     } else {
         ZLOGW("Init Service start enable failed.");
