@@ -52,6 +52,7 @@ config("module_private_config") {
     include_dirs +=
         [ "//base/powermgr/power_manager/interfaces/innerkits/native/include" ]
   }
+  ldflags = [ "-Wl,--whole-archive" ]
 }
 
 ohos_unittest("KvStoreImplLogicalIsolationTest") {

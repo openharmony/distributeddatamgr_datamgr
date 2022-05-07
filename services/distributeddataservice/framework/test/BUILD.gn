@@ -23,6 +23,7 @@ config("module_private_config") {
     "../include/",
     "../../service/",
   ]
+  ldflags = [ "-Wl,--whole-archive" ]
 }
 
 ohos_unittest("CheckerManagerTest") {
