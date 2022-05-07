@@ -30,8 +30,6 @@ ohos_unittest("CheckerManagerTest") {
   module_out_path = module_output_path
   sources = [
     "../checker/checker_manager.cpp",
-    "../checker/default/bundle_checker.cpp",
-    "../checker/default/system_checker.cpp",
     "../utils/crypto.cpp",
     "checker_manager_test.cpp",
   ]
