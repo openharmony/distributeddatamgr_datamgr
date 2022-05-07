@@ -13,7 +13,7 @@
 * limitations under the License.
 */
 #define LOG_TAG "SystemChecker"
-#include "checker/default/system_checker.h"
+#include "system_checker.h"
 #include "accesstoken_kit.h"
 #include "log/log_print.h"
 namespace OHOS {

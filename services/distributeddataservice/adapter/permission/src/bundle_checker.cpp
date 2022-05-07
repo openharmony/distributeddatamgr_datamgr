@@ -14,7 +14,7 @@
 */
 #define LOG_TAG "BundleChecker"
 
-#include "checker/default/bundle_checker.h"
+#include "bundle_checker.h"
 #include <memory>
 #include "accesstoken_kit.h"
 #include "hap_token_info.h"
