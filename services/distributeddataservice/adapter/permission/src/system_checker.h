@@ -21,7 +21,7 @@ namespace OHOS {
 namespace DistributedData {
 class SystemChecker : public CheckerManager::Checker {
 public:
-    SystemChecker();
+    SystemChecker() noexcept;
     ~SystemChecker();
     void Initialize() override;
     bool SetTrustInfo(const CheckerManager::Trust &trust) override;

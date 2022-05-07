@@ -23,8 +23,8 @@
 namespace OHOS {
 namespace DistributedData {
 using namespace Security::AccessToken;
-BundleChecker BundleChecker::instance_;
-BundleChecker::BundleChecker()
+__attribute__((used)) BundleChecker BundleChecker::instance_;
+BundleChecker::BundleChecker() noexcept
 {
     CheckerManager::GetInstance().RegisterPlugin(
         "BundleChecker", [this]() -> auto { return this; });

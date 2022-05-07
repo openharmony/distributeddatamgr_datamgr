@@ -25,7 +25,7 @@ namespace OHOS {
 namespace DistributedData {
 using namespace AppExecFwk;
 using namespace Security::AccessToken;
-MediaLibChecker MediaLibChecker::instance_;
+__attribute__((used)) MediaLibChecker MediaLibChecker::instance_;
 MediaLibChecker::MediaLibChecker() noexcept
 {
     CheckerManager::GetInstance().RegisterPlugin(

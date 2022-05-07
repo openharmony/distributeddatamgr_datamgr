@@ -20,7 +20,7 @@ namespace OHOS {
 namespace DistributedData {
 class BundleChecker : public CheckerManager::Checker {
 public:
-    BundleChecker();
+    BundleChecker() noexcept;
     ~BundleChecker();
     void Initialize() override;
     bool SetTrustInfo(const CheckerManager::Trust &trust) override;

@@ -19,8 +19,8 @@
 namespace OHOS {
 namespace DistributedData {
 using namespace Security::AccessToken;
-SystemChecker SystemChecker::instance_;
-SystemChecker::SystemChecker()
+__attribute__((used)) SystemChecker SystemChecker::instance_;
+SystemChecker::SystemChecker() noexcept
 {
     CheckerManager::GetInstance().RegisterPlugin(
         "SystemChecker", [this]() -> auto { return this; });
