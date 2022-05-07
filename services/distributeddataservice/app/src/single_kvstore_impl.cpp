@@ -32,6 +32,7 @@
 #include "query_helper.h"
 #include "reporter.h"
 #include "upgrade_manager.h"
+#include "metadata/meta_data_manager.h"
 
 namespace OHOS::DistributedKv {
 using namespace OHOS::DistributedData;
@@ -1489,16 +1490,12 @@ void SingleKvStoreImpl::IncreaseOpenCount()
 bool SingleKvStoreImpl::Import(const std::string &bundleName) const
 {
     ZLOGI("Single KvStoreImpl Import start");
-    const std::string account = AccountDelegate::GetInstance()->GetCurrentAccountId();
-    DistributedData::StoreMetaData metaData;
+    StoreMetaData metaData;
     metaData.user = deviceAccountId_;
-    metaData.account = account;
     metaData.bundleName = bundleName;
-    metaData.appId = appId_;
     metaData.storeId = storeId_;
-    metaData.securityLevel = options_.securityLevel;
-    metaData.isEncrypt = options_.encrypt;
-    metaData.storeType = options_.kvStoreType;
+    metaData.deviceId = DeviceKvStoreImpl::GetLocalDeviceId();
+    MetaDataManager::GetInstance().LoadMeta(metaData.GetKey(), metaData);
     std::shared_lock<std::shared_mutex> lock(storeNbDelegateMutex_);
     return std::make_unique<BackupHandler>()->SingleKvStoreRecover(metaData, kvStoreNbDelegate_);
 }

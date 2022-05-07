@@ -129,20 +129,5 @@ std::string StoreMetaData::GetPrefix(const std::initializer_list<std::string> &f
 {
     return GetKey(fields).append(Constant::KEY_SEPARATOR);
 }
-
-// the Key Prefix for Meta data of KvStore.
-const std::string KvStoreMetaRow::KEY_PREFIX = "KvStoreMetaData";
-std::vector<uint8_t> KvStoreMetaRow::GetKeyFor(const std::string &key)
-{
-    std::string str = Constant::Concatenate({ KvStoreMetaRow::KEY_PREFIX, Constant::KEY_SEPARATOR, key });
-    return { str.begin(), str.end() };
-}
-
-const std::string SecretMetaRow::KEY_PREFIX = "SecretKey";
-std::vector<uint8_t> SecretMetaRow::GetKeyFor(const std::string &key)
-{
-    std::string str = Constant::Concatenate({ SecretMetaRow::KEY_PREFIX, Constant::KEY_SEPARATOR, key });
-    return { str.begin(), str.end() };
-}
 } // namespace DistributedData
 } // namespace OHOS

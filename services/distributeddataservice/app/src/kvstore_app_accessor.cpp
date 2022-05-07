@@ -68,34 +68,6 @@ void KvStoreAppAccessor::EnableKvStoreAutoLaunch()
 {
     ZLOGI("start");
     return;
-    std::vector<StoreMetaData> entries;
-    if (MetaDataManager::GetInstance().LoadMeta(StoreMetaData::GetPrefix({}), entries)) {
-        for (auto &meta : entries) {
-            ZLOGI("meta appId:%s", meta.appId.c_str());
-            auto pathType = KvStoreAppManager::ConvertPathType(meta);
-            std::string appPath = KvStoreAppManager::GetDataStoragePath(meta.user, meta.bundleName, pathType);
-            DistributedDB::AutoLaunchOption dbLaunchOption;
-            dbLaunchOption.createIfNecessary = true;
-            dbLaunchOption.createDirByStoreIdOnly = true;
-            dbLaunchOption.dataDir = Constant::Concatenate({ appPath, "/", meta.bundleName });
-            dbLaunchOption.observer = nullptr;
-            if (meta.isEncrypt) {
-                dbLaunchOption.isEncryptedDb = true;
-                dbLaunchOption.cipher = DistributedDB::CipherType::AES_256_GCM;
-                SecKeyMetaData keyMeta;
-                MetaDataManager::GetInstance().LoadMeta(SecKeyMetaData::GetKey({}), keyMeta);
-                if (dbLaunchOption.passwd.SetValue(keyMeta.sKey.data(), keyMeta.sKey.size())
-                    != DistributedDB::CipherPassword::OK) {
-                    ZLOGE("Get secret key failed.");
-                    return;
-                }
-            }
-            dbLaunchOption.secOption = KvStoreAppManager::ConvertSecurity(meta.securityLevel);
-            EnableKvStoreAutoLaunch({ meta.user, meta.appId, meta.storeId, dbLaunchOption });
-        }
-    } else {
-        ZLOGW("Init Service start enable failed.");
-    }
 }
 
 void KvStoreAppAccessor::DisableKvStoreAutoLaunch(const AppAccessorParam &param)

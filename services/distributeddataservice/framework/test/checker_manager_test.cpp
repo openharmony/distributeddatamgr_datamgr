@@ -155,6 +155,8 @@ HWTEST_F(CheckerManagerTest, BundleChecker, TestSize.Level0)
     storeInfo.uid = 2000000;
     storeInfo.tokenId = AccessTokenKit::GetHapTokenID(100, "ohos.test.demo", 0);
     storeInfo.bundleName = "ohos.test.demo";
-    ASSERT_EQ(Crypto::Sha256("ohos.test.demo"), CheckerManager::GetInstance().GetAppId(storeInfo));
+    HapTokenInfo tokenInfo;
+    AccessTokenKit::GetHapTokenInfo(storeInfo.tokenId, tokenInfo);
+    ASSERT_EQ(Crypto::Sha256(tokenInfo.appID), CheckerManager::GetInstance().GetAppId(storeInfo));
     ASSERT_TRUE(CheckerManager::GetInstance().IsValid(storeInfo));
 }

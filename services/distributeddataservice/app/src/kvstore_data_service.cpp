@@ -210,6 +210,11 @@ Status KvStoreDataService::FillStoreParam(
         ZLOGE("invalid argument type.");
         return Status::INVALID_ARGUMENT;
     }
+    metaData.securityLevel = options.securityLevel;
+    metaData.storeType = options.kvStoreType;
+    metaData.isBackup = options.backup;
+    metaData.isEncrypt = options.encrypt;
+    metaData.isAutoSync = options.autoSync;
     metaData.bundleName = appId.appId;
     metaData.storeId = storeId.storeId;
     metaData.uid = IPCSkeleton::GetCallingUid();
@@ -222,6 +227,7 @@ Status KvStoreDataService::FillStoreParam(
     }
 
     metaData.user = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(metaData.uid);
+    metaData.account = AccountDelegate::GetInstance()->GetCurrentAccountId();
     return SUCCESS;
 }
 
@@ -664,15 +670,14 @@ Status KvStoreDataService::AppExit(const AppId &appId, pid_t uid, uint32_t token
         ZLOGI("map size: %zu.", clientDeathObserverMap_.size());
     }
 
-    std::string trueAppId = CheckerManager::GetInstance().GetAppId({ uid, token, appIdTmp.appId });
-    if (trueAppId.empty()) {
-        ZLOGW("check appId:%{public}s uid:%{public}d token:%{public}u failed.",
-            appIdTmp.appId.c_str(), uid, token);
-        return Status::PERMISSION_DENIED;
+    const std::string userId = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(uid);
+    std::lock_guard<std::mutex> lg(accountMutex_);
+    auto it = deviceAccountMap_.find(userId);
+    if (it != deviceAccountMap_.end()) {
+        auto status = (it->second).CloseAllKvStore(appIdTmp.appId);
+        ZLOGI("Close all kv store %{public}s, status:%{public}d.", appIdTmp.appId.c_str(), status);
     }
-
-    CloseAllKvStore(appIdTmp);
-    return Status::SUCCESS;
+   return Status::SUCCESS;
 }
 
 void KvStoreDataService::OnDump()

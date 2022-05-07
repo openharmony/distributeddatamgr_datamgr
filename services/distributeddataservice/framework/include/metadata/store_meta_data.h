@@ -57,17 +57,5 @@ struct API_EXPORT StoreMetaData final : public Serializable {
 private:
     static constexpr const char *KEY_PREFIX = "KvStoreMetaData";
 };
-
-class KvStoreMetaRow {
-public:
-    API_EXPORT static const std::string KEY_PREFIX;
-    API_EXPORT std::vector<uint8_t> GetKeyFor(const std::string &key);
-};
-
-class SecretMetaRow {
-public:
-    API_EXPORT static const std::string KEY_PREFIX;
-    API_EXPORT static std::vector<uint8_t> GetKeyFor(const std::string &key);
-};
 } // namespace OHOS::DistributedData
 #endif // OHOS_DISTRIBUTED_DATA_SERVICES_FRAMEWORK_METADATA_STORE_META_DATA_H

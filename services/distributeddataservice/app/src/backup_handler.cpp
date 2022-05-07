@@ -99,8 +99,7 @@ void BackupHandler::SingleKvStoreBackup(const StoreMetaData &metaData)
     DistributedDB::KvStoreNbDelegate::Option dbOption;
     SetDBOptions(dbOption, backupPara, metaData);
     DistributedDB::KvStoreDelegateManager delegateMgr(metaData.appId, metaData.user);
-    std::string path = KvStoreAppManager::GetDataStoragePath(
-        metaData.account, metaData.bundleName, backupPara.pathType);
+    std::string path = KvStoreAppManager::GetDataStoragePath(metaData.user, metaData.bundleName, backupPara.pathType);
     DistributedDB::KvStoreConfig kvStoreConfig = { path };
     delegateMgr.SetKvStoreConfig(kvStoreConfig);
     std::function<void(DistributedDB::DBStatus, DistributedDB::KvStoreNbDelegate *)> fun =
@@ -139,6 +138,7 @@ void BackupHandler::SingleKvStoreBackup(const StoreMetaData &metaData)
 void BackupHandler::SetDBOptions(DistributedDB::KvStoreNbDelegate::Option &dbOption,
     const BackupHandler::BackupPara &backupPara, const StoreMetaData &metaData)
 {
+    dbOption.syncDualTupleMode = true;
     dbOption.createIfNecessary = false;
     dbOption.isEncryptedDb = backupPara.password.GetSize() > 0;
     dbOption.passwd = backupPara.password;
@@ -174,13 +174,22 @@ bool BackupHandler::InitBackupPara(const StoreMetaData &metaData, BackupPara &ba
 
 bool BackupHandler::GetPassword(const StoreMetaData &metaData, DistributedDB::CipherPassword &password)
 {
-    std::string key = SecretKeyMetaData::GetKey({});
+    if (!metaData.isEncrypt) {
+        return true;
+    }
+
+    std::string key = SecretKeyMetaData::GetKey({ metaData.user, "default", metaData.bundleName, metaData.storeId,
+        metaData.storeType == SINGLE_VERSION ? "SINGLE_KEY" : "KEY" });
     SecretKeyMetaData secretKey;
     MetaDataManager::GetInstance().LoadMeta(key, secretKey, true);
-    if (password.SetValue(secretKey.sKey.data(), secretKey.sKey.size()) != DistributedDB::CipherPassword::OK) {
-        ZLOGE("Set secret key value failed. len is (%d)", int32_t(secretKey.sKey.size()));
+    std::vector<uint8_t> decryptKey;
+    KvStoreMetaManager::GetInstance().DecryptWorkKey(secretKey.sKey, decryptKey);
+    if (password.SetValue(decryptKey.data(), decryptKey.size()) != DistributedDB::CipherPassword::OK) {
+        std::fill(decryptKey.begin(), decryptKey.end(), 0);
+        ZLOGE("Set secret key value failed. len is (%d)", int32_t(decryptKey.size()));
         return false;
     }
+    std::fill(decryptKey.begin(), decryptKey.end(), 0);
     return true;
 }
 
@@ -198,7 +207,7 @@ bool BackupHandler::SingleKvStoreRecover(StoreMetaData &metaData, DistributedDB:
     }
 
     DistributedDB::CipherPassword password;
-    if (GetPassword(metaData, password)) {
+    if (!GetPassword(metaData, password)) {
         ZLOGE("Set secret key failed.");
         return false;
     }
@@ -230,7 +239,7 @@ bool BackupHandler::MultiKvStoreRecover(StoreMetaData &metaData, DistributedDB::
 
     ZLOGI("MultiKvStoreRecover start.");
     DistributedDB::CipherPassword password;
-    if (GetPassword(metaData, password)) {
+    if (!GetPassword(metaData, password)) {
         ZLOGE("Set secret key failed.");
         return false;
     }

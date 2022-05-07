@@ -21,6 +21,7 @@
 #include "kvstore_app_manager.h"
 #include "kvstore_impl.h"
 #include "types.h"
+#include "metadata/store_meta_data.h"
 
 namespace OHOS {
 namespace DistributedKv {
