@@ -677,7 +677,7 @@ Status KvStoreDataService::AppExit(const AppId &appId, pid_t uid, uint32_t token
         auto status = (it->second).CloseAllKvStore(appIdTmp.appId);
         ZLOGI("Close all kv store %{public}s, status:%{public}d.", appIdTmp.appId.c_str(), status);
     }
-   return Status::SUCCESS;
+    return Status::SUCCESS;
 }
 
 void KvStoreDataService::OnDump()
