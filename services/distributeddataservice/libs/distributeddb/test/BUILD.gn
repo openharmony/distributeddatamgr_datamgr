@@ -749,7 +749,6 @@ group("distributeddatamgr_fuzztest") {
     "fuzztest/iprocesscommunicator_fuzzer:fuzztest",
     "fuzztest/kvstoredelegate_curd_fuzzer:fuzztest",
     "fuzztest/kvstorenbdelegate_curd_fuzzer:fuzztest",
-    "fuzztest/kvstorenbdelegate_importfile_fuzzer:fuzztest",
     "fuzztest/kvstoreresultset_fuzzer:fuzztest",
     "fuzztest/query_fuzzer:fuzztest",
     "fuzztest/rekey_fuzzer:fuzztest",
