@@ -81,7 +81,7 @@ void UserDelegate::UpdateUsers(const std::string &deviceId, const std::vector<Us
         }
         return true;
     });
-    }
+
     ZLOGI("end, device:%{public}s, users:%{public}zu", Anonymous::Change(deviceId).c_str(),
         deviceUserMap_[deviceId].size());
 }
