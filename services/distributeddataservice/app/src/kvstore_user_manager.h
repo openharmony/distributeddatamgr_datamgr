@@ -27,7 +27,7 @@ namespace OHOS {
 namespace DistributedKv {
 class KvStoreUserManager {
 public:
-using StoreMetaData = DistributedData::StoreMetaData;
+    using StoreMetaData = DistributedData::StoreMetaData;
     explicit KvStoreUserManager(const std::string &userId);
 
     virtual ~KvStoreUserManager();

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "metadata/secret_key_meta_data.h"
+
 #include "utils/constant.h"
 namespace OHOS {
 namespace DistributedData {
@@ -27,14 +28,14 @@ bool SecretKeyMetaData::Marshal(json &node) const
 {
     SetValue(node[GET_NAME(time)], time);
     SetValue(node[GET_NAME(sKey)], sKey);
-    SetValue(node[GET_NAME(kvStoreType)], kvStoreType);
+    SetValue(node[GET_NAME(storeType)], storeType);
     return true;
 }
 bool SecretKeyMetaData::Unmarshal(const json &node)
 {
     GetValue(node, GET_NAME(time), time);
     GetValue(node, GET_NAME(sKey), sKey);
-    GetValue(node, GET_NAME(kvStoreType), kvStoreType);
+    GetValue(node, GET_NAME(storeType), storeType);
     return true;
 }
 
