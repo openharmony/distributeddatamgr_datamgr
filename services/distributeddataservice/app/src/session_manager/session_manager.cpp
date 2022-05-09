@@ -44,16 +44,15 @@ Session SessionManager::GetSession(const SessionPoint &from, const std::string &
     session.sourceDeviceId = from.deviceId;
     session.targetDeviceId = targetDeviceId;
     auto users = UserDelegate::GetInstance().GetRemoteUserStatus(targetDeviceId);
-    StoreMetaData metaData;
-    auto key = StoreMetaData::GetKey({ from.deviceId, std::to_string(from.userId),
-                                       "default", from.appId, from.storeId });
-    if (!MetaDataManager::GetInstance().LoadMeta(key, metaData)) {
-        return session;
-    }
     // system service
     if (from.userId == UserDelegate::SYSTEM_USER) {
-        if (CheckerManager::GetInstance().GetAppId({ metaData.uid, metaData.tokenId, metaData.bundleName })
-            == metaData.bundleName) {
+        StoreMetaData metaData;
+        metaData.deviceId = from.deviceId;
+        metaData.user = std::to_string(from.userId);
+        metaData.bundleName = from.appId;
+        metaData.storeId = from.storeId;
+        if (MetaDataManager::GetInstance().LoadMeta(metaData.GetKey(), metaData) &&
+            CheckerManager::GetInstance().GetAppId(Converter::ConvertToStoreInfo(metaData)) == from.appId) {
             session.targetUserIds.push_back(UserDelegate::SYSTEM_USER);
         }
     }
