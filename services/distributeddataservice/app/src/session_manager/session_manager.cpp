@@ -26,6 +26,7 @@
 #include "metadata/store_meta_data.h"
 #include "user_delegate.h"
 #include "utils/anonymous.h"
+#include "utils/converter.h"
 
 namespace OHOS::DistributedData {
 using namespace OHOS::DistributedKv;
