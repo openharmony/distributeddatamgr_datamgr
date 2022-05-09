@@ -46,8 +46,7 @@ std::string SystemChecker::GetAppId(const CheckerManager::StoreInfo &info)
         return "";
     }
     std::string appId = (trusts_.find(info.bundleName) != trusts_.end()) ? trusts_[info.bundleName] : info.bundleName;
-    ZLOGD("bundleName:%{public}s, token:%{public}u, appId:%{public}s", info.bundleName.c_str(), info.tokenId,
-        appId.c_str());
+    ZLOGD("bundleName:%{public}s, appId:%{public}s", info.bundleName.c_str(), appId.c_str());
     return appId;
 }
 

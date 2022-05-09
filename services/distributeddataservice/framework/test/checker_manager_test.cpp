@@ -28,7 +28,7 @@ public:
     static void SetUpTestCase(void) {}
     static void TearDownTestCase(void) {}
     void SetUp();
-    void TearDown() {}
+    void TearDown();
     NativeTokenInfoParams infoInstance;
 };
 
@@ -39,10 +39,47 @@ void CheckerManagerTest::SetUp(void)
     infoInstance.processName = "foundation";
     infoInstance.aplStr = "system_core";
 
+    HapInfoParams info = {
+        .userID = 100,
+        .bundleName = "ohos.test.demo",
+        .instIndex = 0,
+        .appIDDesc = "ohos.test.demo"
+    };
+    PermissionDef infoManagerTestPermDef = {
+        .permissionName = "ohos.permission.test",
+        .bundleName = "ohos.test.demo",
+        .grantMode = 1,
+        .availableLevel = APL_NORMAL,
+        .label = "label",
+        .labelId = 1,
+        .description = "open the door",
+        .descriptionId = 1
+    };
+    PermissionStateFull infoManagerTestState = {
+        .permissionName = "ohos.permission.test",
+        .isGeneral = true,
+        .resDeviceID = {"local"},
+        .grantStatus = {PermissionState::PERMISSION_GRANTED},
+        .grantFlags = {1}
+    };
+    HapPolicyParams policy = {
+        .apl = APL_NORMAL,
+        .domain = "test.domain",
+        .permList = {infoManagerTestPermDef},
+        .permStateList = {infoManagerTestState}
+    };
+    AccessTokenKit::AllocHapToken(info, policy);
+
     Bootstrap::GetInstance().LoadComponents();
     Bootstrap::GetInstance().LoadDirectory();
     Bootstrap::GetInstance().LoadCheckers();
     Bootstrap::GetInstance().LoadNetworks();
+}
+
+void CheckerManagerTest::TearDown()
+{
+    auto tokenId = AccessTokenKit::GetHapTokenID(100, "ohos.test.demo", 0);
+    AccessTokenKit::DeleteToken(tokenId);
 }
 /**
 * @tc.name: checkers
@@ -121,36 +158,6 @@ HWTEST_F(CheckerManagerTest, SystemCheckerIVI, TestSize.Level0)
 */
 HWTEST_F(CheckerManagerTest, BundleChecker, TestSize.Level0)
 {
-    HapInfoParams info = {
-        .userID = 100,
-        .bundleName = "ohos.test.demo",
-        .instIndex = 0,
-        .appIDDesc = "ohos.test.demo"
-    };
-    PermissionDef infoManagerTestPermDef = {
-        .permissionName = "ohos.permission.test",
-        .bundleName = "ohos.test.demo",
-        .grantMode = 1,
-        .availableLevel = APL_NORMAL,
-        .label = "label",
-        .labelId = 1,
-        .description = "open the door",
-        .descriptionId = 1
-    };
-    PermissionStateFull infoManagerTestState = {
-        .permissionName = "ohos.permission.test",
-        .isGeneral = true,
-        .resDeviceID = {"local"},
-        .grantStatus = {PermissionState::PERMISSION_GRANTED},
-        .grantFlags = {1}
-    };
-    HapPolicyParams policy = {
-        .apl = APL_NORMAL,
-        .domain = "test.domain",
-        .permList = {infoManagerTestPermDef},
-        .permStateList = {infoManagerTestState}
-    };
-    AccessTokenKit::AllocHapToken(info, policy);
     CheckerManager::StoreInfo storeInfo;
     storeInfo.uid = 2000000;
     storeInfo.tokenId = AccessTokenKit::GetHapTokenID(100, "ohos.test.demo", 0);

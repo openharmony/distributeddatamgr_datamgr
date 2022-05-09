@@ -17,9 +17,9 @@
 
 #define LOG_TAG "UserDelegate"
 
+#include <thread>
 #include "account_delegate.h"
 #include "communication_provider.h"
-#include "device_kvstore_impl.h"
 #include "executor_factory.h"
 #include "log_print.h"
 #include "metadata/meta_data_manager.h"
@@ -29,18 +29,23 @@ using OHOS::AppDistributedKv::CommunicationProvider;
 using namespace OHOS::DistributedKv;
 std::string GetLocalDeviceId()
 {
-    return DeviceKvStoreImpl::GetLocalDeviceId();
+    static std::string deviceId;
+    if (deviceId.empty()) {
+        deviceId = CommunicationProvider::GetInstance().GetLocalDevice().uuid;
+    }
+
+    return deviceId;
 }
 
 std::vector<UserStatus> UserDelegate::GetLocalUserStatus()
 {
     ZLOGI("begin");
-    auto deviceInfo = CommunicationProvider::GetInstance().GetLocalDevice();
-    if (deviceInfo.uuid.empty()) {
+    auto deviceId = GetLocalDeviceId();
+    if (deviceId.empty()) {
         ZLOGE("failed to get local device id");
         return {};
     }
-    return GetUsers(deviceInfo.uuid);
+    return GetUsers(deviceId);
 }
 
 std::vector<DistributedData::UserStatus> UserDelegate::GetRemoteUserStatus(const std::string &deviceId)
@@ -74,15 +79,14 @@ void UserDelegate::DeleteUsers(const std::string &deviceId)
 void UserDelegate::UpdateUsers(const std::string &deviceId, const std::vector<UserStatus> &userStatus)
 {
     ZLOGI("begin, device:%{public}.10s, users:%{public}zu", Anonymous::Change(deviceId).c_str(), userStatus.size());
-    deviceUserMap_.ComputeIfPresent(deviceId, [](const auto &key, std::map<int, bool> &userMap) {
-        for (auto &user : userMap) {
-            user.second = false;
+    deviceUserMap_.Compute(deviceId, [&userStatus](const auto &key, std::map<int, bool> &userMap) {
+        userMap = {};
+        for (auto &user : userStatus) {
+            userMap[user.id] = user.isActive;
         }
         return true;
     });
-    for (auto &user : userStatus) {
-        deviceUserMap_[deviceId][user.id] = user.isActive;
-    }
+
     ZLOGI("end, device:%{public}s, users:%{public}zu", Anonymous::Change(deviceId).c_str(),
         deviceUserMap_[deviceId].size());
 }
@@ -140,7 +144,7 @@ void UserDelegate::Init()
         } while (true);
         ZLOGI("update user meta ok");
     });
-    ExecutorFactory::GetInstance().Execute(std::move(retryTask));
+
     auto ret = AccountDelegate::GetInstance()->Subscribe(std::make_shared<LocalUserObserver>(*this));
     MetaDataManager::GetInstance().Subscribe(
         UserMetaRow::KEY_PREFIX, [this](const std::string &key, const std::string &value, int32_t flag) -> auto {
@@ -160,6 +164,9 @@ void UserDelegate::Init()
             }
             return true;
     });
+    if (!InitLocalUserMeta()) {
+        ExecutorFactory::GetInstance().Execute(std::move(retryTask));
+    }
     ZLOGD("subscribe os account ret:%{public}d", ret);
 }
 

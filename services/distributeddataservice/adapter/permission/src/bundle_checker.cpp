@@ -64,8 +64,7 @@ std::string BundleChecker::GetAppId(const CheckerManager::StoreInfo &info)
         return info.bundleName;
     }
 
-    ZLOGD("bundleName:%{public}s, token:%{public}u, appId:%{public}s",
-        info.bundleName.c_str(), info.tokenId, tokenInfo.appID.c_str());
+    ZLOGD("bundleName:%{public}s, appId:%{public}s", info.bundleName.c_str(), tokenInfo.appID.c_str());
     return Crypto::Sha256(tokenInfo.appID);
 }
 
