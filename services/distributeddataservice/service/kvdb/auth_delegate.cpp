@@ -150,16 +150,10 @@ std::vector<std::string> AuthHandler::GetTrustedDevicesByType(
 bool AuthHandlerStub::CheckAccess(
     int localUserId, int peerUserId, const std::string &peerDeviceId, const std::string &appId)
 {
-    auto checker = CheckerManager::GetInstance().GetChecker("SystemChecker");
-    if (checker == nullptr) {
-        ZLOGE("get system checker failed");
-        return false;
-    }
-    bool isSystemApp = checker->IsValid(UID_CAPACITY * localUserId, appId);
-    if (isSystemApp) {
-        ZLOGE("system app:%{public}s", appId.c_str());
+    if (localUserId == SYSTEM_USER) {
         return peerUserId == SYSTEM_USER;
     }
+
     auto localUsers = UserDelegate::GetInstance().GetLocalUserStatus();
     auto peerUsers = UserDelegate::GetInstance().GetRemoteUserStatus(peerDeviceId);
     return peerUserId != SYSTEM_USER && IsUserActive(localUsers, localUserId) && IsUserActive(peerUsers, peerUserId);

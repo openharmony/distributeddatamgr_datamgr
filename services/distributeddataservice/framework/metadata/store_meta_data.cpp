@@ -18,7 +18,6 @@
 #include "utils/constant.h"
 namespace OHOS {
 namespace DistributedData {
-using namespace OHOS::DistributedKv;
 constexpr uint32_t StoreMetaData::CURRENT_VERSION;
 constexpr uint32_t StoreMetaData::FIELD_CHANGED_TAG;
 constexpr const char *StoreMetaData::KEY_PREFIX;
@@ -121,24 +120,14 @@ std::string StoreMetaData::GetKey(const std::initializer_list<std::string> &fiel
     return prefix;
 }
 
+std::string StoreMetaData::GetKey()
+{
+    return GetKey({ deviceId, user, "default", bundleName, storeId });
+}
+
 std::string StoreMetaData::GetPrefix(const std::initializer_list<std::string> &fields)
 {
     return GetKey(fields).append(Constant::KEY_SEPARATOR);
-}
-
-// the Key Prefix for Meta data of KvStore.
-const std::string KvStoreMetaRow::KEY_PREFIX = "KvStoreMetaData";
-std::vector<uint8_t> KvStoreMetaRow::GetKeyFor(const std::string &key)
-{
-    std::string str = Constant::Concatenate({ KvStoreMetaRow::KEY_PREFIX, Constant::KEY_SEPARATOR, key });
-    return { str.begin(), str.end() };
-}
-
-const std::string SecretMetaRow::KEY_PREFIX = "SecretKey";
-std::vector<uint8_t> SecretMetaRow::GetKeyFor(const std::string &key)
-{
-    std::string str = Constant::Concatenate({ SecretMetaRow::KEY_PREFIX, Constant::KEY_SEPARATOR, key });
-    return { str.begin(), str.end() };
 }
 } // namespace DistributedData
 } // namespace OHOS

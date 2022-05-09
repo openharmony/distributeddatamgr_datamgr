@@ -26,21 +26,7 @@
 #include "visibility.h"
 
 namespace OHOS {
-namespace DistributedKv {
-class KvStoreMetaRow {
-public:
-    API_EXPORT static const std::string KEY_PREFIX;
-
-    API_EXPORT static std::vector<uint8_t> GetKeyFor(const std::string &key);
-};
-
-class SecretMetaRow {
-public:
-    API_EXPORT static const std::string KEY_PREFIX;
-
-    API_EXPORT static std::vector<uint8_t> GetKeyFor(const std::string &key);
-};
-
+namespace DistributedData {
 class Constant {
 public:
     // concatenate strings and return a composition string.
@@ -70,68 +56,7 @@ public:
     template<typename T>
     static T TrimCopy(T s);
 
-    // get default device account id.
-    API_EXPORT static std::string GetDefaultDeviceAccountId();
-
-    // get default harmony account name.
-    API_EXPORT static std::string GetDefaultHarmonyAccountName();
-
-    // default group id for synchronization based on harmony account.
-    API_EXPORT static const std::string DEFAULT_GROUP_ID;
-
-    // Indicates whether only storeid are used as hash materials for the DistributedDB path generated.
-    API_EXPORT static const bool STOREID_ONLY_FLAG;
-
-    // version for distributed kv data service.
-    API_EXPORT static const std::string VERSION;
-
-    // meta name for distributed kv data service.
-    API_EXPORT static const std::string META_DIR_NAME;
-
-    // name for distributed kv data service.
-    API_EXPORT static const std::string SERVICE_NAME;
-
-    // root path for distributed kv data service.
-    API_EXPORT static const std::string ROOT_PATH;
-
-    // root path for distributeddata service and system services.
-    API_EXPORT static const std::string ROOT_PATH_DE;
-
-    // root path for self-developed and non-self-developed app.
-    API_EXPORT static const std::string ROOT_PATH_CE;
-
-    // the max length for key is 256.
-    API_EXPORT static const size_t MAX_KEY_LENGTH;
-
-    // the max length for value is 1M.
-    API_EXPORT static const size_t MAX_VALUE_LENGTH;
-
-    // the max length for StoreId is 64.
-    API_EXPORT static const size_t MAX_STORE_ID_LENGTH;
-
-    // the max batch for putBatch is 128.
-    API_EXPORT static const size_t MAX_BATCH_SIZE;
-
-    // the max capacity for ipc is 800KB.
-    API_EXPORT static const size_t MAX_IPC_CAPACITY;
-
-    // service meta db name.
-    API_EXPORT static const std::string SERVICE_META_DB_NAME;
-
-    API_EXPORT static const std::string KEY_SEPARATOR;
-
-    API_EXPORT static const mode_t DEFAULT_MODE;
-
-    API_EXPORT static const mode_t DEFAULT_MODE_DIR;
-
-    API_EXPORT static const mode_t DEFAULT_MODE_FILE;
-
-    API_EXPORT static const int SWITCH_RAW_DATA_SIZE;
-
-    API_EXPORT static const int MAX_OPEN_KVSTORES;
-
-    // name for process label (bus name for communication). compatible with HwDDMP
-    API_EXPORT static const std::string ROOT_KEY_GENERATED;
+    API_EXPORT static constexpr const char *KEY_SEPARATOR = "###";
 };
 
 // trim from start (in place)

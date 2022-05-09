@@ -26,6 +26,11 @@ struct API_EXPORT SecretKeyMetaData final : public Serializable {
     API_EXPORT ~SecretKeyMetaData();
     API_EXPORT bool Marshal(json &node) const override;
     API_EXPORT bool Unmarshal(const json &node) override;
+
+    API_EXPORT static std::string GetKey(const std::initializer_list<std::string> &fields);
+    API_EXPORT static std::string GetPrefix(const std::initializer_list<std::string> &fields);
+private:
+    static constexpr const char *KEY_PREFIX = "SecretKey";
 };
 } // namespace DistributedData
 } // namespace OHOS

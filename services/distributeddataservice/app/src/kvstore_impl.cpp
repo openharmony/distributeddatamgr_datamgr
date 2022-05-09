@@ -23,16 +23,19 @@
 #include "checker/checker_manager.h"
 #include "constant.h"
 #include "dds_trace.h"
+#include "device_kvstore_impl.h"
 #include "kvstore_account_observer.h"
 #include "kvstore_data_service.h"
 #include "kvstore_meta_manager.h"
 #include "kvstore_utils.h"
 #include "log_print.h"
+#include "metadata/meta_data_manager.h"
 #include "permission_validator.h"
 #include "reporter.h"
 
 namespace OHOS {
 namespace DistributedKv {
+using namespace DistributedData;
 KvStoreImpl::KvStoreImpl(const Options &options, const std::string &userId, const std::string &bundleName,
     const std::string &appId, const std::string &storeId, const std::string &directory,
     DistributedDB::KvStoreDelegate *delegate)
@@ -737,7 +740,8 @@ Status KvStoreImpl::UnSubscribeKvStore(const SubscribeType subscribeType, sptr<I
     return status;
 }
 
-Status KvStoreImpl::ReKey(const std::vector<uint8_t> &key) {
+Status KvStoreImpl::ReKey(const std::vector<uint8_t> &key)
+{
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
 
     ZLOGI("begin");
@@ -777,21 +781,12 @@ KvStoreImpl::~KvStoreImpl()
 bool KvStoreImpl::Import(const std::string &bundleName) const
 {
     ZLOGI("KvStoreImpl Import start");
-    const std::string harmonyAccountId = AccountDelegate::GetInstance()->GetCurrentAccountId();
-    auto metaSecretKey = KvStoreMetaManager::GetMetaKey(deviceAccountId_, harmonyAccountId, bundleName, storeId_,
-                                                        "KEY");
-    std::vector<uint8_t> secretKey;
-    bool outdated = false;
-    KvStoreMetaManager::GetInstance().GetSecretKeyFromMeta(metaSecretKey, secretKey, outdated);
-
-    MetaData metaData{0};
-    metaData.kvStoreMetaData.deviceAccountId = deviceAccountId_;
-    metaData.kvStoreMetaData.userId = harmonyAccountId;
-    metaData.kvStoreMetaData.bundleName = bundleName;
-    metaData.kvStoreMetaData.appId = appId_;
-    metaData.kvStoreMetaData.storeId = storeId_;
-    metaData.kvStoreMetaData.securityLevel = options_.securityLevel;
-    metaData.secretKeyMetaData.secretKey = secretKey;
+    StoreMetaData metaData;
+    metaData.user = deviceAccountId_;
+    metaData.bundleName = bundleName;
+    metaData.storeId = storeId_;
+    metaData.deviceId = DeviceKvStoreImpl::GetLocalDeviceId();
+    MetaDataManager::GetInstance().LoadMeta(metaData.GetKey(), metaData);
     std::shared_lock<std::shared_mutex> lock(storeDelegateMutex_);
     return std::make_unique<BackupHandler>()->MultiKvStoreRecover(metaData, kvStoreDelegate_);
 }

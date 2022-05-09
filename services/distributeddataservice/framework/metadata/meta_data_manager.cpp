@@ -150,6 +150,9 @@ bool MetaDataManager::LoadMeta(const std::string &key, Serializable &value, bool
         return false;
     }
     Serializable::Unmarshall({ data.begin(), data.end() }, value);
+    if (isLocal) {
+        data.assign(data.size(), 0);
+    }
     return true;
 }
 

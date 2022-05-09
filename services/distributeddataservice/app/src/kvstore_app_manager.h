@@ -22,10 +22,13 @@
 #include "flowctrl_manager/kvstore_flowctrl_manager.h"
 #include "kv_store_delegate_manager.h"
 #include "kvstore_impl.h"
-#include "types.h"
-#include "single_kvstore_impl.h"
 #include "kv_store_nb_delegate.h"
+#include "kvstore_meta_manager.h"
+#include "metadata/store_meta_data.h"
 #include "nocopyable.h"
+#include "single_kvstore_impl.h"
+#include "types.h"
+
 
 namespace OHOS {
 namespace DistributedKv {
@@ -36,16 +39,17 @@ public:
         PATH_CE,
         PATH_TYPE_MAX
     };
+    using StoreMetaData = DistributedData::StoreMetaData;
 
-    KvStoreAppManager(const std::string &bundleName, pid_t uid);
+    KvStoreAppManager(const std::string &bundleName, pid_t uid, uint32_t token);
 
     virtual ~KvStoreAppManager();
 
-    Status GetKvStore(const Options &options, const std::string &appId, const std::string &storeId,
-                      const std::vector<uint8_t> &cipherKey, sptr<KvStoreImpl> &kvStore);
+    Status GetKvStore(const Options &options, const StoreMetaData &metaData, const std::vector<uint8_t> &cipherKey,
+        sptr<KvStoreImpl> &kvStore);
 
-    Status GetKvStore(const Options &options, const std::string &appId, const std::string &storeId,
-                      const std::vector<uint8_t> &cipherKey, sptr<SingleKvStoreImpl> &kvStore);
+    Status GetKvStore(const Options &options, const StoreMetaData &metaData, const std::vector<uint8_t> &cipherKey,
+        sptr<SingleKvStoreImpl> &kvStore);
 
     Status CloseKvStore(const std::string &storeId);
 
@@ -66,9 +70,9 @@ public:
     static std::string GetDataStoragePath(const std::string &userId, const std::string &bundleName,
                                           PathType type);
 
-    static PathType ConvertPathType(int32_t uid, const std::string &bundleName, int securityLevel);
+    static PathType ConvertPathType(const StoreMetaData &metaData);
 
-    std::string GetDbDir(const Options &options) const;
+    static std::string GetDbDir(const StoreMetaData &metaData);
 
     void Dump(int fd) const;
 
@@ -98,6 +102,7 @@ private:
     std::string deviceAccountId_ {};
     std::string trueAppId_ {};
     pid_t uid_;
+    uint32_t token_;
     std::mutex delegateMutex_ {};
     DistributedDB::KvStoreDelegateManager *delegateManagers_[PATH_TYPE_MAX] {nullptr, nullptr};
     KvStoreFlowCtrlManager flowCtrl_;

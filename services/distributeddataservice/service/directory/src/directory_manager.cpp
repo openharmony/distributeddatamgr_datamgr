@@ -32,8 +32,8 @@ std::string ServerDirWorker::GetDir(ClientContext clientContext, PathType type)
     if (rootPathMap_.find(type) == rootPathMap_.end()) {
         return "";
     }
-    return DirectoryManager::JoinPath({ rootPathMap_.at(type), clientContext.userId,
-        Constant::GetDefaultHarmonyAccountName(), clientContext.bundleName });
+    return DirectoryManager::JoinPath(
+        { rootPathMap_.at(type), clientContext.userId, "default", clientContext.bundleName });
 }
 bool ServerDirWorker::CreateDir(ClientContext clientContext, PathType type)
 {
@@ -56,7 +56,7 @@ std::string ServerDirWorker::GetBackupDir(ClientContext clientContext, PathType 
         return "";
     }
     return DirectoryManager::JoinPath({ rootPathMap_.at(type), clientContext.userId,
-        Constant::GetDefaultHarmonyAccountName(), clientContext.bundleName, "backup" });
+        "default", clientContext.bundleName, "backup" });
 }
 std::string ServerDirWorker::GetMetaDir()
 {

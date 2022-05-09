@@ -42,8 +42,8 @@
 namespace OHOS {
 namespace DistributedKv {
 using namespace OHOS::DistributedData;
-KvStoreAppManager::KvStoreAppManager(const std::string &bundleName, pid_t uid)
-    : bundleName_(bundleName), uid_(uid), flowCtrl_(BURST_CAPACITY, SUSTAINED_CAPACITY)
+KvStoreAppManager::KvStoreAppManager(const std::string &bundleName, pid_t uid, uint32_t token)
+    : bundleName_(bundleName), uid_(uid), token_(token), flowCtrl_(BURST_CAPACITY, SUSTAINED_CAPACITY)
 {
     ZLOGI("begin.");
     deviceAccountId_ = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(uid);
@@ -94,12 +94,12 @@ Status KvStoreAppManager::ConvertErrorStatus(DistributedDB::DBStatus dbStatus, b
     return Status::SUCCESS;
 }
 
-Status KvStoreAppManager::GetKvStore(const Options &options, const std::string &appId, const std::string &storeId,
+Status KvStoreAppManager::GetKvStore(const Options &options, const StoreMetaData &metaData,
     const std::vector<uint8_t> &cipherKey, sptr<KvStoreImpl> &kvStore)
 {
     ZLOGI("begin");
     kvStore = nullptr;
-    PathType type = ConvertPathType(uid_, bundleName_, options.securityLevel);
+    PathType type = ConvertPathType(metaData);
     auto *delegateManager = GetDelegateManager(type);
     if (delegateManager == nullptr) {
         ZLOGE("delegateManagers[%d] is nullptr.", type);
@@ -112,7 +112,7 @@ Status KvStoreAppManager::GetKvStore(const Options &options, const std::string &
     }
 
     std::lock_guard<std::mutex> lg(storeMutex_);
-    auto it = stores_[type].find(storeId);
+    auto it = stores_[type].find(metaData.storeId);
     if (it != stores_[type].end()) {
         kvStore = it->second;
         ZLOGI("find store in map refcount: %d.", kvStore->GetSptrRefCount());
@@ -134,7 +134,7 @@ Status KvStoreAppManager::GetKvStore(const Options &options, const std::string &
 
     DistributedDB::KvStoreDelegate *storeDelegate = nullptr;
     DistributedDB::DBStatus dbStatusTmp;
-    delegateManager->GetKvStore(storeId, dbOption,
+    delegateManager->GetKvStore(metaData.storeId, dbOption,
         [&storeDelegate, &dbStatusTmp](DistributedDB::DBStatus dbStatus, DistributedDB::KvStoreDelegate *delegate) {
             storeDelegate = delegate;
             dbStatusTmp = dbStatus;
@@ -146,14 +146,14 @@ Status KvStoreAppManager::GetKvStore(const Options &options, const std::string &
     }
 
     ZLOGD("get delegate");
-    kvStore = new (std::nothrow)KvStoreImpl(options, deviceAccountId_, bundleName_,
-        appId, storeId, GetDbDir(options), storeDelegate);
+    kvStore = new (std::nothrow)KvStoreImpl(options, metaData.user, metaData.bundleName,
+        metaData.appId, metaData.storeId, GetDbDir(metaData), storeDelegate);
     if (kvStore == nullptr) {
         delegateManager->CloseKvStore(storeDelegate);
         kvStore = nullptr;
         return Status::ERROR;
     }
-    auto result = stores_[type].emplace(storeId, kvStore);
+    auto result = stores_[type].emplace(metaData.storeId, kvStore);
     if (!result.second) {
         ZLOGE("emplace failed.");
         delegateManager->CloseKvStore(storeDelegate);
@@ -165,12 +165,12 @@ Status KvStoreAppManager::GetKvStore(const Options &options, const std::string &
     return Status::SUCCESS;
 }
 
-Status KvStoreAppManager::GetKvStore(const Options &options, const std::string &appId, const std::string &storeId,
+Status KvStoreAppManager::GetKvStore(const Options &options, const StoreMetaData &metaData,
     const std::vector<uint8_t> &cipherKey, sptr<SingleKvStoreImpl> &kvStore)
 {
     ZLOGI("begin");
     kvStore = nullptr;
-    PathType type = ConvertPathType(uid_, bundleName_, options.securityLevel);
+    PathType type = ConvertPathType(metaData);
     auto *delegateManager = GetDelegateManager(type);
     if (delegateManager == nullptr) {
         ZLOGE("delegateManagers[%d] is nullptr.", type);
@@ -182,7 +182,7 @@ Status KvStoreAppManager::GetKvStore(const Options &options, const std::string &
         return Status::EXCEED_MAX_ACCESS_RATE;
     }
     std::lock_guard<std::mutex> lg(storeMutex_);
-    auto it = singleStores_[type].find(storeId);
+    auto it = singleStores_[type].find(metaData.storeId);
     if (it != singleStores_[type].end()) {
         kvStore = it->second;
         ZLOGI("find store in map refcount: %d.", kvStore->GetSptrRefCount());
@@ -204,7 +204,7 @@ Status KvStoreAppManager::GetKvStore(const Options &options, const std::string &
 
     DistributedDB::KvStoreNbDelegate *storeDelegate = nullptr;
     DistributedDB::DBStatus dbStatusTmp;
-    delegateManager->GetKvStore(storeId, dbOption,
+    delegateManager->GetKvStore(metaData.storeId, dbOption,
         [&](DistributedDB::DBStatus dbStatus, DistributedDB::KvStoreNbDelegate *kvStoreDelegate) {
             storeDelegate = kvStoreDelegate;
             dbStatusTmp = dbStatus;
@@ -214,15 +214,15 @@ Status KvStoreAppManager::GetKvStore(const Options &options, const std::string &
         ZLOGE("storeDelegate is nullptr.");
         return ConvertErrorStatus(dbStatusTmp, options.createIfMissing);
     }
-    std::string kvStorePath = GetDbDir(options);
+    std::string kvStorePath = GetDbDir(metaData);
     switch (options.kvStoreType) {
         case KvStoreType::DEVICE_COLLABORATION:
-            kvStore = new (std::nothrow) DeviceKvStoreImpl(
-                options, deviceAccountId_, bundleName_, storeId, trueAppId_, kvStorePath, storeDelegate);
+            kvStore = new (std::nothrow) DeviceKvStoreImpl(options, metaData.user, metaData.bundleName,
+                metaData.storeId, metaData.appId, kvStorePath, storeDelegate);
             break;
         default:
-            kvStore = new (std::nothrow) SingleKvStoreImpl(
-                options, deviceAccountId_, bundleName_, storeId, trueAppId_, kvStorePath, storeDelegate);
+            kvStore = new (std::nothrow) SingleKvStoreImpl(options, metaData.user, metaData.bundleName,
+                metaData.storeId, metaData.appId, kvStorePath, storeDelegate);
             break;
     }
     if (kvStore == nullptr) {
@@ -232,7 +232,7 @@ Status KvStoreAppManager::GetKvStore(const Options &options, const std::string &
         return Status::ERROR;
     }
     kvStore->SetCompatibleIdentify();
-    auto result = singleStores_[type].emplace(storeId, kvStore);
+    auto result = singleStores_[type].emplace(metaData.storeId, kvStore);
     if (!result.second) {
         ZLOGE("emplace failed.");
         delegateManager->CloseKvStore(storeDelegate);
@@ -255,7 +255,7 @@ Status KvStoreAppManager::GetKvStore(const Options &options, const std::string &
         dbOption.createDirByStoreIdOnly, kvStorePath, nullptr
     };
     launchOption.secOption = ConvertSecurity(options.securityLevel);
-    AppAccessorParam accessorParam = {Constant::DEFAULT_GROUP_ID, trueAppId_, storeId, launchOption};
+    AppAccessorParam accessorParam = {Constant::DEFAULT_GROUP_ID, trueAppId_, metaData.storeId, launchOption};
     KvStoreAppAccessor::GetInstance().EnableKvStoreAutoLaunch(accessorParam);
     return Status::SUCCESS;
 }
@@ -408,15 +408,14 @@ Status KvStoreAppManager::InitNbDbOption(const Options &options, const std::vect
     return Status::SUCCESS;
 }
 
-std::string KvStoreAppManager::GetDbDir(const Options &options) const
+std::string KvStoreAppManager::GetDbDir(const StoreMetaData &metaData)
 {
-    return GetDataStoragePath(deviceAccountId_, bundleName_, ConvertPathType(uid_, bundleName_, options.securityLevel));
+    return GetDataStoragePath(metaData.user, metaData.bundleName, ConvertPathType(metaData));
 }
 
-KvStoreAppManager::PathType KvStoreAppManager::ConvertPathType(int32_t uid, const std::string &bundleName,
-                                                               int securityLevel)
+KvStoreAppManager::PathType KvStoreAppManager::ConvertPathType(const StoreMetaData &metaData)
 {
-    switch (securityLevel) {
+    switch (metaData.securityLevel) {
         case S0:    // fallthrough
         case S1:
             return PATH_DE;
@@ -428,7 +427,12 @@ KvStoreAppManager::PathType KvStoreAppManager::ConvertPathType(int32_t uid, cons
         default:
             break;
     }
-    if (CheckerManager::GetInstance().GetAppId(bundleName, uid) != bundleName) {
+    CheckerManager::StoreInfo storeInfo;
+    storeInfo.uid = metaData.uid;
+    storeInfo.tokenId = metaData.tokenId;
+    storeInfo.bundleName = metaData.bundleName;
+    storeInfo.storeId = metaData.storeId;
+    if (CheckerManager::GetInstance().GetAppId(storeInfo) != metaData.bundleName) {
         return PATH_CE;
     }
     return PATH_DE;
@@ -451,10 +455,11 @@ DistributedDB::KvStoreDelegateManager *KvStoreAppManager::GetDelegateManager(Pat
     DirectoryUtils::ChangeModeDirOnly(directory, Constant::DEFAULT_MODE_DIR);
     DirectoryUtils::ChangeModeFileOnly(directory, Constant::DEFAULT_MODE_FILE);
 
-    trueAppId_ = CheckerManager::GetInstance().GetAppId(bundleName_, uid_);
+    trueAppId_ = CheckerManager::GetInstance().GetAppId({ uid_, token_, bundleName_ });
     if (trueAppId_.empty()) {
         delegateManagers_[type] = nullptr;
-        ZLOGW("check bundleName:%{public}s uid:%{public}d failed.", bundleName_.c_str(), uid_);
+        ZLOGW("check bundleName:%{public}s uid:%{public}d token:%{public}u failed.",
+            bundleName_.c_str(), uid_, token_);
         return nullptr;
     }
 

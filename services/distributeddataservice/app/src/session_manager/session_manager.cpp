@@ -22,6 +22,8 @@
 #include "auth_delegate.h"
 #include "checker/checker_manager.h"
 #include "log/log_print.h"
+#include "metadata/meta_data_manager.h"
+#include "metadata/store_meta_data.h"
 #include "user_delegate.h"
 #include "utils/anonymous.h"
 
@@ -36,17 +38,22 @@ SessionManager &SessionManager::GetInstance()
 Session SessionManager::GetSession(const SessionPoint &from, const std::string &targetDeviceId) const
 {
     ZLOGD("begin. peer device:%{public}s", Anonymous::Change(targetDeviceId).c_str());
-    auto users = UserDelegate::GetInstance().GetRemoteUserStatus(targetDeviceId);
     Session session;
     session.appId = from.appId;
     session.sourceUserId = from.userId;
     session.sourceDeviceId = from.deviceId;
     session.targetDeviceId = targetDeviceId;
-
+    auto users = UserDelegate::GetInstance().GetRemoteUserStatus(targetDeviceId);
+    StoreMetaData metaData;
+    auto key = StoreMetaData::GetKey({ from.deviceId, std::to_string(from.userId),
+                                       "default", from.appId, from.storeId });
+    if (!MetaDataManager::GetInstance().LoadMeta(key, metaData)) {
+        return session;
+    }
     // system service
     if (from.userId == UserDelegate::SYSTEM_USER) {
-        auto *checker = CheckerManager::GetInstance().GetChecker("SystemChecker");
-        if (checker != nullptr && checker->IsValid(UserDelegate::SYSTEM_USER, from.appId)) {
+        if (CheckerManager::GetInstance().GetAppId({ metaData.uid, metaData.tokenId, metaData.bundleName })
+            == metaData.bundleName) {
             session.targetUserIds.push_back(UserDelegate::SYSTEM_USER);
         }
     }
@@ -64,6 +71,7 @@ Session SessionManager::GetSession(const SessionPoint &from, const std::string &
     ZLOGD("end");
     return session;
 }
+
 bool SessionManager::CheckSession(const SessionPoint &from, const SessionPoint &to) const
 {
     return AuthDelegate::GetInstance()->CheckAccess(from.userId, to.userId, to.deviceId, from.appId);

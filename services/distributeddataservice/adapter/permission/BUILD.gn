@@ -14,8 +14,10 @@ import("//build/ohos.gni")
 
 ohos_static_library("distributeddata_permission_static") {
   sources = [
+    "src/bundle_checker.cpp",
     "src/media_lib_checker.cpp",
     "src/permission_validator.cpp",
+    "src/system_checker.cpp",
   ]
 
   cflags_cc = [ "-fvisibility=hidden" ]

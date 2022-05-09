@@ -20,6 +20,8 @@
 #include "device_kvstore_impl.h"
 #include "kvstore_meta_manager.h"
 #include "log_print.h"
+#include "metadata/meta_data_manager.h"
+#include "metadata/store_meta_data.h"
 #include "securec.h"
 #include "upgrade_manager.h"
 #include "bootstrap.h"
@@ -52,7 +54,8 @@ void RouteHeadHandlerImpl::Init()
     if (deviceId_.empty()) {
         return;
     }
-    SessionPoint localPoint { DeviceKvStoreImpl::GetLocalDeviceId(), std::stoi(userId_), appId_ };
+    SessionPoint localPoint {
+        DeviceKvStoreImpl::GetLocalDeviceId(), static_cast<uint32_t>(atoi(userId_.c_str())), appId_, storeId_ };
     session_ = SessionManager::GetInstance().GetSession(localPoint, deviceId_);
     ZLOGD("valid session:%{public}s", Serializable::Marshall(session_).c_str());
 }

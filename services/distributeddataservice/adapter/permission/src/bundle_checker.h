@@ -13,25 +13,23 @@
 * limitations under the License.
 */
 
-#ifndef OHOS_DISTRIBUTED_DATA_SERVICES_FRAMEWORK_SYSTEM_CHECKER_H
-#define OHOS_DISTRIBUTED_DATA_SERVICES_FRAMEWORK_SYSTEM_CHECKER_H
-#include <map>
+#ifndef OHOS_DISTRIBUTED_DATA_SERVICES_FRAMEWORK_CHECKER_BUNDLE_CHECKER_H
+#define OHOS_DISTRIBUTED_DATA_SERVICES_FRAMEWORK_CHECKER_BUNDLE_CHECKER_H
 #include "checker/checker_manager.h"
 namespace OHOS {
 namespace DistributedData {
-class SystemChecker : public CheckerManager::Checker {
+class BundleChecker : public CheckerManager::Checker {
 public:
-    SystemChecker();
-    ~SystemChecker();
+    BundleChecker() noexcept;
+    ~BundleChecker();
     void Initialize() override;
     bool SetTrustInfo(const CheckerManager::Trust &trust) override;
-    std::string GetAppId(pid_t uid, const std::string &bundleName) override;
-    bool IsValid(pid_t uid, const std::string &bundleName) override;
+    std::string GetAppId(const CheckerManager::StoreInfo &info) override;
+    bool IsValid(const CheckerManager::StoreInfo &info) override;
 private:
-    static constexpr pid_t SYSTEM_UID = 10000;
+    static BundleChecker instance_;
     std::map<std::string, std::string> trusts_;
-    static SystemChecker instance_;
 };
 } // namespace DistributedData
 } // namespace OHOS
-#endif // OHOS_DISTRIBUTED_DATA_SERVICES_FRAMEWORK_SYSTEM_CHECKER_H
+#endif // OHOS_DISTRIBUTED_DATA_SERVICES_FRAMEWORK_CHECKER_BUNDLE_CHECKER_H

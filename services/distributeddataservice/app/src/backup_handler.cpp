@@ -26,18 +26,21 @@
 #include "battery_srv_client.h"
 #include "power_mgr_client.h"
 #endif
+#include "communication_provider.h"
 #include "constant.h"
 #include "kv_store_delegate_manager.h"
 #include "kv_scheduler.h"
 #include "kvstore_data_service.h"
 #include "log_print.h"
-#include "kvstore_meta_manager.h"
+#include "metadata/meta_data_manager.h"
+#include "metadata/secret_key_meta_data.h"
+#include "metadata/store_meta_data.h"
 #include "time_utils.h"
 #include "utils/crypto.h"
 
 namespace OHOS::DistributedKv {
-using json = nlohmann::json;
-
+using namespace DistributedData;
+using namespace AppDistributedKv;
 BackupHandler::BackupHandler(IKvStoreDataService *kvStoreDataService)
 {
 }
@@ -50,7 +53,7 @@ BackupHandler::~BackupHandler()
 }
 void BackupHandler::BackSchedule()
 {
-    std::chrono::duration<int> delay(1800); // delay 30 minutes
+    std::chrono::duration<int> delay(1800);    // delay 30 minutes
     std::chrono::duration<int> internal(1800); // duration is 30 minutes
     ZLOGI("BackupHandler Schedule start.");
     scheduler_.Every(delay, internal, [&]() {
@@ -58,30 +61,34 @@ void BackupHandler::BackSchedule()
             ZLOGE("it is not meet the condition of backup.");
             return;
         }
-        std::map<std::string, MetaData> results;
+        auto device = CommunicationProvider::GetInstance().GetLocalDevice();
+        if (device.uuid.empty()) {
+            ZLOGE("local uuid is empty!");
+            return;
+        }
+
+        std::vector<StoreMetaData> results;
         ZLOGI("BackupHandler Schedule Every start.");
-        if (!KvStoreMetaManager::GetInstance().GetFullMetaData(results)) {
+        if (!MetaDataManager::GetInstance().LoadMeta(StoreMetaData::GetPrefix({ device.uuid }), results)) {
             ZLOGE("GetFullMetaData failed.");
             return;
         }
 
-        for (auto const &entry : results) {
-            if (!entry.second.kvStoreMetaData.isBackup || entry.second.kvStoreMetaData.isDirty) {
+        for (auto &entry : results) {
+            if (!entry.isBackup || entry.isDirty) {
                 continue;
             }
 
-            KvStoreType type = entry.second.kvStoreMetaData.kvStoreType;
-            if (type == KvStoreType::MULTI_VERSION) {
-                MultiKvStoreBackup(entry.second);
-            } else if (type == KvStoreType::SINGLE_VERSION) {
-                SingleKvStoreBackup(entry.second);
+            auto type = entry.storeType;
+            if (type == KvStoreType::SINGLE_VERSION) {
+                SingleKvStoreBackup(entry);
             }
         }
         backupSuccessTime_ = TimeUtils::CurrentTimeMicros();
     });
 }
 
-void BackupHandler::SingleKvStoreBackup(const MetaData &metaData)
+void BackupHandler::SingleKvStoreBackup(const StoreMetaData &metaData)
 {
     ZLOGI("SingleKvStoreBackup start.");
     BackupPara backupPara;
@@ -91,23 +98,17 @@ void BackupHandler::SingleKvStoreBackup(const MetaData &metaData)
     }
     DistributedDB::KvStoreNbDelegate::Option dbOption;
     SetDBOptions(dbOption, backupPara, metaData);
-    auto *delegateMgr = new(std::nothrow) DistributedDB::KvStoreDelegateManager(metaData.kvStoreMetaData.appId,
-        AccountDelegate::GetInstance()->GetCurrentAccountId());
-    if (delegateMgr == nullptr) {
-        return;
-    }
-    std::string appDataStoragePath = KvStoreAppManager::GetDataStoragePath(metaData.kvStoreMetaData.deviceAccountId,
-        metaData.kvStoreMetaData.bundleName, backupPara.pathType);
-    DistributedDB::KvStoreConfig kvStoreConfig = {appDataStoragePath};
-    delegateMgr->SetKvStoreConfig(kvStoreConfig);
+    DistributedDB::KvStoreDelegateManager delegateMgr(metaData.appId, metaData.user);
+    std::string path = KvStoreAppManager::GetDataStoragePath(metaData.user, metaData.bundleName, backupPara.pathType);
+    DistributedDB::KvStoreConfig kvStoreConfig = { path };
+    delegateMgr.SetKvStoreConfig(kvStoreConfig);
     std::function<void(DistributedDB::DBStatus, DistributedDB::KvStoreNbDelegate *)> fun =
         [&](DistributedDB::DBStatus status, DistributedDB::KvStoreNbDelegate *delegate) {
-            auto del = std::shared_ptr<DistributedDB::KvStoreDelegateManager>(delegateMgr);
             if (delegate == nullptr) {
                 ZLOGE("SingleKvStoreBackup delegate is null");
                 return;
             }
-            if (metaData.kvStoreMetaData.isAutoSync) {
+            if (metaData.isAutoSync) {
                 bool autoSync = true;
                 DistributedDB::PragmaData data = static_cast<DistributedDB::PragmaData>(&autoSync);
                 auto pragmaStatus = delegate->Pragma(DistributedDB::PragmaCmd::AUTO_SYNC, data);
@@ -129,134 +130,91 @@ void BackupHandler::SingleKvStoreBackup(const MetaData &metaData)
                     RenameFile(backupBackFullName, backupFullName);
                 }
             }
-            del->CloseKvStore(delegate);
+            delegateMgr.CloseKvStore(delegate);
         };
-    delegateMgr->GetKvStore(metaData.kvStoreMetaData.storeId, dbOption, fun);
+    delegateMgr.GetKvStore(metaData.storeId, dbOption, fun);
 }
 
 void BackupHandler::SetDBOptions(DistributedDB::KvStoreNbDelegate::Option &dbOption,
-                                 const BackupHandler::BackupPara &backupPara, const MetaData &metaData)
+    const BackupHandler::BackupPara &backupPara, const StoreMetaData &metaData)
 {
+    dbOption.syncDualTupleMode = true;
     dbOption.createIfNecessary = false;
     dbOption.isEncryptedDb = backupPara.password.GetSize() > 0;
     dbOption.passwd = backupPara.password;
     dbOption.createDirByStoreIdOnly = true;
-    dbOption.secOption = KvStoreAppManager::ConvertSecurity(metaData.kvStoreMetaData.securityLevel);
+    dbOption.secOption = KvStoreAppManager::ConvertSecurity(metaData.securityLevel);
 }
 
-void BackupHandler::MultiKvStoreBackup(const MetaData &metaData)
+bool BackupHandler::InitBackupPara(const StoreMetaData &metaData, BackupPara &backupPara)
 {
-    ZLOGI("MultiKvStoreBackup start.");
-    BackupPara backupPara;
-    auto initPara = InitBackupPara(metaData, backupPara);
-    if (!initPara) {
-        return;
-    }
-
-    DistributedDB::KvStoreDelegate::Option option;
-    option.createIfNecessary = false;
-    option.isEncryptedDb = backupPara.password.GetSize() > 0;
-    option.passwd = backupPara.password;
-    option.createDirByStoreIdOnly = true;
-
-    auto *delegateMgr = new DistributedDB::KvStoreDelegateManager(metaData.kvStoreMetaData.appId,
-        AccountDelegate::GetInstance()->GetCurrentAccountId());
-    std::string appDataStoragePath = KvStoreAppManager::GetDataStoragePath(metaData.kvStoreMetaData.deviceAccountId,
-        metaData.kvStoreMetaData.bundleName, backupPara.pathType);
-    DistributedDB::KvStoreConfig kvStoreConfig;
-    kvStoreConfig.dataDir = appDataStoragePath;
-    delegateMgr->SetKvStoreConfig(kvStoreConfig);
-    std::function<void(DistributedDB::DBStatus, DistributedDB::KvStoreDelegate *)> fun =
-        [&](DistributedDB::DBStatus status, DistributedDB::KvStoreDelegate *delegate) {
-            auto del = std::shared_ptr<DistributedDB::KvStoreDelegateManager>(delegateMgr);
-            if (delegate == nullptr) {
-                ZLOGE("MultiKvStoreBackup delegate is null");
-                return;
-            }
-            ZLOGW("MultiKvStoreBackup export");
-            if (status == DistributedDB::DBStatus::OK) {
-                auto backupFullName = backupPara.backupFullName;
-                auto backupBackFullName = backupPara.backupBackFullName;
-
-                RenameFile(backupFullName, backupBackFullName);
-                status = delegate->Export(backupFullName, option.passwd);
-                if (status == DistributedDB::DBStatus::OK) {
-                    ZLOGD("MultiKvStoreBackup export success.");
-                    RemoveFile(backupBackFullName);
-                    ZLOGD("MultiKvStoreBackup export success.");
-                } else {
-                    ZLOGE("MultiKvStoreBackup export failed.");
-                    RenameFile(backupBackFullName, backupFullName);
-                }
-            }
-            del->CloseKvStore(delegate);
-        };
-    delegateMgr->GetKvStore(metaData.kvStoreMetaData.storeId, option, fun);
-}
-
-bool BackupHandler::InitBackupPara(const MetaData &metaData, BackupPara &backupPara)
-{
-    BackupPara backupParameter;
-    auto pathType = KvStoreAppManager::ConvertPathType(
-        metaData.kvStoreMetaData.uid, metaData.kvStoreMetaData.bundleName, metaData.kvStoreMetaData.securityLevel);
-    if (!ForceCreateDirectory(BackupHandler::GetBackupPath(metaData.kvStoreMetaData.deviceAccountId, pathType))) {
+    auto pathType = KvStoreAppManager::ConvertPathType(metaData);
+    if (!ForceCreateDirectory(BackupHandler::GetBackupPath(metaData.user, pathType))) {
         ZLOGE("MultiKvStoreBackup backup create directory failed.");
         return false;
     }
 
-    DistributedDB::CipherPassword password;
-    const std::vector<uint8_t> &secretKey = metaData.secretKeyMetaData.secretKey;
-    if (password.SetValue(secretKey.data(), secretKey.size()) != DistributedDB::CipherPassword::OK) {
-        ZLOGE("Set secret key value failed. len is (%d)", int32_t(secretKey.size()));
-        return false;
-    }
-
-    std::initializer_list<std::string> backList = {metaData.kvStoreMetaData.userId, "_",
-        metaData.kvStoreMetaData.appId, "_", metaData.kvStoreMetaData.storeId};
+    std::initializer_list<std::string> backList = { metaData.account, "_", metaData.appId, "_", metaData.storeId };
     std::string backupName = Constant::Concatenate(backList);
-    std::initializer_list<std::string> backFullList = {
-        BackupHandler::GetBackupPath(metaData.kvStoreMetaData.deviceAccountId, pathType), "/",
-        GetHashedBackupName(backupName)};
+    std::initializer_list<std::string> backFullList = { BackupHandler::GetBackupPath(metaData.user, pathType), "/",
+        GetHashedBackupName(backupName) };
     auto backupFullName = Constant::Concatenate(backFullList);
-    std::initializer_list<std::string> backNameList = {backupFullName, ".", "backup"};
+    std::initializer_list<std::string> backNameList = { backupFullName, ".", "backup" };
     auto backupBackFullName = Constant::Concatenate(backNameList);
 
-    backupParameter.pathType = pathType;
-    backupParameter.password = password;
-    backupParameter.backupFullName = backupFullName;
-    backupParameter.backupBackFullName = backupBackFullName;
-    backupPara = backupParameter;
-
+    backupPara.pathType = pathType;
+    backupPara.backupFullName = backupFullName;
+    backupPara.backupBackFullName = backupBackFullName;
+    backupPara.password = {};
+    if (metaData.isEncrypt) {
+        GetPassword(metaData, backupPara.password);
+    }
     return true;
 }
 
-bool BackupHandler::SingleKvStoreRecover(MetaData &metaData, DistributedDB::KvStoreNbDelegate *delegate)
+bool BackupHandler::GetPassword(const StoreMetaData &metaData, DistributedDB::CipherPassword &password)
+{
+    if (!metaData.isEncrypt) {
+        return true;
+    }
+
+    std::string key = SecretKeyMetaData::GetKey({ metaData.user, "default", metaData.bundleName, metaData.storeId,
+        metaData.storeType == SINGLE_VERSION ? "SINGLE_KEY" : "KEY" });
+    SecretKeyMetaData secretKey;
+    MetaDataManager::GetInstance().LoadMeta(key, secretKey, true);
+    std::vector<uint8_t> decryptKey;
+    KvStoreMetaManager::GetInstance().DecryptWorkKey(secretKey.sKey, decryptKey);
+    if (password.SetValue(decryptKey.data(), decryptKey.size()) != DistributedDB::CipherPassword::OK) {
+        std::fill(decryptKey.begin(), decryptKey.end(), 0);
+        ZLOGE("Set secret key value failed. len is (%d)", int32_t(decryptKey.size()));
+        return false;
+    }
+    std::fill(decryptKey.begin(), decryptKey.end(), 0);
+    return true;
+}
+
+bool BackupHandler::SingleKvStoreRecover(StoreMetaData &metaData, DistributedDB::KvStoreNbDelegate *delegate)
 {
     ZLOGI("start.");
     if (delegate == nullptr) {
         ZLOGE("SingleKvStoreRecover failed, delegate is null.");
         return false;
     }
-    auto pathType = KvStoreAppManager::ConvertPathType(
-        metaData.kvStoreMetaData.uid, metaData.kvStoreMetaData.bundleName, metaData.kvStoreMetaData.securityLevel);
-    if (!BackupHandler::FileExists(BackupHandler::GetBackupPath(metaData.kvStoreMetaData.deviceAccountId, pathType))) {
+    auto pathType = KvStoreAppManager::ConvertPathType(metaData);
+    if (!BackupHandler::FileExists(BackupHandler::GetBackupPath(metaData.user, pathType))) {
         ZLOGE("SingleKvStoreRecover failed, backupDir_ file is not exist.");
         return false;
     }
 
     DistributedDB::CipherPassword password;
-    const std::vector<uint8_t> &secretKey = metaData.secretKeyMetaData.secretKey;
-    if (password.SetValue(secretKey.data(), secretKey.size()) != DistributedDB::CipherPassword::OK) {
+    if (!GetPassword(metaData, password)) {
         ZLOGE("Set secret key failed.");
         return false;
     }
 
-    std::string backupName = Constant::Concatenate(
-        {metaData.kvStoreMetaData.userId, "_", metaData.kvStoreMetaData.appId, "_",
-         metaData.kvStoreMetaData.storeId});
+    std::string backupName = Constant::Concatenate({ metaData.account, "_", metaData.appId, "_", metaData.storeId });
     auto backupFullName = Constant::Concatenate(
-        {BackupHandler::GetBackupPath(metaData.kvStoreMetaData.deviceAccountId, pathType), "/",
-         GetHashedBackupName(backupName)});
+        { BackupHandler::GetBackupPath(metaData.user, pathType), "/", GetHashedBackupName(backupName) });
     DistributedDB::DBStatus dbStatus = delegate->Import(backupFullName, password);
     if (dbStatus == DistributedDB::DBStatus::OK) {
         ZLOGI("SingleKvStoreRecover success.");
@@ -266,36 +224,29 @@ bool BackupHandler::SingleKvStoreRecover(MetaData &metaData, DistributedDB::KvSt
     return false;
 }
 
-bool BackupHandler::MultiKvStoreRecover(MetaData &metaData,
-                                        DistributedDB::KvStoreDelegate *delegate)
+bool BackupHandler::MultiKvStoreRecover(StoreMetaData &metaData, DistributedDB::KvStoreDelegate *delegate)
 {
     ZLOGI("start.");
     if (delegate == nullptr) {
         ZLOGE("MultiKvStoreRecover failed, delegate is null.");
         return false;
     }
-    auto pathType = KvStoreAppManager::ConvertPathType(
-        metaData.kvStoreMetaData.uid, metaData.kvStoreMetaData.bundleName, metaData.kvStoreMetaData.securityLevel);
-    if (!BackupHandler::FileExists(BackupHandler::GetBackupPath(metaData.kvStoreMetaData.deviceAccountId, pathType))) {
+    auto pathType = KvStoreAppManager::ConvertPathType(metaData);
+    if (!BackupHandler::FileExists(BackupHandler::GetBackupPath(metaData.user, pathType))) {
         ZLOGE("MultiKvStoreRecover failed, backupDir_ file is not exist.");
         return false;
     }
 
     ZLOGI("MultiKvStoreRecover start.");
     DistributedDB::CipherPassword password;
-    const std::vector<uint8_t> &secretKey = metaData.secretKeyMetaData.secretKey;
-    if (password.SetValue(secretKey.data(), secretKey.size()) != DistributedDB::CipherPassword::OK) {
+    if (!GetPassword(metaData, password)) {
         ZLOGE("Set secret key failed.");
         return false;
     }
 
-    std::string backupName = Constant::Concatenate(
-        {metaData.kvStoreMetaData.userId, "_", metaData.kvStoreMetaData.appId, "_",
-         metaData.kvStoreMetaData.storeId});
-    auto backupFullName = Constant::Concatenate({
-        BackupHandler::GetBackupPath(metaData.kvStoreMetaData.deviceAccountId, pathType), "/",
-        GetHashedBackupName(backupName)
-    });
+    std::string backupName = Constant::Concatenate({ metaData.account, "_", metaData.appId, "_", metaData.storeId });
+    auto backupFullName = Constant::Concatenate(
+        { BackupHandler::GetBackupPath(metaData.user, pathType), "/", GetHashedBackupName(backupName) });
     DistributedDB::DBStatus dbStatus = delegate->Import(backupFullName, password);
     if (dbStatus == DistributedDB::DBStatus::OK) {
         ZLOGI("MultiKvStoreRecover success.");

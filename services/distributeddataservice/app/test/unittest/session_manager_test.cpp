@@ -13,17 +13,22 @@
  * limitations under the License.
  */
 
+#include "accesstoken_kit.h"
+#include "communication_provider.h"
 #include "gtest/gtest.h"
 #include "kvstore_meta_manager.h"
 #include "metadata/meta_data_manager.h"
-#include "route_head_handler_impl.h"
-#include "upgrade_manager.h"
+#include "metadata/store_meta_data.h"
+#include "session_manager/route_head_handler_impl.h"
+#include "session_manager/upgrade_manager.h"
 #include "user_delegate.h"
 
 namespace {
 using namespace testing::ext;
 using namespace OHOS::DistributedKv;
 using namespace OHOS::DistributedData;
+using namespace OHOS;
+using namespace OHOS::Security::AccessToken;
 constexpr const char *PEER_DEVICE_ID = "PEER_DEVICE_ID";
 constexpr int PEER_USER_ID = 101;
 class SessionManagerTest : public testing::Test {
@@ -50,6 +55,16 @@ public:
 
         auto peerCapMetaKey = CapMetaRow::GetKeyFor(userMetaData.deviceId);
         MetaDataManager::GetInstance().SaveMeta({ peerCapMetaKey.begin(), peerCapMetaKey.end() }, capMetaData);
+
+        StoreMetaData metaData;
+        metaData.bundleName = "ohos.test.demo";
+        metaData.storeId = "test_store";
+        metaData.user = "100";
+        metaData.deviceId = OHOS::AppDistributedKv::CommunicationProvider::GetInstance().GetLocalDevice().uuid;
+        metaData.tokenId = AccessTokenKit::GetHapTokenID(100, "ohos.test.demo", 0);
+        metaData.uid = 2000000;
+        metaData.storeType = 1;
+        MetaDataManager::GetInstance().SaveMeta(metaData.GetKey(), metaData);
     }
     static void TearDownTestCase()
     {
@@ -57,6 +72,15 @@ public:
         MetaDataManager::GetInstance().DelMeta(std::string(peerUserMetaKey.begin(), peerUserMetaKey.end()));
         auto peerCapMetaKey = CapMetaRow::GetKeyFor(PEER_DEVICE_ID);
         MetaDataManager::GetInstance().DelMeta(std::string(peerCapMetaKey.begin(), peerCapMetaKey.end()));
+        StoreMetaData metaData;
+        metaData.bundleName = "ohos.test.demo";
+        metaData.storeId = "test_store";
+        metaData.user = "100";
+        metaData.deviceId = OHOS::AppDistributedKv::CommunicationProvider::GetInstance().GetLocalDevice().uuid;
+        metaData.tokenId = AccessTokenKit::GetHapTokenID(100, "ohos.test.demo", 0);
+        metaData.uid = 2000000;
+        metaData.storeType = 1;
+        MetaDataManager::GetInstance().DelMeta(metaData.GetKey());
     }
     void SetUp()
     {
@@ -76,7 +100,7 @@ public:
 HWTEST_F(SessionManagerTest, PackAndUnPack01, TestSize.Level2)
 {
     const DistributedDB::ExtendInfo info = {
-        .appId = "com.sample.helloworld", .storeId = "test_store", .userId = "100", .dstTarget = PEER_DEVICE_ID
+        .appId = "ohos.test.demo", .storeId = "test_store", .userId = "100", .dstTarget = PEER_DEVICE_ID
     };
     auto sendHandler = RouteHeadHandlerImpl::Create(info);
     ASSERT_NE(sendHandler, nullptr);

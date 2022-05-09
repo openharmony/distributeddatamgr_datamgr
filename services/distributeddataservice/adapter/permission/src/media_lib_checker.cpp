@@ -12,20 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include "media_lib_checker.h"
-
 #define LOG_TAG "MediaLibChecker"
 
+#include "media_lib_checker.h"
 #include <memory>
+#include "accesstoken_kit.h"
 #include "bundlemgr/bundle_mgr_client.h"
+#include "hap_token_info.h"
 #include "log/log_print.h"
 #include "utils/crypto.h"
 namespace OHOS {
 namespace DistributedData {
 using namespace AppExecFwk;
-MediaLibChecker MediaLibChecker::instance_;
-constexpr pid_t MediaLibChecker::SYSTEM_UID;
+using namespace Security::AccessToken;
+__attribute__((used)) MediaLibChecker MediaLibChecker::instance_;
 MediaLibChecker::MediaLibChecker() noexcept
 {
     CheckerManager::GetInstance().RegisterPlugin(
@@ -44,35 +44,31 @@ bool MediaLibChecker::SetTrustInfo(const CheckerManager::Trust &trust)
     return true;
 }
 
-std::string MediaLibChecker::GetAppId(pid_t uid, const std::string &bundleName)
+std::string MediaLibChecker::GetAppId(const CheckerManager::StoreInfo &info)
 {
-    if (!IsValid(uid, bundleName)) {
+    if (!IsValid(info)) {
         return "";
     }
     BundleMgrClient bmsClient;
     std::string orionBundle;
-    (void)bmsClient.GetBundleNameForUid(uid, orionBundle);
+    (void)bmsClient.GetBundleNameForUid(info.uid, orionBundle);
     auto bundleInfo = std::make_unique<BundleInfo>();
-    auto success = bmsClient.GetBundleInfo(bundleName, BundleFlag::GET_BUNDLE_DEFAULT,
-                                           *bundleInfo, Constants::ANY_USERID);
+    auto success =
+        bmsClient.GetBundleInfo(info.bundleName, BundleFlag::GET_BUNDLE_DEFAULT, *bundleInfo, Constants::ANY_USERID);
     if (!success) {
         return "";
     }
-    ZLOGD("orion: %{public}s, uid: %{public}d, bundle: %{public}s appId: %{public}s", orionBundle.c_str(), uid,
-        bundleName.c_str(), bundleInfo->appId.c_str());
+    ZLOGD("orion: %{public}s, uid: %{public}d, bundle: %{public}s appId: %{public}s", orionBundle.c_str(), info.uid,
+        info.bundleName.c_str(), bundleInfo->appId.c_str());
     return Crypto::Sha256(bundleInfo->appId);
 }
 
-bool MediaLibChecker::IsValid(pid_t uid, const std::string &bundleName)
+bool MediaLibChecker::IsValid(const CheckerManager::StoreInfo &info)
 {
-    if (trusts_.find(bundleName) == trusts_.end()) {
+    if (trusts_.find(info.bundleName) == trusts_.end()) {
         return false;
     }
-    if (uid < SYSTEM_UID && uid != CheckerManager::INVALID_UID) {
-        return false;
-    }
-
-    return true;
+    return (AccessTokenKit::GetTokenTypeFlag(info.tokenId) == TOKEN_HAP);
 }
 } // namespace DistributedData
 } // namespace OHOS

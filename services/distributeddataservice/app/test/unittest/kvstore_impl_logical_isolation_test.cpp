@@ -38,7 +38,7 @@ AppId g_appId2;
 StoreId g_storeId2;
 }
 
-class KvStoreImplLogicalIsolationTest : public testing::Test {
+class SingleKvStoreImplLogicalIsolationTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
@@ -46,12 +46,12 @@ public:
     void TearDown();
 };
 
-void KvStoreImplLogicalIsolationTest::SetUpTestCase(void)
+void SingleKvStoreImplLogicalIsolationTest::SetUpTestCase(void)
 {
     g_defaultOptions.createIfMissing = true;
     g_defaultOptions.encrypt = false;
     g_defaultOptions.autoSync = true;
-    g_defaultOptions.kvStoreType = KvStoreType::MULTI_VERSION;
+    g_defaultOptions.kvStoreType = KvStoreType::SINGLE_VERSION;
 
     g_appId.appId = "lgc0";
     g_storeId.storeId = "store0";
@@ -63,7 +63,7 @@ void KvStoreImplLogicalIsolationTest::SetUpTestCase(void)
     g_storeId2.storeId = "store2";
 }
 
-void KvStoreImplLogicalIsolationTest::TearDownTestCase(void)
+void SingleKvStoreImplLogicalIsolationTest::TearDownTestCase(void)
 {
     g_kvStoreDataService->CloseAllKvStore(g_appId);
     g_kvStoreDataService->CloseAllKvStore(g_appId1);
@@ -74,7 +74,7 @@ void KvStoreImplLogicalIsolationTest::TearDownTestCase(void)
     g_kvStoreDataService->DeleteAllKvStore(g_appId2);
 }
 
-void KvStoreImplLogicalIsolationTest::SetUp(void)
+void SingleKvStoreImplLogicalIsolationTest::SetUp(void)
 {
     g_kvStoreDataService = sptr<KvStoreDataService>(new KvStoreDataService());
     KvStoreMetaManager::GetInstance().InitMetaParameter();
@@ -92,7 +92,7 @@ void KvStoreImplLogicalIsolationTest::SetUp(void)
     g_kvStoreDataService->DeleteAllKvStore(g_appId2);
 }
 
-void KvStoreImplLogicalIsolationTest::TearDown(void)
+void SingleKvStoreImplLogicalIsolationTest::TearDown(void)
 {
     g_kvStoreDataService->CloseAllKvStore(g_appId);
     g_kvStoreDataService->CloseAllKvStore(g_appId1);
@@ -110,14 +110,14 @@ void KvStoreImplLogicalIsolationTest::TearDown(void)
 * @tc.require: AR000BVDF8 AR000CQS39 SR000CQS38
 * @tc.author: liuyuhui
 */
-HWTEST_F(KvStoreImplLogicalIsolationTest, LogicalIsolation001, TestSize.Level1)
+HWTEST_F(SingleKvStoreImplLogicalIsolationTest, LogicalIsolation001, TestSize.Level1)
 {
-    sptr<IKvStoreImpl> kvStorePtr;
-    Status status = g_kvStoreDataService->GetKvStore(g_defaultOptions, g_appId, g_storeId,
-                                          [&](sptr<IKvStoreImpl> kvStore) { kvStorePtr = std::move(kvStore); });
+    sptr<ISingleKvStore> kvStorePtr;
+    Status status = g_kvStoreDataService->GetSingleKvStore(g_defaultOptions, g_appId, g_storeId,
+                                          [&](sptr<ISingleKvStore> kvStore) { kvStorePtr = std::move(kvStore); });
 
-    EXPECT_EQ(status, Status::SUCCESS) << "GetKvStore return wrong status";
-    EXPECT_NE(kvStorePtr, nullptr) << "GetKvStore execute fail!!";
+    EXPECT_EQ(status, Status::SUCCESS) << "GetSingleKvStore return wrong status";
+    EXPECT_NE(kvStorePtr, nullptr) << "GetSingleKvStore execute fail!!";
 
     status = g_kvStoreDataService->CloseKvStore(g_appId, g_storeId);
 }
@@ -129,22 +129,22 @@ HWTEST_F(KvStoreImplLogicalIsolationTest, LogicalIsolation001, TestSize.Level1)
 * @tc.require: AR000BVDF8 AR000CQS39 SR000CQS38
 * @tc.author: liuyuhui
 */
-HWTEST_F(KvStoreImplLogicalIsolationTest, LogicalIsolation002, TestSize.Level1)
+HWTEST_F(SingleKvStoreImplLogicalIsolationTest, LogicalIsolation002, TestSize.Level1)
 {
-    sptr<IKvStoreImpl> kvStorePtr;
-    Status status = g_kvStoreDataService->GetKvStore(g_defaultOptions, g_appId, g_storeId,
-                                          [&](sptr<IKvStoreImpl> kvStore) { kvStorePtr = std::move(kvStore); });
+    sptr<ISingleKvStore> kvStorePtr;
+    Status status = g_kvStoreDataService->GetSingleKvStore(g_defaultOptions, g_appId, g_storeId,
+                                          [&](sptr<ISingleKvStore> kvStore) { kvStorePtr = std::move(kvStore); });
 
-    EXPECT_EQ(status, Status::SUCCESS) << "GetKvStore return wrong status";
-    EXPECT_NE(kvStorePtr, nullptr) << "GetKvStore execute fail!!";
+    EXPECT_EQ(status, Status::SUCCESS) << "GetSingleKvStore return wrong status";
+    EXPECT_NE(kvStorePtr, nullptr) << "GetSingleKvStore execute fail!!";
 
-    sptr<IKvStoreImpl> kvStorePtr1;
-    status = g_kvStoreDataService->GetKvStore(g_defaultOptions, g_appId, g_storeId,
-                                   [&](sptr<IKvStoreImpl> kvStore) { kvStorePtr1 = std::move(kvStore); });
+    sptr<ISingleKvStore> kvStorePtr1;
+    status = g_kvStoreDataService->GetSingleKvStore(g_defaultOptions, g_appId, g_storeId,
+                                   [&](sptr<ISingleKvStore> kvStore) { kvStorePtr1 = std::move(kvStore); });
 
-    EXPECT_EQ(status, Status::SUCCESS) << "GetKvStore return wrong status";
-    EXPECT_NE(kvStorePtr1, nullptr) << "GetKvStore execute fail!!";
-    EXPECT_EQ(kvStorePtr, kvStorePtr1) << "Two KvStoreImpl EQ fail";
+    EXPECT_EQ(status, Status::SUCCESS) << "GetSingleKvStore return wrong status";
+    EXPECT_NE(kvStorePtr1, nullptr) << "GetSingleKvStore execute fail!!";
+    EXPECT_EQ(kvStorePtr, kvStorePtr1) << "Two SingleKvStoreImpl EQ fail";
 
     status = g_kvStoreDataService->CloseKvStore(g_appId, g_storeId);
 }
@@ -156,21 +156,21 @@ HWTEST_F(KvStoreImplLogicalIsolationTest, LogicalIsolation002, TestSize.Level1)
 * @tc.require: AR000BVDF8 AR000CQS39 SR000CQS38
 * @tc.author: liuyuhui
 */
-HWTEST_F(KvStoreImplLogicalIsolationTest, LogicalIsolation003, TestSize.Level1)
+HWTEST_F(SingleKvStoreImplLogicalIsolationTest, LogicalIsolation003, TestSize.Level1)
 {
-    sptr<IKvStoreImpl> kvStorePtr;
-    Status status = g_kvStoreDataService->GetKvStore(g_defaultOptions, g_appId, g_storeId,
-                                          [&](sptr<IKvStoreImpl> kvStore) { kvStorePtr = std::move(kvStore); });
+    sptr<ISingleKvStore> kvStorePtr;
+    Status status = g_kvStoreDataService->GetSingleKvStore(g_defaultOptions, g_appId, g_storeId,
+                                          [&](sptr<ISingleKvStore> kvStore) { kvStorePtr = std::move(kvStore); });
 
-    EXPECT_EQ(status, Status::SUCCESS) << "GetKvStore return wrong status";
-    EXPECT_NE(kvStorePtr, nullptr) << "GetKvStore execute fail!!";
+    EXPECT_EQ(status, Status::SUCCESS) << "GetSingleKvStore return wrong status";
+    EXPECT_NE(kvStorePtr, nullptr) << "GetSingleKvStore execute fail!!";
 
-    sptr<IKvStoreImpl> kvStorePtr1;
-    status = g_kvStoreDataService->GetKvStore(g_defaultOptions, g_appId1, g_storeId,
-                                   [&](sptr<IKvStoreImpl> kvStore) { kvStorePtr1 = std::move(kvStore); });
-    EXPECT_EQ(status, Status::SUCCESS) << "GetKvStore return wrong status";
-    EXPECT_NE(kvStorePtr1, nullptr) << "GetKvStore execute fail!!";
-    EXPECT_NE(kvStorePtr, kvStorePtr1) << "Two KvStoreImpl NE fail";
+    sptr<ISingleKvStore> kvStorePtr1;
+    status = g_kvStoreDataService->GetSingleKvStore(g_defaultOptions, g_appId1, g_storeId,
+                                   [&](sptr<ISingleKvStore> kvStore) { kvStorePtr1 = std::move(kvStore); });
+    EXPECT_EQ(status, Status::SUCCESS) << "GetSingleKvStore return wrong status";
+    EXPECT_NE(kvStorePtr1, nullptr) << "GetSingleKvStore execute fail!!";
+    EXPECT_NE(kvStorePtr, kvStorePtr1) << "Two SingleKvStoreImpl NE fail";
 
     status = g_kvStoreDataService->CloseKvStore(g_appId, g_storeId);
     status = g_kvStoreDataService->CloseKvStore(g_appId1, g_storeId);
@@ -183,21 +183,21 @@ HWTEST_F(KvStoreImplLogicalIsolationTest, LogicalIsolation003, TestSize.Level1)
 * @tc.require: AR000BVDF8 AR000CQS39
 * @tc.author: liuyuhui
 */
-HWTEST_F(KvStoreImplLogicalIsolationTest, LogicalIsolation004, TestSize.Level1)
+HWTEST_F(SingleKvStoreImplLogicalIsolationTest, LogicalIsolation004, TestSize.Level1)
 {
-    sptr<IKvStoreImpl> kvStorePtr;
-    Status status = g_kvStoreDataService->GetKvStore(g_defaultOptions, g_appId, g_storeId,
-                                          [&](sptr<IKvStoreImpl> kvStore) { kvStorePtr = std::move(kvStore); });
+    sptr<ISingleKvStore> kvStorePtr;
+    Status status = g_kvStoreDataService->GetSingleKvStore(g_defaultOptions, g_appId, g_storeId,
+                                          [&](sptr<ISingleKvStore> kvStore) { kvStorePtr = std::move(kvStore); });
 
-    EXPECT_EQ(status, Status::SUCCESS) << "GetKvStore return wrong status";
-    EXPECT_NE(kvStorePtr, nullptr) << "GetKvStore execute fail!!";
+    EXPECT_EQ(status, Status::SUCCESS) << "GetSingleKvStore return wrong status";
+    EXPECT_NE(kvStorePtr, nullptr) << "GetSingleKvStore execute fail!!";
 
-    sptr<IKvStoreImpl> kvStorePtr1;
-    status = g_kvStoreDataService->GetKvStore(g_defaultOptions, g_appId, g_storeId1,
-                                   [&](sptr<IKvStoreImpl> kvStore) { kvStorePtr1 = std::move(kvStore); });
-    EXPECT_EQ(status, Status::SUCCESS) << "GetKvStore return wrong status";
-    EXPECT_NE(kvStorePtr1, nullptr) << "GetKvStore execute fail!!";
-    EXPECT_NE(kvStorePtr, kvStorePtr1) << "Two KvStoreImpl NE fail";
+    sptr<ISingleKvStore> kvStorePtr1;
+    status = g_kvStoreDataService->GetSingleKvStore(g_defaultOptions, g_appId, g_storeId1,
+                                   [&](sptr<ISingleKvStore> kvStore) { kvStorePtr1 = std::move(kvStore); });
+    EXPECT_EQ(status, Status::SUCCESS) << "GetSingleKvStore return wrong status";
+    EXPECT_NE(kvStorePtr1, nullptr) << "GetSingleKvStore execute fail!!";
+    EXPECT_NE(kvStorePtr, kvStorePtr1) << "Two SingleKvStoreImpl NE fail";
 }
 
 /**
@@ -207,23 +207,23 @@ HWTEST_F(KvStoreImplLogicalIsolationTest, LogicalIsolation004, TestSize.Level1)
 * @tc.require: AR000BVDF8 AR000CQS39
 * @tc.author: liuyuhui
 */
-HWTEST_F(KvStoreImplLogicalIsolationTest, LogicalIsolation005, TestSize.Level1)
+HWTEST_F(SingleKvStoreImplLogicalIsolationTest, LogicalIsolation005, TestSize.Level1)
 {
     KvStoreDataService kvDataService;
-    sptr<IKvStoreImpl> kvStorePtr;
-    Status status = g_kvStoreDataService->GetKvStore(g_defaultOptions, g_appId, g_storeId,
-                                          [&](sptr<IKvStoreImpl> kvStore) { kvStorePtr = std::move(kvStore); });
+    sptr<ISingleKvStore> kvStorePtr;
+    Status status = g_kvStoreDataService->GetSingleKvStore(g_defaultOptions, g_appId, g_storeId,
+                                          [&](sptr<ISingleKvStore> kvStore) { kvStorePtr = std::move(kvStore); });
 
-    EXPECT_EQ(status, Status::SUCCESS) << "GetKvStore return wrong status";
-    EXPECT_NE(kvStorePtr, nullptr) << "GetKvStore execute fail!!";
+    EXPECT_EQ(status, Status::SUCCESS) << "GetSingleKvStore return wrong status";
+    EXPECT_NE(kvStorePtr, nullptr) << "GetSingleKvStore execute fail!!";
 
-    sptr<IKvStoreImpl> kvStorePtr1;
-    status = g_kvStoreDataService->GetKvStore(g_defaultOptions, g_appId1, g_storeId1,
-                                   [&](sptr<IKvStoreImpl> kvStore) { kvStorePtr1 = std::move(kvStore); });
+    sptr<ISingleKvStore> kvStorePtr1;
+    status = g_kvStoreDataService->GetSingleKvStore(g_defaultOptions, g_appId1, g_storeId1,
+                                   [&](sptr<ISingleKvStore> kvStore) { kvStorePtr1 = std::move(kvStore); });
 
-    EXPECT_EQ(status, Status::SUCCESS) << "GetKvStore return wrong status";
-    EXPECT_NE(kvStorePtr1, nullptr) << "GetKvStore execute fail!!";
-    EXPECT_NE(kvStorePtr, kvStorePtr1) << "Two KvStoreImpl NE fail";
+    EXPECT_EQ(status, Status::SUCCESS) << "GetSingleKvStore return wrong status";
+    EXPECT_NE(kvStorePtr1, nullptr) << "GetSingleKvStore execute fail!!";
+    EXPECT_NE(kvStorePtr, kvStorePtr1) << "Two SingleKvStoreImpl NE fail";
 }
 
 /**
@@ -233,35 +233,35 @@ HWTEST_F(KvStoreImplLogicalIsolationTest, LogicalIsolation005, TestSize.Level1)
 * @tc.require: AR000BVDF8 AR000CQS39
 * @tc.author: liuyuhui
 */
-HWTEST_F(KvStoreImplLogicalIsolationTest, LogicalIsolation006, TestSize.Level1)
+HWTEST_F(SingleKvStoreImplLogicalIsolationTest, LogicalIsolation006, TestSize.Level1)
 {
-    sptr<IKvStoreImpl> kvStorePtr;
-    sptr<IKvStoreImpl> kvStorePtr1;
-    sptr<IKvStoreImpl> kvStorePtr2;
-    Status status = g_kvStoreDataService->GetKvStore(g_defaultOptions, g_appId, g_storeId,
-                                          [&](sptr<IKvStoreImpl> kvStore) { kvStorePtr = std::move(kvStore); });
-    EXPECT_EQ(status, Status::SUCCESS) << "GetKvStore return wrong status";
+    sptr<ISingleKvStore> kvStorePtr;
+    sptr<ISingleKvStore> kvStorePtr1;
+    sptr<ISingleKvStore> kvStorePtr2;
+    Status status = g_kvStoreDataService->GetSingleKvStore(g_defaultOptions, g_appId, g_storeId,
+                                          [&](sptr<ISingleKvStore> kvStore) { kvStorePtr = std::move(kvStore); });
+    EXPECT_EQ(status, Status::SUCCESS) << "GetSingleKvStore return wrong status";
 
     std::thread thread1([&]() {
-        Status status1 = g_kvStoreDataService->GetKvStore(g_defaultOptions, g_appId, g_storeId,
-                                               [&](sptr<IKvStoreImpl> kvStore) { kvStorePtr1 = std::move(kvStore); });
-        EXPECT_EQ(status1, Status::SUCCESS) << "GetKvStore return wrong status";
+        Status status1 = g_kvStoreDataService->GetSingleKvStore(g_defaultOptions, g_appId, g_storeId,
+                                               [&](sptr<ISingleKvStore> kvStore) { kvStorePtr1 = std::move(kvStore); });
+        EXPECT_EQ(status1, Status::SUCCESS) << "GetSingleKvStore return wrong status";
     });
 
     std::thread thread2([&]() {
-        Status status2 = g_kvStoreDataService->GetKvStore(g_defaultOptions, g_appId, g_storeId,
-                                               [&](sptr<IKvStoreImpl> kvStore) { kvStorePtr2 = std::move(kvStore); });
-        EXPECT_EQ(status2, Status::SUCCESS) << "GetKvStore return wrong status";
+        Status status2 = g_kvStoreDataService->GetSingleKvStore(g_defaultOptions, g_appId, g_storeId,
+                                               [&](sptr<ISingleKvStore> kvStore) { kvStorePtr2 = std::move(kvStore); });
+        EXPECT_EQ(status2, Status::SUCCESS) << "GetSingleKvStore return wrong status";
     });
 
     thread1.join();
     thread2.join();
 
-    EXPECT_NE(kvStorePtr, nullptr) << "GetKvStore execute fail!!";
-    EXPECT_NE(kvStorePtr1, nullptr) << "GetKvStore execute fail!!";
-    EXPECT_NE(kvStorePtr2, nullptr) << "GetKvStore execute fail!!";
-    EXPECT_EQ(kvStorePtr, kvStorePtr1) << "Two KvStoreImpl EQ fail";
-    EXPECT_EQ(kvStorePtr, kvStorePtr2) << "Two KvStoreImpl EQ fail";
+    EXPECT_NE(kvStorePtr, nullptr) << "GetSingleKvStore execute fail!!";
+    EXPECT_NE(kvStorePtr1, nullptr) << "GetSingleKvStore execute fail!!";
+    EXPECT_NE(kvStorePtr2, nullptr) << "GetSingleKvStore execute fail!!";
+    EXPECT_EQ(kvStorePtr, kvStorePtr1) << "Two SingleKvStoreImpl EQ fail";
+    EXPECT_EQ(kvStorePtr, kvStorePtr2) << "Two SingleKvStoreImpl EQ fail";
 }
 
 /**
@@ -271,34 +271,34 @@ HWTEST_F(KvStoreImplLogicalIsolationTest, LogicalIsolation006, TestSize.Level1)
 * @tc.require: AR000BVDF8 AR000CQS39
 * @tc.author: liuyuhui
 */
-HWTEST_F(KvStoreImplLogicalIsolationTest, LogicalIsolation007, TestSize.Level1)
+HWTEST_F(SingleKvStoreImplLogicalIsolationTest, LogicalIsolation007, TestSize.Level1)
 {
-    sptr<IKvStoreImpl> kvStorePtr;
-    sptr<IKvStoreImpl> kvStorePtr1;
-    sptr<IKvStoreImpl> kvStorePtr2;
+    sptr<ISingleKvStore> kvStorePtr;
+    sptr<ISingleKvStore> kvStorePtr1;
+    sptr<ISingleKvStore> kvStorePtr2;
 
-    Status status = g_kvStoreDataService->GetKvStore(g_defaultOptions, g_appId, g_storeId,
-                                          [&](sptr<IKvStoreImpl> kvStore) { kvStorePtr = std::move(kvStore); });
-    EXPECT_EQ(status, Status::SUCCESS) << "GetKvStore return wrong status";
+    Status status = g_kvStoreDataService->GetSingleKvStore(g_defaultOptions, g_appId, g_storeId,
+                                          [&](sptr<ISingleKvStore> kvStore) { kvStorePtr = std::move(kvStore); });
+    EXPECT_EQ(status, Status::SUCCESS) << "GetSingleKvStore return wrong status";
 
     std::thread thread1([&]() {
-        Status status1 = g_kvStoreDataService->GetKvStore(g_defaultOptions, g_appId1, g_storeId1,
-                                               [&](sptr<IKvStoreImpl> kvStore) { kvStorePtr1 = std::move(kvStore); });
-        EXPECT_EQ(status1, Status::SUCCESS) << "GetKvStore return wrong status";
+        Status status1 = g_kvStoreDataService->GetSingleKvStore(g_defaultOptions, g_appId1, g_storeId1,
+                                               [&](sptr<ISingleKvStore> kvStore) { kvStorePtr1 = std::move(kvStore); });
+        EXPECT_EQ(status1, Status::SUCCESS) << "GetSingleKvStore return wrong status";
     });
 
     std::thread thread2([&]() {
-        Status status2 = g_kvStoreDataService->GetKvStore(g_defaultOptions, g_appId2, g_storeId2,
-                                               [&](sptr<IKvStoreImpl> kvStore) { kvStorePtr2 = std::move(kvStore); });
-        EXPECT_EQ(status2, Status::SUCCESS) << "GetKvStore return wrong status";
+        Status status2 = g_kvStoreDataService->GetSingleKvStore(g_defaultOptions, g_appId2, g_storeId2,
+                                               [&](sptr<ISingleKvStore> kvStore) { kvStorePtr2 = std::move(kvStore); });
+        EXPECT_EQ(status2, Status::SUCCESS) << "GetSingleKvStore return wrong status";
     });
 
     thread1.join();
     thread2.join();
 
-    EXPECT_NE(kvStorePtr, nullptr) << "GetKvStore execute fail!!";
-    EXPECT_NE(kvStorePtr1, nullptr) << "GetKvStore execute fail!!";
-    EXPECT_NE(kvStorePtr2, nullptr) << "GetKvStore execute fail!!";
-    EXPECT_NE(kvStorePtr, kvStorePtr1) << "Two KvStoreImpl NE fail";
-    EXPECT_NE(kvStorePtr, kvStorePtr2) << "Two KvStoreImpl NE fail";
+    EXPECT_NE(kvStorePtr, nullptr) << "GetSingleKvStore execute fail!!";
+    EXPECT_NE(kvStorePtr1, nullptr) << "GetSingleKvStore execute fail!!";
+    EXPECT_NE(kvStorePtr2, nullptr) << "GetSingleKvStore execute fail!!";
+    EXPECT_NE(kvStorePtr, kvStorePtr1) << "Two SingleKvStoreImpl NE fail";
+    EXPECT_NE(kvStorePtr, kvStorePtr2) << "Two SingleKvStoreImpl NE fail";
 }

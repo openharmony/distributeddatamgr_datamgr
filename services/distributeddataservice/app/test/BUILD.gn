@@ -52,6 +52,7 @@ config("module_private_config") {
     include_dirs +=
         [ "//base/powermgr/power_manager/interfaces/innerkits/native/include" ]
   }
+  ldflags = [ "-Wl,--whole-archive" ]
 }
 
 ohos_unittest("KvStoreImplLogicalIsolationTest") {
@@ -348,7 +349,6 @@ ohos_unittest("KvStoreBackupTest") {
     "//utils/native/base:utils",
   ]
 
-  resource_config_file = "//foundation/distributeddatamgr/distributeddatamgr/test/resource/distributeddataservice/ohos_test.xml"
   part_name = "distributeddatamgr"
 }
 
