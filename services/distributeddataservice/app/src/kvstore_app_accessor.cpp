@@ -24,7 +24,7 @@
 #include "kvstore_meta_manager.h"
 #include "metadata/meta_data_manager.h"
 #include "metadata/store_meta_data.h"
-#include "metadata//secret_key_meta_data.h"
+#include "metadata/secret_key_meta_data.h"
 #include "log_print.h"
 #include "permission_validator.h"
 
@@ -51,17 +51,6 @@ KvStoreAppAccessor &KvStoreAppAccessor::GetInstance()
 void KvStoreAppAccessor::EnableKvStoreAutoLaunch(const AppAccessorParam &param)
 {
     return;
-
-    auto callback = std::bind(&KvStoreAppAccessor::OnCallback, this, std::placeholders::_1, std::placeholders::_2,
-                              std::placeholders::_3, std::placeholders::_4);
-    auto dbStatus = DistributedDB::KvStoreDelegateManager::EnableKvStoreAutoLaunch(param.userId, param.appId,
-                                                                                   param.storeId, param.launchOption,
-                                                                                   callback);
-    if (dbStatus == DistributedDB::DBStatus::OK || dbStatus == DistributedDB::DBStatus::ALREADY_SET) {
-        ZLOGI("AppId:%s enable auto launch success.", param.appId.c_str());
-        return;
-    }
-    ZLOGW("AppId:%s enable auto launch failed.", param.appId.c_str());
 }
 
 void KvStoreAppAccessor::EnableKvStoreAutoLaunch()

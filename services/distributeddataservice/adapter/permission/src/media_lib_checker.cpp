@@ -58,7 +58,7 @@ std::string MediaLibChecker::GetAppId(const CheckerManager::StoreInfo &info)
     if (!success) {
         return "";
     }
-    ZLOGD("orion: %{public}s, uid: %{public}d, bundle: %{public}s appId: %{public}s", orionBundle.c_str(), info.uid,
+    ZLOGD("orion: %{public}s, bundle: %{public}s appId: %{public}s", orionBundle.c_str(),
         info.bundleName.c_str(), bundleInfo->appId.c_str());
     return Crypto::Sha256(bundleInfo->appId);
 }
