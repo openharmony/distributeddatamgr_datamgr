@@ -31,7 +31,7 @@ public:
     static void SetUpTestCase()
     {
         HapInfoParams info = {
-            .userID = 100, .bundleName = "ohos.test.demo", .instIndex = 0, .appIDDesc = "ohos.test.demo"
+            .userID = 100, .bundleName = "ohos.test.demo", .instIndex = 0, .appIDDesc = "ohos.test.demo_09AEF01D"
         };
         HapPolicyParams policy = {
             .apl = APL_NORMAL,
@@ -60,7 +60,11 @@ public:
         };
         AccessTokenKit::AllocHapToken(info, policy);
     }
-    static void TearDownTestCase() {}
+    static void TearDownTestCase()
+    {
+        auto tokenId = AccessTokenKit::GetHapTokenID(100, "ohos.test.demo", 0);
+        AccessTokenKit::DeleteToken(tokenId);
+    }
     void SetUp()
     {
         tokenParam_.processName = "foundation";
@@ -69,15 +73,15 @@ public:
     void TearDown() {}
 
 protected:
-    NativeTokenInfoParams tokenParam_{0};
+    NativeTokenInfoParams tokenParam_{ 0 };
 };
 
 /**
-* @tc.name: GetStoragePath01
-* @tc.desc: test get db dir
+* @tc.name: GetBundleStorePath
+* @tc.desc: test get kv db dir
 * @tc.type: FUNC
 * @tc.require:
-* @tc.author: baoyayong
+* @tc.author: Sven Wang
 */
 HWTEST_F(DirectoryManagerTest, GetBundleStorePath, TestSize.Level0)
 {
@@ -97,10 +101,10 @@ HWTEST_F(DirectoryManagerTest, GetBundleStorePath, TestSize.Level0)
 
 /**
 * @tc.name: GetHapStorePath
-* @tc.desc: test get db dir
+* @tc.desc: test get kv db dir
 * @tc.type: FUNC
 * @tc.require:
-* @tc.author: baoyayong
+* @tc.author: Sven Wang
 */
 HWTEST_F(DirectoryManagerTest, GetHapStorePath, TestSize.Level0)
 {
@@ -117,10 +121,10 @@ HWTEST_F(DirectoryManagerTest, GetHapStorePath, TestSize.Level0)
 
 /**
 * @tc.name: GetSaStorePath
-* @tc.desc: test get db dir
+* @tc.desc: test get kv db dir
 * @tc.type: FUNC
 * @tc.require:
-* @tc.author: baoyayong
+* @tc.author: Sven Wang
 */
 HWTEST_F(DirectoryManagerTest, GetSaStorePath, TestSize.Level0)
 {
@@ -137,13 +141,13 @@ HWTEST_F(DirectoryManagerTest, GetSaStorePath, TestSize.Level0)
 }
 
 /**
-* @tc.name: GetSaStorePath
+* @tc.name: GetSaStorePathV0
 * @tc.desc: test get db dir
 * @tc.type: FUNC
 * @tc.require:
-* @tc.author: baoyayong
+* @tc.author: Sven Wang
 */
-HWTEST_F(DirectoryManagerTest, GetAppStorePathV0, TestSize.Level0)
+HWTEST_F(DirectoryManagerTest, GetSaStorePathV0, TestSize.Level0)
 {
     StoreMetaData metaData;
     metaData.user = "0";
@@ -158,13 +162,12 @@ HWTEST_F(DirectoryManagerTest, GetAppStorePathV0, TestSize.Level0)
     EXPECT_EQ(path, metaData.dataDir);
 }
 
-
 /**
 * @tc.name: GetRdbBackupPath
-* @tc.desc: test get db backup dir
+* @tc.desc: test get rdb backup dir
 * @tc.type: FUNC
 * @tc.require:
-* @tc.author: baoyayong
+* @tc.author: Sven Wang
 */
 HWTEST_F(DirectoryManagerTest, GetRDBBackupPath, TestSize.Level0)
 {
@@ -183,8 +186,8 @@ HWTEST_F(DirectoryManagerTest, GetRDBBackupPath, TestSize.Level0)
     EXPECT_EQ(path, metaData.dataDir + "/backup");
 }
 /**
-* @tc.name: GetRdbBackupPath
-* @tc.desc: test get db backup dir
+* @tc.name: GetKVDBBackupPath
+* @tc.desc: test get kv db backup dir
 * @tc.type: FUNC
 * @tc.require:
 * @tc.author: baoyayong
@@ -207,13 +210,13 @@ HWTEST_F(DirectoryManagerTest, GetKVDBBackupPath, TestSize.Level0)
 }
 
 /**
-* @tc.name: GetStorageMetaPath01
-* @tc.desc: test get db meta dir
+* @tc.name: GetStorageMetaPath
+* @tc.desc: test get meta store dir
 * @tc.type: FUNC
 * @tc.require:
-* @tc.author: baoyayong
+* @tc.author: Sven Wang
 */
-HWTEST_F(DirectoryManagerTest, GetStorageMetaPath01, TestSize.Level0)
+HWTEST_F(DirectoryManagerTest, GetStorageMetaPath, TestSize.Level0)
 {
     auto path = DirectoryManager::GetInstance().GetMetaStorePath();
     EXPECT_EQ(path, "/data/service/el1/public/database/distributeddata/meta");
