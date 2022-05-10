@@ -79,7 +79,7 @@ void Bootstrap::LoadDirectory()
         return;
     }
     std::vector<DirectoryManager::Strategy> strategies(config->strategy.size());
-    for (int i = 0; i < config->strategy.size(); ++i) {
+    for (size_t i = 0; i < config->strategy.size(); ++i) {
         strategies[i] = config->strategy[i];
     }
     DirectoryManager::GetInstance().Initialize(strategies);

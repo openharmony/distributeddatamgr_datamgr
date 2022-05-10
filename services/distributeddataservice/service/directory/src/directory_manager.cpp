@@ -68,7 +68,7 @@ std::string DirectoryManager::GetMetaStorePath(uint32_t version)
 void DirectoryManager::Initialize(const std::vector<Strategy> &strategies)
 {
     strategies_.resize(strategies.size());
-    for (int i = 0; i < strategies.size(); ++i) {
+    for (size_t i = 0; i < strategies.size(); ++i) {
         const Strategy &strategy = strategies[i];
         StrategyImpl &impl = strategies_[i];
         impl.autoCreate = strategy.autoCreate;
@@ -110,7 +110,8 @@ std::string DirectoryManager::GetSecurity(const StoreMetaData &metaData) const
             if ((metaData.bundleName != metaData.appId) || (metaData.appType != "harmony")) {
                 break;
             }
-        case SecurityLevel::S0:
+            [[fallthrough]];
+        case SecurityLevel::S0: [[fallthrough]];
         case SecurityLevel::S1:
             return "misc_de";
     }
@@ -162,7 +163,7 @@ std::vector<std::string> DirectoryManager::Split(const std::string &source, cons
 
 int32_t DirectoryManager::GetVersionIndex(uint32_t version) const
 {
-    for (int i = 0; i < strategies_.size(); ++i) {
+    for (size_t i = 0; i < strategies_.size(); ++i) {
         if (version >= strategies_[i].version) {
             return i;
         }
@@ -173,7 +174,7 @@ int32_t DirectoryManager::GetVersionIndex(uint32_t version) const
 std::vector<uint32_t> DirectoryManager::GetVersions()
 {
     std::vector<uint32_t> versions;
-    for (int i = 0; i < strategies_.size(); ++i) {
+    for (size_t i = 0; i < strategies_.size(); ++i) {
         versions[i] = strategies_[i].version;
     }
     return versions;
@@ -187,7 +188,7 @@ std::string DirectoryManager::GenPath(const StoreMetaData &metaData, uint32_t ve
     }
     std::string path;
     auto &strategy = strategies_[index];
-    for (int i = 0; i < strategy.pipes.size(); ++i) {
+    for (size_t i = 0; i < strategy.pipes.size(); ++i) {
         std::string section;
         if (strategy.pipes[i] == nullptr) {
             section = strategy.path[i];
