@@ -25,7 +25,7 @@
 
 namespace OHOS {
 namespace DistributedKv {
-static constexpr uint64_t BYTRACE_LABEL = BYTRACE_TAG_DISTRIBUTEDDATA;
+static constexpr uint64_t BYTRACE_LABEL = HITRACE_TAG_DISTRIBUTEDDATA;
 
 std::atomic_uint DdsTrace::switchOption = DdsTrace::API_PERFORMANCE_TRACE_ON;
 std::atomic_uint DdsTrace::indexCount = 0; // the value is changed by different thread
