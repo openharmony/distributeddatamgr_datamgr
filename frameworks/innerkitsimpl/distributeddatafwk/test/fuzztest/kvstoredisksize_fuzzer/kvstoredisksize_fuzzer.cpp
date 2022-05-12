@@ -46,30 +46,6 @@ namespace OHOS {
         g_kvManager.GetKvStoreDiskSize(rawString, dbSize);
         g_kvManager.DeleteKvStore(rawString);
     }
-
-    void MultiDbTest(const uint8_t * data, size_t size)
-    {
-        std::string rawString(reinterpret_cast<const char *>(data), size);
-        KvStoreDelegate::Option option;
-        KvStoreDelegate *kvDelegatePtr = nullptr;
-        g_kvManager.GetKvStore(rawString, option,
-            [&kvDelegatePtr](DBStatus status, KvStoreDelegate* kvDelegate) {
-                if (status == DBStatus::OK) {
-                    kvDelegatePtr = kvDelegate;
-                }
-        });
-        if (kvDelegatePtr) {
-            Key key;
-            Value value;
-            DistributedDBToolsTest::GetRandomKeyValue(key, DBConstant::MAX_KEY_SIZE);
-            DistributedDBToolsTest::GetRandomKeyValue(value, DBConstant::MAX_VALUE_SIZE);
-            kvDelegatePtr->Put(key, value);
-            g_kvManager.CloseKvStore(kvDelegatePtr);
-        }
-        uint64_t dbSize = 0;
-        g_kvManager.GetKvStoreDiskSize(rawString, dbSize);
-        g_kvManager.DeleteKvStore(rawString);
-    }
 }
 
 /* Fuzzer entry point */
@@ -82,7 +58,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     DistributedDBToolsTest::TestDirInit(config.dataDir);
     OHOS::g_kvManager.SetKvStoreConfig(config);
     OHOS::NbDbTest(data, size);
-    OHOS::MultiDbTest(data, size);
     DistributedDBToolsTest::RemoveTestDbFiles(config.dataDir);
     return 0;
 }
