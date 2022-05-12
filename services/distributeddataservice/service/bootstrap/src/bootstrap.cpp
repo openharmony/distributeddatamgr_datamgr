@@ -37,6 +37,15 @@ std::string Bootstrap::GetProcessLabel()
     return global->processLabel;
 }
 
+std::string Bootstrap::GetMetaDBName()
+{
+    auto *global = ConfigFactory::GetInstance().GetGlobalConfig();
+    if (global == nullptr || global->metaData.empty()) {
+        return DEFAULT_META;
+    }
+    return global->metaData;
+}
+
 void Bootstrap::LoadComponents()
 {
     auto *comps = ConfigFactory::GetInstance().GetComponentConfig();

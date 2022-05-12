@@ -64,6 +64,9 @@ public:
 
     // Get a key-value entry.
     virtual Status GetEntry(Entry &entry) const = 0;
+
+    // Close.
+    virtual Status Close() = 0;
 };
 }  // namespace DistributedKv
 }  // namespace OHOS

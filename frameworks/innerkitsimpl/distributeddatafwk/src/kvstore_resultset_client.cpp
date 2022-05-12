@@ -106,6 +106,11 @@ Status KvStoreResultSetClient::GetEntry(Entry &entry) const
     return kvStoreResultSetProxy_->GetEntry(entry);
 }
 
+Status KvStoreResultSetClient::Close()
+{
+    return NOT_SUPPORT;
+}
+
 sptr<IKvStoreResultSet> KvStoreResultSetClient::GetKvStoreResultSetProxy() const
 {
     return kvStoreResultSetProxy_;
