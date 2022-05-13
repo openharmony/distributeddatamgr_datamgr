@@ -170,7 +170,7 @@ int32_t RdbServiceProxy::DoAsync(const RdbSyncerParam& param, uint32_t seqNum, c
         ZLOGE("write descriptor failed");
         return RDB_ERROR;
     }
-    if (!DistributedKv::ITypesUtil::Marshalling( data, param, seqNum, option, predicates)) {
+    if (!DistributedKv::ITypesUtil::Marshalling(data, param, seqNum, option, predicates)) {
         ZLOGE("write param failed");
         return RDB_ERROR;
     }
@@ -213,7 +213,7 @@ int32_t RdbServiceProxy::SetDistributedTables(const RdbSyncerParam& param, const
         ZLOGE("write descriptor failed");
         return RDB_ERROR;
     }
-    if (!DistributedKv::ITypesUtil::Marshalling( data, param, tables)) {
+    if (!DistributedKv::ITypesUtil::Marshalling(data, param, tables)) {
         ZLOGE("write param failed");
         return RDB_ERROR;
     }
