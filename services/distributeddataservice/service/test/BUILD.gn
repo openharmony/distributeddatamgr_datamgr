@@ -25,7 +25,6 @@ config("module_private_config") {
     "../directory/include/",
     "../../framework/include/",
   ]
-  #ldflags = [ "-Wl,--whole-archive" ]
 }
 
 ohos_unittest("ConfigFactoryTest") {
