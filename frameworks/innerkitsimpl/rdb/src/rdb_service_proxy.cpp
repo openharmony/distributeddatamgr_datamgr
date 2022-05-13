@@ -55,6 +55,7 @@ std::string RdbServiceProxy::ObtainDistributedTableName(const std::string &devic
         return "";
     }
     if (!DistributedKv::ITypesUtil::Marshalling(data, device, table)) {
+        ZLOGE("write device failed");
         return "";
     }
 
