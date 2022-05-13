@@ -62,7 +62,27 @@ std::string DirectoryManager::GetMetaStorePath(uint32_t version)
     if (index < 0) {
         return "";
     }
-    return strategies_[index].metaPath;
+
+    auto &strategy = strategies_[index];
+    if (strategy.autoCreate) {
+        CreateDirectory(strategy.metaPath);
+    }
+    return strategy.metaPath;
+}
+
+std::string DirectoryManager::GetMetaBackupPath(uint32_t version)
+{
+    int32_t index = GetVersionIndex(version);
+    if (index < 0) {
+        return "";
+    }
+
+    auto &strategy = strategies_[index];
+    std::string path = strategy.metaPath + "/backup";
+    if (strategy.autoCreate) {
+        CreateDirectory(path);
+    }
+    return path;
 }
 
 void DirectoryManager::Initialize(const std::vector<Strategy> &strategies)
