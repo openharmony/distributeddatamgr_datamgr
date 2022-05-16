@@ -52,7 +52,7 @@ void SingerVerReKey(const uint8_t* data, size_t size)
             }
         });
 
-    if (kvNbDelegatePtr) {
+    if (kvNbDelegatePtr != nullptr) {
         kvNbDelegatePtr->PutBatch(CreateEntries(data, size));
         passwd.SetValue(data, size);
         kvNbDelegatePtr->Rekey(passwd);
@@ -76,7 +76,7 @@ void MultiVerVerReKey(const uint8_t* data, size_t size)
             }
         });
 
-    if (kvNbDelegatePtr) {
+    if (kvNbDelegatePtr != nullptr) {
         kvNbDelegatePtr->PutBatch(CreateEntries(data, size));
         CipherPassword passwd;
         passwd.SetValue(data, size);

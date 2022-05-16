@@ -52,7 +52,7 @@ void ResultSetFuzzer(const uint8_t* data, size_t size)
     Key keyPrefix;
     KvStoreResultSet *readResultSet = nullptr;
     kvNbDelegatePtr->GetEntries(keyPrefix, readResultSet);
-    if (readResultSet) {
+    if (readResultSet != nullptr) {
         readResultSet->GetCount();
         readResultSet->GetPosition();
         readResultSet->MoveToNext();
