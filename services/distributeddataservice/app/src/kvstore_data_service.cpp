@@ -137,18 +137,6 @@ void KvStoreDataService::Initialize()
         deviceInnerListener_.get(), { "innerListener" });
 }
 
-Status KvStoreDataService::GetKvStore(const Options &options, const AppId &appId, const StoreId &storeId,
-                                      std::function<void(sptr<IKvStoreImpl>)> callback)
-{
-    ZLOGI("begin.");
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
-    if (!appId.IsValid() || !storeId.IsValid() || options.kvStoreType != KvStoreType::MULTI_VERSION) {
-        ZLOGE("invalid argument type.");
-        return Status::INVALID_ARGUMENT;
-    }
-    return Status::NOT_SUPPORT;
-}
-
 Status KvStoreDataService::GetSingleKvStore(const Options &options, const AppId &appId, const StoreId &storeId,
                                             std::function<void(sptr<ISingleKvStore>)> callback)
 {
@@ -730,7 +718,6 @@ void KvStoreDataService::OnStart()
             return;
         }
     }
-    CreateRdbService();
     StartService();
 }
 
@@ -1067,11 +1054,11 @@ void KvStoreDataService::AccountEventChanged(const AccountEventInfo &eventInfo)
             }
             std::initializer_list<std::string> dirList = {Constant::ROOT_PATH_DE, "/",
                 Constant::SERVICE_NAME, "/", eventInfo.deviceAccountId};
-            std::string deviceAccountKvStoreDataDir = Constant::Concatenate(dirList);
-            ForceRemoveDirectory(deviceAccountKvStoreDataDir);
+            std::string userDir = Constant::Concatenate(dirList);
+            ForceRemoveDirectory(userDir);
             dirList = {Constant::ROOT_PATH_CE, "/", Constant::SERVICE_NAME, "/", eventInfo.deviceAccountId};
-            deviceAccountKvStoreDataDir = Constant::Concatenate(dirList);
-            ForceRemoveDirectory(deviceAccountKvStoreDataDir);
+            userDir = Constant::Concatenate(dirList);
+            ForceRemoveDirectory(userDir);
             g_kvStoreAccountEventStatus = 0;
             break;
         }
@@ -1198,17 +1185,21 @@ bool KvStoreDataService::CheckSyncActivation(
     return true;
 }
 
-void KvStoreDataService::CreateRdbService()
-{
-    rdbService_ = new(std::nothrow) DistributedRdb::RdbServiceImpl();
-    if (rdbService_ != nullptr) {
-        ZLOGI("create rdb service success");
-    }
-}
-
 sptr<IRemoteObject> KvStoreDataService::GetRdbService()
 {
+    if (rdbService_ == nullptr) {
+        std::lock_guard<decltype(mutex_)> lockGuard(mutex_);
+        if (rdbService_ == nullptr) {
+            rdbService_ = new (std::nothrow) DistributedRdb::RdbServiceImpl();
+        }
+        return rdbService_ == nullptr ? nullptr : rdbService_->AsObject().GetRefPtr();
+    }
     return rdbService_->AsObject().GetRefPtr();
+}
+
+sptr<IRemoteObject> KvStoreDataService::GetKVdbService()
+{
+    return sptr<IRemoteObject>();
 }
 
 bool DbMetaCallbackDelegateMgr::GetKvStoreDiskSize(const std::string &storeId, uint64_t &size)

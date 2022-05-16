@@ -693,21 +693,6 @@ Status KvStoreMetaManager::RecoverSecretKeyFromFile(const std::string &secretKey
 }
 
 void KvStoreMetaManager::ReKey(const std::string &userId, const std::string &bundleName, const std::string &storeId,
-    int32_t pathType, sptr<KvStoreImpl> store)
-{
-    if (store == nullptr) {
-        return;
-    }
-    std::vector<uint8_t> key = Crypto::Random(KEY_SIZE);
-    WriteSecretKeyToMeta(GetMetaKey(userId, "default", bundleName, storeId, "KEY"), key);
-    Status status = store->ReKey(key);
-    if (status == Status::SUCCESS) {
-        WriteSecretKeyToFile(GetSecretKeyFile(userId, bundleName, storeId, pathType), key);
-    }
-    key.assign(key.size(), 0);
-}
-
-void KvStoreMetaManager::ReKey(const std::string &userId, const std::string &bundleName, const std::string &storeId,
     int32_t pathType, sptr<SingleKvStoreImpl> store)
 {
     if (store == nullptr) {
