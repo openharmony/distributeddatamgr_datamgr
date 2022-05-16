@@ -63,11 +63,6 @@ public:
     // keys memory size should not be greater than IPC transport limit, and can not be empty.
     virtual Status DeleteBatch(const std::vector<Key> &keys) = 0;
 
-    // clear all entries in the kvstore.
-    // after this call, IsClear function in ChangeNotification in subscription return true.
-    [[deprecated]]
-    virtual Status Clear() = 0;
-
     // start transaction.
     // all changes to this kvstore will be in a same transaction and will not change the store until Commit() or
     // Rollback() is called.

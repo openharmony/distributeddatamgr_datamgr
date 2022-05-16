@@ -179,7 +179,6 @@ private:
     std::shared_ptr<Security> security_;
     std::mutex mutex_;
     sptr<DistributedRdb::RdbServiceImpl> rdbService_;
-    sptr<DistributedKv::KvServiceImpl> kvdbService_;
     std::shared_ptr<KvStoreDeviceListener> deviceInnerListener_;
 };
 

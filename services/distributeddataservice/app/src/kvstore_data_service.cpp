@@ -193,8 +193,7 @@ Status KvStoreDataService::GetSingleKvStore(const Options &options, const AppId 
 Status KvStoreDataService::FillStoreParam(
     const Options &options, const AppId &appId, const StoreId &storeId, StoreMetaData &metaData)
 {
-    if (!appId.IsValid() || !storeId.IsValid() || !options.IsValidType()
-        || options.kvStoreType == KvStoreType::MULTI_VERSION) {
+    if (!appId.IsValid() || !storeId.IsValid() || !options.IsValidType()) {
         ZLOGE("invalid argument type.");
         return Status::INVALID_ARGUMENT;
     }
@@ -236,15 +235,9 @@ Status KvStoreDataService::GetSecretKey(const Options &options, const StoreMetaD
 
     std::vector<uint8_t> metaSecretKey;
     std::string secretKeyFile;
-    if (options.kvStoreType == KvStoreType::MULTI_VERSION) {
-        metaSecretKey = KvStoreMetaManager::GetMetaKey(metaData.user, "default", bundleName, storeIdTmp, "KEY");
-        secretKeyFile = KvStoreMetaManager::GetSecretKeyFile(
-            metaData.user, bundleName, storeIdTmp, KvStoreAppManager::ConvertPathType(metaData));
-    } else {
-        metaSecretKey = KvStoreMetaManager::GetMetaKey(metaData.user, "default", bundleName, storeIdTmp, "SINGLE_KEY");
-        secretKeyFile = KvStoreMetaManager::GetSecretSingleKeyFile(
-            metaData.user, bundleName, storeIdTmp, KvStoreAppManager::ConvertPathType(metaData));
-    }
+    metaSecretKey = KvStoreMetaManager::GetMetaKey(metaData.user, "default", bundleName, storeIdTmp, "SINGLE_KEY");
+    secretKeyFile = KvStoreMetaManager::GetSecretSingleKeyFile(
+        metaData.user, bundleName, storeIdTmp, KvStoreAppManager::ConvertPathType(metaData));
 
     bool outdated = false;
     Status alreadyCreated = KvStoreMetaManager::GetInstance().CheckUpdateServiceMeta(metaSecretKey, CHECK_EXIST_LOCAL);
@@ -854,7 +847,7 @@ bool KvStoreDataService::ResolveAutoLaunchParamByIdentifier(
 void KvStoreDataService::ResolveAutoLaunchCompatible(const MetaData &meta, const std::string &identifier)
 {
     ZLOGI("AutoLaunch:peer device is old tuple, begin to open store");
-    if (meta.kvStoreType >= KvStoreType::MULTI_VERSION) {
+    if (meta.kvStoreType > KvStoreType::SINGLE_VERSION) {
         ZLOGW("no longer support multi or higher version store type");
         return;
     }
