@@ -20,6 +20,7 @@
 #include "hap_token_info.h"
 #include "log/log_print.h"
 #include "utils/crypto.h"
+#include "utils/anonymous.h"
 namespace OHOS {
 namespace DistributedData {
 using namespace Security::AccessToken;
@@ -64,7 +65,8 @@ std::string BundleChecker::GetAppId(const CheckerManager::StoreInfo &info)
         return info.bundleName;
     }
 
-    ZLOGD("bundleName:%{public}s, appId:%{public}s", info.bundleName.c_str(), tokenInfo.appID.c_str());
+    ZLOGD("bundleName:%{public}s, appId:%{public}s",
+        info.bundleName.c_str(), Anonymous::Change(tokenInfo.appID).c_str());
     return Crypto::Sha256(tokenInfo.appID);
 }
 
