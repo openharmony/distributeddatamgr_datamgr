@@ -95,7 +95,7 @@ public:
     Status UnsubscribeWithQuery(const std::vector<std::string> &devices, const DataQuery &query) override;
 
 protected:
-    Status Control(KvControlCmd cmd, const KvParam &inputParam, KvParam &outputParam) override;
+    Status Control(KvControlCmd cmd, const KvParam &inputParam, KvParam &outputParam);
 
 private:
     sptr<ISingleKvStore> kvStoreProxy_;
