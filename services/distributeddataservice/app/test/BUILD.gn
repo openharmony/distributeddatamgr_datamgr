@@ -470,9 +470,9 @@ ohos_unittest("KvStoreUninstallerTest") {
   ]
 
   external_deps = [
-    "access_token:libaccesstoken_sdk",
     "ability_base:base",
     "ability_base:want",
+    "access_token:libaccesstoken_sdk",
     "dataclassification:data_transit_mgr",
     "deviceauth_standard:deviceauth_sdk",
     "hiviewdfx_hilog_native:libhilog",
