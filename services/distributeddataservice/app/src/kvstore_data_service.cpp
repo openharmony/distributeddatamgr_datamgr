@@ -63,6 +63,7 @@ namespace OHOS::DistributedKv {
 using json = nlohmann::json;
 using namespace std::chrono;
 using namespace OHOS::DistributedData;
+using namespace Security::AccessToken;
 using KvStoreDelegateManager = DistributedDB::KvStoreDelegateManager;
 
 REGISTER_SYSTEM_ABILITY_BY_ID(KvStoreDataService, DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID, true);
