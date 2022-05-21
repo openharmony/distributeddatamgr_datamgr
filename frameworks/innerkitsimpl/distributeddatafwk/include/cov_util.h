@@ -47,39 +47,37 @@ public:
     }
 };
 
-class Equal  {
-public:
-    Equal(OHOS::DistributedKv::DataQuery *dataQuery) : dataQuery_(dataQuery) {};
-    template<typename T>
-    int operator()(const std::string &field, const T &value)
-    {
-        dataQuery_->EqualTo(field, value);
-        return 0;
-    }
-
-    template<typename T>
-    int operator()(const std::string &field, const std::vector<T> &value)
-    {
-        return 0;
-    }
-
-    int operator()()
-    {
-        return 0;
-    }
-private:
-    OHOS::DistributedKv::DataQuery *dataQuery_;
+enum class QueryType {
+    EQUAL = 0,
+    NOT_EQUAL = 1,
+    GREATER = 2,
+    LESS = 3,
+    GREATER_OR_EQUAL = 4,
+    LESS_OR_EQUAL = 5,
 };
 
-class NotEqual  {
+class Querys {
 public:
-    NotEqual(OHOS::DistributedKv::DataQuery *dataQuery) : dataQuery_(dataQuery) {};
+    Querys(OHOS::DistributedKv::DataQuery *dataQuery, QueryType type) : dataQuery_(dataQuery), type_(type) {};
     template<typename T>
     int operator()(const std::string &field, const T &value)
     {
-        dataQuery_->NotEqualTo(field, value);
+        if (type_ == QueryType::EQUAL) {
+            dataQuery_->EqualTo(field, value);
+        } else if (type_ == QueryType::NOT_EQUAL) {
+            dataQuery_->NotEqualTo(field, value);
+        } else if (type_ == QueryType::GREATER) {
+            dataQuery_->GreaterThan(field, value);
+        } else if (type_ == QueryType::LESS) {
+            dataQuery_->LessThan(field, value);
+        } else if (type_ == QueryType::GREATER_OR_EQUAL) {
+            dataQuery_->GreaterThanOrEqualTo(field, value);
+        } else if (type_ == QueryType::LESS_OR_EQUAL) {
+            dataQuery_->LessThanOrEqualTo(field, value);
+        }
         return 0;
     }
+
     template<typename T>
     int operator()(const std::string &field, const std::vector<T> &value)
     {
@@ -90,100 +88,10 @@ public:
     {
         return 0;
     }
+
 private:
     OHOS::DistributedKv::DataQuery *dataQuery_;
-};
-
-class Greater  {
-public:
-    Greater(OHOS::DistributedKv::DataQuery *dataQuery) : dataQuery_(dataQuery) {};
-    template<typename T>
-    int operator()(const std::string &field, const T &value)
-    {
-        dataQuery_->GreaterThan(field, value);
-        return 0;
-    }
-    template<typename T>
-    int operator()(const std::string &field, const std::vector<T> &value)
-    {
-        return 0;
-    }
-
-    int operator()()
-    {
-        return 0;
-    }
-private:
-    OHOS::DistributedKv::DataQuery *dataQuery_;
-};
-
-class Less  {
-public:
-    Less(OHOS::DistributedKv::DataQuery *dataQuery) : dataQuery_(dataQuery) {};
-    template<typename T>
-    int operator()(const std::string &field, const T &value)
-    {
-        dataQuery_->LessThan(field, value);
-        return 0;
-    }
-    template<typename T>
-    int operator()(const std::string &field, const std::vector<T> &value)
-    {
-        return 0;
-    }
-
-    int operator()()
-    {
-        return 0;
-    }
-private:
-    OHOS::DistributedKv::DataQuery *dataQuery_;
-};
-
-class GreaterOrEqual  {
-public:
-    GreaterOrEqual(OHOS::DistributedKv::DataQuery *dataQuery) : dataQuery_(dataQuery) {};
-    template<typename T>
-    int operator()(const std::string &field, const T &value)
-    {
-        dataQuery_->GreaterThanOrEqualTo(field, value);
-        return 0;
-    }
-    template<typename T>
-    int operator()(const std::string &field, const std::vector<T> &value)
-    {
-        return 0;
-    }
-
-    int operator()()
-    {
-        return 0;
-    }
-private:
-    OHOS::DistributedKv::DataQuery *dataQuery_;
-};
-
-class LessOrEqual  {
-public:
-    LessOrEqual(OHOS::DistributedKv::DataQuery *dataQuery) : dataQuery_(dataQuery) {};
-    template<typename T>
-    int operator()(const std::string &field, const T &value)
-    {
-        dataQuery_->LessThanOrEqualTo(field, value);
-        return 0;
-    }
-    template<typename T>
-    int operator()(const std::string &field, const std::vector<T> &value)
-    {
-        return 0;
-    }
-
-    int operator()()
-    {
-        return 0;
-    }
-private:
-    OHOS::DistributedKv::DataQuery *dataQuery_;
+    QueryType type_;
 };
 
 class In  {
