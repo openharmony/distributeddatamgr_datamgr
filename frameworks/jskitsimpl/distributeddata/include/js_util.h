@@ -137,6 +137,7 @@ public:
     
     static napi_status GetValue(napi_env env, napi_value in, JsSchema*& out);
 
+
     /* napi_get_named_property wrapper */
     template <typename T>
     static inline napi_status GetNamedProperty(napi_env env, napi_value in, const std::string& prop, T& value)
