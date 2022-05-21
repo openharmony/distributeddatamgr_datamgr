@@ -27,7 +27,7 @@ constexpr KvStorePredicates::QueryHandler KvStorePredicates::HANDLERS[LAST_TYPE]
 
 Status KvStorePredicates::ToQuery(const DataSharePredicates &predicates, DataQuery &query)
 {
-    std::list<OperationItem> operationList = predicates.GetOperationList();  
+    std::list<OperationItem> operationList = predicates.GetOperationList();
     for (const auto &oper : operationList) {
         if (oper.operation < 0 || oper.operation >= LAST_TYPE) {
             ZLOGE("operation param error");
