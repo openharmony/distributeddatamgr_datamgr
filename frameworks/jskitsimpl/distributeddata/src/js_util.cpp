@@ -1025,7 +1025,7 @@ napi_status JSUtil::GetValue(napi_env env, napi_value in, std::vector<DataShareV
     napi_status status = napi_get_array_length(env, in, &length);
     CHECK_RETURN((status == napi_ok) && (length > 0), "get_array failed!", napi_invalid_arg);
     for (uint32_t i = 0; i < length; ++i) {
-        ZLOGD("length is %{public}d: ",length);
+        ZLOGD("length is %{public}d: ", length);
         napi_value item = nullptr;
         status = napi_get_element(env, in, i, &item);
         CHECK_RETURN((status == napi_ok), "no element", napi_invalid_arg);

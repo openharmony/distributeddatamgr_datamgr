@@ -278,5 +278,5 @@ napi_value JsKVStoreResultSet::GetEntry(napi_env env, napi_callback_info info) /
 std::shared_ptr<ResultSetBridge> JsKVStoreResultSet::Create()
 {
     return KvUtils::ToResultSetBridge(resultSet_);
-} 
-}// namespace OHOS::DistributedData
+}
+} // namespace OHOS::DistributedData

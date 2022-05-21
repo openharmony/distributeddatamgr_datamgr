@@ -79,7 +79,8 @@ Entry KvUtils::ToEntry(const DataShareValuesBucket &valueBucket)
     return entry;
 }
 
-Status KvUtils::ToEntryData(const std::map<std::string, DataShareValueObject> &valuesMap, const std::string field, Blob &kv)
+Status KvUtils::ToEntryData(const std::map<std::string, DataShareValueObject> &valuesMap, 
+    const std::string field, Blob &kv)
 {
     auto it = valuesMap.find(field);
     if (it == valuesMap.end()) {
@@ -92,7 +93,7 @@ Status KvUtils::ToEntryData(const std::map<std::string, DataShareValueObject> &v
         return Status::ERROR;
     }
     std::vector<uint8_t> data;
-    int status = it->second.GetBlob(data); 
+    int status = it->second.GetBlob(data);
     if (status != Status::SUCCESS) {
         ZLOGE("GetBlob failed: %{public}d", status);
         return Status::ERROR;

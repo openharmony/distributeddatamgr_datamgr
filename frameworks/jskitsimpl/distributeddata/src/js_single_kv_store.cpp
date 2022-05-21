@@ -139,9 +139,7 @@ static napi_status GetVariantArgs(napi_env env, size_t argc, napi_value* argv, V
             status = JSUtil::GetValue(env, argv[0], va.predicates);
             va.type = ArgsType::PREDICATES;
             ZLOGD("kvStoreDataShare->GetResultSet return %{public}d", status);
-            CHECK_RETURN(true, "invalid arg[0], i.e. invalid predicates!", napi_invalid_arg);
-            // CHECK_RETURN(va.predicates, "invalid arg[0], i.e. invalid predicates!", napi_invalid_arg);
-        } 
+        }
     }
     return status;
 };

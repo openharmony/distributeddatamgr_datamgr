@@ -122,7 +122,7 @@ napi_value JsKVStore::Put(napi_env env, napi_callback_info info)
 
     ctxt->GetCbInfo(env, info, [env, ctxt](size_t argc, napi_value* argv) {
         // required 2 arguments :: <key> <value>
-        CHECK_ARGS_RETURN_VOID(ctxt, (argc == 1 | argc == 2), "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, (argc == 1 || argc == 2), "invalid arguments!");
         ctxt->type = napi_undefined;
         ctxt->status = napi_typeof(env, argv[0], &(ctxt->type));
         if (ctxt->type == napi_object) {
@@ -182,7 +182,7 @@ napi_value JsKVStore::Delete(napi_env env, napi_callback_info info)
         CHECK_ARGS_RETURN_VOID(ctxt, argc == 1, "invalid arguments!");
         ctxt->type = napi_undefined;
         ctxt->status = napi_typeof(env, argv[0], &(ctxt->type));
-        if (ctxt->type == napi_string) { 
+        if (ctxt->type == napi_string) {
             ctxt->status = JSUtil::GetValue(env, argv[0], ctxt->key);
             ZLOGD("kvStore->Put return %{public}d", ctxt->status);
             CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[0], i.e. invalid key!");
