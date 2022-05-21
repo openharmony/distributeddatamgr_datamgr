@@ -140,7 +140,7 @@ int32_t RdbServiceProxy::DoSync(const RdbSyncerParam& param, const SyncOption &o
         return RDB_ERROR;
     }
 
-    if (!DistributedKv::ITypesUtil::Unmarshalling(reply, result)) {
+    if (!DistributedKv::ITypesUtil::Unmarshal(reply, result)) {
         ZLOGE("read result failed");
         return RDB_ERROR;
     }

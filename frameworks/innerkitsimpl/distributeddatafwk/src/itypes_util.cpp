@@ -41,6 +41,16 @@ bool ITypesUtil::Unmarshalling(uint32_t &output, MessageParcel &data)
     return data.ReadUint32(output);
 }
 
+bool ITypesUtil::Marshalling(int32_t input, MessageParcel &data)
+{
+    return data.WriteInt32(input);
+}
+
+bool ITypesUtil::Unmarshalling(int32_t &output, MessageParcel &data)
+{
+    return data.ReadInt32(output);
+}
+
 bool ITypesUtil::Marshalling(const std::string &input, MessageParcel &data)
 {
     return data.WriteString(input);

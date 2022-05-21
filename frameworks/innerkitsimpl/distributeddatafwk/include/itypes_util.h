@@ -32,6 +32,9 @@ public:
     static bool Marshalling(uint32_t input, MessageParcel &data);
     static bool Unmarshalling(uint32_t &output, MessageParcel &data);
 
+    static bool Marshalling(int32_t input, MessageParcel &data);
+    static bool Unmarshalling(int32_t &output, MessageParcel &data);
+
     static bool Marshalling(const std::string &input, MessageParcel &data);
     static bool Unmarshalling(std::string &output, MessageParcel &data);
 
@@ -211,7 +214,7 @@ bool ITypesUtil::Marshal(MessageParcel &parcel, const T &first, const Types &...
     if (!Marshalling(first, parcel)) {
         return false;
     }
-    return Marshalling(parcel, others...);
+    return Marshal(parcel, others...);
 }
 
 template<typename T, typename... Types>
