@@ -95,7 +95,7 @@ bool KvStoreDataShareResultSet::OnGo(int32_t start, int32_t target, ResultSetBri
         return false;
     }
     for (int pos = start; pos <= target; pos++) {
-        bool ret = FillBlock(pos + start, writer);
+        bool ret = FillBlock(pos, writer);
         if (!ret) {
             ZLOGE("nowRowIndex out of line: %{public}d", target);
             return ret;

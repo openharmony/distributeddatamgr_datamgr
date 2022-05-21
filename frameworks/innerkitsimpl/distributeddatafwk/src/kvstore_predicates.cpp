@@ -56,7 +56,7 @@ Status KvStorePredicates::GetKeys(const DataSharePredicates &predicates, std::ve
     }
 
     std::vector<std::string> myKeys;
-    for(const auto &oper : operationList) {
+    for (const auto &oper : operationList) {
         if (oper.operation != IN_KEY) {
             ZLOGE("find operation failed");
             return Status::NOT_SUPPORT;
