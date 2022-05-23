@@ -234,6 +234,8 @@ napi_value JsSingleKVStore::GetResultSet(napi_env env, napi_callback_info info)
         } else if (ctxt->va.type == ArgsType::PREDICATES) {
             DataQuery query;
             status = KvUtils::ToQuery(ctxt->va.predicates, query);
+            ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
+            CHECK_STATUS_RETURN_VOID(ctxt, "predicate ToQuery failed!");
             ZLOGD("ArgsType::PREDICATES ToQuery return %{public}d", status);
             status = kvStore->GetResultSetWithQuery(query.ToString(), kvResultSet);
             ZLOGD("ArgsType::PREDICATES GetResultSetWithQuery return %{public}d", status);
