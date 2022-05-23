@@ -444,7 +444,7 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestSingleKvStoreQueryC001, TestSize.Leve
     DataQuery query;
     query.NotEqualTo("$.name", 3);
     std::vector<Entry> results;
-    Status status1 = singleKvStorePtr->GetEntriesWithQuery(query.ToString(), results);
+    Status status1 = singleKvStorePtr->GetEntriesWithQuery(query, results);
     ASSERT_EQ(status1, Status::SUCCESS);
     EXPECT_TRUE(results.size() == 2);
     results.clear();
@@ -453,7 +453,7 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestSingleKvStoreQueryC001, TestSize.Leve
     EXPECT_TRUE(results.size() == 2);
 
     std::shared_ptr<KvStoreResultSet> resultSet;
-    Status status3 = singleKvStorePtr->GetResultSetWithQuery(query.ToString(), resultSet);
+    Status status3 = singleKvStorePtr->GetResultSetWithQuery(query, resultSet);
     ASSERT_EQ(status3, Status::SUCCESS);
     EXPECT_TRUE(resultSet->GetCount() == 2);
     auto closeResultSetStatus = singleKvStorePtr->CloseResultSet(resultSet);
@@ -466,7 +466,7 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestSingleKvStoreQueryC001, TestSize.Leve
     ASSERT_EQ(closeResultSetStatus, Status::SUCCESS);
 
     int resultSize1;
-    Status status5 = singleKvStorePtr->GetCountWithQuery(query.ToString(), resultSize1);
+    Status status5 = singleKvStorePtr->GetCountWithQuery(query, resultSize1);
     ASSERT_EQ(status5, Status::SUCCESS);
     EXPECT_TRUE(resultSize1 == 2);
     int resultSize2;
@@ -513,7 +513,7 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestSingleKvStoreQueryC002, TestSize.Leve
     query.And();
     query.EqualTo("$.name", 1);
     std::vector<Entry> results1;
-    Status status1 = singleKvStorePtr->GetEntriesWithQuery(query.ToString(), results1);
+    Status status1 = singleKvStorePtr->GetEntriesWithQuery(query, results1);
     ASSERT_EQ(status1, Status::SUCCESS);
     EXPECT_TRUE(results1.size() == 1);
     std::vector<Entry> results2;
@@ -522,7 +522,7 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestSingleKvStoreQueryC002, TestSize.Leve
     EXPECT_TRUE(results2.size() == 1);
 
     std::shared_ptr<KvStoreResultSet> resultSet;
-    Status status3 = singleKvStorePtr->GetResultSetWithQuery(query.ToString(), resultSet);
+    Status status3 = singleKvStorePtr->GetResultSetWithQuery(query, resultSet);
     ASSERT_EQ(status3, Status::SUCCESS);
     EXPECT_TRUE(resultSet->GetCount() == 1);
     auto closeResultSetStatus = singleKvStorePtr->CloseResultSet(resultSet);
@@ -535,7 +535,7 @@ HWTEST_F(SingleKvStoreClientQueryTest, TestSingleKvStoreQueryC002, TestSize.Leve
     ASSERT_EQ(closeResultSetStatus, Status::SUCCESS);
 
     int resultSize1;
-    Status status5 = singleKvStorePtr->GetCountWithQuery(query.ToString(), resultSize1);
+    Status status5 = singleKvStorePtr->GetCountWithQuery(query, resultSize1);
     ZLOGD("this is it %ul", status5);
     ASSERT_EQ(status5, Status::SUCCESS);
     EXPECT_TRUE(resultSize1 == 1);
