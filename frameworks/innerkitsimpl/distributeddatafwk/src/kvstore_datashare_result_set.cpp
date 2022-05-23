@@ -58,12 +58,12 @@ bool KvStoreDataShareResultSet::FillBlock(int pos, ResultSetBridge::Writer &writ
         ZLOGE("SharedBlock is full: %{public}d", statusAlloc);
         return false;
     }
-    int keyStatus = writer.Write(0, (uint8_t *)&entry.key.Data(), entry.key.Size());
+    int keyStatus = writer.Write(0, entry.key.ToString().c_str(), entry.key.Size() + 1);
     if (keyStatus != E_OK) {
         ZLOGE("WriteBlob key error: %{public}d", keyStatus);
         return false;
     }
-    int valueStatus = writer.Write(1, (uint8_t *)&entry.value.Data(), entry.value.Size());
+    int valueStatus = writer.Write(1, entry.value.ToString().c_str(), entry.value.Size() + 1);
     if (valueStatus != E_OK) {
         ZLOGE("WriteBlob value error: %{public}d", valueStatus);
         return false;

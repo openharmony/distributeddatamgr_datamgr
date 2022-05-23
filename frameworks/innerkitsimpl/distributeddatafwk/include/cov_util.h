@@ -54,6 +54,8 @@ enum class QueryType {
     LESS = 3,
     GREATER_OR_EQUAL = 4,
     LESS_OR_EQUAL = 5,
+    IN = 6,
+    NOT_IN = 7
 };
 
 class Querys {
@@ -94,9 +96,9 @@ private:
     QueryType type_;
 };
 
-class In  {
+class InOrNotIn {
 public:
-    In(OHOS::DistributedKv::DataQuery *dataQuery) : dataQuery_(dataQuery) {};
+    InOrNotIn(OHOS::DistributedKv::DataQuery *dataQuery, QueryType type) : dataQuery_(dataQuery), type_(type)  {};
     template<typename T>
     int operator()(const std::string &field, const T &value)
     {
@@ -105,7 +107,11 @@ public:
     template<typename T>
     int operator()(const std::string &field, const std::vector<T> &value)
     {
-        dataQuery_->In(field, value);
+        if (type_ == QueryType::IN) {
+            dataQuery_->In(field, value);
+        } else if (type_ == QueryType::NOT_IN) {
+            dataQuery_->NotIn(field, value);
+        }
         return 0;
     }
 
@@ -113,31 +119,10 @@ public:
     {
         return 0;
     }
+
 private:
     OHOS::DistributedKv::DataQuery *dataQuery_;
-};
-
-class NotIn  {
-public:
-    NotIn(OHOS::DistributedKv::DataQuery *dataQuery) : dataQuery_(dataQuery) {};
-    template<typename T>
-    int operator()(const std::string &field, const T &value)
-    {
-        return 0;
-    }
-    template<typename T>
-    int operator()(const std::string &field, const std::vector<T> &value)
-    {
-        dataQuery_->In(field, value);
-        return 0;
-    }
-
-    int operator()()
-    {
-        return 0;
-    }
-private:
-    OHOS::DistributedKv::DataQuery *dataQuery_;
+    QueryType type_;
 };
 }
 }

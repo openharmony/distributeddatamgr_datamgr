@@ -216,7 +216,7 @@ Status KvStorePredicates::In(const OperationItem &oper, DataQuery &query)
         ZLOGE("GetString failed: %{public}d", status);
         return Status::ERROR;
     }
-    DistributedKv::In in(&query);
+    InOrNotIn in(&query, QueryType::IN);
     CovUtil::FillField(field, oper.para2.value, in);
     return Status::SUCCESS;
 }
@@ -229,7 +229,7 @@ Status KvStorePredicates::NotIn(const OperationItem &oper, DataQuery &query)
         ZLOGE("GetString failed: %{public}d", status);
         return Status::ERROR;
     }
-    DistributedKv::NotIn notIn(&query);
+    InOrNotIn notIn(&query, QueryType::NOT_IN);
     CovUtil::FillField(field, oper.para2.value, notIn);
     return Status::SUCCESS;
 }
