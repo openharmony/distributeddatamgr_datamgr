@@ -396,7 +396,7 @@ napi_value JsDeviceKVStore::Sync(napi_env env, napi_callback_info info)
     };
     auto ctxt = std::make_shared<SyncContext>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
-        // required 3 arguments :: <deviceIdList> + <mode>
+        // required 3 arguments :: <deviceIdList> <mode> [allowedDelayMs]
         CHECK_ARGS_RETURN_VOID(ctxt, (argc == 2) || (argc == 3), "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], ctxt->deviceIdList);
         CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[0], i.e. invalid deviceIdList!");
