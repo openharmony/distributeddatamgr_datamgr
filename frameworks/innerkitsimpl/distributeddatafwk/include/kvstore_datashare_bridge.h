@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef KVSTORE_DATASHARE_RESULT_SET_H
-#define KVSTORE_DATASHARE_RESULT_SET_H
+#ifndef KVSTORE_DATASHARE_BRIDGE_H
+#define KVSTORE_DATASHARE_BRIDGE_H
 
 #include "kvstore_result_set.h"
 #include "single_kvstore.h"
@@ -23,11 +23,11 @@
 
 namespace OHOS {
 namespace DistributedKv {
-class KvStoreDataShareResultSet : public DataShare::ResultSetBridge {
+class KvStoreDataShareBrige : public DataShare::ResultSetBridge {
 public:
-    KvStoreDataShareResultSet(std::shared_ptr<KvStoreResultSet> kvResultSet);
+    KvStoreDataShareBrige(std::shared_ptr<KvStoreResultSet> kvResultSet);
 
-    ~KvStoreDataShareResultSet() = default;
+    ~KvStoreDataShareBrige() = default;
 
     int GetRowCount(int32_t &count) override;
 
@@ -48,4 +48,4 @@ private:
 };
 } // namespace DistributedKv
 } // namespace OHOS
-#endif // KVSTORE_DATASHARE_RESULT_SET_H
+#endif // KVSTORE_DATASHARE_BRIDGE_H

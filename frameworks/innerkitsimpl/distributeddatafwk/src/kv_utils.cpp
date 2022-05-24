@@ -16,35 +16,38 @@
 #define LOG_TAG "KvUtils"
 
 #include "kv_utils.h"
-#include "kvstore_datashare_result_set.h"
-#include "kvstore_predicates.h"
+#include "cov_util.h"
 #include "log_print.h"
 #include "data_query.h"
+#include "kvstore_datashare_bridge.h"
 
 namespace OHOS {
 namespace DistributedKv {
 using namespace DataShare;
 const std::string KvUtils::KEY = "key";
 const std::string KvUtils::VALUE = "value";
-std::shared_ptr<ResultSetBridge> KvUtils::ToResultSetBridge(
-    std::shared_ptr<KvStoreResultSet> resultSet)
+constexpr KvUtils::QueryHandler KvUtils::HANDLERS[LAST_TYPE];
+
+std::shared_ptr<ResultSetBridge> KvUtils::ToResultSetBridge(std::shared_ptr<KvStoreResultSet> resultSet)
 {
     if (resultSet == nullptr) {
         ZLOGE("param error, kvResultSet nullptr");
         return nullptr;
     }
-    return std::make_shared<KvStoreDataShareResultSet>(resultSet);
+    return std::make_shared<KvStoreDataShareBrige>(resultSet);
 }
 
 Status KvUtils::ToQuery(const DataSharePredicates &predicates, DataQuery &query)
 {
-    auto kvPredicates = std::make_shared<KvStorePredicates>();
-    Status status = kvPredicates->ToQuery(predicates, query);
-    if (status != Status::SUCCESS) {
-        ZLOGE("ToQuery failed: %{public}d", status);
-        return status;
+    std::list<OperationItem> operations = predicates.GetOperationList();
+    for (const auto &oper : operations) {
+    if (oper.operation < 0 || oper.operation >= LAST_TYPE) {
+        ZLOGE("operation param error");
+        return Status::NOT_SUPPORT;
     }
-    return status;
+    (*HANDLERS[oper.operation])(oper, query);
+    }
+    return Status::SUCCESS;
 }
 
 std::vector<Entry> KvUtils::ToEntries(const std::vector<DataShareValuesBucket> &valueBuckets)
@@ -79,8 +82,30 @@ Entry KvUtils::ToEntry(const DataShareValuesBucket &valueBucket)
     return entry;
 }
 
-Status KvUtils::ToEntryData(const std::map<std::string, DataShareValueObject> &valuesMap,
-    const std::string field, Blob &kv)
+Status KvUtils::GetKeys(const DataSharePredicates &predicates, std::vector<Key> &keys)
+{
+    std::list<OperationItem> operations = predicates.GetOperationList();
+    if (operations.empty()) {
+        ZLOGE("operations is null");
+        return Status::ERROR;
+    }
+
+    std::vector<std::string> myKeys;
+    for (const auto &oper : operations) {
+        if (oper.operation != IN_KEY) {
+            ZLOGE("find operation failed");
+            return Status::NOT_SUPPORT;
+        }
+        std::vector<std::string> val = oper.para1;
+        myKeys.insert(myKeys.end(), val.begin(), val.end());
+    }
+    for (const auto &it : myKeys) {
+        keys.push_back(it.c_str());
+    }
+    return Status::SUCCESS;
+}
+
+Status KvUtils::ToEntryData(const std::map<std::string, DataShareValueObject> &valuesMap, const std::string field, Blob &kv)
 {
     auto it = valuesMap.find(field);
     if (it == valuesMap.end()) {
@@ -100,6 +125,109 @@ Status KvUtils::ToEntryData(const std::map<std::string, DataShareValueObject> &v
     }
     kv = data;
     return Status::SUCCESS;
+}
+
+void KvUtils::InKeys(const OperationItem &oper, DataQuery &query)
+{
+    query.InKeys(oper.para1);
+}
+
+void KvUtils::KeyPrefix(const OperationItem &oper, DataQuery &query)
+{
+    query.KeyPrefix(oper.para1);
+}
+
+void KvUtils::EqualTo(const OperationItem &oper, DataQuery &query)
+{
+    Querys equal(&query, QueryType::EQUAL);
+    CovUtil::FillField(oper.para1, oper.para2.value, equal);
+}
+
+void KvUtils::NotEqualTo(const OperationItem &oper, DataQuery &query)
+{
+    Querys notEqual(&query, QueryType::NOT_EQUAL);
+    CovUtil::FillField(oper.para1, oper.para2.value, notEqual);
+}
+
+void KvUtils::GreaterThan(const OperationItem &oper, DataQuery &query)
+{
+    Querys greater(&query, QueryType::GREATER);
+    CovUtil::FillField(oper.para1, oper.para2.value, greater);
+}
+
+void KvUtils::LessThan(const OperationItem &oper, DataQuery &query)
+{
+    Querys less(&query, QueryType::LESS);
+    CovUtil::FillField(oper.para1, oper.para2.value, less);
+}
+
+void KvUtils::GreaterThanOrEqualTo(const OperationItem &oper, DataQuery &query)
+{
+    Querys greaterOrEqual(&query, QueryType::GREATER_OR_EQUAL);
+    CovUtil::FillField(oper.para1, oper.para2.value, greaterOrEqual);
+}
+
+void KvUtils::LessThanOrEqualTo(const OperationItem &oper, DataQuery &query)
+{
+    Querys lessOrEqual(&query, QueryType::LESS_OR_EQUAL);
+    CovUtil::FillField(oper.para1, oper.para2.value, lessOrEqual);
+}
+
+void KvUtils::And(const OperationItem &oper, DataQuery &query)
+{
+    query.And();
+}
+
+void KvUtils::Or(const OperationItem &oper, DataQuery &query)
+{
+    query.Or();
+}
+
+void KvUtils::IsNull(const OperationItem &oper, DataQuery &query)
+{
+    query.IsNull(oper.para1);
+}
+
+void KvUtils::IsNotNull(const OperationItem &oper, DataQuery &query)
+{
+    query.IsNotNull(oper.para1);
+}
+
+void KvUtils::In(const OperationItem &oper, DataQuery &query)
+{
+    InOrNotIn in(&query, QueryType::IN);
+    CovUtil::FillField(oper.para1, oper.para2.value, in);
+}
+
+void KvUtils::NotIn(const OperationItem &oper, DataQuery &query)
+{
+    InOrNotIn notIn(&query, QueryType::NOT_IN);
+    CovUtil::FillField(oper.para1, oper.para2.value, notIn);
+}
+
+void KvUtils::Like(const OperationItem &oper, DataQuery &query)
+{
+    query.Like(oper.para1, oper.para2);
+}
+
+void KvUtils::Unlike(const OperationItem &oper, DataQuery &query)
+{
+    query.Unlike(oper.para1, oper.para2);
+}
+
+void KvUtils::OrderByAsc(const OperationItem &oper, DataQuery &query)
+{
+    query.OrderByAsc(oper.para1);
+}
+
+void KvUtils::OrderByDesc(const OperationItem &oper, DataQuery &query)
+{
+    query.OrderByDesc(oper.para1);
+}
+
+void KvUtils::Limit(const OperationItem &oper, DataQuery &query)
+{
+    query.Limit(oper.para1, oper.para2);
 }
 } // namespace DistributedKv
 } // namespace OHOS

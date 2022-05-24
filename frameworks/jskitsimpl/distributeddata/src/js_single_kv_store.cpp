@@ -106,7 +106,6 @@ enum class ArgsType : uint8_t {
     /* input arguments' combination type */
     KEYPREFIX = 0,
     QUERY,
-    PREDICATES,
     UNKNOWN = 255
 };
 struct VariantArgs {
@@ -114,7 +113,7 @@ struct VariantArgs {
     std::string keyPrefix;
     JsQuery* query;
     ArgsType type = ArgsType::UNKNOWN;
-    DataSharePredicates predicates;
+    DataQuery dataQuery;
 };
 
 static napi_status GetVariantArgs(napi_env env, size_t argc, napi_value* argv, VariantArgs& va)
@@ -136,8 +135,7 @@ static napi_status GetVariantArgs(napi_env env, size_t argc, napi_value* argv, V
             CHECK_RETURN(va.query != nullptr, "invalid arg[0], i.e. invalid query!", napi_invalid_arg);
             va.type = ArgsType::QUERY;
         } else {
-            status = JSUtil::GetValue(env, argv[0], va.predicates);
-            va.type = ArgsType::PREDICATES;
+            status = JSUtil::GetValue(env, argv[0], va.dataQuery);
             ZLOGD("kvStoreDataShare->GetResultSet return %{public}d", status);
         }
     }
@@ -231,11 +229,8 @@ napi_value JsSingleKVStore::GetResultSet(napi_env env, napi_callback_info info)
             auto query = ctxt->va.query->GetNative();
             status = kvStore->GetResultSetWithQuery(query.ToString(), kvResultSet);
             ZLOGD("kvStore->GetEntriesWithQuery() return %{public}d", status);
-        } else if (ctxt->va.type == ArgsType::PREDICATES) {
-            DataQuery query;
-            status = KvUtils::ToQuery(ctxt->va.predicates, query);
-            ZLOGD("ArgsType::PREDICATES ToQuery return %{public}d", status);
-            status = kvStore->GetResultSetWithQuery(query.ToString(), kvResultSet);
+        } else {
+            status = kvStore->GetResultSetWithQuery(ctxt->va.dataQuery.ToString(), kvResultSet);
             ZLOGD("ArgsType::PREDICATES GetResultSetWithQuery return %{public}d", status);
         };
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;

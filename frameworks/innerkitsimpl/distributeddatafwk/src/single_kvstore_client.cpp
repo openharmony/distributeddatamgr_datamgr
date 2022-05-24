@@ -96,7 +96,11 @@ Status SingleKvStoreClient::GetResultSet(const Key &prefix, std::shared_ptr<KvSt
         ZLOGE("resultSetTmp is nullptr.");
         return statusTmp;
     }
-    resultSet = std::make_shared<KvStoreResultSetClient>(std::move(resultSetTmp));
+
+    resultSet = std::shared_ptr<KvStoreResultSetClient>(new KvStoreResultSetClient(resultSetTmp), [proxy = kvStoreProxy_] (auto result) {
+        ZLOGE("kvstore proxy ResultSet closed.");
+        proxy->CloseResultSet(result->GetKvStoreResultSetProxy());   
+    });
     return statusTmp;
 }
 
@@ -128,8 +132,11 @@ Status SingleKvStoreClient::GetResultSetWithQuery(const std::string &query,
         ZLOGE("resultSetTmp is nullptr.");
         return statusTmp;
     }
-    ZLOGE("GetResultSetWithQuery");
-    resultSet = std::make_shared<KvStoreResultSetClient>(std::move(resultSetTmp));
+
+    resultSet = std::shared_ptr<KvStoreResultSetClient>(new KvStoreResultSetClient(resultSetTmp), [proxy = kvStoreProxy_] (auto result) {
+        ZLOGE("kvstore proxy ResultSetwithquery closed.");
+        proxy->CloseResultSet(result->GetKvStoreResultSetProxy());   
+    });
     return statusTmp;
 }
 

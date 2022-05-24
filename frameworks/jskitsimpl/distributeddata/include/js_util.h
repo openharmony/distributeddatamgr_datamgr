@@ -17,7 +17,7 @@
 #include <cstdint>
 #include <map>
 #include <variant>
-
+#include "data_query.h"
 #include "change_notification.h"
 #include "napi/native_api.h"
 #include "napi/native_common.h"
@@ -45,6 +45,7 @@ public:
     using Entry = OHOS::DistributedKv::Entry;
     using StoreId = OHOS::DistributedKv::StoreId;
     using Status = OHOS::DistributedKv::Status;
+    using DataQuery = OHOS::DistributedKv::DataQuery;
     /* for kvStore Put/Get : boolean|string|number|Uint8Array */
     using KvStoreVariant = std::variant<std::string, int32_t, float, std::vector<uint8_t>, bool, double>;
     static KvStoreVariant Blob2VariantValue(const Blob& blob);
@@ -139,9 +140,9 @@ public:
     
     static napi_status GetValue(napi_env env, napi_value in, JsSchema*& out);
 
-    static napi_status GetValue(napi_env env, napi_value in, std::vector<DataShare::DataShareValuesBucket> &out);
-    static napi_status GetValue(napi_env env, napi_value in, DataShare::DataShareValuesBucket &out);
-    static napi_status GetValue(napi_env env, napi_value in, DataShare::DataSharePredicates &out);
+    static napi_status GetValue(napi_env env, napi_value in, std::vector<Blob> &out);
+    static napi_status GetValue(napi_env env, napi_value in, DataQuery &out);
+    static napi_status GetValue(napi_value in, napi_env env, std::vector<Entry> &out);
 
     /* napi_get_named_property wrapper */
     template <typename T>

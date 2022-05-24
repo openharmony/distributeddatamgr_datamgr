@@ -31,7 +31,28 @@ public:
     static Status ToQuery(const DataShare::DataSharePredicates &predicates, DataQuery &query);
     static Entry ToEntry(const DataShare::DataShareValuesBucket &valueBucket);
     static std::vector<Entry> ToEntries(const std::vector<DataShare::DataShareValuesBucket> &valueBuckets);
+    static Status GetKeys(const DataShare::DataSharePredicates &predicates, std::vector<Key> &keys);
 private:
+    static void EqualTo(const DataShare::OperationItem &oper, DataQuery &query);
+    static void NotEqualTo(const DataShare::OperationItem &oper, DataQuery &query);
+    static void GreaterThan(const DataShare::OperationItem &oper, DataQuery &query);
+    static void LessThan(const DataShare::OperationItem &oper, DataQuery &query);
+    static void GreaterThanOrEqualTo(const DataShare::OperationItem &oper, DataQuery &query);
+    static void LessThanOrEqualTo(const DataShare::OperationItem &oper, DataQuery &query);
+    static void And(const DataShare::OperationItem &oper, DataQuery &query);
+    static void Or(const DataShare::OperationItem &oper, DataQuery &query);
+    static void IsNull(const DataShare::OperationItem &oper, DataQuery &query);
+    static void IsNotNull(const DataShare::OperationItem &oper, DataQuery &query);
+    static void In(const DataShare::OperationItem &oper, DataQuery &query);
+    static void NotIn(const DataShare::OperationItem &oper, DataQuery &query);
+    static void Like(const DataShare::OperationItem &oper, DataQuery &query);
+    static void Unlike(const DataShare::OperationItem &oper, DataQuery &query);
+    static void OrderByAsc(const DataShare::OperationItem &oper, DataQuery &query);
+    static void OrderByDesc(const DataShare::OperationItem &oper, DataQuery &query);
+    static void Limit(const DataShare::OperationItem &oper, DataQuery &query);
+    static void InKeys(const DataShare::OperationItem &oper, DataQuery &query);
+    static void KeyPrefix(const DataShare::OperationItem &oper, DataQuery &query);
+
     KvUtils(KvUtils &&) = delete;
     KvUtils(const KvUtils &) = delete;
     KvUtils &operator=(KvUtils &&) = delete;
@@ -41,6 +62,28 @@ private:
         DataShare::DataShareValueObject> &valuesMap, const std::string field, Blob &kv);
     static const std::string KEY;
     static const std::string VALUE;
+    using QueryHandler = void (*)(const DataShare::OperationItem &, DataQuery &);
+    static constexpr QueryHandler HANDLERS[DataShare::LAST_TYPE] = {
+        [DataShare::EQUAL_TO] = &KvUtils::EqualTo,
+        [DataShare::NOT_EQUAL_TO] = &KvUtils::NotEqualTo,
+        [DataShare::GREATER_THAN] = &KvUtils::GreaterThan,
+        [DataShare::LESS_THAN] = &KvUtils::LessThan,
+        [DataShare::GREATER_THAN_OR_EQUAL_TO] = &KvUtils::GreaterThanOrEqualTo,
+        [DataShare::LESS_THAN_OR_EQUAL_TO] = &KvUtils::LessThanOrEqualTo,
+        [DataShare::AND] = &KvUtils::And,
+        [DataShare::OR] = &KvUtils::Or,
+        [DataShare::IS_NULL] = &KvUtils::IsNull,
+        [DataShare::IS_NOT_NULL] = &KvUtils::IsNotNull,
+        [DataShare::NOT_IN] = &KvUtils::NotIn,
+        [DataShare::LIKE] = &KvUtils::Like,
+        [DataShare::UNLIKE] = &KvUtils::Unlike,
+        [DataShare::ORDER_BY_ASC] = &KvUtils::OrderByAsc,
+        [DataShare::ORDER_BY_DESC] = &KvUtils::OrderByDesc,
+        [DataShare::LIMIT] = &KvUtils::Limit,
+        [DataShare::IN_KEY] = &KvUtils::InKeys,
+        [DataShare::KEY_PREFIX] = &KvUtils::KeyPrefix,
+        [DataShare::IN] = &KvUtils::In,
+        };
 };
 } // namespace DistributedKv
 } // namespace OHOS
