@@ -22,8 +22,8 @@
 namespace OHOS {
 namespace DistributedKv {
 using namespace DataShare;
-KvStoreDataShareResultSet::KvStoreDataShareResultSet(std::shared_ptr<KvStoreResultSet> kvResultSet, std::shared_ptr<SingleKvStore> kvStore)
-    :kvResultSet_(kvResultSet), kvStore_(kvStore) {};
+KvStoreDataShareResultSet::KvStoreDataShareResultSet(std::shared_ptr<KvStoreResultSet> kvResultSet)
+    :kvResultSet_(kvResultSet) {};
 
 KvStoreDataShareResultSet::~KvStoreDataShareResultSet()
 {

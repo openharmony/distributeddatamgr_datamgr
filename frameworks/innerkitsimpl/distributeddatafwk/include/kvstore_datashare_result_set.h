@@ -25,7 +25,7 @@ namespace OHOS {
 namespace DistributedKv {
 class KvStoreDataShareResultSet : public DataShare::ResultSetBridge {
 public:
-    KvStoreDataShareResultSet(std::shared_ptr<KvStoreResultSet> kvResultSet, std::shared_ptr<SingleKvStore> kvStore);
+    KvStoreDataShareResultSet(std::shared_ptr<KvStoreResultSet> kvResultSet);
 
     ~KvStoreDataShareResultSet() = default;
 
@@ -46,7 +46,6 @@ private:
 
     std::shared_ptr<KvStoreResultSet> kvResultSet_;
 
-    std::shared_ptr<SingleKvStore> kvStore_;
 };
 } // namespace DistributedKv
 } // namespace OHOS

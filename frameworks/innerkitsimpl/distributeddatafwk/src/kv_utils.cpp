@@ -20,21 +20,19 @@
 #include "kvstore_predicates.h"
 #include "log_print.h"
 #include "data_query.h"
-// #include "kvstore_values_bucket.h"
 
 namespace OHOS {
 namespace DistributedKv {
 using namespace DataShare;
 const std::string KvUtils::KEY = "key";
 const std::string KvUtils::VALUE = "value";
-std::shared_ptr<ResultSetBridge> KvUtils::ToResultSetBridge(
-    std::shared_ptr<KvStoreResultSet> resultSet, std::shared_ptr<SingleKvStore> kvStore)
+std::shared_ptr<ResultSetBridge> KvUtils::ToResultSetBridge(std::shared_ptr<KvStoreResultSet> resultSet)
 {
     if (resultSet == nullptr) {
         ZLOGE("param error, kvResultSet nullptr");
         return nullptr;
     }
-    return std::make_shared<KvStoreDataShareResultSet>(resultSet, kvStore);
+    return std::make_shared<KvStoreDataShareResultSet>(resultSet);
 }
 
 Status KvUtils::ToQuery(const DataSharePredicates &predicates, DataQuery &query)

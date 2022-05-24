@@ -28,8 +28,7 @@ namespace OHOS {
 namespace DistributedKv {
 class KvUtils {
 public:
-    static std::shared_ptr<DataShare::ResultSetBridge> ToResultSetBridge(std::shared_ptr<KvStoreResultSet> resultSet, 
-        std::shared_ptr<SingleKvStore> kvStore);
+    static std::shared_ptr<DataShare::ResultSetBridge> ToResultSetBridge(std::shared_ptr<KvStoreResultSet> resultSet);
     static Status ToQuery(const DataShare::DataSharePredicates &predicates, DataQuery &query);
     static Entry ToEntry(const DataShare::DataShareValuesBucket &valueBucket);
     static std::vector<Entry> ToEntries(const std::vector<DataShare::DataShareValuesBucket> &Buckets);
