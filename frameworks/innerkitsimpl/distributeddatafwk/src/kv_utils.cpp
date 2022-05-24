@@ -28,13 +28,13 @@ using namespace DataShare;
 const std::string KvUtils::KEY = "key";
 const std::string KvUtils::VALUE = "value";
 std::shared_ptr<ResultSetBridge> KvUtils::ToResultSetBridge(
-    std::shared_ptr<KvStoreResultSet> resultSet)
+    std::shared_ptr<KvStoreResultSet> resultSet, std::shared_ptr<SingleKvStore> kvStore)
 {
     if (resultSet == nullptr) {
         ZLOGE("param error, kvResultSet nullptr");
         return nullptr;
     }
-    return std::make_shared<KvStoreDataShareResultSet>(resultSet);
+    return std::make_shared<KvStoreDataShareResultSet>(resultSet, kvStore);
 }
 
 Status KvUtils::ToQuery(const DataSharePredicates &predicates, DataQuery &query)
