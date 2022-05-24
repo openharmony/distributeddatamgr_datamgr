@@ -124,8 +124,7 @@ RdbSyncerParam RdbServiceImpl::ToServiceParam(const RdbSyncerParam &param)
     if (accessToken == Security::AccessToken::TOKEN_NATIVE) {
         ZLOGD("native access");
         serviceParam.realPath_ = "/data/service/el1/public/database/" + param.bundleName_ + '/' + param.relativePath_;
-    }
-    else if (accessToken == Security::AccessToken::TOKEN_HAP) {
+    } else if (accessToken == Security::AccessToken::TOKEN_HAP) {
         ZLOGD("hap access %{public}s", param.encryptLevel_.c_str());
         auto userId = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(GetCallingUid());
         serviceParam.realPath_ = "/data/app/" + param.encryptLevel_ + '/' + userId + "/database/" +
