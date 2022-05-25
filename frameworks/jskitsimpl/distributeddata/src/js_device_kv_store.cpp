@@ -200,11 +200,11 @@ napi_value JsDeviceKVStore::GetEntries(napi_env env, napi_callback_info info)
         } else if (ctxt->va.type == ArgsType::DEVICEID_QUERY) {
             auto query = ctxt->va.query->GetNative();
             query.DeviceId(ctxt->va.deviceId);
-            status = kvStore->GetEntriesWithQuery(query.ToString(), ctxt->entries);
+            status = kvStore->GetEntriesWithQuery(query, ctxt->entries);
             ZLOGD("kvStore->GetEntriesWithQuery() return %{public}d", status);
         } else if (ctxt->va.type == ArgsType::QUERY) {
             auto query = ctxt->va.query->GetNative();
-            status = kvStore->GetEntriesWithQuery(query.ToString(), ctxt->entries);
+            status = kvStore->GetEntriesWithQuery(query, ctxt->entries);
             ZLOGD("kvStore->GetEntriesWithQuery() return %{public}d", status);
         }
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
@@ -258,11 +258,11 @@ napi_value JsDeviceKVStore::GetResultSet(napi_env env, napi_callback_info info)
         } else if (ctxt->va.type == ArgsType::DEVICEID_QUERY) {
             auto query = ctxt->va.query->GetNative();
             query.DeviceId(ctxt->va.deviceId);
-            status = kvStore->GetResultSetWithQuery(query.ToString(), kvResultSet);
+            status = kvStore->GetResultSetWithQuery(query, kvResultSet);
             ZLOGD("kvStore->GetEntriesWithQuery() return %{public}d", status);
         } else if (ctxt->va.type == ArgsType::QUERY) {
             auto query = ctxt->va.query->GetNative();
-            status = kvStore->GetResultSetWithQuery(query.ToString(), kvResultSet);
+            status = kvStore->GetResultSetWithQuery(query, kvResultSet);
             ZLOGD("kvStore->GetEntriesWithQuery() return %{public}d", status);
         }
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
@@ -341,7 +341,7 @@ napi_value JsDeviceKVStore::GetResultSize(napi_env env, napi_callback_info info)
         if (ctxt->va.type == ArgsType::DEVICEID_QUERY) {
             query.DeviceId(ctxt->va.deviceId);
         }
-        Status status = kvStore->GetCountWithQuery(query.ToString(), ctxt->resultSize);
+        Status status = kvStore->GetCountWithQuery(query, ctxt->resultSize);
         ZLOGD("kvStore->GetCountWithQuery() return %{public}d", status);
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
         CHECK_STATUS_RETURN_VOID(ctxt, "kvStore->GetCountWithQuery() failed!");
