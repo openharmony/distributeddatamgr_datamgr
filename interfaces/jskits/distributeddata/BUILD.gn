@@ -51,6 +51,7 @@ ohos_shared_library("distributeddata") {
   ]
 
   sources = [
+    "../../../frameworks/innerkitsimpl/distributeddatafwk/src/kv_utils.cpp",
     "../../../frameworks/jskitsimpl/distributeddata/src/entry_point.cpp",
     "../../../frameworks/jskitsimpl/distributeddata/src/js_const_properties.cpp",
     "../../../frameworks/jskitsimpl/distributeddata/src/js_device_kv_store.cpp",

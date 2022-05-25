@@ -142,7 +142,6 @@ public:
 
     static napi_status GetValue(napi_env env, napi_value in, std::vector<Blob> &out);
     static napi_status GetValue(napi_env env, napi_value in, DataQuery &out);
-    static napi_status GetValue(napi_value in, napi_env env, std::vector<Entry> &out);
 
     /* napi_get_named_property wrapper */
     template <typename T>

@@ -24,6 +24,7 @@
 namespace OHOS {
 namespace DistributedKv {
 using namespace DataShare;
+using namespace DistributedData;
 const std::string KvUtils::KEY = "key";
 const std::string KvUtils::VALUE = "value";
 constexpr KvUtils::QueryHandler KvUtils::HANDLERS[LAST_TYPE];
@@ -106,7 +107,7 @@ Status KvUtils::GetKeys(const DataSharePredicates &predicates, std::vector<Key> 
 }
 
 Status KvUtils::ToEntryData(const std::map<std::string, DataShareValueObject> &valuesMap,
-    const std::string field, Blob &kv)
+    const std::string field, Blob &blob)
 {
     auto it = valuesMap.find(field);
     if (it == valuesMap.end()) {
@@ -114,17 +115,38 @@ Status KvUtils::ToEntryData(const std::map<std::string, DataShareValueObject> &v
         return Status::ERROR;
     }
     DataShareValueObjectType type = it->second.GetType();
-    if (type != DataShareValueObjectType::TYPE_BLOB) {
-        ZLOGE("key type is not TYPE_BLOB");
-        return Status::ERROR;
+
+    std::vector<uint8_t> uData;
+    if (type == DataShareValueObjectType::TYPE_BLOB) {
+        ZLOGE("Value bucket type blob");
+        std::vector<uint8_t> data = it->second;
+        uData.push_back(KvUtils::BYTE_ARRAY);
+        uData.insert(uData.end(), data.begin(), data.end());
+    } else if (type == DataShareValueObjectType::TYPE_INT) {
+        ZLOGE("Value bucket type int");
+        int64_t data = it->second;
+        uint8_t *dataU8 = reinterpret_cast<uint8_t*>(&data);
+        uData.push_back(KvUtils::INTEGER);
+        uData.insert(uData.end(), dataU8, dataU8 + sizeof(double) / sizeof(uint8_t));
+    } else if (type == DataShareValueObjectType::TYPE_DOUBLE) {
+        ZLOGE("Value bucket type double");
+        double data = it->second;
+        uint64_t data64 = htobe64(*reinterpret_cast<uint64_t*>(&data));
+        uint8_t *dataU8 = reinterpret_cast<uint8_t*>(&data64);
+        uData.push_back(KvUtils::DOUBLE);
+        uData.insert(uData.end(), dataU8, dataU8 + sizeof(double) / sizeof(uint8_t));
+    } else if (type == DataShareValueObjectType::TYPE_BOOL) {
+        ZLOGE("Value bucket type bool");
+        bool data = it->second;
+        uData.push_back(KvUtils::BOOLEAN);
+        uData.push_back(static_cast<uint8_t>(data));
+    } else if (type == DataShareValueObjectType::TYPE_STRING) {
+        ZLOGE("Value bucket type string");
+        std::string data = it->second;
+        uData.push_back(KvUtils::STRING);
+        uData.assign(data.begin(), data.end());
     }
-    std::vector<uint8_t> data;
-    int status = it->second.GetBlob(data);
-    if (status != Status::SUCCESS) {
-        ZLOGE("GetBlob failed: %{public}d", status);
-        return Status::ERROR;
-    }
-    kv = data;
+    blob = Blob(uData);
     return Status::SUCCESS;
 }
 

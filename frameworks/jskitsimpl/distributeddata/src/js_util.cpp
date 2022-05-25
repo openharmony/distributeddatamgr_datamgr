@@ -757,7 +757,7 @@ napi_status JSUtil::SetValue(napi_env env, const std::list<DistributedKv::Entry>
 }
 
 /* napi_value <-> std::vector<DistributedKv::Entry> */
-napi_status JSUtil::GetValue(napi_env env, napi_value in, std::vector<DistributedKv::Entry>& out)
+napi_status JSUtil::GetValue(napi_env env, napi_value in, std::vector<DistributedKv::Entry> &out)
 {
     out.clear();
     ZLOGD("napi_value -> std::vector<DistributedKv::Entry> ");
@@ -777,9 +777,15 @@ napi_status JSUtil::GetValue(napi_env env, napi_value in, std::vector<Distribute
         }
         DistributedKv::Entry entry;
         status = GetValue(env, item, entry);
+        if (status != napi_ok) {
+            ZLOGD("maybe valubucket type");
+            DataShareValuesBucket valueBucket;
+            GetValueBucketObject(valueBucket, env, item);
+            entry = KvUtils::ToEntry(valueBucket);
+        }
         out.push_back(entry);
     }
-    return status;
+    return napi_ok;
 }
 
 napi_status JSUtil::SetValue(napi_env env, const std::vector<DistributedKv::Entry>& in, napi_value& out)
@@ -1013,10 +1019,12 @@ napi_status JSUtil::GetValue(napi_env env, napi_value in, std::vector<Blob> &out
     DataSharePredicates *predicates = GetNativePredicatesObject(env, in);
     CHECK_RETURN((predicates != nullptr), "invalid type", napi_invalid_arg);
     std::vector<Key> keys;
+    nstatus = napi_invalid_arg;
     Status status = KvUtils::GetKeys(*predicates, keys);
     if (status == Status::SUCCESS) {
-        ZLOGD("napi_value -> GetValue Blob ok");
+        ZLOGD("napi_value —> GetValue Blob ok");
         out = keys;
+        nstatus = napi_ok;
     }
     return nstatus;
 }

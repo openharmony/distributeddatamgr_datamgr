@@ -27,6 +27,15 @@ namespace OHOS {
 namespace DistributedKv {
 class KvUtils {
 public:
+    enum {
+        STRING = 0,
+        INTEGER = 1,
+        FLOAT = 2,
+        BYTE_ARRAY = 3,
+        BOOLEAN = 4,
+        DOUBLE = 5,
+        INVALID = 255
+    };
     static std::shared_ptr<DataShare::ResultSetBridge> ToResultSetBridge(std::shared_ptr<KvStoreResultSet> resultSet);
     static Status ToQuery(const DataShare::DataSharePredicates &predicates, DataQuery &query);
     static Entry ToEntry(const DataShare::DataShareValuesBucket &valueBucket);
@@ -59,7 +68,7 @@ private:
     KvUtils &operator=(const KvUtils &) = delete;
     ~KvUtils() = delete;
     static Status ToEntryData(const std::map<std::string,
-        DataShare::DataShareValueObject> &valuesMap, const std::string field, Blob &kv);
+        DataShare::DataShareValueObject> &valuesMap, const std::string field, Blob &blob);
     static const std::string KEY;
     static const std::string VALUE;
     using QueryHandler = void (*)(const DataShare::OperationItem &, DataQuery &);
