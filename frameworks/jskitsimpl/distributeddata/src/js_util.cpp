@@ -16,13 +16,16 @@
 #include "js_util.h"
 #include <endian.h>
 #include <securec.h>
-
+#include "datashare_predicates_proxy.h"
+#include "napi_datashare_values_bucket.h"
 #include "js_schema.h"
 #include "log_print.h"
 #include "napi_queue.h"
+#include "kv_utils.h"
+#include "types.h"
 
 using namespace OHOS::DistributedKv;
-
+using namespace OHOS::DataShare;
 namespace OHOS::DistributedData {
 constexpr int32_t STR_MAX_LENGTH = 4096;
 constexpr size_t STR_TAIL_LENGTH = 1;
@@ -754,7 +757,7 @@ napi_status JSUtil::SetValue(napi_env env, const std::list<DistributedKv::Entry>
 }
 
 /* napi_value <-> std::vector<DistributedKv::Entry> */
-napi_status JSUtil::GetValue(napi_env env, napi_value in, std::vector<DistributedKv::Entry>& out)
+napi_status JSUtil::GetValue(napi_env env, napi_value in, std::vector<DistributedKv::Entry> &out)
 {
     out.clear();
     ZLOGD("napi_value -> std::vector<DistributedKv::Entry> ");
@@ -774,9 +777,15 @@ napi_status JSUtil::GetValue(napi_env env, napi_value in, std::vector<Distribute
         }
         DistributedKv::Entry entry;
         status = GetValue(env, item, entry);
+        if (status != napi_ok) {
+            ZLOGD("maybe valubucket type");
+            DataShareValuesBucket valueBucket;
+            GetValueBucketObject(valueBucket, env, item);
+            entry = KvUtils::ToEntry(valueBucket);
+        }
         out.push_back(entry);
     }
-    return status;
+    return napi_ok;
 }
 
 napi_status JSUtil::SetValue(napi_env env, const std::vector<DistributedKv::Entry>& in, napi_value& out)
@@ -998,5 +1007,41 @@ bool JSUtil::Equals(napi_env env, napi_value value, napi_ref copy)
     bool isEquals = false;
     napi_strict_equals(env, value, copyValue, &isEquals);
     return isEquals;
+}
+
+napi_status JSUtil::GetValue(napi_env env, napi_value in, std::vector<Blob> &out)
+{
+    ZLOGD("napi_value -> std::GetValue Blob");
+    out.clear();
+    napi_valuetype type = napi_undefined;
+    napi_status nstatus = napi_typeof(env, in, &type);
+    CHECK_RETURN((nstatus == napi_ok) && (type == napi_object), "invalid type", napi_invalid_arg);
+    DataSharePredicates *predicates = GetNativePredicatesObject(env, in);
+    CHECK_RETURN((predicates != nullptr), "invalid type", napi_invalid_arg);
+    std::vector<Key> keys;
+    nstatus = napi_invalid_arg;
+    Status status = KvUtils::GetKeys(*predicates, keys);
+    if (status == Status::SUCCESS) {
+        ZLOGD("napi_value —> GetValue Blob ok");
+        out = keys;
+        nstatus = napi_ok;
+    }
+    return nstatus;
+}
+
+napi_status JSUtil::GetValue(napi_env env, napi_value in, DataQuery &query)
+{
+    ZLOGD("napi_value -> std::GetValue DataQuery");
+    napi_valuetype type = napi_undefined;
+    napi_status nstatus = napi_typeof(env, in, &type);
+    CHECK_RETURN((nstatus == napi_ok) && (type == napi_object), "invalid type", napi_invalid_arg);
+    DataSharePredicates *predicates = GetNativePredicatesObject(env, in);
+    CHECK_RETURN((predicates != nullptr), "invalid type", napi_invalid_arg);
+    std::vector<Key> keys;
+    Status status = KvUtils::ToQuery(*predicates, query);
+    if (status != Status::SUCCESS) {
+        ZLOGD("napi_value -> GetValue DataQuery failed ");
+    }
+    return nstatus;
 }
 } // namespace OHOS::DistributedData

@@ -15,8 +15,9 @@
 #define LOG_TAG "JS_DeviceKVStore"
 #include "js_device_kv_store.h"
 #include <iomanip>
-
+#include "kv_utils.h"
 #include "js_kv_store_resultset.h"
+#include "datashare_predicates.h"
 #include "js_query.h"
 #include "js_util.h"
 #include "log_print.h"
@@ -24,7 +25,7 @@
 #include "uv_queue.h"
 
 using namespace OHOS::DistributedKv;
-
+using namespace OHOS::DataShare;
 namespace OHOS::DistributedData {
 constexpr int DEVICEID_WIDTH = 4;
 static std::string GetDeviceKey(const std::string& deviceId, const std::string& key)
@@ -129,6 +130,7 @@ struct VariantArgs {
     std::string keyPrefix;
     JsQuery* query;
     ArgsType type = ArgsType::UNKNOWN;
+    DataQuery dataQuery;
 };
 
 static napi_status GetVariantArgs(napi_env env, size_t argc, napi_value* argv, VariantArgs& va)
@@ -140,9 +142,8 @@ static napi_status GetVariantArgs(napi_env env, size_t argc, napi_value* argv, V
     if (type == napi_string) {
         // number 2 means: required 2 arguments, <deviceId> <keyPrefix/query>
         CHECK_RETURN(argc == 2, "invalid arguments!", napi_invalid_arg);
-        JSUtil::GetValue(env, argv[0], va.deviceId);
+        status = JSUtil::GetValue(env, argv[0], va.deviceId);
         CHECK_RETURN(!va.deviceId.empty(), "invalid arg[0], i.e. invalid deviceId!", napi_invalid_arg);
-
         status = napi_typeof(env, argv[1], &type);
         CHECK_RETURN((type == napi_string) || (type == napi_object), "invalid arg[1], type error!", napi_invalid_arg);
         if (type == napi_string) {
@@ -150,9 +151,17 @@ static napi_status GetVariantArgs(napi_env env, size_t argc, napi_value* argv, V
             CHECK_RETURN(!va.keyPrefix.empty(), "invalid arg[1], i.e. invalid keyPrefix!", napi_invalid_arg);
             va.type = ArgsType::DEVICEID_KEYPREFIX;
         } else if (type == napi_object) {
-            status = JSUtil::Unwrap(env, argv[1], reinterpret_cast<void**>(&va.query), JsQuery::Constructor(env));
-            CHECK_RETURN(va.query != nullptr, "invalid arg[1], i.e. invalid query!", napi_invalid_arg);
-            va.type = ArgsType::DEVICEID_QUERY;
+            bool result = false;
+            status = napi_instanceof(env, argv[1], JsQuery::Constructor(env), &result);
+            if ((status == napi_ok) && (result != false)) {
+                status = JSUtil::Unwrap(env, argv[1], reinterpret_cast<void**>(&va.query), JsQuery::Constructor(env));
+                CHECK_RETURN(va.query != nullptr, "invalid arg[1], i.e. invalid query!", napi_invalid_arg);
+                va.type = ArgsType::DEVICEID_QUERY;
+            } else {
+                status = JSUtil::GetValue(env, argv[1], va.dataQuery);
+                ZLOGD("kvStoreDataShare->GetResultSet return %{public}d", status);
+                CHECK_RETURN(true, "invalid arg[0], i.e. invalid predicates!", napi_invalid_arg);
+            }
         }
     } else if (type == napi_object) {
         // number 1 means: required 1 arguments, <query>
@@ -259,12 +268,17 @@ napi_value JsDeviceKVStore::GetResultSet(napi_env env, napi_callback_info info)
             auto query = ctxt->va.query->GetNative();
             query.DeviceId(ctxt->va.deviceId);
             status = kvStore->GetResultSet(query, kvResultSet);
-            ZLOGD("kvStore->GetEntries() return %{public}d", status);
+            ZLOGD("kvStore->GetEntriesWithQuery() return %{public}d", status);
         } else if (ctxt->va.type == ArgsType::QUERY) {
             auto query = ctxt->va.query->GetNative();
             status = kvStore->GetResultSet(query, kvResultSet);
-            ZLOGD("kvStore->GetEntries() return %{public}d", status);
-        }
+            ZLOGD("kvStore->GetEntriesWithQuery() return %{public}d", status);
+        } else {
+            ctxt->va.dataQuery.DeviceId(ctxt->va.deviceId);
+            ZLOGD("ArgsType::DEVICEID_PREDICATES ToQuery return %{public}d", status);
+            status = kvStore->GetResultSet(ctxt->va.dataQuery.ToString(), kvResultSet);
+            ZLOGD("ArgsType::DEVICEID_PREDICATES GetResultSetWithQuery return %{public}d", status);
+        };
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
         CHECK_STATUS_RETURN_VOID(ctxt, "kvStore->GetResultSet() failed!");
         ctxt->resultSet->SetNative(kvResultSet);

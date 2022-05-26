@@ -91,7 +91,12 @@ Status SingleKvStoreClient::GetResultSet(const Key &prefix, std::shared_ptr<KvSt
         ZLOGE("resultSetTmp is nullptr.");
         return statusTmp;
     }
-    resultSet = std::make_shared<KvStoreResultSetClient>(std::move(resultSetTmp));
+
+    resultSet = std::shared_ptr<KvStoreResultSetClient>(
+        new KvStoreResultSetClient(resultSetTmp), [proxy = kvStoreProxy_] (auto result) {
+        ZLOGE("kvstore proxy ResultSet closed.");
+        proxy->CloseResultSet(result->GetKvStoreResultSetProxy());
+    });
     return statusTmp;
 }
 
@@ -123,8 +128,11 @@ Status SingleKvStoreClient::GetResultSet(const DataQuery &query,
         ZLOGE("resultSetTmp is nullptr.");
         return statusTmp;
     }
-    ZLOGE("GetResultSet");
-    resultSet = std::make_shared<KvStoreResultSetClient>(std::move(resultSetTmp));
+    resultSet = std::shared_ptr<KvStoreResultSetClient>(
+        new KvStoreResultSetClient(resultSetTmp), [proxy = kvStoreProxy_] (auto result) {
+        ZLOGE("kvstore proxy ResultSetwithquery closed.");
+        proxy->CloseResultSet(result->GetKvStoreResultSetProxy());
+    });
     return statusTmp;
 }
 
@@ -251,8 +259,8 @@ Status SingleKvStoreClient::SubscribeKvStore(SubscribeType subscribeType, std::s
     }
     // remove storeId after remove SubscribeKvStore function in manager. currently reserve for convenience.
     sptr<KvStoreObserverClient> ipcObserver =
-            new (std::nothrow) KvStoreObserverClient(GetStoreId(), subscribeType, observer,
-                    KvStoreType::SINGLE_VERSION);
+            new (std::nothrow) KvStoreObserverClient(GetStoreId(),
+            subscribeType, observer, KvStoreType::SINGLE_VERSION);
     if (ipcObserver == nullptr) {
         ZLOGW("new KvStoreObserverClient failed");
         return Status::ERROR;
