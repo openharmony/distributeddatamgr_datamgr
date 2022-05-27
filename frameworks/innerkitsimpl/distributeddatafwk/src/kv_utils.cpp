@@ -15,12 +15,12 @@
 
 #define LOG_TAG "KvUtils"
 
+#include "kv_utils.h"
 #include <endian.h>
 #include "cov_util.h"
 #include "log_print.h"
 #include "data_query.h"
 #include "kvstore_datashare_bridge.h"
-#include "kv_utils.h"
 
 namespace OHOS {
 namespace DistributedKv {
