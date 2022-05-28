@@ -54,6 +54,8 @@ Status DistributedKvDataManager::GetSingleKvStore(const Options &options, const 
         return status;
     }
 
+    KvStoreServiceDeathNotifier::RegisterClientDeathObserver(appId);
+
     ZLOGD("call proxy.");
     sptr<ISingleKvStore> proxyTmp;
     status = kvDataServiceProxy->GetSingleKvStore(options, appId, storeId,
