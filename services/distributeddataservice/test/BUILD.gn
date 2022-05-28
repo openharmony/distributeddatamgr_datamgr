@@ -656,4 +656,14 @@ group("moduletest") {
     ":DistributeddbNbSchemaUpgradeTest",
   ]
 }
+
 ###############################################################################
+
+group("fuzztest") {
+  testonly = true
+  deps = []
+  deps += [ "fuzztest/schemaquery_fuzzer:fuzztest" ]
+}
+
+###############################################################################
+
