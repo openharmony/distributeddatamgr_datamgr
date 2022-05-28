@@ -38,6 +38,8 @@ public:
     static void AddServiceDeathWatcher(std::shared_ptr<KvStoreDeathRecipient> watcher);
     // remove watcher for server die msg.
     static void RemoveServiceDeathWatcher(std::shared_ptr<KvStoreDeathRecipient> watcher);
+    // add watcher for server die msg.
+    static void RegisterClientDeathObserver(const AppId &appId);
 
 private:
     class ServiceDeathRecipient : public IRemoteObject::DeathRecipient {
@@ -49,9 +51,6 @@ private:
         void OnRemoteDied(const wptr<IRemoteObject> &remote) override;
     };
 
-    // add watcher for server die msg.
-    static void RegisterClientDeathObserver();
-    static AppId appId_;
     // lock for kvDataServiceProxy_ and serviceDeathWatchers_.
     static std::mutex watchMutex_;
     static sptr<IKvStoreDataService> kvDataServiceProxy_;
