@@ -46,6 +46,9 @@
 #include "kvstore_utils.h"
 #include "log_print.h"
 #include "metadata/meta_data_manager.h"
+#include "object_common.h"
+#include "object_manager.h"
+#include "object_service_impl.h"
 #include "permission_validator.h"
 #include "process_communicator_impl.h"
 #include "rdb_service_impl.h"
@@ -140,6 +143,31 @@ void KvStoreDataService::Initialize()
         deviceInnerListener_.get(), { "innerListener" });
 }
 
+sptr<IRemoteObject> KvStoreDataService::GetObjectService()
+{
+    ZLOGD("enter");
+    if (objectService_ == nullptr) {
+        std::lock_guard<decltype(mutex_)> lockGuard(mutex_);
+        if (objectService_ == nullptr) {
+            objectService_ = new (std::nothrow) DistributedObject::ObjectServiceImpl();
+        }
+        return objectService_ == nullptr ? nullptr : objectService_->AsObject().GetRefPtr();
+    }
+    return objectService_->AsObject().GetRefPtr();
+}
+
+void KvStoreDataService::InitObjectStore()
+{
+    ZLOGI("begin.");
+    if (objectService_ == nullptr) {
+        std::lock_guard<decltype(mutex_)> lockGuard(mutex_);
+        if (objectService_ == nullptr) {
+            objectService_ = new (std::nothrow) DistributedObject::ObjectServiceImpl();
+        }
+    }
+    objectService_->Initialize();
+    return;
+}
 Status KvStoreDataService::GetSingleKvStore(const Options &options, const AppId &appId, const StoreId &storeId,
                                             std::function<void(sptr<ISingleKvStore>)> callback)
 {
@@ -729,6 +757,7 @@ void KvStoreDataService::StartService()
 {
     // register this to ServiceManager.
     KvStoreMetaManager::GetInstance().InitMetaListener();
+    InitObjectStore();
     bool ret = SystemAbility::Publish(this);
     if (!ret) {
         FaultMsg msg = {FaultType::SERVICE_FAULT, "service", __FUNCTION__, Fault::SF_SERVICE_PUBLISH};
@@ -824,7 +853,7 @@ bool KvStoreDataService::ResolveAutoLaunchParamByIdentifier(
             storeMeta.userId, storeMeta.appId, storeMeta.storeId, false);
         const std::string &itemDualIdentifier =
             DistributedDB::KvStoreDelegateManager::GetKvStoreIdentifier("", storeMeta.appId, storeMeta.storeId, true);
-        if (identifier == itemTripleIdentifier) {
+        if (identifier == itemTripleIdentifier && storeMeta.bundleName != Bootstrap::GetInstance().GetProcessLabel()) {
             // old triple tuple identifier, should SetEqualIdentifier
             ResolveAutoLaunchCompatible(entry.second, identifier);
         }
@@ -837,6 +866,9 @@ bool KvStoreDataService::ResolveAutoLaunchParamByIdentifier(
             const std::vector<uint8_t> &secretKey = entry.second.secretKeyMetaData.secretKey;
             if (password.SetValue(secretKey.data(), secretKey.size()) != DistributedDB::CipherPassword::OK) {
                 ZLOGE("Get secret key failed.");
+            }
+            if (storeMeta.bundleName == Bootstrap::GetInstance().GetProcessLabel()) {
+                param.userId = storeMeta.userId;
             }
             option.passwd = password;
             option.schema = storeMeta.schema;

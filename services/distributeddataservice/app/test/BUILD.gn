@@ -35,6 +35,7 @@ config("module_private_config") {
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/service/directory/include",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/app/src/session_manager",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/service/kvdb",
+    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/service/object",
     "//foundation/distributeddatamgr/distributedfile/interfaces/kits/js/src/mod_securitylabel",
     "//utils/native/base/include",
     "//utils/system/safwk/native/include",
