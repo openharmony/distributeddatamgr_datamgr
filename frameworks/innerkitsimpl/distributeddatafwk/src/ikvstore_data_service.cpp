@@ -367,6 +367,30 @@ sptr<IRemoteObject> KvStoreDataServiceProxy::GetRdbService()
     return remoteObject;
 }
 
+sptr<IRemoteObject> KvStoreDataServiceProxy::GetObjectService()
+{
+    ZLOGI("enter");
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(KvStoreDataServiceProxy::GetDescriptor())) {
+        ZLOGE("write descriptor failed");
+        return nullptr;
+    }
+
+    MessageParcel reply;
+    MessageOption mo { MessageOption::TF_SYNC };
+    int32_t error = Remote()->SendRequest(GET_OBJECT_SERVICE, data, reply, mo);
+    if (error != 0) {
+        ZLOGE("SendRequest returned %{public}d", error);
+        return nullptr;
+    }
+    auto remoteObject = reply.ReadRemoteObject();
+    if (remoteObject == nullptr) {
+        ZLOGE("remote object is nullptr");
+        return nullptr;
+    }
+    return remoteObject;
+}
+
 sptr<IRemoteObject> KvStoreDataServiceProxy::GetKVdbService()
 {
     ZLOGI("enter");
@@ -583,6 +607,12 @@ int32_t KvStoreDataServiceStub::GetRdbServiceOnRemote(MessageParcel &data, Messa
 int32_t KvStoreDataServiceStub::GetKVdbServiceOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     reply.WriteRemoteObject(GetKVdbService());
+    return 0;
+}
+
+int32_t KvStoreDataServiceStub::GetObjectServiceOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    reply.WriteRemoteObject(GetObjectService());
     return 0;
 }
 

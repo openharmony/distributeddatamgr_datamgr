@@ -230,54 +230,6 @@ bool ITypesUtil::Unmarshalling(DistributedRdb::RdbSyncerParam &param, MessagePar
     return true;
 }
 
-bool ITypesUtil::Marshalling(const DistributedRdb::SyncResult &result, MessageParcel &parcel)
-{
-    if (!parcel.WriteInt32(static_cast<int32_t>(result.size()))) {
-        ZLOGE("SyncResult write size failed");
-        return false;
-    }
-
-    for (const auto &entry : result) {
-        if (!parcel.WriteString(entry.first)) {
-            ZLOGE("SyncResult write device failed");
-            return false;
-        }
-        if (!parcel.WriteInt32(entry.second)) {
-            ZLOGE("SyncResult write int failed");
-            return false;
-        }
-    }
-    return true;
-}
-
-bool ITypesUtil::Unmarshalling(DistributedRdb::SyncResult &result, MessageParcel &parcel)
-{
-    int32_t size = 0;
-    if (!parcel.ReadInt32(size)) {
-        ZLOGE("SyncResult read size failed");
-        return false;
-    }
-    if (size <= 0) {
-        ZLOGE("SyncResult size invalid");
-        return false;
-    }
-
-    for (int32_t i = 0; i < size; i++) {
-        std::string device;
-        if (!parcel.ReadString(device)) {
-            ZLOGE("SyncResult read device failed");
-            return false;
-        }
-        int32_t error;
-        if (!parcel.ReadInt32(error)) {
-            ZLOGE("SyncResult read int failed");
-            return false;
-        }
-        result.insert({ device, error });
-    }
-    return true;
-}
-
 bool ITypesUtil::Marshalling(const DistributedRdb::SyncOption &option, MessageParcel &parcel)
 {
     if (!parcel.WriteInt32(option.mode)) {

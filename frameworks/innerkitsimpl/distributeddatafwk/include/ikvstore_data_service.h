@@ -61,6 +61,7 @@ public:
         STOPWATCHDEVICECHANGE,
         GET_RDB_SERVICE,
         GET_KVDB_SERVICE,
+        GET_OBJECT_SERVICE,
         SERVICE_CMD_LAST,
         DATAUSAGESTART = 20,
         DATAUSAGEEND = 40,
@@ -95,6 +96,7 @@ public:
     virtual Status StopWatchDeviceChange(sptr<IDeviceStatusChangeListener> observer) = 0;
     virtual sptr<IRemoteObject> GetRdbService() = 0;
     virtual sptr<IRemoteObject> GetKVdbService() = 0;
+    virtual sptr<IRemoteObject> GetObjectService() = 0;
 };
 
 class KvStoreDataServiceStub : public IRemoteStub<IKvStoreDataService> {
@@ -116,6 +118,7 @@ private:
     int32_t GetSingleKvStoreOnRemote(MessageParcel &data, MessageParcel &reply);
     int32_t GetRdbServiceOnRemote(MessageParcel& data, MessageParcel& reply);
     int32_t GetKVdbServiceOnRemote(MessageParcel& data, MessageParcel& reply);
+    int32_t GetObjectServiceOnRemote(MessageParcel &data, MessageParcel &reply);
 
     using RequestHandler = int32_t(KvStoreDataServiceStub::*)(MessageParcel&, MessageParcel&);
     static constexpr RequestHandler HANDLERS[SERVICE_CMD_LAST] = {
@@ -132,6 +135,7 @@ private:
         [STOPWATCHDEVICECHANGE] = &KvStoreDataServiceStub::StopWatchDeviceChangeOnRemote,
         [GET_RDB_SERVICE] = &KvStoreDataServiceStub::GetRdbServiceOnRemote,
         [GET_KVDB_SERVICE] = &KvStoreDataServiceStub::GetKVdbServiceOnRemote,
+        [GET_OBJECT_SERVICE] = &KvStoreDataServiceStub::GetObjectServiceOnRemote,
     };
 };
 
@@ -165,6 +169,7 @@ public:
     virtual Status StopWatchDeviceChange(sptr<IDeviceStatusChangeListener> observer);
     virtual sptr<IRemoteObject> GetRdbService();
     virtual sptr<IRemoteObject> GetKVdbService();
+    virtual sptr<IRemoteObject> GetObjectService();
 private:
     static inline BrokerDelegator<KvStoreDataServiceProxy> delegator_;
 };

@@ -28,10 +28,12 @@ config("distributeddatafwk_config") {
     "../../../frameworks/common",
     "../../../frameworks/innerkitsimpl/rdb/include",
     "../../../frameworks/innerkitsimpl/rdb/src",
+    "../../../frameworks/innerkitsimpl/object/include",
     "../../../frameworks/innerkitsimpl/kvdb/include",
     "../../../frameworks/innerkitsimpl/kvdb/src",
     "//utils/system/safwk/native/include",
     "//utils/native/base/include",
+    "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/app_distributeddata/include",
     "//foundation/distributeddatamgr/appdatamgr/interfaces/inner_api/native/data_share/provider/include",
     "//foundation/distributeddatamgr/appdatamgr/interfaces/inner_api/native/data_share/common/include",
     "//foundation/distributeddatamgr/appdatamgr/frameworks/native/data_share/common/include",
@@ -44,6 +46,8 @@ config("distributeddatafwk_public_config") {
   include_dirs = [
     "include",
     "../../../frameworks/innerkitsimpl/rdb/include",
+    "../../../frameworks/innerkitsimpl/object/include",
+    "../../../frameworks/innerkitsimpl/distributeddatafwk/include",
     "//utils/native/base/include",
   ]
 }
@@ -81,6 +85,10 @@ ohos_shared_library("distributeddata_inner") {
     "../../../frameworks/innerkitsimpl/rdb/src/rdb_notifier.cpp",
     "../../../frameworks/innerkitsimpl/rdb/src/rdb_service_proxy.cpp",
   ]
+  object_sources = [
+    "../../../frameworks/innerkitsimpl/object/src/iobject_callback.cpp",
+    "../../../frameworks/innerkitsimpl/object/src/object_service_proxy.cpp",
+  ]
 
   kvdb_sources = [
     "../../../frameworks/innerkitsimpl/kvdb/src/dev_manager.cpp",
@@ -93,7 +101,7 @@ ohos_shared_library("distributeddata_inner") {
     "../../../frameworks/innerkitsimpl/kvdb/src/store_util.cpp",
   ]
 
-  sources = old_sources + rdb_sources + kvdb_sources
+  sources = old_sources + rdb_sources + kvdb_sources + object_sources
 
   configs = [ ":distributeddatafwk_config" ]
 
