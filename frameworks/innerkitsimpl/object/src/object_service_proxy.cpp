@@ -36,14 +36,14 @@ int32_t ObjectServiceProxy::ObjectStoreSave(const std::string &bundleName, const
         return Status::IPC_ERROR;
     }
     if (!ITypesUtil::Marshal(data, bundleName, sessionId, deviceList, objectData, callback->AsObject().GetRefPtr())) {
-        ZLOGE("Marshalling failed");
+        ZLOGE("Marshalling failed£¬bundleName = %{public}s", bundleName.c_str());
         return Status::IPC_ERROR;
     }
     MessageParcel reply;
     MessageOption mo { MessageOption::TF_SYNC };
     int32_t error = Remote()->SendRequest(OBJECTSTORE_SAVE, data, reply, mo);
     if (error != 0) {
-        ZLOGW("SendRequest returned %d", error);
+        ZLOGE("SendRequest returned %d", error);
         return Status::IPC_ERROR;
     }
     return static_cast<Status>(reply.ReadInt32());
@@ -59,7 +59,7 @@ int32_t ObjectServiceProxy::ObjectStoreRevokeSave(
     }
 
     if (!ITypesUtil::Marshal(data, bundleName, sessionId, callback->AsObject().GetRefPtr())) {
-        ZLOGE("Marshalling failed");
+        ZLOGE("Marshalling failed£¬bundleName = %{public}s", bundleName.c_str());
         return Status::IPC_ERROR;
     }
 
@@ -67,7 +67,7 @@ int32_t ObjectServiceProxy::ObjectStoreRevokeSave(
     MessageOption mo { MessageOption::TF_SYNC };
     int32_t error = Remote()->SendRequest(OBJECTSTORE_REVOKE_SAVE, data, reply, mo);
     if (error != 0) {
-        ZLOGW("SendRequest returned %d", error);
+        ZLOGE("SendRequest returned %d", error);
         return Status::IPC_ERROR;
     }
     return static_cast<Status>(reply.ReadInt32());
@@ -83,7 +83,7 @@ int32_t ObjectServiceProxy::ObjectStoreRetrieve(
     }
 
     if (!ITypesUtil::Marshal(data, bundleName, sessionId, callback->AsObject().GetRefPtr())) {
-        ZLOGE("Marshalling failed");
+        ZLOGE("Marshalling failed£¬bundleName = %{public}s", bundleName.c_str());
         return Status::IPC_ERROR;
     }
 
@@ -91,7 +91,7 @@ int32_t ObjectServiceProxy::ObjectStoreRetrieve(
     MessageOption mo { MessageOption::TF_SYNC };
     int32_t error = Remote()->SendRequest(OBJECTSTORE_RETRIEVE, data, reply, mo);
     if (error != 0) {
-        ZLOGW("SendRequest returned %d", error);
+        ZLOGE("SendRequest returned %d", error);
         return Status::IPC_ERROR;
     }
     return static_cast<Status>(reply.ReadInt32());

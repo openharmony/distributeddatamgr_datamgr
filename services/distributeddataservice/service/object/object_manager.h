@@ -28,17 +28,14 @@
 namespace OHOS {
 namespace DistributedObject {
 using SyncCallBack = std::function<void(const std::map<std::string, int32_t> &results)>;
-enum Result {
-    SUCCESS_USER_IN_USE,
-    SUCCESS_USER_HAS_FINISHED,
-    ERR_SID_NOT_EXIST
-};
-enum Status : int32_t {
-    SUCCESS = 0,
-    FAILED
-};
+
 class SequenceSyncManager {
 public:
+    enum Result {
+        SUCCESS_USER_IN_USE,
+        SUCCESS_USER_HAS_FINISHED,
+        ERR_SID_NOT_EXIST
+    };
     static SequenceSyncManager *GetInstance()
     {
         static SequenceSyncManager sequenceSyncManager;
@@ -74,6 +71,10 @@ public:
     void SetData(const std::string &dataDir, const std::string &userId);
     int32_t Clear();
 private:
+    enum Status {
+        SUCCESS,
+        FAILED
+    };
     constexpr static const char *SEPERATOR = "_";
     constexpr static const char *PROPERTY_PREFIX = "p_";
     constexpr static const char *LOCAL_DEVICE = "local";

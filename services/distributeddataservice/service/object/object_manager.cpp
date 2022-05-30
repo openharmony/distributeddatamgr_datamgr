@@ -38,8 +38,8 @@ DistributedDB::KvStoreNbDelegate *ObjectStoreManager::OpenObjectKvStore()
         .createDirByStoreIdOnly = true,
         .syncDualTupleMode = true,
         .secOption = { DistributedDB::S1, DistributedDB::ECE }
-};
-ZLOGI("start GetKvStore");
+    };
+    ZLOGI("start GetKvStore");
     kvStoreDelegateManager_->GetKvStore(ObjectCommon::OBJECTSTORE_DB_STOREID, option,
         [&store](DistributedDB::DBStatus dbStatus, DistributedDB::KvStoreNbDelegate *kvStoreNbDelegate) {
             if (dbStatus != DistributedDB::DBStatus::OK) {
@@ -251,8 +251,8 @@ void ObjectStoreManager::SyncCompleted(
     const std::map<std::string, DistributedDB::DBStatus> &results, uint64_t sequenceId)
 {
     std::string userId;
-    Result result = SequenceSyncManager::GetInstance()->Process(sequenceId, results, userId);
-    if (result == SUCCESS_USER_HAS_FINISHED && userId == userId_) {
+    SequenceSyncManager::Result result = SequenceSyncManager::GetInstance()->Process(sequenceId, results, userId);
+    if (result == SequenceSyncManager::SUCCESS_USER_HAS_FINISHED && userId == userId_) {
         std::lock_guard<std::mutex> lock(kvStoreMutex_);
         SetSyncStatus(false);
         FlushClosedStore();
@@ -261,7 +261,7 @@ void ObjectStoreManager::SyncCompleted(
 
 void ObjectStoreManager::FlushClosedStore()
 {
-    if (!isSyncing_ && delegate_ != nullptr) {
+    if (!isSyncing_ && syncCount_ == 0 && delegate_ != nullptr) {
         ZLOGD("close store");
         kvStoreDelegateManager_->CloseKvStore(delegate_);
         delegate_ = nullptr;
@@ -327,6 +327,7 @@ int32_t ObjectStoreManager::SyncOnStore(
         SetSyncStatus(true);
     } else {
         ZLOGI("single device");
+        callback(std::map<std::string, int32_t>());
         return SUCCESS;
     }
     return SUCCESS;
@@ -356,7 +357,11 @@ int32_t ObjectStoreManager::RevokeSaveToStore(const std::string &appId, const st
     std::for_each(
         entries.begin(), entries.end(), [&keys](const DistributedDB::Entry &entry) { keys.emplace_back(entry.key); });
     if (!keys.empty()) {
-        delegate_->DeleteBatch(keys);
+        status = delegate_->DeleteBatch(keys);
+        if (status != DistributedDB::DBStatus::OK) {
+            ZLOGE("DeleteBatch failed,please check DB status, status = %{public}d", status);
+            return DB_ERROR;
+        }
     }
     return SUCCESS;
 }
@@ -390,7 +395,7 @@ uint64_t SequenceSyncManager::AddNotifier(const std::string &userId, SyncCallBac
     return sequenceId;
 }
 
-Result SequenceSyncManager::Process(
+SequenceSyncManager::Result SequenceSyncManager::Process(
     uint64_t sequenceId, const std::map<std::string, DistributedDB::DBStatus> &results, std::string &userId)
 {
     std::lock_guard<std::mutex> lock(notifierLock_);
@@ -409,7 +414,7 @@ Result SequenceSyncManager::Process(
     return DeleteNotifierNoLock(sequenceId, userId);
 }
 
-Result SequenceSyncManager::DeleteNotifier(uint64_t sequenceId, std::string &userId)
+SequenceSyncManager::Result SequenceSyncManager::DeleteNotifier(uint64_t sequenceId, std::string &userId)
 {
     std::lock_guard<std::mutex> lock(notifierLock_);
     if (seqIdCallbackRelations_.count(sequenceId) == 0) {
@@ -419,7 +424,7 @@ Result SequenceSyncManager::DeleteNotifier(uint64_t sequenceId, std::string &use
     return DeleteNotifierNoLock(sequenceId, userId);
 }
 
-Result SequenceSyncManager::DeleteNotifierNoLock(uint64_t sequenceId, std::string &userId)
+SequenceSyncManager::Result SequenceSyncManager::DeleteNotifierNoLock(uint64_t sequenceId, std::string &userId)
 {
     seqIdCallbackRelations_.erase(sequenceId);
     auto userIdIter = userIdSeqIdRelations_.begin();

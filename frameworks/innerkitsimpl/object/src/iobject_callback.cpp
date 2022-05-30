@@ -14,7 +14,7 @@
 
 #define LOG_TAG "IObjectSaveCallback"
 
-#include "../include/iobject_callback.h"
+#include "iobject_callback.h"
 
 #include <ipc_skeleton.h>
 
@@ -23,9 +23,7 @@
 
 namespace OHOS {
 namespace DistributedObject {
-enum {
-    COMPLETED,
-};
+constexpr static int32_t COMPLETED = 0;
 
 void ObjectSaveCallbackProxy::Completed(const std::map<std::string, int32_t> &results)
 {
