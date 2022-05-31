@@ -15,8 +15,7 @@
 
 #include "kvdb_service_impl.h"
 
-#include <account_delegate.h>
-
+#include "account/account_delegate.h"
 #include "communication_provider.h"
 #include "ipc_skeleton.h"
 #include "metadata/meta_data_manager.h"
@@ -34,13 +33,13 @@ KVDBServiceImpl::~KVDBServiceImpl()
 
 Status KVDBServiceImpl::GetStoreIds(const AppId &appId, std::vector<StoreId> &storeIds)
 {
-    std::vector<StoreMetaData> metaDatas;
+    std::vector<StoreMetaData> metaData;
     auto user = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(IPCSkeleton::GetCallingPid());
     auto deviceId = CommunicationProvider::GetInstance().GetLocalDevice().uuid;
     auto prefix = StoreMetaData::GetPrefix({ deviceId, user, "default", appId.appId });
-    MetaDataManager::GetInstance().LoadMeta(prefix, metaDatas);
-    for (auto &metaData : metaDatas) {
-        storeIds.push_back({ metaData.storeId });
+    MetaDataManager::GetInstance().LoadMeta(prefix, metaData);
+    for (auto &item : metaData) {
+        storeIds.push_back({ item.storeId });
     }
     return SUCCESS;
 }
