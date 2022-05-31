@@ -46,7 +46,6 @@ ohos_shared_library("distributeddata") {
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/include/autils",
     "//foundation/distributeddatamgr/appdatamgr/interfaces/inner_api/native/data_share/provider/include",
     "//foundation/distributeddatamgr/appdatamgr/interfaces/inner_api/native/data_share/common/include",
-    "//foundation/distributeddatamgr/appdatamgr/frameworks/native/data_share/common/include",
   ]
 
   sources = [
