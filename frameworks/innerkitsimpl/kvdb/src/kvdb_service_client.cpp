@@ -100,7 +100,7 @@ Status KVDBServiceClient::GetStoreIds(const AppId &appId, std::vector<StoreId> &
     MessageParcel reply;
     int32_t status = IPC_SEND(TRANS_GET_STORE_IDS, reply, appId, StoreId(), storeIds);
     if (status != SUCCESS) {
-        ZLOGE("failed!, appId:%{public}s, status:0x%{public}x", status, appId.appId.c_str());
+        ZLOGE("status:0x%{public}x, appId:%{public}s", status, appId.appId.c_str());
     }
     ITypesUtil::Unmarshal(reply, storeIds);
     return static_cast<Status>(status);
@@ -111,7 +111,7 @@ Status KVDBServiceClient::BeforeCreate(const AppId &appId, const StoreId &storeI
     MessageParcel reply;
     int32_t status = IPC_SEND(TRANS_BEFORE_CREATE, reply, appId, storeId, options);
     if (status != SUCCESS) {
-        ZLOGE("failed!, appId:%{public}s, storeId:%{public}s, status:0x%{public}x", status, appId.appId.c_str(),
+        ZLOGE("status:0x%{public}x appId:%{public}s, storeId:%{public}s", status, appId.appId.c_str(),
             storeId.storeId.c_str());
     }
     return static_cast<Status>(status);
@@ -123,7 +123,7 @@ Status KVDBServiceClient::AfterCreate(
     MessageParcel reply;
     int32_t status = IPC_SEND(TRANS_AFTER_CREATE, reply, appId, storeId, options, password);
     if (status != SUCCESS) {
-        ZLOGE("failed!,status:0x%{public}x appId:%{public}s, storeId:%{public}s, encrypt:%{public}d", status,
+        ZLOGE("status:0x%{public}x appId:%{public}s, storeId:%{public}s, encrypt:%{public}d", status,
             appId.appId.c_str(), storeId.storeId.c_str(), options.encrypt);
     }
     return static_cast<Status>(status);
@@ -134,7 +134,7 @@ Status KVDBServiceClient::Delete(const AppId &appId, const StoreId &storeId, con
     MessageParcel reply;
     int32_t status = IPC_SEND(TRANS_DELETE, reply, appId, storeId, path);
     if (status != SUCCESS) {
-        ZLOGE("failed!, status:0x%{public}x appId:%{public}s, storeId:%{public}s", status, appId.appId.c_str(),
+        ZLOGE("status:0x%{public}x appId:%{public}s, storeId:%{public}s", status, appId.appId.c_str(),
             storeId.storeId.c_str());
     }
     return StoreFactory::GetInstance().Delete(appId, storeId, path);
@@ -145,7 +145,7 @@ Status KVDBServiceClient::Sync(const AppId &appId, const StoreId &storeId, KVDBS
     int32_t status = IPC_SEND(TRANS_SYNC, reply, appId, storeId, syncInfo.seqId, syncInfo.mode, syncInfo.devices,
         syncInfo.delay, syncInfo.query);
     if (status != SUCCESS) {
-        ZLOGE("failed, status:0x%{public}x, appId:%{public}s, storeId:%{public}s, sequenceId:%{public}" PRIu64, status,
+        ZLOGE("status:0x%{public}x, appId:%{public}s, storeId:%{public}s, sequenceId:%{public}" PRIu64, status,
             appId.appId.c_str(), storeId.storeId.c_str(), syncInfo.seqId);
     }
     return static_cast<Status>(status);
@@ -157,7 +157,7 @@ Status KVDBServiceClient::RegisterSyncCallback(
     MessageParcel reply;
     int32_t status = IPC_SEND(TRANS_REGISTER_CALLBACK, reply, appId, storeId, callback->AsObject().GetRefPtr());
     if (status != SUCCESS) {
-        ZLOGE("failed, status:0x%{public}x, appId:%{public}s, storeId:%{public}s, callback:0x%{public}x", status,
+        ZLOGE("status:0x%{public}x, appId:%{public}s, storeId:%{public}s, callback:0x%{public}x", status,
             appId.appId.c_str(), storeId.storeId.c_str(), StoreUtil::Anonymous(callback.GetRefPtr()));
     }
     return static_cast<Status>(status);
@@ -168,7 +168,7 @@ Status KVDBServiceClient::UnregisterSyncCallback(const AppId &appId, const Store
     MessageParcel reply;
     int32_t status = IPC_SEND(TRANS_UNREGISTER_CALLBACK, reply, appId, storeId);
     if (status != SUCCESS) {
-        ZLOGE("failed, status:0x%{public}x, appId:%{public}s, storeId:%{public}s", status, appId.appId.c_str(),
+        ZLOGE("status:0x%{public}x, appId:%{public}s, storeId:%{public}s", status, appId.appId.c_str(),
             storeId.storeId.c_str());
     }
     return static_cast<Status>(status);
@@ -179,7 +179,7 @@ Status KVDBServiceClient::SetSyncParam(const AppId &appId, const StoreId &storeI
     MessageParcel reply;
     int32_t status = IPC_SEND(TRANS_SET_SYNC_PARAM, reply, appId, storeId, syncParam.allowedDelayMs);
     if (status != SUCCESS) {
-        ZLOGE("failed, status:0x%{public}x, appId:%{public}s, storeId:%{public}s", status, appId.appId.c_str(),
+        ZLOGE("status:0x%{public}x, appId:%{public}s, storeId:%{public}s", status, appId.appId.c_str(),
             storeId.storeId.c_str());
     }
     return static_cast<Status>(status);
@@ -190,7 +190,7 @@ Status KVDBServiceClient::GetSyncParam(const AppId &appId, const StoreId &storeI
     MessageParcel reply;
     int32_t status = IPC_SEND(TRANS_GET_SYNC_PARAM, reply, appId, storeId);
     if (status != SUCCESS) {
-        ZLOGE("failed, status:0x%{public}x, appId:%{public}s, storeId:%{public}s", status, appId.appId.c_str(),
+        ZLOGE("status:0x%{public}x, appId:%{public}s, storeId:%{public}s", status, appId.appId.c_str(),
             storeId.storeId.c_str());
         return SUCCESS;
     }
@@ -203,7 +203,7 @@ Status KVDBServiceClient::EnableCapability(const AppId &appId, const StoreId &st
     MessageParcel reply;
     int32_t status = IPC_SEND(TRANS_ENABLE_CAP, reply, appId, storeId);
     if (status != SUCCESS) {
-        ZLOGE("failed, status:0x%{public}x, appId:%{public}s, storeId:%{public}s", status, appId.appId.c_str(),
+        ZLOGE("status:0x%{public}x, appId:%{public}s, storeId:%{public}s", status, appId.appId.c_str(),
             storeId.storeId.c_str());
     }
     return static_cast<Status>(status);
@@ -214,7 +214,7 @@ Status KVDBServiceClient::DisableCapability(const AppId &appId, const StoreId &s
     MessageParcel reply;
     int32_t status = IPC_SEND(TRANS_DISABLE_CAP, reply, appId, storeId);
     if (status != SUCCESS) {
-        ZLOGE("failed, status:0x%{public}x, appId:%{public}s, storeId:%{public}s", status, appId.appId.c_str(),
+        ZLOGE("status:0x%{public}x, appId:%{public}s, storeId:%{public}s", status, appId.appId.c_str(),
             storeId.storeId.c_str());
     }
     return static_cast<Status>(status);
@@ -226,7 +226,7 @@ Status KVDBServiceClient::SetCapability(const AppId &appId, const StoreId &store
     MessageParcel reply;
     int32_t status = IPC_SEND(TRANS_SET_CAP, reply, appId, storeId, local, remote);
     if (status != SUCCESS) {
-        ZLOGE("failed, status:0x%{public}x, appId:%{public}s, storeId:%{public}s", status, appId.appId.c_str(),
+        ZLOGE("status:0x%{public}x, appId:%{public}s, storeId:%{public}s", status, appId.appId.c_str(),
             storeId.storeId.c_str());
     }
     return static_cast<Status>(status);
@@ -238,7 +238,7 @@ Status KVDBServiceClient::AddSubscribeInfo(
     MessageParcel reply;
     int32_t status = IPC_SEND(TRANS_ADD_SUB_INFO, reply, appId, storeId, devices, query);
     if (status != SUCCESS) {
-        ZLOGE("failed, status:0x%{public}x, appId:%{public}s, storeId:%{public}s, query:%{public}s", status,
+        ZLOGE("status:0x%{public}x, appId:%{public}s, storeId:%{public}s, query:%{public}s", status,
             appId.appId.c_str(), storeId.storeId.c_str(), StoreUtil::Anonymous(query).c_str());
     }
     return static_cast<Status>(status);
@@ -250,7 +250,7 @@ Status KVDBServiceClient::RmvSubscribeInfo(
     MessageParcel reply;
     int32_t status = IPC_SEND(TRANS_RMV_SUB_INFO, reply, appId, storeId, devices, query);
     if (status != SUCCESS) {
-        ZLOGE("failed, status:0x%{public}x, appId:%{public}s, storeId:%{public}s, query:%{public}s", status,
+        ZLOGE("status:0x%{public}x, appId:%{public}s, storeId:%{public}s, query:%{public}s", status,
             appId.appId.c_str(), storeId.storeId.c_str(), StoreUtil::Anonymous(query).c_str());
     }
     return static_cast<Status>(status);
@@ -261,7 +261,7 @@ Status KVDBServiceClient::Subscribe(const AppId &appId, const StoreId &storeId, 
     MessageParcel reply;
     int32_t status = IPC_SEND(TRANS_SUB, reply, appId, storeId, observer->AsObject().GetRefPtr());
     if (status != SUCCESS) {
-        ZLOGE("failed, status:0x%{public}x, appId:%{public}s, storeId:%{public}s, observer:0x%{public}x", status,
+        ZLOGE("status:0x%{public}x, appId:%{public}s, storeId:%{public}s, observer:0x%{public}x", status,
             appId.appId.c_str(), storeId.storeId.c_str(), StoreUtil::Anonymous(observer.GetRefPtr()));
     }
     return static_cast<Status>(status);
@@ -272,7 +272,7 @@ Status KVDBServiceClient::Unsubscribe(const AppId &appId, const StoreId &storeId
     MessageParcel reply;
     int32_t status = IPC_SEND(TRANS_UNSUB, reply, appId, storeId, observer->AsObject().GetRefPtr());
     if (status != SUCCESS) {
-        ZLOGE("failed, status:0x%{public}x, appId:%{public}s, storeId:%{public}s, observer:0x%{public}x", status,
+        ZLOGE("status:0x%{public}x, appId:%{public}s, storeId:%{public}s, observer:0x%{public}x", status,
             appId.appId.c_str(), storeId.storeId.c_str(), StoreUtil::Anonymous(observer.GetRefPtr()));
     }
     return static_cast<Status>(status);
