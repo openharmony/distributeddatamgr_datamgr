@@ -221,7 +221,6 @@ Status SingleStoreImpl::SubscribeKvStore(SubscribeType type, std::shared_ptr<Obs
     }
 
     if (type == SubscribeType::SUBSCRIBE_TYPE_REMOTE || type == SubscribeType::SUBSCRIBE_TYPE_ALL) {
-        auto ipcObserver = GetIPCObserver(observer);
     }
 
     if (status != SUCCESS) {
