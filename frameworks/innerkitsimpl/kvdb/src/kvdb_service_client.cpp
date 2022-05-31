@@ -16,10 +16,10 @@
 #include "kvdb_service_client.h"
 
 #include <inttypes.h>
-#include <kvstore_observer_client.h>
 
-#include "../../distributeddatafwk/src/kvstore_service_death_notifier.h"
 #include "itypes_util.h"
+#include "kvstore_observer_client.h"
+#include "kvstore_service_death_notifier.h"
 #include "log_print.h"
 #include "security_manager.h"
 #include "single_store_impl.h"
@@ -56,10 +56,6 @@ std::shared_ptr<KVDBServiceClient> KVDBServiceClient::instance_;
 std::atomic_bool KVDBServiceClient::isWatched_(false);
 std::shared_ptr<KVDBServiceClient> KVDBServiceClient::GetInstance()
 {
-    if (instance_ != nullptr) {
-        return instance_;
-    }
-
     if (!isWatched_.exchange(true)) {
         KvStoreServiceDeathNotifier::AddServiceDeathWatcher(std::make_shared<ServiceDeath>());
     }
