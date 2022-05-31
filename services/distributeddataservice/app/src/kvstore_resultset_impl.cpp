@@ -17,7 +17,6 @@
 
 #include "kvstore_resultset_impl.h"
 #include <utility>
-#include "dds_trace.h"
 #include "log_print.h"
 
 namespace OHOS::DistributedKv {
@@ -33,7 +32,6 @@ KvStoreResultSetImpl::KvStoreResultSetImpl(DistributedDB::KvStoreResultSet *resu
 
 int KvStoreResultSetImpl::GetCount()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     std::shared_lock<std::shared_mutex> lock(this->mutex_);
     if (kvStoreResultSet_ == nullptr) {
         return 0;
@@ -43,8 +41,6 @@ int KvStoreResultSetImpl::GetCount()
 
 int KvStoreResultSetImpl::GetPosition()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
-
     std::shared_lock<std::shared_mutex> lock(this->mutex_);
     if (kvStoreResultSet_ == nullptr) {
         return INIT_POSTION;
@@ -54,8 +50,6 @@ int KvStoreResultSetImpl::GetPosition()
 
 bool KvStoreResultSetImpl::MoveToFirst()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
-
     std::shared_lock<std::shared_mutex> lock(this->mutex_);
     if (kvStoreResultSet_ == nullptr) {
         return false;
@@ -65,8 +59,6 @@ bool KvStoreResultSetImpl::MoveToFirst()
 
 bool KvStoreResultSetImpl::MoveToLast()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
-
     std::shared_lock<std::shared_mutex> lock(this->mutex_);
     if (kvStoreResultSet_ == nullptr) {
         return false;
@@ -76,8 +68,6 @@ bool KvStoreResultSetImpl::MoveToLast()
 
 bool KvStoreResultSetImpl::MoveToNext()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
-
     std::shared_lock<std::shared_mutex> lock(this->mutex_);
     if (kvStoreResultSet_ == nullptr) {
         return false;
@@ -87,8 +77,6 @@ bool KvStoreResultSetImpl::MoveToNext()
 
 bool KvStoreResultSetImpl::MoveToPrevious()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
-
     std::shared_lock<std::shared_mutex> lock(this->mutex_);
     if (kvStoreResultSet_ == nullptr) {
         return false;
@@ -98,8 +86,6 @@ bool KvStoreResultSetImpl::MoveToPrevious()
 
 bool KvStoreResultSetImpl::Move(int offset)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
-
     std::shared_lock<std::shared_mutex> lock(this->mutex_);
     if (kvStoreResultSet_ == nullptr) {
         return false;
@@ -109,8 +95,6 @@ bool KvStoreResultSetImpl::Move(int offset)
 
 bool KvStoreResultSetImpl::MoveToPosition(int position)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
-
     std::shared_lock<std::shared_mutex> lock(this->mutex_);
     if (kvStoreResultSet_ == nullptr) {
         return false;
@@ -156,8 +140,6 @@ bool KvStoreResultSetImpl::IsAfterLast()
 
 Status KvStoreResultSetImpl::GetEntry(Entry &entry)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
-
     std::shared_lock<std::shared_mutex> lock(this->mutex_);
     if (kvStoreResultSet_ == nullptr) {
         return Status::ERROR;
@@ -182,7 +164,6 @@ Status KvStoreResultSetImpl::CloseResultSet(DistributedDB::KvStoreNbDelegate *kv
     if (kvStoreNbDelegate == nullptr) {
         return Status::INVALID_ARGUMENT;
     }
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     std::unique_lock<std::shared_mutex> lock(this->mutex_);
     DistributedDB::DBStatus status = kvStoreNbDelegate->CloseResultSet(kvStoreResultSet_);
     if (status != DistributedDB::DBStatus::OK) {

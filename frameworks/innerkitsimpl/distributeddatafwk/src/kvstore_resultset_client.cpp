@@ -16,7 +16,6 @@
 #define LOG_TAG "KvStoreResultSetClient"
 
 #include "kvstore_resultset_client.h"
-#include "dds_trace.h"
 
 namespace OHOS::DistributedKv {
 KvStoreResultSetClient::KvStoreResultSetClient(sptr<IKvStoreResultSet> kvStoreProxy)
@@ -25,57 +24,41 @@ KvStoreResultSetClient::KvStoreResultSetClient(sptr<IKvStoreResultSet> kvStorePr
 
 int KvStoreResultSetClient::GetCount() const
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
-
     return kvStoreResultSetProxy_->GetCount();
 }
 
 int KvStoreResultSetClient::GetPosition() const
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
-
     return kvStoreResultSetProxy_->GetPosition();
 }
 
 bool KvStoreResultSetClient::MoveToFirst()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
-
     return kvStoreResultSetProxy_->MoveToFirst();
 }
 
 bool KvStoreResultSetClient::MoveToLast()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
-
     return kvStoreResultSetProxy_->MoveToLast();
 }
 
 bool KvStoreResultSetClient::MoveToNext()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
-
     return kvStoreResultSetProxy_->MoveToNext();
 }
 
 bool KvStoreResultSetClient::MoveToPrevious()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
-
     return kvStoreResultSetProxy_->MoveToPrevious();
 }
 
 bool KvStoreResultSetClient::Move(int offset)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
-
     return kvStoreResultSetProxy_->Move(offset);
 }
 
 bool KvStoreResultSetClient::MoveToPosition(int position)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
-
     return kvStoreResultSetProxy_->MoveToPosition(position);
 }
 
@@ -101,8 +84,6 @@ bool KvStoreResultSetClient::IsAfterLast() const
 
 Status KvStoreResultSetClient::GetEntry(Entry &entry) const
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
-
     return kvStoreResultSetProxy_->GetEntry(entry);
 }
 

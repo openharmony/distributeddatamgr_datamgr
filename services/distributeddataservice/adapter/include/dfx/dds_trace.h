@@ -19,12 +19,21 @@
 #include <string>
 #include <atomic>
 #include "visibility.h"
+#include "hitrace/trace.h"
 
 namespace OHOS {
 namespace DistributedKv {
+
+enum SwitchOption {
+    DEBUG_CLOSE = 0x00,
+    BYTRACE_ON = 0x01,
+    API_PERFORMANCE_TRACE_ON = 0x02,
+    TRACE_CHAIN_ON = 0x04,
+};
+
 class DdsTrace {
 public:
-    KVSTORE_API DdsTrace(const std::string &value, bool isSend = false);
+    KVSTORE_API DdsTrace(const std::string &value, unsigned int option = BYTRACE_ON);
     KVSTORE_API ~DdsTrace();
     KVSTORE_API void SetMiddleTrace(const std::string &beforeValue, const std::string &afterValue);
 
@@ -33,19 +42,15 @@ private:
     void Middle(const std::string &beforeValue, const std::string &afterValue);
     void Finish(const std::string &value);
     bool SetBytraceEnable();
+    void SetOptionSwitch(unsigned int option);
 
-    enum SwitchOption {
-        DEBUG_CLOSE = 0x00,
-        BYTRACE_ON = 0x01,
-        API_PERFORMANCE_TRACE_ON = 0x02,
-    };
-    static std::atomic_uint switchOption;
     static std::atomic_uint indexCount;
     static std::atomic_bool isSetBytraceEnabled;
     std::string traceValue{ };
+    HiviewDFX::HiTraceId traceId;
+    uint32_t switchOption{ 0 };;
     uint64_t lastTime{ 0 };
     uint32_t traceCount{ 0 };
-    bool isSendToHiview{ false };
 };
 } // namespace DistributedKv
 } // namespace OHOS

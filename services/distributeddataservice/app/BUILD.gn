@@ -130,6 +130,7 @@ ohos_shared_library("distributeddataservice") {
     "safwk:system_ability_fwk",
     "samgr_standard:samgr_proxy",
     "startup_l2:syspara",
+    "hitrace_native:libhitrace",
   ]
 
   if (distributeddatamgr_power) {

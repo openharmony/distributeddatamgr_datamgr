@@ -15,7 +15,6 @@
 #define LOG_TAG "StoreResultSet"
 #include "store_result_set.h"
 
-#include "dds_trace.h"
 #include "log_print.h"
 #include "store_util.h"
 namespace OHOS::DistributedKv {
@@ -34,7 +33,6 @@ StoreResultSet::~StoreResultSet()
 
 int StoreResultSet::GetCount() const
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     std::shared_lock<decltype(mutex_)> lock(mutex_);
     if (impl_ == nullptr) {
         return ALREADY_CLOSED;
@@ -44,7 +42,6 @@ int StoreResultSet::GetCount() const
 
 int StoreResultSet::GetPosition() const
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     std::shared_lock<decltype(mutex_)> lock(mutex_);
     if (impl_ == nullptr) {
         return ALREADY_CLOSED;
@@ -54,7 +51,6 @@ int StoreResultSet::GetPosition() const
 
 bool StoreResultSet::MoveToFirst()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     std::shared_lock<decltype(mutex_)> lock(mutex_);
     if (impl_ == nullptr) {
         return ALREADY_CLOSED;
@@ -63,7 +59,6 @@ bool StoreResultSet::MoveToFirst()
 }
 bool StoreResultSet::MoveToLast()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     std::shared_lock<decltype(mutex_)> lock(mutex_);
     if (impl_ == nullptr) {
         return ALREADY_CLOSED;
@@ -73,7 +68,6 @@ bool StoreResultSet::MoveToLast()
 
 bool StoreResultSet::MoveToNext()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     std::shared_lock<decltype(mutex_)> lock(mutex_);
     if (impl_ == nullptr) {
         return ALREADY_CLOSED;
@@ -83,7 +77,6 @@ bool StoreResultSet::MoveToNext()
 
 bool StoreResultSet::MoveToPrevious()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     std::shared_lock<decltype(mutex_)> lock(mutex_);
     if (impl_ == nullptr) {
         return ALREADY_CLOSED;
@@ -93,7 +86,6 @@ bool StoreResultSet::MoveToPrevious()
 
 bool StoreResultSet::Move(int offset)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     std::shared_lock<decltype(mutex_)> lock(mutex_);
     if (impl_ == nullptr) {
         return ALREADY_CLOSED;
@@ -103,7 +95,6 @@ bool StoreResultSet::Move(int offset)
 
 bool StoreResultSet::MoveToPosition(int position)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     std::shared_lock<decltype(mutex_)> lock(mutex_);
     if (impl_ == nullptr) {
         return ALREADY_CLOSED;
@@ -113,7 +104,6 @@ bool StoreResultSet::MoveToPosition(int position)
 
 bool StoreResultSet::IsFirst() const
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     std::shared_lock<decltype(mutex_)> lock(mutex_);
     if (impl_ == nullptr) {
         return ALREADY_CLOSED;
@@ -122,7 +112,6 @@ bool StoreResultSet::IsFirst() const
 }
 bool StoreResultSet::IsLast() const
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     std::shared_lock<decltype(mutex_)> lock(mutex_);
     if (impl_ == nullptr) {
         return ALREADY_CLOSED;
@@ -132,7 +121,6 @@ bool StoreResultSet::IsLast() const
 
 bool StoreResultSet::IsBeforeFirst() const
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     std::shared_lock<decltype(mutex_)> lock(mutex_);
     if (impl_ == nullptr) {
         return ALREADY_CLOSED;
@@ -142,7 +130,6 @@ bool StoreResultSet::IsBeforeFirst() const
 
 bool StoreResultSet::IsAfterLast() const
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     std::shared_lock<decltype(mutex_)> lock(mutex_);
     if (impl_ == nullptr) {
         return ALREADY_CLOSED;
@@ -152,7 +139,6 @@ bool StoreResultSet::IsAfterLast() const
 
 Status StoreResultSet::GetEntry(Entry &entry) const
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     std::shared_lock<decltype(mutex_)> lock(mutex_);
     if (impl_ == nullptr) {
         return ALREADY_CLOSED;
@@ -171,7 +157,6 @@ Status StoreResultSet::GetEntry(Entry &entry) const
 
 Status StoreResultSet::Close()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     std::unique_lock<decltype(mutex_)> lock(mutex_);
     if (impl_ == nullptr || dbStore_ == nullptr) {
         return SUCCESS;

@@ -26,18 +26,17 @@
 namespace OHOS {
 namespace DistributedKv {
 static constexpr uint64_t BYTRACE_LABEL = HITRACE_TAG_DISTRIBUTEDDATA;
+using OHOS::HiviewDFX::HiTrace;
 
-std::atomic_uint DdsTrace::switchOption = DdsTrace::API_PERFORMANCE_TRACE_ON;
 std::atomic_uint DdsTrace::indexCount = 0; // the value is changed by different thread
 std::atomic_bool DdsTrace::isSetBytraceEnabled = false;
 
-DdsTrace::DdsTrace(const std::string& value, bool isSend)
+DdsTrace::DdsTrace(const std::string& value, unsigned int option)
 {
     traceValue = value;
     traceCount = ++indexCount;
-    isSendToHiview = isSend;
     SetBytraceEnable();
-
+    SetOptionSwitch(option);
     Start(value);
 }
 
@@ -59,6 +58,9 @@ void DdsTrace::Start(const std::string& value)
     }
     if ((switchOption & BYTRACE_ON) == BYTRACE_ON) {
         StartTrace(BYTRACE_LABEL, value);
+    }
+    if ((switchOption & TRACE_CHAIN_ON) == TRACE_CHAIN_ON) {
+        traceId = HiTrace::Begin(value, HITRACE_FLAG_DEFAULT);
     }
     if ((switchOption & API_PERFORMANCE_TRACE_ON) == API_PERFORMANCE_TRACE_ON) {
         lastTime = TimeUtils::CurrentTimeMicros();
@@ -87,11 +89,12 @@ void DdsTrace::Finish(const std::string& value)
     if (switchOption & BYTRACE_ON) {
         FinishTrace(BYTRACE_LABEL);
     }
+    if ((switchOption & TRACE_CHAIN_ON) == TRACE_CHAIN_ON) {
+        HiTrace::End(traceId);
+    }
     if (switchOption & API_PERFORMANCE_TRACE_ON) {
         delta = TimeUtils::CurrentTimeMicros() - lastTime;
-        if (isSendToHiview) {
-            Reporter::GetInstance()->ApiPerformanceStatistic()->Report({value, delta, delta, delta});
-        }
+        Reporter::GetInstance()->ApiPerformanceStatistic()->Report({value, delta, delta, delta});
     }
     ZLOGD("DdsTrace-Finish: Trace[%u] %{public}s Out: %{public}" PRIu64"us.", traceCount, value.c_str(), delta);
 }
@@ -104,10 +107,23 @@ bool DdsTrace::SetBytraceEnable()
 
     UpdateTraceLabel();
     isSetBytraceEnabled = true;
-    DdsTrace::switchOption = DdsTrace::BYTRACE_ON | DdsTrace::API_PERFORMANCE_TRACE_ON;
 
     ZLOGD("success, current tag is true");
     return true;
 }
+
+void DdsTrace::SetOptionSwitch(unsigned int option)
+{
+    if ((option & BYTRACE_ON) == BYTRACE_ON){
+        switchOption |= BYTRACE_ON;
+    }
+    if ((option & TRACE_CHAIN_ON) == TRACE_CHAIN_ON){
+        switchOption |= TRACE_CHAIN_ON;
+    }
+    if ((option & API_PERFORMANCE_TRACE_ON) == API_PERFORMANCE_TRACE_ON){
+        switchOption |= API_PERFORMANCE_TRACE_ON;
+    }
+}
+
 } // namespace DistributedKv
 } // namespace OHOS

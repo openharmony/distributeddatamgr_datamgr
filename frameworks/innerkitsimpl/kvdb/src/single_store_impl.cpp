@@ -410,7 +410,8 @@ Status SingleStoreImpl::Sync(const std::vector<std::string> &devices, SyncMode m
 
 Status SingleStoreImpl::RegisterSyncCallback(std::shared_ptr<SyncCallback> callback)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        SwitchOption::BYTRACE_ON | SwitchOption::API_PERFORMANCE_TRACE_ON);
     if (callback == nullptr) {
         ZLOGW("return INVALID_ARGUMENT.");
         return INVALID_ARGUMENT;
@@ -421,7 +422,8 @@ Status SingleStoreImpl::RegisterSyncCallback(std::shared_ptr<SyncCallback> callb
 
 Status SingleStoreImpl::UnRegisterSyncCallback()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        SwitchOption::BYTRACE_ON | SwitchOption::API_PERFORMANCE_TRACE_ON);
     syncObserver_->Clean();
     return SUCCESS;
 }
