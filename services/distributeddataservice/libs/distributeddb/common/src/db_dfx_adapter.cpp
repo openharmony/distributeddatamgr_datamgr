@@ -37,8 +37,6 @@ static constexpr uint64_t HITRACE_LABEL = HITRACE_TAG_DISTRIBUTEDDATA;
 #endif
 static const std::string DUMP_PARAM = "dump-distributeddb";
 }
-std::atomic<bool> DBDfxAdapter::shutdown_ = false;
-std::thread DBDfxAdapter::reportThread_ = std::thread(&DBDfxAdapter::ReportRoutine);
 
 const std::string DBDfxAdapter::EVENT_CODE = "ERROR_CODE";
 const std::string DBDfxAdapter::APP_ID = "APP_ID";
@@ -47,28 +45,11 @@ const std::string DBDfxAdapter::STORE_ID = "STORE_ID";
 const std::string DBDfxAdapter::SQLITE_EXECUTE = "SQLITE_EXECUTE";
 const std::string DBDfxAdapter::SYNC_ACTION = "SYNC_ACTION";
 const std::string DBDfxAdapter::EVENT_OPEN_DATABASE_FAILED = "OPEN_DATABASE_FAILED";
-std::mutex DBDfxAdapter::reprotTaskQueueMutex_;
-std::queue<ReportTask> DBDfxAdapter::reportTaskQueue_;
-
-bool DBDfxAdapter::wakingSignal_ = false;
-std::mutex DBDfxAdapter::waitMutex_;
-std::condition_variable DBDfxAdapter::waitingCv_;
-
-void DBDfxAdapter::Finalize()
-{
-    shutdown_ = true;
-    {
-        std::lock_guard<std::mutex> autoLock(waitMutex_);
-        wakingSignal_ = true;
-    }
-    waitingCv_.notify_one();
-    reportThread_.join();
-}
 
 void DBDfxAdapter::Dump(int fd, const std::vector<std::u16string> &args)
 {
 #ifdef RUNNING_ON_LINUX
-    static const std::u16string u16DumpParam =
+    const std::u16string u16DumpParam =
         std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.from_bytes(DUMP_PARAM);
     bool abort = true;
     for (auto &arg : args) {
@@ -96,11 +77,13 @@ void DBDfxAdapter::Dump(int fd, const std::vector<std::u16string> &args)
 #ifdef USE_DFX_ABILITY
 void DBDfxAdapter::ReportFault(const ReportTask &reportTask)
 {
-    if (shutdown_) {
-        return;
-    }
-    std::lock_guard<std::mutex> autoLock(reprotTaskQueueMutex_);
-    reportTaskQueue_.push(reportTask);
+    RuntimeContext::GetInstance()->ScheduleTask([=]() {
+        // call hievent here
+        OHOS::HiviewDFX::HiSysEvent::Write(OHOS::HiviewDFX::HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
+            reportTask.eventName,
+            OHOS::HiviewDFX::HiSysEvent::EventType::FAULT,
+            EVENT_CODE, std::to_string(reportTask.errCode));
+    });
 }
 
 void DBDfxAdapter::StartTrace(const std::string &action)
@@ -140,45 +123,6 @@ void DBDfxAdapter::FinishAsyncTrace(const std::string &action, int32_t taskId)
     ::FinishAsyncTrace(HITRACE_LABEL, action, taskId);
 }
 
-void DBDfxAdapter::ReportRoutine()
-{
-    while (!shutdown_) {
-        if (IsReprotTaskEmpty()) {
-            std::unique_lock<std::mutex> waitingLock(waitMutex_);
-            LOGI("[DBDfxAdapter][ReportRoutine] Report done and sleep");
-            waitingCv_.wait(waitingLock, [] { return wakingSignal_; });
-            LOGI("[DBDfxAdapter][ReportRoutine] Report continue");
-            wakingSignal_ = false;
-        }
-        ReportTask reportTask;
-        if (ScheduleOutTask(reportTask) == -E_FINISHED) {
-            continue;
-        }
-
-        // call hievent here
-        OHOS::HiviewDFX::HiSysEvent::Write(OHOS::HiviewDFX::HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
-            reportTask.eventName,
-            OHOS::HiviewDFX::HiSysEvent::EventType::FAULT,
-            EVENT_CODE, std::to_string(reportTask.errCode));
-    }
-}
-
-bool DBDfxAdapter::IsReprotTaskEmpty()
-{
-    std::lock_guard<std::mutex> autoLock(reprotTaskQueueMutex_);
-    return reportTaskQueue_.empty();
-}
-
-int DBDfxAdapter::ScheduleOutTask(ReportTask &reportTask)
-{
-    std::lock_guard<std::mutex> autoLock(reprotTaskQueueMutex_);
-    if (reportTaskQueue_.empty()) {
-        return -E_FINISHED;
-    }
-    reportTask = reportTaskQueue_.back();
-    reportTaskQueue_.pop();
-    return -E_UNFINISHED;
-}
 #else
 void DBDfxAdapter::ReportFault(const ReportTask &reportTask)
 {
@@ -204,21 +148,6 @@ void DBDfxAdapter::FinishAsyncTrace(const std::string &action, int32_t taskId)
 {
     (void) action;
     (void) taskId;
-}
-
-void DBDfxAdapter::ReportRoutine()
-{
-}
-
-bool DBDfxAdapter::IsReprotTaskEmpty()
-{
-    return true;
-}
-
-int DBDfxAdapter::ScheduleOutTask(ReportTask &reportTask)
-{
-    (void) reportTask;
-    return 0;
 }
 
 void DBDfxAdapter::StartTraceSQL()

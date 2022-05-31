@@ -53,28 +53,14 @@ public:
     static void StartAsyncTrace(const std::string &action, int32_t taskId);
     static void FinishAsyncTrace(const std::string &action, int32_t taskId);
 
-    static void Finalize();
     static const std::string SYNC_ACTION;
     static const std::string EVENT_OPEN_DATABASE_FAILED;
 private:
-    static void ReportRoutine();
-    static bool IsReprotTaskEmpty();
-    static int ScheduleOutTask(ReportTask &reportTask);
-
-    static std::atomic<bool> shutdown_;
-    static std::thread reportThread_;
-
     static const std::string EVENT_CODE;
     static const std::string APP_ID;
     static const std::string USER_ID;
     static const std::string STORE_ID;
     static const std::string SQLITE_EXECUTE;
-    static std::mutex reprotTaskQueueMutex_;
-    static std::queue<ReportTask> reportTaskQueue_;
-
-    static bool wakingSignal_;
-    static std::mutex waitMutex_;
-    static std::condition_variable waitingCv_;
 };
 } // namespace DistributedDB
 

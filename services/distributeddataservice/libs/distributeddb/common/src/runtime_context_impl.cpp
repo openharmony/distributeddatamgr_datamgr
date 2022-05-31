@@ -57,7 +57,6 @@ RuntimeContextImpl::~RuntimeContextImpl()
     delete lockStatusObserver_;
     lockStatusObserver_ = nullptr;
     userChangeMonitor_ = nullptr;
-    DBDfxAdapter::Finalize();
 }
 
 // Set the label of this process.
