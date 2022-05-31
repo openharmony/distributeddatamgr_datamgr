@@ -62,10 +62,10 @@ void DBDfxAdapter::Dump(int fd, const std::vector<std::u16string> &args)
         return;
     }
     dprintf(fd, "DistributedDB Dump Message Info:\n\n");
-    dprintf(fd, "DistributedDB Database Basic Message Info:");
+    dprintf(fd, "DistributedDB Database Basic Message Info:\n");
     KvDBManager::GetInstance()->Dump(fd);
     RelationalStoreInstance::GetInstance()->Dump(fd);
-    dprintf(fd, "DistributedDB Common Message Info:\n\n");
+    dprintf(fd, "DistributedDB Common Message Info:\n");
     RuntimeContext::GetInstance()->DumpCommonInfo(fd);
     dprintf(fd, "\tlast error msg = %s\n", SQLiteUtils::GetLastErrorMsg().c_str());
 #else

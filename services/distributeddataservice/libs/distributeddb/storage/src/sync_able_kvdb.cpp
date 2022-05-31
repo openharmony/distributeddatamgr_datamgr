@@ -379,7 +379,7 @@ int SyncAbleKvDB::SetEqualIdentifier(const std::string &identifier, const std::v
 void SyncAbleKvDB::Dump(int fd)
 {
     SyncerBasicInfo basicInfo = syncer_.DumpSyncerBasicInfo();
-    dprintf(fd, "isSyncActive = %d, isAutoSync = %d\n\n", basicInfo.isSyncActive,
+    dprintf(fd, "\tisSyncActive = %d, isAutoSync = %d\n\n", basicInfo.isSyncActive,
         basicInfo.isAutoSync);
     if (basicInfo.isSyncActive) {
         dprintf(fd, "\tDistributedDB Database Sync Module Message Info:\n");

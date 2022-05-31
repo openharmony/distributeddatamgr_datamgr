@@ -723,7 +723,7 @@ void SyncTaskContext::Dump(int fd)
             }
         }
     }
-    dprintf(fd, "/t/t/ttarget = %s, total sync task count = %zu, auto sync task count = %zu\n",
+    dprintf(fd, "\t\ttarget = %s, total sync task count = %zu, auto sync task count = %zu\n",
         deviceId_.c_str(), totalSyncTaskCount, autoSyncTaskCount);
 }
 } // namespace DistributedDB
