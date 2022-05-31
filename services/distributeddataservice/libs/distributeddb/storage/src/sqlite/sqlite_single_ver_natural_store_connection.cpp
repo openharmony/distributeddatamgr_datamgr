@@ -834,19 +834,20 @@ int SQLiteSingleVerNaturalStoreConnection::PutBatchInner(const IOption &option, 
     std::lock_guard<std::mutex> lock(transactionMutex_);
     bool isAuto = false;
     int errCode = E_OK;
-
+    DBDfxAdapter::StartTraceSQL();
     if (writeHandle_ == nullptr) {
         isAuto = true;
         errCode = StartTransactionInner();
         if (errCode != E_OK) {
             return errCode;
+            DBDfxAdapter::FinishTraceSQL();
         }
     }
 
     if ((transactionEntrySize_ + entries.size()) > DBConstant::MAX_TRANSACTION_ENTRY_SIZE) {
         return -E_MAX_LIMITS;
     }
-    DBDfxAdapter::StartTraceSQL();
+
     if (option.dataType == IOption::SYNC_DATA) {
         errCode = SaveSyncEntries(entries);
     } else {

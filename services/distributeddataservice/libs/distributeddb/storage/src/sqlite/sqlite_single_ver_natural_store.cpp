@@ -1250,6 +1250,7 @@ int SQLiteSingleVerNaturalStore::SaveSyncItems(const QueryObject &query, std::ve
     errCode = handle->StartTransaction(TransactType::IMMEDIATE);
     if (errCode != E_OK) {
         ReleaseHandle(handle);
+        DBDfxAdapter::FinishTraceSQL();
         return errCode;
     }
     bool isPermitForceWrite = !(GetDbProperties().GetBoolProp(KvDBProperties::SYNC_DUAL_TUPLE_MODE, false));
