@@ -17,12 +17,14 @@
 
 #include "dds_trace.h"
 #include "dev_manager.h"
+#include "kvstore_observer_client.h"
 #include "log_print.h"
 #include "store_result_set.h"
 #include "store_util.h"
 
 namespace OHOS::DistributedKv {
-SingleStoreImpl::SingleStoreImpl(std::shared_ptr<DBStore> dbStore) : dbStore_(std::move(dbStore))
+SingleStoreImpl::SingleStoreImpl(const AppId &appId, std::shared_ptr<DBStore> dbStore)
+    : appId_(appId), dbStore_(std::move(dbStore))
 {
     syncObserver_ = std::make_shared<SyncObserver>();
 }
@@ -219,7 +221,6 @@ Status SingleStoreImpl::SubscribeKvStore(SubscribeType type, std::shared_ptr<Obs
     }
 
     if (type == SubscribeType::SUBSCRIBE_TYPE_REMOTE || type == SubscribeType::SUBSCRIBE_TYPE_ALL) {
-        // status = proxy_->RegisterObserver({}, ConvertMode(type), bridge);
     }
 
     if (status != SUCCESS) {
@@ -428,6 +429,7 @@ Status SingleStoreImpl::UnRegisterSyncCallback()
 
 Status SingleStoreImpl::SetSyncParam(const KvSyncParam &syncParam)
 {
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
     return NOT_SUPPORT;
 }
 
@@ -469,19 +471,29 @@ Status SingleStoreImpl::Close()
     return SUCCESS;
 }
 
-bool SingleStoreImpl::IsValidKey(const Key &key) const
-{
-    return key.Empty() || key.Size() > MAX_KEY_LENGTH || std::isspace(key[0]) || std::isspace(key[key.Size() - 1]);
-}
-
 std::vector<uint8_t> SingleStoreImpl::ConvertDBKey(const Key &key) const
 {
-    return IsValidKey(key) ? std::vector<uint8_t>(key) : std::vector<uint8_t>();
+    auto begin = std::find_if(key.Data().begin(), key.Data().end(), [](int ch) { return !std::isspace(ch); });
+    auto rBegin = std::find_if(key.Data().rbegin(), key.Data().rend(), [](int ch) { return !std::isspace(ch); });
+    auto end = static_cast<decltype(begin)>(rBegin.base());
+    std::vector<uint8_t> dbKey;
+    dbKey.assign(begin, end);
+    if (dbKey.size() >= MAX_KEY_LENGTH) {
+        dbKey.clear();
+    }
+    return dbKey;
 }
 
 Key SingleStoreImpl::ConvertKey(DistributedDB::Key &&key) const
 {
     return std::move(key);
+}
+
+sptr<SingleStoreImpl::IPCObserver> SingleStoreImpl::GetIPCObserver(std::shared_ptr<Observer> observer) const
+{
+    sptr<KvStoreObserverClient> ipcObserver =
+        new KvStoreObserverClient({ dbStore_->GetStoreId() }, SUBSCRIBE_TYPE_REMOTE, observer);
+    return sptr<IPCObserver>();
 }
 
 int SingleStoreImpl::ConvertMode(SubscribeType type) const

@@ -50,6 +50,8 @@ ohos_shared_library("distributeddatasvc") {
     "kvdb/auth_delegate.cpp",
     "kvdb/executor_factory.cpp",
     "kvdb/user_delegate.cpp",
+    "kvdb/kvdb_service_stub.cpp",
+    "kvdb/kvdb_service_impl.cpp",
     "object/object_manager.cpp",
     "object/object_service_impl.cpp",
     "object/object_service_stub.cpp",

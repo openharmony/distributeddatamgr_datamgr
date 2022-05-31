@@ -1235,7 +1235,14 @@ sptr<IRemoteObject> KvStoreDataService::GetRdbService()
 
 sptr<IRemoteObject> KvStoreDataService::GetKVdbService()
 {
-    return sptr<IRemoteObject>();
+    if (kvdbService_ == nullptr) {
+        std::lock_guard<decltype(mutex_)> lockGuard(mutex_);
+        if (kvdbService_ == nullptr) {
+            kvdbService_ = new (std::nothrow) KVDBServiceImpl();
+        }
+        return kvdbService_ == nullptr ? nullptr : kvdbService_->AsObject().GetRefPtr();
+    }
+    return kvdbService_->AsObject().GetRefPtr();
 }
 
 bool DbMetaCallbackDelegateMgr::GetKvStoreDiskSize(const std::string &storeId, uint64_t &size)
