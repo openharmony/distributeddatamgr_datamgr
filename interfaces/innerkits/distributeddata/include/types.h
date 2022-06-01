@@ -112,7 +112,7 @@ struct AppThreadInfo {
     std::int32_t uid;
 };
 
-enum SubscribeType : int32_t {
+enum SubscribeType : uint32_t {
     DEFAULT = 0, // default let bms delete
     SUBSCRIBE_TYPE_LOCAL = 1, // local changes of syncable kv store
     SUBSCRIBE_TYPE_REMOTE = 2, // synced data changes from remote devices

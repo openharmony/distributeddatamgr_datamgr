@@ -15,20 +15,31 @@
 
 #ifndef OHOS_DISTRIBUTED_DATA_FRAMEWORKS_KVDB_OBSERVER_BRIDGE_H
 #define OHOS_DISTRIBUTED_DATA_FRAMEWORKS_KVDB_OBSERVER_BRIDGE_H
+#include "kv_store_nb_delegate.h"
 #include "kv_store_observer.h"
 #include "kvstore_observer.h"
 #include "visibility.h"
 namespace OHOS::DistributedKv {
+class IKvStoreObserver;
 class API_EXPORT ObserverBridge : public DistributedDB::KvStoreObserver {
 public:
     using Convert = std::function<Key(const DistributedDB::Key &key, std::string &deviceId)>;
+    using Observer = DistributedKv::KvStoreObserver;
+    using DBEntry = DistributedDB::Entry;
+    using DBChangedData = DistributedDB::KvStoreChangedData;
 
-    ObserverBridge(std::shared_ptr<DistributedKv::KvStoreObserver> observer, Convert convert = nullptr);
-    void OnChange(const DistributedDB::KvStoreChangedData &data) override;
+    ObserverBridge(const AppId &app, const StoreId &store, std::shared_ptr<Observer> observer, Convert cvt = nullptr);
+    ~ObserverBridge();
+    Status RegisterRemoteObserver();
+    Status UnregisterRemoteObserver();
+    void OnChange(const DBChangedData &data) override;
 
 private:
-    std::vector<Entry> ConvertDB(const std::list<DistributedDB::Entry> &dbEntries, std::string &deviceId) const;
+    std::vector<Entry> ConvertDB(const std::list<DBEntry> &dbEntries, std::string &deviceId) const;
     std::shared_ptr<DistributedKv::KvStoreObserver> observer_;
+    sptr<IKvStoreObserver> remote_;
+    AppId appId_;
+    StoreId storeId_;
     Convert convert_;
 };
 } // namespace OHOS::DistributedKv

@@ -44,7 +44,7 @@ public:
 
     Status GetCount(const DataQuery &query, int &count) const override;
 
-    Status Sync(const std::vector<std::string> &devices, SyncMode mode, uint32_t allowedDelayMs) override;
+    Status Sync(const std::vector<std::string> &devices, SyncMode mode, uint32_t delay) override;
 
     Status RemoveDeviceData(const std::string &device) override;
 

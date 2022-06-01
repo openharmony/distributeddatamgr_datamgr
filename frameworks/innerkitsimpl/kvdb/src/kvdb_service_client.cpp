@@ -139,7 +139,8 @@ Status KVDBServiceClient::Delete(const AppId &appId, const StoreId &storeId, con
     }
     return StoreFactory::GetInstance().Delete(appId, storeId, path);
 }
-Status KVDBServiceClient::Sync(const AppId &appId, const StoreId &storeId, KVDBService::SyncInfo &syncInfo)
+
+Status KVDBServiceClient::Sync(const AppId &appId, const StoreId &storeId, const SyncInfo &syncInfo)
 {
     MessageParcel reply;
     int32_t status = IPC_SEND(TRANS_SYNC, reply, appId, storeId, syncInfo.seqId, syncInfo.mode, syncInfo.devices,

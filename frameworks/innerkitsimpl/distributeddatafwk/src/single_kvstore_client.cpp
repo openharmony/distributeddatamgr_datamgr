@@ -164,7 +164,7 @@ Status SingleKvStoreClient::GetCount(const DataQuery &query, int &count) const
     return kvStoreProxy_->GetCountWithQuery(query.ToString(), count);
 }
 
-Status SingleKvStoreClient::Sync(const std::vector<std::string> &devices, SyncMode mode, uint32_t allowedDelayMs)
+Status SingleKvStoreClient::Sync(const std::vector<std::string> &devices, SyncMode mode, uint32_t delay)
 {
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
     if (kvStoreProxy_ == nullptr) {
@@ -178,7 +178,7 @@ Status SingleKvStoreClient::Sync(const std::vector<std::string> &devices, SyncMo
     uint64_t sequenceId = KvStoreUtils::GenerateSequenceId();
     syncCallbackClient_->AddSyncCallback(syncObserver_, sequenceId);
     RegisterCallback();
-    return kvStoreProxy_->Sync(devices, mode, allowedDelayMs, sequenceId);
+    return kvStoreProxy_->Sync(devices, mode, delay, sequenceId);
 }
 
 Status SingleKvStoreClient::RemoveDeviceData(const std::string &device)
@@ -258,8 +258,7 @@ Status SingleKvStoreClient::SubscribeKvStore(SubscribeType subscribeType, std::s
         return Status::STORE_ALREADY_SUBSCRIBE;
     }
     // remove storeId after remove SubscribeKvStore function in manager. currently reserve for convenience.
-    sptr<KvStoreObserverClient> ipcObserver = new (std::nothrow)
-        KvStoreObserverClient(GetStoreId(), subscribeType, observer);
+    sptr<KvStoreObserverClient> ipcObserver = new (std::nothrow) KvStoreObserverClient(observer);
     if (ipcObserver == nullptr) {
         ZLOGW("new KvStoreObserverClient failed");
         return Status::ERROR;

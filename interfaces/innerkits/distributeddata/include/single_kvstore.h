@@ -107,7 +107,7 @@ public:
     //     allowedDelayMs: allowed delay milli-second to sync.
     // Return:
     //     Status of this Sync operation.
-    virtual Status Sync(const std::vector<std::string> &devices, SyncMode mode, uint32_t allowedDelayMs) = 0;
+    virtual Status Sync(const std::vector<std::string> &devices, SyncMode mode, uint32_t delay) = 0;
 
     /*
      *  Sync store with other devices only syncing the data which is satisfied with the condition.

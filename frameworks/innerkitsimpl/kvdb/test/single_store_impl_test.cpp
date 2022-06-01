@@ -14,7 +14,7 @@
  */
 #include <gtest/gtest.h>
 
-#include <cstdint>
+#include <condition_variable>
 #include <vector>
 
 #include "kvdb_service_client.h"
@@ -23,6 +23,41 @@ using namespace testing::ext;
 using namespace OHOS::DistributedKv;
 class SingleStoreImplTest : public testing::Test {
 public:
+    class TestObserver : public KvStoreObserver {
+    public:
+        bool IsChanged()
+        {
+            std::unique_lock<std::mutex> lock(mutex_);
+            cv_.wait(lock, [this]() { return isChanged_; });
+            bool current = isChanged_;
+            isChanged_ = false;
+            cv_.notify_one();
+            return current;
+        }
+
+        void OnChange(const ChangeNotification &notification) override
+        {
+            insert_ = notification.GetInsertEntries();
+            update_ = notification.GetUpdateEntries();
+            delete_ = notification.GetDeleteEntries();
+            deviceId_ = notification.GetDeviceId();
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                isChanged_ = true;
+                cv_.notify_one();
+            }
+        }
+        std::vector<Entry> insert_;
+        std::vector<Entry> update_;
+        std::vector<Entry> delete_;
+        std::string deviceId_;
+
+    private:
+        std::mutex mutex_;
+        std::condition_variable cv_;
+        bool isChanged_ = false;
+    };
+
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
     void SetUp();
@@ -188,5 +223,97 @@ HWTEST_F(SingleStoreImplTest, Transaction, TestSize.Level0)
     auto status = kvStore_->StartTransaction();
     ASSERT_EQ(status, SUCCESS);
     status = kvStore_->Commit();
+    ASSERT_EQ(status, SUCCESS);
+
+    status = kvStore_->StartTransaction();
+    ASSERT_EQ(status, SUCCESS);
+    status = kvStore_->Rollback();
+    ASSERT_EQ(status, SUCCESS);
+}
+
+/**
+* @tc.name: SubscribeKvStore
+* @tc.desc: subscribe local
+* @tc.type: FUNC
+* @tc.require: I4XVQQ
+* @tc.author: Sven Wang
+*/
+HWTEST_F(SingleStoreImplTest, SubscribeKvStore, TestSize.Level0)
+{
+    ASSERT_NE(kvStore_, nullptr);
+    auto observer = std::make_shared<TestObserver>();
+    auto status = kvStore_->SubscribeKvStore(SUBSCRIBE_TYPE_LOCAL, observer);
+    ASSERT_EQ(status, SUCCESS);
+    status = kvStore_->SubscribeKvStore(SUBSCRIBE_TYPE_REMOTE, observer);
+    ASSERT_EQ(status, SUCCESS);
+    status = kvStore_->SubscribeKvStore(SUBSCRIBE_TYPE_LOCAL, observer);
+    ASSERT_EQ(status, STORE_ALREADY_SUBSCRIBE);
+    status = kvStore_->SubscribeKvStore(SUBSCRIBE_TYPE_REMOTE, observer);
+    ASSERT_EQ(status, STORE_ALREADY_SUBSCRIBE);
+    status = kvStore_->SubscribeKvStore(SUBSCRIBE_TYPE_ALL, observer);
+    ASSERT_EQ(status, STORE_ALREADY_SUBSCRIBE);
+    status = kvStore_->SubscribeKvStore(DEFAULT, observer);
+    ASSERT_EQ(status, STORE_ALREADY_SUBSCRIBE);
+    status = kvStore_->Put({ "Put Test" }, { "Put Value" });
+    ASSERT_EQ(status, SUCCESS);
+    ASSERT_TRUE(observer->IsChanged());
+    ASSERT_EQ(observer->insert_.size(), 1);
+    ASSERT_EQ(observer->update_.size(), 0);
+    ASSERT_EQ(observer->delete_.size(), 0);
+    status = kvStore_->Put({ "Put Test" }, { "Put Value1" });
+    ASSERT_EQ(status, SUCCESS);
+    ASSERT_TRUE(observer->IsChanged());
+    ASSERT_EQ(observer->insert_.size(), 0);
+    ASSERT_EQ(observer->update_.size(), 1);
+    ASSERT_EQ(observer->delete_.size(), 0);
+    status = kvStore_->Delete({ "Put Test" });
+    ASSERT_EQ(status, SUCCESS);
+    ASSERT_TRUE(observer->IsChanged());
+    ASSERT_EQ(observer->insert_.size(), 0);
+    ASSERT_EQ(observer->update_.size(), 0);
+    ASSERT_EQ(observer->delete_.size(), 1);
+}
+
+/**
+* @tc.name: UnsubscribeKvStore
+* @tc.desc: unsubscribe
+* @tc.type: FUNC
+* @tc.require: I4XVQQ
+* @tc.author: Sven Wang
+*/
+HWTEST_F(SingleStoreImplTest, UnsubscribeKvStore, TestSize.Level0)
+{
+    ASSERT_NE(kvStore_, nullptr);
+    auto observer = std::make_shared<TestObserver>();
+    auto status = kvStore_->SubscribeKvStore(SUBSCRIBE_TYPE_ALL, observer);
+    ASSERT_EQ(status, SUCCESS);
+    status = kvStore_->UnSubscribeKvStore(SUBSCRIBE_TYPE_REMOTE, observer);
+    ASSERT_EQ(status, SUCCESS);
+    status = kvStore_->UnSubscribeKvStore(SUBSCRIBE_TYPE_REMOTE, observer);
+    ASSERT_EQ(status, STORE_NOT_SUBSCRIBE);
+    status = kvStore_->UnSubscribeKvStore(SUBSCRIBE_TYPE_LOCAL, observer);
+    ASSERT_EQ(status, SUCCESS);
+    status = kvStore_->UnSubscribeKvStore(SUBSCRIBE_TYPE_LOCAL, observer);
+    ASSERT_EQ(status, STORE_NOT_SUBSCRIBE);
+    status = kvStore_->UnSubscribeKvStore(SUBSCRIBE_TYPE_ALL, observer);
+    ASSERT_EQ(status, STORE_NOT_SUBSCRIBE);
+    status = kvStore_->SubscribeKvStore(SUBSCRIBE_TYPE_LOCAL, observer);
+    ASSERT_EQ(status, SUCCESS);
+    status = kvStore_->UnSubscribeKvStore(SUBSCRIBE_TYPE_ALL, observer);
+    ASSERT_EQ(status, SUCCESS);
+}
+
+/**
+* @tc.name: GetEntries
+* @tc.desc: unsubscribe
+* @tc.type: FUNC
+* @tc.require: I4XVQQ
+* @tc.author: Sven Wang
+*/
+HWTEST_F(SingleStoreImplTest, GetEntries_Prefix, TestSize.Level0)
+{
+    ASSERT_NE(kvStore_, nullptr);
+    std::vector<Entry> entries;
+    auto status = kvStore_->GetEntries({ "" }, entries);
     ASSERT_EQ(status, SUCCESS);
 }
