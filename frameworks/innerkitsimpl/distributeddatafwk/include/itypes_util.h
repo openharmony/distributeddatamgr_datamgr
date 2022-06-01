@@ -115,12 +115,6 @@ template<class T> bool ITypesUtil::Unmarshalling(std::vector<T> &val, MessagePar
         return false;
     }
 
-    size_t readAbleSize = parcel.GetReadableBytes();
-    size_t size = static_cast<size_t>(len);
-    if ((size > readAbleSize) || (size > val.max_size())) {
-        return false;
-    }
-
     val.resize(size);
     if (val.size() < size) {
         return false;
@@ -252,12 +246,6 @@ template<class K, class V> bool ITypesUtil::Unmarshalling(std::map<K, V> &val, M
         return false;
     }
     if (size < 0) {
-        return false;
-    }
-
-    size_t readAbleSize = parcel.GetReadableBytes();
-    size_t len = static_cast<size_t>(size);
-    if ((len * (sizeof(K) + sizeof(V)) > readAbleSize) || len > val.max_size()) {
         return false;
     }
 
