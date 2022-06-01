@@ -661,7 +661,6 @@ napi_status JSUtil::GetValue(napi_env env, napi_value in, DistributedKv::Entry& 
     std::string key;
     status = GetValue(env, propKey, key);
     CHECK_RETURN((status == napi_ok), "no value of key", status);
-    out.key = key;
 
     napi_value propValue = nullptr;
     status = napi_get_named_property(env, in, "value", &propValue);
