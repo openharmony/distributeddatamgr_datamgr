@@ -661,7 +661,6 @@ napi_status JSUtil::GetValue(napi_env env, napi_value in, DistributedKv::Entry& 
     std::string key;
     status = GetValue(env, propKey, key);
     CHECK_RETURN((status == napi_ok), "no value of key", status);
-    out.key = key;
 
     napi_value propValue = nullptr;
     status = napi_get_named_property(env, in, "value", &propValue);
@@ -681,6 +680,7 @@ napi_status JSUtil::GetValue(napi_env env, napi_value in, DistributedKv::Entry& 
     status = GetValue(env, propVValue, value);
     CHECK_RETURN((status == napi_ok), "no value of value.value", status);
 
+    out.key = key;
     out.value = JSUtil::VariantValue2Blob(value);
     if (type != out.value[0]) {
         ZLOGE("unmarch type[%{public}d] to value.type[%{public}d]", (int)type, (int)out.value[0]);
