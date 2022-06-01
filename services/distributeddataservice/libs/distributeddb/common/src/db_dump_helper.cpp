@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 #include "db_dump_helper.h"
-#include "platform_specific.h"
 
 #include <cstdarg>
 #include <cstdio>
@@ -23,7 +22,11 @@ void DBDumpHelper::Dump(int fd, const char *format, ...)
 {
     va_list argList;
     va_start(argList, format);
-    dprintf(fd, format, argList);
+#if defined _WIN32 
+    (void) fd;
+#else
+    vdprintf(fd, format, argList);
+#endif
     va_end(argList);
 }
 } // namespace DistributedDB

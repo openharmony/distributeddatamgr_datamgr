@@ -723,8 +723,8 @@ void SyncTaskContext::Dump(int fd)
         }
         reponseTaskCount = responseTargetQueue_.size();
     }
-    DBDumpHelper::Dump(fd, "\t\ttarget = %s, total sync task count = %zu, auto sync task count = %zu\n,"
-        " response task count = %zu",
+    DBDumpHelper::Dump(fd, "\t\ttarget = %s, total sync task count = %zu, auto sync task count = %zu,"
+        " response task count = %zu\n",
         deviceId_.c_str(), totalSyncTaskCount, autoSyncTaskCount, reponseTaskCount);
 }
 } // namespace DistributedDB
