@@ -62,21 +62,29 @@ HWTEST_F(DistributedataDfxUTTest, Dfx001, TestSize.Level0)
      */
     auto comFault = Reporter::GetInstance()->CommunicationFault();
     EXPECT_NE(nullptr, comFault);
-    struct FaultMsg msg{.faultType = FaultType::SERVICE_FAULT, .moduleName = "comm", .interfaceName = "sendData",
-            .errorType = Fault::CF_CREATE_SESSION};
+    struct CommFaultMsg msg{.userId = "user001", .appId = "myApp", .storeId = "storeTest"};
+    msg.deviceId.push_back("device001");
+    msg.errorCode.push_back(Fault::CF_CREATE_SESSION);
+    msg.deviceId.push_back("device002");
+    msg.errorCode.push_back(Fault::CF_CREATE_SESSION);
+
     auto repStatus = comFault->Report(msg);
     EXPECT_TRUE(repStatus == ReportStatus::SUCCESS);
     /**
     * @tc.steps:step2. check dfx reporter.
     * @tc.expected: step2. Expect report message success.
     */
-    std::string val = FakeHivew::GetString("MODULE_NAME");
+    std::string val = FakeHivew::GetString("ANONYMOUS_UID");
     if (!val.empty()) {
-        EXPECT_STREQ(val.c_str(), string("comm").c_str());
+        EXPECT_STREQ(val.c_str(), string("user001").c_str());
     }
-    auto typeVal = FakeHivew::GetInt("ERROR_TYPE");
-    if (typeVal > 0) {
-        EXPECT_EQ(typeVal, static_cast<int>(Fault::CF_CREATE_SESSION));
+    val = FakeHivew::GetString("APP_ID");
+    if (!val.empty()) {
+        EXPECT_STREQ(val.c_str(), string("myApp").c_str());
+    }
+    val = FakeHivew::GetString("STORE_ID");
+    if (!val.empty()) {
+        EXPECT_STREQ(val.c_str(), string("storeTest").c_str());
     }
     FakeHivew::Clear();
 }

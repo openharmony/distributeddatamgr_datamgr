@@ -24,6 +24,11 @@
 #include "statistic/database_statistic_impl.h"
 #include "statistic/api_performance_statistic_impl.h"
 
+#include "security/permissions_security_impl.h"
+#include "security/sensitive_level_security_impl.h"
+
+#include "behaviour/behaviour_reporter_impl.h"
+
 namespace OHOS {
 namespace DistributedKv {
 Reporter* Reporter::GetInstance()
@@ -32,25 +37,25 @@ Reporter* Reporter::GetInstance()
     return &reporter;
 }
 
-FaultReporter* Reporter::CommunicationFault()
+FaultReporter<CommFaultMsg>* Reporter::CommunicationFault()
 {
     static CommunicationFaultImpl communicationFault;
     return &communicationFault;
 }
 
-FaultReporter* Reporter::DatabaseFault()
+FaultReporter<DBFaultMsg>* Reporter::DatabaseFault()
 {
     static DatabaseFaultImpl databaseFault;
     return &databaseFault;
 }
 
-FaultReporter* Reporter::RuntimeFault()
+FaultReporter<FaultMsg>* Reporter::RuntimeFault()
 {
     static RuntimeFaultImpl runtimeFault;
     return &runtimeFault;
 }
 
-FaultReporter* Reporter::ServiceFault()
+FaultReporter<FaultMsg>* Reporter::ServiceFault()
 {
     static ServiceFaultImpl serviceFault;
     return &serviceFault;
@@ -79,5 +84,24 @@ StatisticReporter<ApiPerformanceStat>* Reporter::ApiPerformanceStatistic()
     static ApiPerformanceStatisticImpl apiPerformanceStat;
     return &apiPerformanceStat;
 }
+
+SecurityReporter<struct SecurityPermissionsMsg>* Reporter::PermissionsSecurity()
+{
+    static PermissionsSecurityImpl permissionsSecurity;
+    return &permissionsSecurity;
+}
+
+SecurityReporter<struct SecuritySensitiveLevelMsg>* Reporter::SensitiveLevelSecurity()
+{
+    static SensitiveLevelSecurityImpl sensitiveLevelSecurity;
+    return &sensitiveLevelSecurity;
+}
+
+BehaviourReporter* Reporter::BehaviourReporter()
+{
+    static BehaviourReporterImpl behaviourReporter;
+    return &behaviourReporter;
+}
+
 } // namespace DistributedKv
 } // namespace OHOS

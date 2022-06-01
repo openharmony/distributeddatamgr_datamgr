@@ -17,9 +17,18 @@
 
 namespace OHOS {
 namespace DistributedKv {
-ReportStatus DatabaseFaultImpl::Report(const FaultMsg &msg)
+ReportStatus DatabaseFaultImpl::Report(const DBFaultMsg &msg)
 {
-    HiViewAdapter::ReportFault(DfxCodeConstant::DATABASE_FAULT, msg);
+    int eventID = DfxCodeConstant::DATABASE_FAULT;
+    if (msg.errorType == Fault::DF_DB_RECOVERY_FAILE) {
+        eventID = DfxCodeConstant::DATABASE_RECOVERY_FAILED;
+    } else if (msg.errorType == Fault::DF_DB_OPEN_FAILE) {
+        eventID = DfxCodeConstant::DATABASE_OPEN_FAILED;
+    } else if (msg.errorType == Fault::DF_DB_REKEY_FAILE) {
+        eventID = DfxCodeConstant::DATABASE_REKEY_FAILED;
+    } else {}
+
+    HiViewAdapter::ReportDBFault(eventID, msg);
     return ReportStatus::SUCCESS;
 }
 } // namespace DistributedKv

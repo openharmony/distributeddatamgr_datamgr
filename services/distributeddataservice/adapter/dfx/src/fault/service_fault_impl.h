@@ -21,7 +21,7 @@
 
 namespace OHOS {
 namespace DistributedKv {
-class ServiceFaultImpl : public FaultReporter {
+class ServiceFaultImpl : public FaultReporter<FaultMsg> {
 public:
     virtual ~ServiceFaultImpl() {}
     ReportStatus Report(const FaultMsg &msg) override;

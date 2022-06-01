@@ -20,7 +20,7 @@
 
 namespace OHOS {
 namespace DistributedKv {
-class RuntimeFaultImpl : public FaultReporter {
+class RuntimeFaultImpl : public FaultReporter<FaultMsg> {
 public:
     virtual ~RuntimeFaultImpl() {}
     ReportStatus Report(const FaultMsg &msg) override;

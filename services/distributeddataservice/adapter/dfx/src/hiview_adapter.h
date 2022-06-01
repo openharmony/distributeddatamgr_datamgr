@@ -38,10 +38,15 @@ class HiViewAdapter {
 public:
     ~HiViewAdapter();
     static void ReportFault(int dfxCode, const FaultMsg &msg);
+    static void ReportDBFault(int dfxCode, const DBFaultMsg &msg);
+    static void ReportCommFault(int dfxCode, const CommFaultMsg &msg);
     static void ReportVisitStatistic(int dfxCode, const VisitStat &stat);
     static void ReportTrafficStatistic(int dfxCode, const TrafficStat &stat);
     static void ReportDatabaseStatistic(int dfxCode, const DbStat &stat);
     static void ReportApiPerformanceStatistic(int dfxCode, const ApiPerformanceStat &stat);
+    static void ReportPermissionsSecurity(int dfxCode, const SecurityPermissionsMsg &msg);
+    static void ReportSensitiveLevelSecurity(int dfxCode, const SecuritySensitiveLevelMsg &msg);
+    static void ReportBehaviour(int dfxCode, const BehaviourMsg &msg);
     static void StartTimerThread();
 
 private:
@@ -71,6 +76,7 @@ private:
     static const inline std::string MODULE_NAME = "MODULE_NAME";
     static const inline std::string INTERFACE_NAME = "INTERFACE_NAME";
     static const inline std::string ERROR_TYPE = "ERROR_TYPE";
+    static const inline std::string SYNC_ERROR_INFO = "SYNC_ERROR_INFO";
 
     // Database statistic
     static const inline std::string USER_ID = "ANONYMOUS_UID";
@@ -90,14 +96,25 @@ private:
     static const inline std::string AVERAGE_TIMES = "AVERAGE_TIME";
     static const inline std::string WORST_TIMES = "WORST_TIME";
     static const inline std::string INTERFACES = "INTERFACES";
+    static const inline std::string TAG = "tag";
+    static const inline std::string POWERSTATS = "PowerStats";
+
+    // security key
+    static const inline std::string SECURITY_INFO = "SECURITY_INFO";
+    static const inline std::string DEVICE_SENSITIVE_LEVEL = "DEVICE_SENSITIVE_LEVEL";
+    static const inline std::string OPTION_SENSITIVE_LEVEL = "OPTION_SENSITIVE_LEVEL";
+
+    // behaviour key
+    static const inline std::string BEHAVIOUR_INFO = "BEHAVIOUR_INFO";
 
 private:
     static std::mutex runMutex_;
     static bool running_;
-    static const inline int EXEC_TIME = 23;
+    static const inline int EXEC_HOUR_TIME = 23;
+    static const inline int EXEC_MIN_TIME = 60;
     static const inline int SIXTY_SEC = 60;
 
-    static const inline int WAIT_TIME = 2 * 60 * 60; // 2 hours
+    static const inline int WAIT_TIME = 1 * 60 * 60; // 1 hours
     static const inline int PERIOD_TIME_US = 1 * 1000 * 1000; // 1 s
 };
 }  // namespace DistributedKv

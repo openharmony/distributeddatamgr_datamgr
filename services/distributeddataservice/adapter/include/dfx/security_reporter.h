@@ -13,19 +13,19 @@
  * limitations under the License.
  */
 
-#ifndef DISTRIBUTEDDATAMGR_COMMUNICATION_FAULT_IMPL_H
-#define DISTRIBUTEDDATAMGR_COMMUNICATION_FAULT_IMPL_H
+#ifndef DISTRIBUTEDDATAMGR_SECURITY_REPORTER_H
+#define DISTRIBUTEDDATAMGR_SECURITY_REPORTER_H
 
-#include "fault_reporter.h"
-#include "hiview_adapter.h"
+#include "dfx_types.h"
 
 namespace OHOS {
 namespace DistributedKv {
-class CommunicationFaultImpl : public FaultReporter<CommFaultMsg> {
+template<typename T>
+class SecurityReporter {
 public:
-    virtual ~CommunicationFaultImpl() {}
-    ReportStatus Report(const struct CommFaultMsg &msg) override;
+    KVSTORE_API virtual ReportStatus Report(const T &securityMsg) = 0;
+    KVSTORE_API virtual ~SecurityReporter() {}
 };
 }  // namespace DistributedKv
 }  // namespace OHOS
-#endif // DISTRIBUTEDDATAMGR_COMMUNICATION_FAULT_IMPL_H
+#endif // DISTRIBUTEDDATAMGR_SECURITY_REPORTER_H

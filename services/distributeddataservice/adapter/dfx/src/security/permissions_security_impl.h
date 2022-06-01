@@ -13,19 +13,20 @@
  * limitations under the License.
  */
 
-#ifndef DISTRIBUTEDDATAMGR_COMMUNICATION_FAULT_IMPL_H
-#define DISTRIBUTEDDATAMGR_COMMUNICATION_FAULT_IMPL_H
+#ifndef DISTRIBUTEDDATAMGR_PERMISSIONS_SECURITY_IMPL_H
+#define DISTRIBUTEDDATAMGR_PERMISSIONS_SECURITY_IMPL_H
 
-#include "fault_reporter.h"
+#include "security_reporter.h"
 #include "hiview_adapter.h"
 
 namespace OHOS {
 namespace DistributedKv {
-class CommunicationFaultImpl : public FaultReporter<CommFaultMsg> {
+class PermissionsSecurityImpl : public SecurityReporter<SecurityPermissionsMsg> {
 public:
-    virtual ~CommunicationFaultImpl() {}
-    ReportStatus Report(const struct CommFaultMsg &msg) override;
+    virtual ~PermissionsSecurityImpl() {}
+    ReportStatus Report(const SecurityPermissionsMsg &msg) override;
 };
 }  // namespace DistributedKv
 }  // namespace OHOS
-#endif // DISTRIBUTEDDATAMGR_COMMUNICATION_FAULT_IMPL_H
+#endif // DISTRIBUTEDDATAMGR_PERMISSIONS_SECURITY_IMPL_H
+

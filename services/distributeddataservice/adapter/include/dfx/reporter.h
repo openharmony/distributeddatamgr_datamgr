@@ -21,21 +21,29 @@
 #include "dfx_types.h"
 #include "statistic_reporter.h"
 #include "fault_reporter.h"
+#include "security_reporter.h"
+#include "behaviour_reporter.h"
 
 namespace OHOS {
 namespace DistributedKv {
 class Reporter {
 public:
     KVSTORE_API static Reporter* GetInstance();
-    KVSTORE_API FaultReporter* ServiceFault();
-    KVSTORE_API FaultReporter* RuntimeFault();
-    KVSTORE_API FaultReporter* DatabaseFault();
-    KVSTORE_API FaultReporter* CommunicationFault();
+    KVSTORE_API FaultReporter<FaultMsg>* ServiceFault();
+    KVSTORE_API FaultReporter<FaultMsg>* RuntimeFault();
+    KVSTORE_API FaultReporter<DBFaultMsg>* DatabaseFault();
+    KVSTORE_API FaultReporter<CommFaultMsg>* CommunicationFault();
 
     KVSTORE_API StatisticReporter<DbStat>* DatabaseStatistic();
     KVSTORE_API StatisticReporter<VisitStat>* VisitStatistic();
     KVSTORE_API StatisticReporter<TrafficStat>* TrafficStatistic();
     KVSTORE_API StatisticReporter<ApiPerformanceStat>* ApiPerformanceStatistic();
+
+    KVSTORE_API SecurityReporter<SecurityPermissionsMsg>* PermissionsSecurity();
+    KVSTORE_API SecurityReporter<SecuritySensitiveLevelMsg>* SensitiveLevelSecurity();
+
+    KVSTORE_API BehaviourReporter* BehaviourReporter();
+
 };
 }  // namespace DistributedKv
 }  // namespace OHOS

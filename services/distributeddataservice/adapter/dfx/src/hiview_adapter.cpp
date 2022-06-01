@@ -55,6 +55,94 @@ void HiViewAdapter::ReportFault(int dfxCode, const FaultMsg &msg)
     }
 }
 
+void HiViewAdapter::ReportDBFault(int dfxCode, const DBFaultMsg &msg)
+{
+    KvStoreTask task([=]() {
+        OHOS::HiviewDFX::HiSysEvent::Write(OHOS::HiviewDFX::HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
+            std::to_string(dfxCode),
+            OHOS::HiviewDFX::HiSysEvent::EventType::FAULT,
+            APP_ID, msg.appId,
+            STORE_ID, msg.storeId,
+            MODULE_NAME, msg.moduleName,
+            ERROR_TYPE, static_cast<int>(msg.errorType));
+    });
+    if (pool_ != nullptr) {
+        pool_->AddTask(std::move(task));
+    }
+}
+
+
+void HiViewAdapter::ReportCommFault(int dfxCode, const CommFaultMsg &msg)
+{
+    KvStoreTask task([=]() {
+        std::string message;
+
+        for (int i = 0; i < msg.deviceId.size(); i++) {
+            message.append("sync to device: ").append(msg.deviceId[i])
+            .append(" error:").append(std::to_string(msg.errorCode[i]));
+        }
+        OHOS::HiviewDFX::HiSysEvent::Write(OHOS::HiviewDFX::HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
+            std::to_string(dfxCode),
+            OHOS::HiviewDFX::HiSysEvent::EventType::FAULT,
+            USER_ID, msg.userId,
+            APP_ID, msg.appId,
+            STORE_ID, msg.storeId,
+            SYNC_ERROR_INFO, message);
+    });
+    if (pool_ != nullptr) {
+        pool_->AddTask(std::move(task));
+    }
+}
+
+void HiViewAdapter::ReportPermissionsSecurity(int dfxCode, const SecurityPermissionsMsg &msg)
+{
+    KvStoreTask task([=]() {
+        OHOS::HiviewDFX::HiSysEvent::Write(OHOS::HiviewDFX::HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
+            std::to_string(dfxCode),
+            OHOS::HiviewDFX::HiSysEvent::EventType::SECURITY,
+            USER_ID, msg.appId,
+            APP_ID, msg.appId,
+            STORE_ID, msg.storeId,
+            DEVICE_ID, msg.deviceId,
+            SECURITY_INFO, static_cast<int>(msg.securityInfo));
+    });
+    if (pool_ != nullptr) {
+        pool_->AddTask(std::move(task));
+    }
+}
+
+void HiViewAdapter::ReportSensitiveLevelSecurity(int dfxCode, const SecuritySensitiveLevelMsg &msg)
+{
+    KvStoreTask task([=]() {
+        OHOS::HiviewDFX::HiSysEvent::Write(OHOS::HiviewDFX::HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
+            std::to_string(dfxCode),
+            OHOS::HiviewDFX::HiSysEvent::EventType::SECURITY,
+            DEVICE_ID, msg.deviceId,
+            DEVICE_SENSITIVE_LEVEL, msg.deviceSensitiveLevel,
+            OPTION_SENSITIVE_LEVEL, msg.optionSensitiveLevel,
+            SECURITY_INFO, static_cast<int>(msg.securityInfo));
+    });
+    if (pool_ != nullptr) {
+        pool_->AddTask(std::move(task));
+    }
+}
+
+void HiViewAdapter::ReportBehaviour(int dfxCode, const BehaviourMsg &msg)
+{
+    KvStoreTask task([=]() {
+        OHOS::HiviewDFX::HiSysEvent::Write(OHOS::HiviewDFX::HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
+            std::to_string(dfxCode),
+            OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR,
+            USER_ID, msg.appId,
+            APP_ID, msg.appId,
+            STORE_ID, msg.storeId,
+            BEHAVIOUR_INFO, static_cast<int>(msg.behaviourType));
+    });
+    if (pool_ != nullptr) {
+        pool_->AddTask(std::move(task));
+    }
+}
+
 void HiViewAdapter::ReportDatabaseStatistic(int dfxCode, const DbStat &stat)
 {
     KvStoreTask task([=]() {
@@ -84,7 +172,7 @@ void HiViewAdapter::ReportDbSize(const StatisticWrap<DbStat> &stat)
 
     OHOS::HiviewDFX::HiSysEvent::Write(OHOS::HiviewDFX::HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
         std::to_string(stat.code),
-        OHOS::HiviewDFX::HiSysEvent::EventType::FAULT,
+        OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC,
         USER_ID, userId, APP_ID, stat.val.appId, STORE_ID, stat.val.storeId, DB_SIZE, dbSize);
 }
 
@@ -144,7 +232,8 @@ void HiViewAdapter::InvokeTraffic()
 
         OHOS::HiviewDFX::HiSysEvent::Write(OHOS::HiviewDFX::HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
             std::to_string(kv.second.code),
-            OHOS::HiviewDFX::HiSysEvent::EventType::FAULT,
+            OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC,
+            TAG, POWERSTATS,
             APP_ID, kv.second.val.appId,
             DEVICE_ID, deviceId,
             SEND_SIZE, kv.second.val.sendSize,
@@ -176,7 +265,8 @@ void HiViewAdapter::InvokeVisit()
     for (auto const &kv : visitStat_) {
         OHOS::HiviewDFX::HiSysEvent::Write(OHOS::HiviewDFX::HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
             std::to_string(kv.second.code),
-            OHOS::HiviewDFX::HiSysEvent::EventType::FAULT,
+            OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC,
+            TAG, POWERSTATS,
             APP_ID, kv.second.val.appId,
             INTERFACE_NAME, kv.second.val.interfaceName,
             TIMES, kv.second.times);
@@ -224,7 +314,7 @@ void HiViewAdapter::InvokeApiPerformance()
     message.append("]");
     OHOS::HiviewDFX::HiSysEvent::Write(OHOS::HiviewDFX::HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
         std::to_string(DfxCodeConstant::API_PERFORMANCE_STATISTIC),
-        OHOS::HiviewDFX::HiSysEvent::EventType::FAULT,
+        OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC,
         INTERFACES, message);
     apiPerformanceStat_.clear();
     ZLOGI("DdsTrace interface: clean");
@@ -249,12 +339,15 @@ void HiViewAdapter::StartTimerThread()
                 continue;
             }
             int currentHour = localTime.tm_hour;
-            if (currentHour < EXEC_TIME) {
-                sleep((EXEC_TIME - currentHour) * SIXTY_SEC * SIXTY_SEC);
-                InvokeDbSize();
+            int currentMin = localTime.tm_min;
+            if ((EXEC_MIN_TIME - currentMin) != EXEC_MIN_TIME) {
+                sleep((EXEC_MIN_TIME - currentMin) * SIXTY_SEC);
                 InvokeTraffic();
                 InvokeVisit();
-                InvokeApiPerformance();
+                if (currentHour == EXEC_HOUR_TIME) {
+                    InvokeDbSize();
+                    InvokeApiPerformance();
+                }
             } else {
                 sleep(WAIT_TIME);
             }

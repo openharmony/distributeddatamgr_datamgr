@@ -21,10 +21,10 @@
 
 namespace OHOS {
 namespace DistributedKv {
-class DatabaseFaultImpl : public FaultReporter {
+class DatabaseFaultImpl : public FaultReporter<DBFaultMsg> {
 public:
     virtual ~DatabaseFaultImpl() {}
-    ReportStatus Report(const FaultMsg &msg) override;
+    ReportStatus Report(const DBFaultMsg &msg) override;
 };
 }  // namespace DistributedKv
 }  // namespace OHOS
