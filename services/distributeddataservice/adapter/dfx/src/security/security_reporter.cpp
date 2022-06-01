@@ -17,6 +17,5 @@
 
 namespace OHOS {
 namespace DistributedKv {
-
 } // namespace DistributedKv
 } // namespace OHOS

@@ -102,6 +102,5 @@ BehaviourReporter* Reporter::BehaviourReporter()
     static BehaviourReporterImpl behaviourReporter;
     return &behaviourReporter;
 }
-
 } // namespace DistributedKv
 } // namespace OHOS

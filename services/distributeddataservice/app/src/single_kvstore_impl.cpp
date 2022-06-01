@@ -120,13 +120,13 @@ Status SingleKvStoreImpl::CheckDbIsCorrupted(DistributedDB::DBStatus status, con
     if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
         ZLOGW("option %{public}s faile, recovery database.", funName);
         bool result = Import(bundleName_);
-        if (result == false){
-            Reporter::GetInstance()->DatabaseFault()->Report({bundleName_, storeId_,
-                "KVDB", Fault::DF_DB_RECOVERY_FAILE});
+        if (!result) {
+            Reporter::GetInstance()->DatabaseFault()->Report(
+                {bundleName_, storeId_, "KVDB", Fault::DF_DB_RECOVERY_FAILE });
             return Status::RECOVER_FAILED;
         } else {
-            Reporter::GetInstance()->BehaviourReporter()->Report({deviceAccountId_, bundleName_,
-                storeId_, BehaviourType::DATABASE_RECOVERY_SUCCESS});
+            Reporter::GetInstance()->BehaviourReporter()->Report(
+                {deviceAccountId_, bundleName_, storeId_, BehaviourType::DATABASE_RECOVERY_SUCCESS });
             return Status::RECOVER_SUCCESS;
         }
     }

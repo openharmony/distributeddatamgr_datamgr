@@ -64,9 +64,9 @@ HWTEST_F(DistributedataDfxUTTest, Dfx001, TestSize.Level0)
     EXPECT_NE(nullptr, comFault);
     struct CommFaultMsg msg{.userId = "user001", .appId = "myApp", .storeId = "storeTest"};
     msg.deviceId.push_back("device001");
-    msg.errorCode.push_back(Fault::CF_CREATE_SESSION);
+    msg.errorCode.push_back(001);
     msg.deviceId.push_back("device002");
-    msg.errorCode.push_back(Fault::CF_CREATE_SESSION);
+    msg.errorCode.push_back(002);
 
     auto repStatus = comFault->Report(msg);
     EXPECT_TRUE(repStatus == ReportStatus::SUCCESS);
@@ -105,9 +105,9 @@ HWTEST_F(DistributedataDfxUTTest, Dfx002, TestSize.Level0)
      */
     auto dbFault = Reporter::GetInstance()->DatabaseFault();
     EXPECT_NE(nullptr, dbFault);
-    struct FaultMsg msg{.faultType = FaultType::SERVICE_FAULT, .moduleName = "database",
-            .interfaceName = "getKvStore",
-            .errorType = Fault::DF_DB_DAMAGE};
+    struct DBFaultMsg msg {.appId = "MyApp", .storeId = "MyDatabase",
+        .moduleName = "database", .errorType = Fault::DF_DB_DAMAGE};
+
     auto repStatus = dbFault->Report(msg);
     /**
      * @tc.steps: step2. check fault reporter.

@@ -56,9 +56,9 @@ HWTEST_F(DistributedataDfxMSTTest, Dfx001, TestSize.Level0)
     EXPECT_NE(nullptr, comFault);
     struct CommFaultMsg msg{.userId = "user001", .appId = "myApp", .storeId = "storeTest"};
     msg.deviceId.push_back("device001");
-    msg.errorCode.push_back(Fault::CF_CREATE_SESSION);
+    msg.errorCode.push_back(001);
     msg.deviceId.push_back("device002");
-    msg.errorCode.push_back(Fault::CF_CREATE_SESSION);
+    msg.errorCode.push_back(002);
 
     auto repStatus = comFault->Report(msg);
     EXPECT_TRUE(repStatus == ReportStatus::SUCCESS);

@@ -33,17 +33,13 @@ public:
     KVSTORE_API FaultReporter<FaultMsg>* RuntimeFault();
     KVSTORE_API FaultReporter<DBFaultMsg>* DatabaseFault();
     KVSTORE_API FaultReporter<CommFaultMsg>* CommunicationFault();
-
     KVSTORE_API StatisticReporter<DbStat>* DatabaseStatistic();
     KVSTORE_API StatisticReporter<VisitStat>* VisitStatistic();
     KVSTORE_API StatisticReporter<TrafficStat>* TrafficStatistic();
     KVSTORE_API StatisticReporter<ApiPerformanceStat>* ApiPerformanceStatistic();
-
     KVSTORE_API SecurityReporter<SecurityPermissionsMsg>* PermissionsSecurity();
     KVSTORE_API SecurityReporter<SecuritySensitiveLevelMsg>* SensitiveLevelSecurity();
-
     KVSTORE_API BehaviourReporter* BehaviourReporter();
-
 };
 }  // namespace DistributedKv
 }  // namespace OHOS

@@ -941,8 +941,8 @@ bool KvStoreDataService::CheckPermissions(const std::string &userId, const std::
         qstatus = instance.QueryKvStoreMetaDataByDeviceIdAndAppId("", appId, metaData); // local device id maybe null
         if (qstatus != Status::SUCCESS) {
             ZLOGW("query appId failed.");
-            Reporter::GetInstance()->PermissionsSecurity()->Report({userId, appId, storeId,
-                deviceId, SecurityInfo::PERMISSIONS_APPID_FAILE});
+            Reporter::GetInstance()->PermissionsSecurity()->Report(
+                {userId, appId, storeId, deviceId, SecurityInfo::PERMISSIONS_APPID_FAILE});
             return false;
         }
     }
@@ -953,8 +953,8 @@ bool KvStoreDataService::CheckPermissions(const std::string &userId, const std::
     Status status = instance.CheckSyncPermission(userId, appId, storeId, flag, deviceId);
     if (status != Status::SUCCESS) {
         ZLOGW("PermissionCheck failed.");
-        Reporter::GetInstance()->PermissionsSecurity()->Report({userId, appId, storeId,
-            deviceId, SecurityInfo::PERMISSIONS_DEVICEID_FAILE});
+        Reporter::GetInstance()->PermissionsSecurity()->Report(
+            {userId, appId, storeId, deviceId, SecurityInfo::PERMISSIONS_DEVICEID_FAILE});
         return false;
     }
 
@@ -964,9 +964,9 @@ bool KvStoreDataService::CheckPermissions(const std::string &userId, const std::
     }
 
     bool ret = PermissionValidator::GetInstance().CheckSyncPermission(metaData.tokenId);
-    if (ret != true) {
-        Reporter::GetInstance()->PermissionsSecurity()->Report({userId, appId, storeId,
-            deviceId, SecurityInfo::PERMISSIONS_TOKENID_FAILE});
+    if (!ret) {
+        Reporter::GetInstance()->PermissionsSecurity()->Report(
+            {userId, appId, storeId, deviceId, SecurityInfo::PERMISSIONS_TOKENID_FAILE});
     }
 
     return ret;
