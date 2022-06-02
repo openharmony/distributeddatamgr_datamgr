@@ -30,7 +30,7 @@ public:
     Status BeforeCreate(const AppId &appId, const StoreId &storeId, const Options &options) override;
     Status AfterCreate(const AppId &appId, const StoreId &storeId, const Options &options,
         const std::vector<uint8_t> &password) override;
-    Status Delete(const AppId &appId, const StoreId &storeId, const std::string &path) override;
+    Status Delete(const AppId &appId, const StoreId &storeId) override;
     Status Sync(const AppId &appId, const StoreId &storeId, const SyncInfo &syncInfo) override;
     Status RegisterSyncCallback(
         const AppId &appId, const StoreId &storeId, sptr<IKvStoreSyncCallback> callback) override;
@@ -47,12 +47,6 @@ public:
         const std::string &query) override;
     Status Subscribe(const AppId &appId, const StoreId &storeId, sptr<IKvStoreObserver> observer) override;
     Status Unsubscribe(const AppId &appId, const StoreId &storeId, sptr<IKvStoreObserver> observer) override;
-
-    std::shared_ptr<SingleKvStore> GetKVStore(
-        const AppId &appId, const StoreId &storeId, const Options &options, const std::string &path, Status &status);
-    Status CloseKVStore(const AppId &appId, const StoreId &storeId);
-    Status CloseKVStore(const AppId &appId, std::shared_ptr<SingleKVStore> &kvStore);
-    Status CloseAllKVStore(const AppId &appId);
 
 private:
     explicit KVDBServiceClient(const sptr<IRemoteObject> &object);

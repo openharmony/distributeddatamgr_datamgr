@@ -411,7 +411,7 @@ Status SingleStoreImpl::GetCount(const DataQuery &query, int &result) const
     return status;
 }
 
-Status SingleStoreImpl::GetSecurityLevel(SecurityLevel &securityLevel) const
+Status SingleStoreImpl::GetSecurityLevel(SecurityLevel &secLevel) const
 {
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     std::shared_lock<decltype(rwMutex_)> lock(rwMutex_);
@@ -422,6 +422,7 @@ Status SingleStoreImpl::GetSecurityLevel(SecurityLevel &securityLevel) const
 
     DistributedDB::SecurityOption option;
     auto dbStatus = dbStore_->GetSecurityOption(option);
+    secLevel = static_cast<SecurityLevel>(StoreUtil::GetSecLevel(option));
     auto status = StoreUtil::ConvertStatus(dbStatus);
     if (status != SUCCESS) {
         ZLOGE("status:0x%{public}x, security:[%{public}d, %{public}d]", status, option.securityFlag,
@@ -490,55 +491,79 @@ Status SingleStoreImpl::UnRegisterSyncCallback()
 Status SingleStoreImpl::SetSyncParam(const KvSyncParam &syncParam)
 {
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
-    return KVDBServiceClient::GetInstance()->SetSyncParam({ appId_ }, { storeId_ }, syncParam);
+    auto service = KVDBServiceClient::GetInstance();
+    if (service == nullptr) {
+        return SERVER_UNAVAILABLE;
+    }
+    return service->SetSyncParam({ appId_ }, { storeId_ }, syncParam);
 }
 
 Status SingleStoreImpl::GetSyncParam(KvSyncParam &syncParam)
 {
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
-    return KVDBServiceClient::GetInstance()->GetSyncParam({ appId_ }, { storeId_ }, syncParam);
+    auto service = KVDBServiceClient::GetInstance();
+    if (service == nullptr) {
+        return SERVER_UNAVAILABLE;
+    }
+    return service->GetSyncParam({ appId_ }, { storeId_ }, syncParam);
 }
 
 Status SingleStoreImpl::SetCapabilityEnabled(bool enabled) const
 {
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
-    if (enabled) {
-        return KVDBServiceClient::GetInstance()->EnableCapability({ appId_ }, { storeId_ });
+    auto service = KVDBServiceClient::GetInstance();
+    if (service == nullptr) {
+        return SERVER_UNAVAILABLE;
     }
-    return KVDBServiceClient::GetInstance()->DisableCapability({ appId_ }, { storeId_ });
+    if (enabled) {
+        return service->EnableCapability({ appId_ }, { storeId_ });
+    }
+    return service->DisableCapability({ appId_ }, { storeId_ });
 }
 
 Status SingleStoreImpl::SetCapabilityRange(
     const std::vector<std::string> &localLabels, const std::vector<std::string> &remoteLabels) const
 {
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
-    return KVDBServiceClient::GetInstance()->SetCapability({ appId_ }, { storeId_ }, localLabels, remoteLabels);
+    auto service = KVDBServiceClient::GetInstance();
+    if (service == nullptr) {
+        return SERVER_UNAVAILABLE;
+    }
+    return service->SetCapability({ appId_ }, { storeId_ }, localLabels, remoteLabels);
 }
 
 Status SingleStoreImpl::SubscribeWithQuery(const std::vector<std::string> &devices, const DataQuery &query)
 {
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
-    return KVDBServiceClient::GetInstance()->AddSubscribeInfo({ appId_ }, { storeId_ }, devices, query.ToString());
+    auto service = KVDBServiceClient::GetInstance();
+    if (service == nullptr) {
+        return SERVER_UNAVAILABLE;
+    }
+    return service->AddSubscribeInfo({ appId_ }, { storeId_ }, devices, query.ToString());
 }
 
 Status SingleStoreImpl::UnsubscribeWithQuery(const std::vector<std::string> &devices, const DataQuery &query)
 {
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
-    return KVDBServiceClient::GetInstance()->RmvSubscribeInfo({ appId_ }, { storeId_ }, devices, query.ToString());
+    auto service = KVDBServiceClient::GetInstance();
+    if (service == nullptr) {
+        return SERVER_UNAVAILABLE;
+    }
+    return service->RmvSubscribeInfo({ appId_ }, { storeId_ }, devices, query.ToString());
 }
 
 Status SingleStoreImpl::Close()
 {
     observers_.Clear();
     syncObserver_->Clean();
-    bool isFirstClose;
+    std::shared_ptr<KVDBServiceClient> service;
     {
         std::lock_guard<decltype(mutex_)> lock(mutex_);
-        isFirstClose = syncCallback_ != nullptr;
+        service = (syncCallback_ != nullptr) ? KVDBServiceClient::GetInstance() : nullptr;
         syncCallback_ = nullptr;
     }
-    if (isFirstClose) {
-        KVDBServiceClient::GetInstance()->UnregisterSyncCallback({ appId_ }, { storeId_ });
+    if (service != nullptr) {
+        service->UnregisterSyncCallback({ appId_ }, { storeId_ });
     }
     std::unique_lock<decltype(rwMutex_)> lock(rwMutex_);
     dbStore_ = nullptr;
@@ -617,7 +642,7 @@ Status SingleStoreImpl::GetEntries(const DistributedDB::Query &query, std::vecto
     entries.resize(dbEntries.size());
     auto it = entries.begin();
     for (auto &dbEntry : dbEntries) {
-        auto &entry = *it;
+        auto &entry = *it++;
         entry.key = ConvertKey(std::move(dbEntry.key));
         entry.value = std::move(dbEntry.value);
     }

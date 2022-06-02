@@ -36,6 +36,8 @@ private:
     using DBStore = DistributedDB::KvStoreNbDelegate;
     using DBPassword = DistributedDB::CipherPassword;
 
+    StoreFactory();
+
     std::shared_ptr<DBManager> GetDBManager(const std::string &path, const AppId &appId);
     DBOption GetDBOption(const Options &options, const DBPassword &password) const;
     ConcurrentMap<std::string, std::shared_ptr<DBManager>> dbManagers_;

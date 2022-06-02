@@ -44,7 +44,7 @@ Status KVDBServiceImpl::GetStoreIds(const AppId &appId, std::vector<StoreId> &st
     return SUCCESS;
 }
 
-Status KVDBServiceImpl::Delete(const AppId &appId, const StoreId &storeId, const std::string &path)
+Status KVDBServiceImpl::Delete(const AppId &appId, const StoreId &storeId)
 {
     return NOT_SUPPORT;
 }

@@ -35,8 +35,13 @@ Status ObserverBridge::RegisterRemoteObserver()
         return SUCCESS;
     }
 
+    auto service = KVDBServiceClient::GetInstance();
+    if (service == nullptr) {
+        return SERVER_UNAVAILABLE;
+    }
+
     remote_ = new (std::nothrow) KvStoreObserverClient(observer_);
-    return KVDBServiceClient::GetInstance()->Subscribe(appId_, storeId_, remote_);
+    return service->Subscribe(appId_, storeId_, remote_);
 }
 
 Status ObserverBridge::UnregisterRemoteObserver()
@@ -44,8 +49,12 @@ Status ObserverBridge::UnregisterRemoteObserver()
     if (remote_ == nullptr) {
         return SUCCESS;
     }
+    auto service = KVDBServiceClient::GetInstance();
+    if (service == nullptr) {
+        return SERVER_UNAVAILABLE;
+    }
 
-    auto status = KVDBServiceClient::GetInstance()->Unsubscribe(appId_, storeId_, remote_);
+    auto status = service->Unsubscribe(appId_, storeId_, remote_);
     remote_ = nullptr;
     return status;
 }

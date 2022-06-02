@@ -114,12 +114,7 @@ int32_t KVDBServiceStub::OnAfterCreate(
 
 int32_t KVDBServiceStub::OnDelete(const AppId &appId, const StoreId &storeId, MessageParcel &data, MessageParcel &reply)
 {
-    std::string path;
-    if (!ITypesUtil::Unmarshal(data, path)) {
-        ZLOGE("Unmarshal appId:%{public}s storeId:%{public}s", appId.appId.c_str(), storeId.storeId.c_str());
-        return IPC_STUB_INVALID_DATA_ERR;
-    }
-    int32_t status = Delete(appId, storeId, path);
+    int32_t status = Delete(appId, storeId);
     if (!ITypesUtil::Marshal(reply, status)) {
         ZLOGE("Marshal status:0x%{public}x appId:%{public}s storeId:%{public}s", status, appId.appId.c_str(),
             storeId.storeId.c_str());

@@ -129,15 +129,15 @@ Status KVDBServiceClient::AfterCreate(
     return static_cast<Status>(status);
 }
 
-Status KVDBServiceClient::Delete(const AppId &appId, const StoreId &storeId, const std::string &path)
+Status KVDBServiceClient::Delete(const AppId &appId, const StoreId &storeId)
 {
     MessageParcel reply;
-    int32_t status = IPC_SEND(TRANS_DELETE, reply, appId, storeId, path);
+    int32_t status = IPC_SEND(TRANS_DELETE, reply, appId, storeId);
     if (status != SUCCESS) {
         ZLOGE("status:0x%{public}x appId:%{public}s, storeId:%{public}s", status, appId.appId.c_str(),
             storeId.storeId.c_str());
     }
-    return StoreFactory::GetInstance().Delete(appId, storeId, path);
+    return static_cast<Status>(status);
 }
 
 Status KVDBServiceClient::Sync(const AppId &appId, const StoreId &storeId, const SyncInfo &syncInfo)
@@ -277,38 +277,5 @@ Status KVDBServiceClient::Unsubscribe(const AppId &appId, const StoreId &storeId
             appId.appId.c_str(), storeId.storeId.c_str(), StoreUtil::Anonymous(observer.GetRefPtr()));
     }
     return static_cast<Status>(status);
-}
-
-std::shared_ptr<SingleKvStore> KVDBServiceClient::GetKVStore(
-    const AppId &appId, const StoreId &storeId, const Options &options, const std::string &path, Status &status)
-{
-    bool isExits = StoreFactory::GetInstance().IsExits(appId, storeId);
-    if (isExits) {
-        return StoreFactory::GetInstance().Create(appId, storeId, options, path, status);
-    }
-    BeforeCreate(appId, storeId, options);
-    auto kvStore = StoreFactory::GetInstance().Create(appId, storeId, options, path, status);
-    auto password = SecurityManager::GetInstance().GetDBPassword(appId, storeId, path);
-    std::vector<uint8_t> pwd(password.GetData(), password.GetData() + password.GetSize());
-    AfterCreate(appId, storeId, options, pwd);
-    pwd.assign(pwd.size(), 0);
-    return kvStore;
-}
-
-Status KVDBServiceClient::CloseKVStore(const AppId &appId, const StoreId &storeId)
-{
-    return StoreFactory::GetInstance().Close(appId, storeId);
-}
-
-Status KVDBServiceClient::CloseKVStore(const AppId &appId, std::shared_ptr<SingleKVStore> &kvStore)
-{
-    auto status = StoreFactory::GetInstance().Close(appId, { kvStore->GetStoreId() });
-    kvStore = nullptr;
-    return status;
-}
-
-Status KVDBServiceClient::CloseAllKVStore(const AppId &appId)
-{
-    return StoreFactory::GetInstance().Close(appId, { "" });
 }
 } // namespace OHOS::DistributedKv

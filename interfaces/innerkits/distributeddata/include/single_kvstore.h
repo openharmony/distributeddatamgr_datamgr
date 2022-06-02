@@ -96,7 +96,7 @@ public:
     //     Status of this remove operation.
     virtual Status RemoveDeviceData(const std::string &device) = 0;
 
-    virtual Status GetSecurityLevel(SecurityLevel &securityLevel) const = 0;
+    virtual Status GetSecurityLevel(SecurityLevel &secLevel) const = 0;
 
     // Sync store with other devices. This is an asynchronous method,
     // sync will fail if there is a syncing operation in progress.

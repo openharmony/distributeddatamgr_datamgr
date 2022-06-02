@@ -455,10 +455,10 @@ Status SingleKvStoreClient::SetCapabilityRange(const std::vector<std::string> &l
     return Status::SERVER_UNAVAILABLE;
 }
 
-Status SingleKvStoreClient::GetSecurityLevel(SecurityLevel &securityLevel) const
+Status SingleKvStoreClient::GetSecurityLevel(SecurityLevel &secLevel) const
 {
     if (kvStoreProxy_ != nullptr) {
-        return kvStoreProxy_->GetSecurityLevel(securityLevel);
+        return kvStoreProxy_->GetSecurityLevel(secLevel);
     }
     ZLOGE("singleKvstore proxy is nullptr.");
     return Status::SERVER_UNAVAILABLE;

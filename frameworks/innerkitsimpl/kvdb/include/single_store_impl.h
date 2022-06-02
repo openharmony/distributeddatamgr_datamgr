@@ -51,7 +51,7 @@ public:
     Status GetResultSet(const DataQuery &query, std::shared_ptr<ResultSet> &resultSet) const override;
     Status CloseResultSet(std::shared_ptr<ResultSet> &resultSet) override;
     Status GetCount(const DataQuery &query, int &count) const override;
-    Status GetSecurityLevel(SecurityLevel &securityLevel) const override;
+    Status GetSecurityLevel(SecurityLevel &secLevel) const override;
     Status RemoveDeviceData(const std::string &device) override;
     Status Close();
 

@@ -17,7 +17,8 @@
 #include <condition_variable>
 #include <vector>
 
-#include "kvdb_service_client.h"
+#include "dev_manager.h"
+#include "store_manager.h"
 #include "types.h"
 using namespace testing::ext;
 using namespace OHOS::DistributedKv;
@@ -83,8 +84,8 @@ void SingleStoreImplTest::SetUp(void)
     AppId appId = { "LocalSingleKVStore" };
     StoreId storeId = { "LocalSingleKVStore" };
     std::string path = "";
-    Status status = KVDBServiceClient::GetInstance()->Delete(appId, storeId, path);
-    kvStore_ = KVDBServiceClient::GetInstance()->GetKVStore(appId, storeId, options, path, status);
+    Status status = StoreManager::GetInstance().Delete(appId, storeId, path);
+    kvStore_ = StoreManager::GetInstance().GetKVStore(appId, storeId, options, path, status);
     ASSERT_EQ(status, SUCCESS);
 }
 
@@ -93,7 +94,7 @@ void SingleStoreImplTest::TearDown(void)
     AppId appId = { "LocalSingleKVStore" };
     StoreId storeId = { "LocalSingleKVStore" };
     std::string path = "";
-    Status status = KVDBServiceClient::GetInstance()->Delete(appId, storeId, path);
+    Status status = StoreManager::GetInstance().Delete(appId, storeId, path);
     ASSERT_EQ(status, SUCCESS);
 }
 
@@ -305,7 +306,7 @@ HWTEST_F(SingleStoreImplTest, UnsubscribeKvStore, TestSize.Level0)
 
 /**
 * @tc.name: GetEntries
-* @tc.desc: unsubscribe
+* @tc.desc: get entries by prefix
 * @tc.type: FUNC
 * @tc.require: I4XVQQ
 * @tc.author: Sven Wang
@@ -313,7 +314,263 @@ HWTEST_F(SingleStoreImplTest, UnsubscribeKvStore, TestSize.Level0)
 HWTEST_F(SingleStoreImplTest, GetEntries_Prefix, TestSize.Level0)
 {
     ASSERT_NE(kvStore_, nullptr);
-    std::vector<Entry> entries;
-    auto status = kvStore_->GetEntries({ "" }, entries);
+    std::vector<Entry> input;
+    for (int i = 0; i < 10; ++i) {
+        Entry entry;
+        entry.key = std::to_string(i).append("_k");
+        entry.value = std::to_string(i).append("_v");
+        input.push_back(entry);
+    }
+    auto status = kvStore_->PutBatch(input);
     ASSERT_EQ(status, SUCCESS);
+    std::vector<Entry> output;
+    status = kvStore_->GetEntries({ "" }, output);
+    ASSERT_EQ(status, SUCCESS);
+    std::sort(output.begin(), output.end(),
+        [](const Entry &entry, const Entry &sentry) { return entry.key.Data() < sentry.key.Data(); });
+    for (int i = 0; i < 10; ++i) {
+        ASSERT_TRUE(input[i].key == output[i].key);
+        ASSERT_TRUE(input[i].value == output[i].value);
+    }
+}
+
+/**
+* @tc.name: GetEntries
+* @tc.desc: get entries by query
+* @tc.type: FUNC
+* @tc.require: I4XVQQ
+* @tc.author: Sven Wang
+*/
+HWTEST_F(SingleStoreImplTest, GetEntries_DataQuery, TestSize.Level0)
+{
+    ASSERT_NE(kvStore_, nullptr);
+    std::vector<Entry> input;
+    for (int i = 0; i < 10; ++i) {
+        Entry entry;
+        entry.key = std::to_string(i).append("_k");
+        entry.value = std::to_string(i).append("_v");
+        input.push_back(entry);
+    }
+    auto status = kvStore_->PutBatch(input);
+    ASSERT_EQ(status, SUCCESS);
+    DataQuery query;
+    query.InKeys({"0_k", "1_k"});
+    std::vector<Entry> output;
+    status = kvStore_->GetEntries(query, output);
+    ASSERT_EQ(status, SUCCESS);
+    std::sort(output.begin(), output.end(),
+        [](const Entry &entry, const Entry &sentry) { return entry.key.Data() < sentry.key.Data(); });
+    ASSERT_LE(output.size(), 2);
+    for (size_t i = 0; i < output.size(); ++i) {
+        ASSERT_TRUE(input[i].key == output[i].key);
+        ASSERT_TRUE(input[i].value == output[i].value);
+    }
+}
+
+/**
+* @tc.name: GetResultSet
+* @tc.desc: get result set by prefix
+* @tc.type: FUNC
+* @tc.require: I4XVQQ
+* @tc.author: Sven Wang
+*/
+HWTEST_F(SingleStoreImplTest, GetResultSet_Prefix, TestSize.Level0)
+{
+    ASSERT_NE(kvStore_, nullptr);
+    std::vector<Entry> input;
+    auto cmp = [](const Key &entry, const Key &sentry) { return entry.Data() < sentry.Data(); };
+    std::map<Key, Value, decltype(cmp)> dictionary(cmp);
+    for (int i = 0; i < 10; ++i) {
+        Entry entry;
+        entry.key = std::to_string(i).append("_k");
+        entry.value = std::to_string(i).append("_v");
+        dictionary[entry.key] = entry.value;
+        input.push_back(entry);
+    }
+    auto status = kvStore_->PutBatch(input);
+    ASSERT_EQ(status, SUCCESS);
+    std::shared_ptr<KvStoreResultSet> output;
+    status = kvStore_->GetResultSet({ "" }, output);
+    ASSERT_EQ(status, SUCCESS);
+    ASSERT_NE(output, nullptr);
+    ASSERT_EQ(output->GetCount(), 10);
+    int count = 0;
+    while (output->MoveToNext()) {
+        count++;
+        Entry entry;
+        output->GetEntry(entry);
+        ASSERT_EQ(entry.value.Data(), dictionary[entry.key].Data());
+    }
+    ASSERT_EQ(count, output->GetCount());
+}
+
+/**
+* @tc.name: GetResultSet
+* @tc.desc: get result set by query
+* @tc.type: FUNC
+* @tc.require: I4XVQQ
+* @tc.author: Sven Wang
+*/
+HWTEST_F(SingleStoreImplTest, GetResultSet_Query, TestSize.Level0)
+{
+    ASSERT_NE(kvStore_, nullptr);
+    std::vector<Entry> input;
+    auto cmp = [](const Key &entry, const Key &sentry) { return entry.Data() < sentry.Data(); };
+    std::map<Key, Value, decltype(cmp)> dictionary(cmp);
+    for (int i = 0; i < 10; ++i) {
+        Entry entry;
+        entry.key = std::to_string(i).append("_k");
+        entry.value = std::to_string(i).append("_v");
+        dictionary[entry.key] = entry.value;
+        input.push_back(entry);
+    }
+    auto status = kvStore_->PutBatch(input);
+    ASSERT_EQ(status, SUCCESS);
+    DataQuery query;
+    query.InKeys({"0_k", "1_k"});
+    std::shared_ptr<KvStoreResultSet> output;
+    status = kvStore_->GetResultSet(query, output);
+    ASSERT_EQ(status, SUCCESS);
+    ASSERT_NE(output, nullptr);
+    ASSERT_LE(output->GetCount(), 2);
+    int count = 0;
+    while (output->MoveToNext()) {
+        count++;
+        Entry entry;
+        output->GetEntry(entry);
+        ASSERT_EQ(entry.value.Data(), dictionary[entry.key].Data());
+    }
+    ASSERT_EQ(count, output->GetCount());
+}
+
+/**
+* @tc.name: CloseResultSet
+* @tc.desc: close the result set
+* @tc.type: FUNC
+* @tc.require: I4XVQQ
+* @tc.author: Sven Wang
+*/
+HWTEST_F(SingleStoreImplTest, CloseResultSet, TestSize.Level0)
+{
+    ASSERT_NE(kvStore_, nullptr);
+    std::vector<Entry> input;
+    auto cmp = [](const Key &entry, const Key &sentry) { return entry.Data() < sentry.Data(); };
+    std::map<Key, Value, decltype(cmp)> dictionary(cmp);
+    for (int i = 0; i < 10; ++i) {
+        Entry entry;
+        entry.key = std::to_string(i).append("_k");
+        entry.value = std::to_string(i).append("_v");
+        dictionary[entry.key] = entry.value;
+        input.push_back(entry);
+    }
+    auto status = kvStore_->PutBatch(input);
+    ASSERT_EQ(status, SUCCESS);
+    DataQuery query;
+    query.InKeys({"0_k", "1_k"});
+    std::shared_ptr<KvStoreResultSet> output;
+    status = kvStore_->GetResultSet(query, output);
+    ASSERT_EQ(status, SUCCESS);
+    ASSERT_NE(output, nullptr);
+    ASSERT_LE(output->GetCount(), 2);
+    auto outputTmp = output;
+    status = kvStore_->CloseResultSet(output);
+    ASSERT_EQ(status, SUCCESS);
+    ASSERT_EQ(output, nullptr);
+    ASSERT_EQ(outputTmp->GetCount(), KvStoreResultSet::INVALID_COUNT);
+    ASSERT_EQ(outputTmp->GetPosition(), KvStoreResultSet::INVALID_POSITION);
+    ASSERT_EQ(outputTmp->MoveToFirst(), false);
+    ASSERT_EQ(outputTmp->MoveToLast(), false);
+    ASSERT_EQ(outputTmp->MoveToNext(), false);
+    ASSERT_EQ(outputTmp->MoveToPrevious(), false);
+    ASSERT_EQ(outputTmp->Move(1), false);
+    ASSERT_EQ(outputTmp->MoveToPosition(1), false);
+    ASSERT_EQ(outputTmp->IsFirst(), false);
+    ASSERT_EQ(outputTmp->IsLast(), false);
+    ASSERT_EQ(outputTmp->IsBeforeFirst(), false);
+    ASSERT_EQ(outputTmp->IsAfterLast(), false);
+    Entry entry;
+    ASSERT_EQ(outputTmp->GetEntry(entry), ALREADY_CLOSED);
+}
+
+/**
+* @tc.name: GetCount
+* @tc.desc: close the result set
+* @tc.type: FUNC
+* @tc.require: I4XVQQ
+* @tc.author: Sven Wang
+*/
+HWTEST_F(SingleStoreImplTest, GetCount, TestSize.Level0)
+{
+    ASSERT_NE(kvStore_, nullptr);
+    std::vector<Entry> input;
+    auto cmp = [](const Key &entry, const Key &sentry) { return entry.Data() < sentry.Data(); };
+    std::map<Key, Value, decltype(cmp)> dictionary(cmp);
+    for (int i = 0; i < 10; ++i) {
+        Entry entry;
+        entry.key = std::to_string(i).append("_k");
+        entry.value = std::to_string(i).append("_v");
+        dictionary[entry.key] = entry.value;
+        input.push_back(entry);
+    }
+    auto status = kvStore_->PutBatch(input);
+    ASSERT_EQ(status, SUCCESS);
+    DataQuery query;
+    query.InKeys({"0_k", "1_k"});
+    int count = 0;
+    status = kvStore_->GetCount(query, count);
+    ASSERT_EQ(status, SUCCESS);
+    ASSERT_EQ(count, 2);
+    query.Reset();
+    status = kvStore_->GetCount(query, count);
+    ASSERT_EQ(status, SUCCESS);
+    ASSERT_EQ(count, 10);
+}
+
+/**
+* @tc.name: RemoveDeviceData
+* @tc.desc: remove local device data
+* @tc.type: FUNC
+* @tc.require: I4XVQQ
+* @tc.author: Sven Wang
+*/
+HWTEST_F(SingleStoreImplTest, RemoveDeviceData, TestSize.Level0)
+{
+    ASSERT_NE(kvStore_, nullptr);
+    std::vector<Entry> input;
+    auto cmp = [](const Key &entry, const Key &sentry) { return entry.Data() < sentry.Data(); };
+    std::map<Key, Value, decltype(cmp)> dictionary(cmp);
+    for (int i = 0; i < 10; ++i) {
+        Entry entry;
+        entry.key = std::to_string(i).append("_k");
+        entry.value = std::to_string(i).append("_v");
+        dictionary[entry.key] = entry.value;
+        input.push_back(entry);
+    }
+    auto status = kvStore_->PutBatch(input);
+    ASSERT_EQ(status, SUCCESS);
+    int count = 0;
+    status = kvStore_->GetCount({}, count);
+    ASSERT_EQ(status, SUCCESS);
+    ASSERT_EQ(count, 10);
+    status = kvStore_->RemoveDeviceData(DevManager::GetInstance().GetLocalDevice().deviceId);
+    ASSERT_EQ(status, SUCCESS);
+    status = kvStore_->GetCount({}, count);
+    ASSERT_EQ(status, SUCCESS);
+    ASSERT_EQ(count, 0);
+}
+
+/**
+* @tc.name: RemoveDeviceData
+* @tc.desc: remove local device data
+* @tc.type: FUNC
+* @tc.require: I4XVQQ
+* @tc.author: Sven Wang
+*/
+HWTEST_F(SingleStoreImplTest, GetSecurityLevel, TestSize.Level0)
+{
+    ASSERT_NE(kvStore_, nullptr);
+    SecurityLevel securityLevel = NO_LABEL;
+    auto status = kvStore_->GetSecurityLevel(securityLevel);
+    ASSERT_EQ(status, SUCCESS);
+    ASSERT_EQ(securityLevel, S1);
 }
