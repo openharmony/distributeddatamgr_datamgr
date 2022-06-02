@@ -18,8 +18,8 @@
 #include "db_dfx_adapter.h"
 #include "log_print.h"
 #include "multi_ver_sync_state_machine.h"
-#include "multi_ver_sync_task_context.h"
 #include "multi_ver_sync_target.h"
+#include "multi_ver_sync_task_context.h"
 
 namespace DistributedDB {
 DEFINE_OBJECT_TAG_FACILITIES(MultiVerSyncTaskContext)

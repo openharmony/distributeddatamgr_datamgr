@@ -560,7 +560,7 @@ int AutoLaunch::OpenOneConnection(AutoLaunchItem &autoLaunchItem)
         std::string userId = autoLaunchItem.propertiesPtr->GetStringProp(DBProperties::USER_ID, "");
         std::string appId = autoLaunchItem.propertiesPtr->GetStringProp(DBProperties::APP_ID, "");
         std::string storeId = autoLaunchItem.propertiesPtr->GetStringProp(DBProperties::STORE_ID, "");
-        DBDfxAdapter::ReportFault({DBDfxAdapter::EVENT_OPEN_DATABASE_FAILED, userId, appId, storeId, errCode});
+        DBDfxAdapter::ReportFault( { DBDfxAdapter::EVENT_OPEN_DATABASE_FAILED, userId, appId, storeId, errCode } );
     }
     return errCode;
 }
