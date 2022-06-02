@@ -40,6 +40,7 @@ std::shared_ptr<SingleKvStore> StoreFactory::Create(
     std::shared_ptr<SingleStoreImpl> kvStore;
     stores_.Compute(appId, [&](auto &, auto &stores) {
         if (stores.find(storeId) != stores.end()) {
+            kvStore = stores[storeId];
             return !stores.empty();
         }
         auto dbManager = GetDBManager(path, appId);

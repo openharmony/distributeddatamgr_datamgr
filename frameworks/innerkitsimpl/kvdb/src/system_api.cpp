@@ -45,7 +45,7 @@ bool SystemApi::IsAccessControlled() const
 
 SystemApi::DBStatus SystemApi::SetSecurityOption(const std::string &filePath, const DBOption &option)
 {
-    if (filePath.empty() || Label::NOT_SET < option.securityLabel || option.securityLabel > Label::S4) {
+    if (filePath.empty() || option.securityLabel < Label::NOT_SET || option.securityLabel > Label::S4) {
         return DBStatus::INVALID_ARGS;
     }
 
