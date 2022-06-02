@@ -257,7 +257,7 @@ template<class K, class V> bool ITypesUtil::Unmarshalling(std::map<K, V> &val, M
 
     size_t readAbleSize = parcel.GetReadableBytes();
     size_t len = static_cast<size_t>(size);
-    if ((len * (sizeof(K) + sizeof(V)) > readAbleSize) || len > val.max_size()) {
+    if ((len > readAbleSize) || len > val.max_size()) {
         return false;
     }
 

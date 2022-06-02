@@ -33,7 +33,6 @@ config("distributeddatafwk_config") {
     "../../../frameworks/innerkitsimpl/kvdb/src",
     "//utils/system/safwk/native/include",
     "//utils/native/base/include",
-    "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/app_distributeddata/include",
     "//foundation/distributeddatamgr/appdatamgr/interfaces/inner_api/native/data_share/provider/include",
     "//foundation/distributeddatamgr/appdatamgr/interfaces/inner_api/native/data_share/common/include",
     "//foundation/distributeddatamgr/appdatamgr/frameworks/native/data_share/common/include",
