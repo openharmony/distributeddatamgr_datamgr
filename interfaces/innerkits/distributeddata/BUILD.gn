@@ -36,6 +36,7 @@ config("distributeddatafwk_config") {
     "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/app_distributeddata/include",
     "//foundation/distributeddatamgr/appdatamgr/interfaces/inner_api/native/data_share/provider/include",
     "//foundation/distributeddatamgr/appdatamgr/interfaces/inner_api/native/data_share/common/include",
+    "//foundation/distributeddatamgr/distributedfile/interfaces/kits/js/src/mod_securitylabel",
   ]
 }
 
@@ -113,6 +114,7 @@ ohos_shared_library("distributeddata_inner") {
     "//utils/native/base:utils",
   ]
   external_deps = [
+    "dataclassification:data_transit_mgr",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "samgr_standard:samgr_proxy",
