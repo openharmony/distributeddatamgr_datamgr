@@ -15,6 +15,7 @@
 
 #define LOG_TAG "KvStoreResultsetImpl"
 
+#include "dds_trace.h"
 #include "kvstore_resultset_impl.h"
 #include <utility>
 #include "log_print.h"
@@ -50,6 +51,7 @@ int KvStoreResultSetImpl::GetPosition()
 
 bool KvStoreResultSetImpl::MoveToFirst()
 {
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     std::shared_lock<std::shared_mutex> lock(this->mutex_);
     if (kvStoreResultSet_ == nullptr) {
         return false;
@@ -59,6 +61,7 @@ bool KvStoreResultSetImpl::MoveToFirst()
 
 bool KvStoreResultSetImpl::MoveToLast()
 {
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     std::shared_lock<std::shared_mutex> lock(this->mutex_);
     if (kvStoreResultSet_ == nullptr) {
         return false;
@@ -68,6 +71,7 @@ bool KvStoreResultSetImpl::MoveToLast()
 
 bool KvStoreResultSetImpl::MoveToNext()
 {
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     std::shared_lock<std::shared_mutex> lock(this->mutex_);
     if (kvStoreResultSet_ == nullptr) {
         return false;
@@ -77,6 +81,7 @@ bool KvStoreResultSetImpl::MoveToNext()
 
 bool KvStoreResultSetImpl::MoveToPrevious()
 {
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     std::shared_lock<std::shared_mutex> lock(this->mutex_);
     if (kvStoreResultSet_ == nullptr) {
         return false;
@@ -86,6 +91,7 @@ bool KvStoreResultSetImpl::MoveToPrevious()
 
 bool KvStoreResultSetImpl::Move(int offset)
 {
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     std::shared_lock<std::shared_mutex> lock(this->mutex_);
     if (kvStoreResultSet_ == nullptr) {
         return false;
@@ -95,6 +101,7 @@ bool KvStoreResultSetImpl::Move(int offset)
 
 bool KvStoreResultSetImpl::MoveToPosition(int position)
 {
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     std::shared_lock<std::shared_mutex> lock(this->mutex_);
     if (kvStoreResultSet_ == nullptr) {
         return false;
@@ -140,6 +147,7 @@ bool KvStoreResultSetImpl::IsAfterLast()
 
 Status KvStoreResultSetImpl::GetEntry(Entry &entry)
 {
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     std::shared_lock<std::shared_mutex> lock(this->mutex_);
     if (kvStoreResultSet_ == nullptr) {
         return Status::ERROR;
