@@ -16,12 +16,7 @@
 #ifndef DB_DFX_ADAPTER_H
 #define DB_DFX_ADAPTER_H
 
-#include <atomic>
-#include <condition_variable>
-#include <mutex>
-#include <queue>
 #include <string>
-#include <thread>
 #include <vector>
 
 namespace DistributedDB {

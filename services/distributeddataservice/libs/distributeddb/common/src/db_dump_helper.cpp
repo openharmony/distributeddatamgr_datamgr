@@ -22,7 +22,7 @@ void DBDumpHelper::Dump(int fd, const char *format, ...)
 {
     va_list argList;
     va_start(argList, format);
-#if defined _WIN32 
+#if defined _WIN32
     (void) fd;
 #else
     vdprintf(fd, format, argList);

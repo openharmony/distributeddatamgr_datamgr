@@ -16,10 +16,10 @@
 #ifndef OMIT_MULTI_VER
 #include "db_common.h"
 #include "db_dfx_adapter.h"
-#include "multi_ver_sync_task_context.h"
-#include "multi_ver_sync_state_machine.h"
-#include "multi_ver_sync_target.h"
 #include "log_print.h"
+#include "multi_ver_sync_state_machine.h"
+#include "multi_ver_sync_task_context.h"
+#include "multi_ver_sync_target.h"
 
 namespace DistributedDB {
 DEFINE_OBJECT_TAG_FACILITIES(MultiVerSyncTaskContext)

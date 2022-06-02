@@ -29,7 +29,6 @@
 #ifdef USE_DFX_ABILITY
 #include "hitrace_meter.h"
 #include "hisysevent.h"
-#include "string_ex.h"
 #endif
 
 namespace DistributedDB {
@@ -51,7 +50,7 @@ const std::string DBDfxAdapter::EVENT_OPEN_DATABASE_FAILED = "OPEN_DATABASE_FAIL
 void DBDfxAdapter::Dump(int fd, const std::vector<std::u16string> &args)
 {
     const std::u16string u16DumpParam =
-        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.from_bytes(DUMP_PARAM);
+        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.from_bytes(DUMP_PARAM);
     bool abort = true;
     for (auto &arg : args) {
         if (u16DumpParam == arg) {
@@ -155,5 +154,4 @@ void DBDfxAdapter::FinishTraceSQL()
 {
 }
 #endif
-
 } // namespace DistributedDB
