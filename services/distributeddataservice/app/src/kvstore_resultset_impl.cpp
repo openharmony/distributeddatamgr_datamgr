@@ -15,10 +15,10 @@
 
 #define LOG_TAG "KvStoreResultsetImpl"
 
-#include "dds_trace.h"
-#include "kvstore_resultset_impl.h"
 #include <utility>
+#include "dds_trace.h"
 #include "log_print.h"
+#include "kvstore_resultset_impl.h"
 
 namespace OHOS::DistributedKv {
 constexpr int KvStoreResultSetImpl::INIT_POSTION;
