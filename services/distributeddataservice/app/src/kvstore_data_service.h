@@ -40,7 +40,13 @@ class IRdbService;
 class RdbServiceImpl;
 }
 
+namespace OHOS::DistributedObject {
+class IObjectService;
+class ObjectServiceImpl;
+}
+
 namespace OHOS::DistributedKv {
+class KVDBServiceImpl;
 class KvStoreAccountObserver;
 class KvStoreDataService : public SystemAbility, public KvStoreDataServiceStub {
     DECLARE_SYSTEM_ABILITY(KvStoreDataService);
@@ -75,6 +81,8 @@ public:
     Status StopWatchDeviceChange(sptr<IDeviceStatusChangeListener> observer) override;
     sptr<IRemoteObject> GetRdbService() override;
     sptr<IRemoteObject> GetKVdbService() override;
+    sptr<IRemoteObject> GetObjectService() override;
+
     void OnDump() override;
 
     int Dump(int fd, const std::vector<std::u16string> &args) override;
@@ -131,6 +139,8 @@ private:
 
     void Initialize();
 
+    void InitObjectStore();
+
     void StartService();
 
     void InitSecurityAdapter();
@@ -181,6 +191,8 @@ private:
     std::shared_ptr<Security> security_;
     std::mutex mutex_;
     sptr<DistributedRdb::RdbServiceImpl> rdbService_;
+    sptr<DistributedKv::KVDBServiceImpl> kvdbService_;
+    sptr<DistributedObject::ObjectServiceImpl> objectService_;
     std::shared_ptr<KvStoreDeviceListener> deviceInnerListener_;
 };
 
