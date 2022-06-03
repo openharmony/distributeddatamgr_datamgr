@@ -73,7 +73,7 @@ bool DumpHelper::Dump(int fd, KvStoreDataService &kvStoreDataService, const std:
     }
 
     if (!commend.compare(ARGS_HELP)) {
-       ShowHelp(fd);
+        ShowHelp(fd);
     } else if (!commend.compare(ARGS_ERROR_INFO)) {
         ShowError(fd);
     } else if (!commend.compare(ARGS_USER_INFO)) {
