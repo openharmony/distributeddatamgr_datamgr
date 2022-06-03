@@ -721,28 +721,48 @@ int KvStoreDataService::Dump(int fd, const std::vector<std::u16string> &args)
         argsStr.emplace_back(Str16ToStr8(item));
     }
 
-    if (HidumpHelper::GetInstance().Dump(fd, *this, argsStr)) {
+    if (DumpHelper::GetInstance().Dump(fd, *this, argsStr)) {
         return 0;
     }
 
-    ZLOGD("HidumpHelper failed");
-    return HIDUMP_ERROR;
+    ZLOGD("DumpHelper failed");
+    return ERROR;
 }
 
-Status KvStoreDataService::DumpInner(int fd, const HidumpFlag &flag) const
+Status KvStoreDataService::DumpAll(int fd) const
 {
-    Status errCode = HIDUMP_ERROR;
-    if (flag == HidumpFlag::GET_DEVICE_INFO || flag == HidumpFlag::GET_ALL_INFO) {
-        dprintf(fd, "------------------------------------------------------------------\n");
-        dprintf(fd, "DeviceAccount count : %u\n", static_cast<uint32_t>(deviceAccountMap_.size()));
-    }
+    dprintf(fd, "------------------------------------------------------------------\n");
+    dprintf(fd, "DeviceAccount count : %u\n", static_cast<uint32_t>(deviceAccountMap_.size()));
     for (const auto &pair : deviceAccountMap_) {
-        if (flag == HidumpFlag::GET_DEVICE_INFO || flag == HidumpFlag::GET_ALL_INFO) {
-            dprintf(fd, "DeviceAccountID    : %s\n", pair.first.c_str());
-        }
-        pair.second.Dump(fd, flag);
+        pair.second.Dump(fd);
     }
-    return errCode;
+    return SUCCESS;
+}
+
+Status KvStoreDataService::DumpUserInfo(int fd) const
+{
+    dprintf(fd, "------------------------------------------------------------------\n");
+    dprintf(fd, "DeviceAccount count : %u\n", static_cast<uint32_t>(deviceAccountMap_.size()));
+    for (const auto &pair : deviceAccountMap_) {
+        pair.second.DumpUserInfo(fd);
+    }
+    return SUCCESS;
+}
+
+Status KvStoreDataService::DumpAppInfo(int fd, bool isSpecified, const std::string &appId) const
+{
+    for (const auto &pair : deviceAccountMap_) {
+        pair.second.DumpAppInfo(fd, isSpecified, appId);
+    }
+    return SUCCESS;
+}
+
+Status KvStoreDataService::DumpStoreInfo(int fd, bool isSpecified, const std::string &storeId) const
+{
+    for (const auto &pair : deviceAccountMap_) {
+        pair.second.DumpStoreInfo(fd, isSpecified, storeId);
+    }
+    return SUCCESS;
 }
 
 void KvStoreDataService::OnStart()

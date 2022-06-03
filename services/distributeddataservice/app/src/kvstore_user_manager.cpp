@@ -103,16 +103,47 @@ void KvStoreUserManager::DeleteAllKvStore()
     appMap_.clear();
 }
 
-void KvStoreUserManager::Dump(int fd, const HidumpFlag &flag) const
+void KvStoreUserManager::Dump(int fd) const
 {
-    if (flag == HidumpFlag::GET_USER_INFO || flag == HidumpFlag::GET_ALL_INFO) {
-        const std::string prefix(4, ' ');
-        dprintf(fd, "%s--------------------------------------------------------------\n", prefix.c_str());
-        dprintf(fd, "%sUserID        : %s\n", prefix.c_str(), userId_.c_str());
-        dprintf(fd, "%sApp count     : %u\n", prefix.c_str(), static_cast<uint32_t>(appMap_.size()));
+    const std::string prefix(4, ' ');
+    dprintf(fd, "%s--------------------------------------------------------------\n", prefix.c_str());
+    dprintf(fd, "%sUserID        : %s\n", prefix.c_str(), userId_.c_str());
+    dprintf(fd, "%sApp count     : %u\n", prefix.c_str(), static_cast<uint32_t>(appMap_.size()));
+    for (const auto &pair : appMap_) {
+        pair.second.Dump(fd);
+    }
+}
+
+void KvStoreUserManager::DumpUserInfo(int fd) const
+{
+    const std::string prefix(4, ' ');
+    dprintf(fd, "%s--------------------------------------------------------------\n", prefix.c_str());
+    dprintf(fd, "%sUserID        : %s\n", prefix.c_str(), userId_.c_str());
+    dprintf(fd, "%sApp count     : %u\n", prefix.c_str(), static_cast<uint32_t>(appMap_.size()));
+    for (const auto &pair : appMap_) {
+        pair.second.DumpUserInfo(fd);
+    }
+}
+
+void KvStoreUserManager::DumpAppInfo(int fd, bool isSpecified, const std::string &appId) const
+{
+    const std::string prefix(4, ' ');
+    if (isSpecified) {
+        auto it = appMap_.find(appId);
+        if (it != appMap_.end()) {
+            it->second.DumpAppInfo(fd);
+        }
+        return;
     }
     for (const auto &pair : appMap_) {
-        pair.second.Dump(fd, flag);
+        pair.second.DumpAppInfo(fd);
+    }
+}
+
+void KvStoreUserManager::DumpStoreInfo(int fd, bool isSpecified, const std::string &storeId) const
+{
+    for (const auto &pair : appMap_) {
+        pair.second.DumpStoreInfo(fd, isSpecified, storeId);
     }
 }
 

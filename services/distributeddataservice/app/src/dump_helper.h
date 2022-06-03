@@ -13,22 +13,21 @@
  * limitations under the License.
  */
 
-#ifndef DISTRIBUTEDDATA_SERVICE_HIDUMPE_HELPER_H
-#define DISTRIBUTEDDATA_SERVICE_HIDUMPE_HELPER_H
+#ifndef DISTRIBUTEDDATA_SERVICE_DUMPE_HELPER_H
+#define DISTRIBUTEDDATA_SERVICE_DUMPE_HELPER_H
 
 #include <string>
 #include <vector>
 #include <map>
+#include <list>
 #include "store_errno.h"
 #include "singleton.h"
 
 namespace OHOS {
 namespace DistributedKv {
-enum class HidumpFlag {
+enum class DumpFlag {
     UNKNOW = 0,
     GET_HELP,
-    GET_ALL_INFO,
-    GET_DEVICE_INFO,
     GET_USER_INFO,
     GET_APP_INFO,
     GET_STORE_INFO,
@@ -36,25 +35,28 @@ enum class HidumpFlag {
 };
 
 struct HidumpParam {
-    HidumpFlag hidumpFlag = HidumpFlag::UNKNOW;
+    DumpFlag dumpFlag = DumpFlag::UNKNOW;
     std::string args;
 };
+
+
 class KvStoreDataService;
-class HidumpHelper : public Singleton<HidumpHelper> {
+class DumpHelper : public Singleton<DumpHelper> {
 public:
-    HidumpHelper() = default;
-    virtual ~HidumpHelper() = default;
+    DumpHelper() = default;
+    virtual ~DumpHelper() = default;
     void AddErrorInfo(std::string &error);
     void ShowError(int fd);
     bool Dump(int fd, KvStoreDataService &kvStoreDataService, const std::vector<std::string> &args);
 
 private:
-    Status ProcessOneParam(int fd, KvStoreDataService &kvStoreDataService, const std::string &args);
+    Status DumpAll(int fd, KvStoreDataService &kvStoreDataService);
     void ShowHelp(int fd);
     void ShowIllealInfomation(int fd);
     mutable std::mutex hidumperMutex_;
+    std::list<std::string> g_errorInfo;
 };
 }  // namespace DistributedKv
 }  // namespace OHOS
-#endif  // DISTRIBUTEDDATA_SERVICE_HIDUMPE_HELPER_H
+#endif  // DISTRIBUTEDDATA_SERVICE_DUMPE_HELPER_H
 

@@ -512,23 +512,61 @@ DistributedDB::SecurityOption KvStoreAppManager::ConvertSecurity(int securityLev
     }
 }
 
-void KvStoreAppManager::Dump(int fd, const HidumpFlag &flag) const
+void KvStoreAppManager::Dump(int fd) const
 {
-    if (flag == HidumpFlag::GET_APP_INFO || flag == HidumpFlag::GET_ALL_INFO) {
-        const std::string prefix(8, ' ');
-        std::string dePath = GetDataStoragePath(deviceAccountId_, bundleName_, PATH_DE);
-        std::string cePath = GetDataStoragePath(deviceAccountId_, bundleName_, PATH_CE);
-        size_t singleStoreNum = singleStores_[PATH_DE].size() + singleStores_[PATH_CE].size();
-        dprintf(fd, "%s----------------------------------------------------------\n", prefix.c_str());
-        dprintf(fd, "%sAppID         : %s\n", prefix.c_str(), trueAppId_.c_str());
-        dprintf(fd, "%sBundleName    : %s\n", prefix.c_str(), bundleName_.c_str());
-        dprintf(fd, "%sAppDEDirectory: %s\n", prefix.c_str(), dePath.c_str());
-        dprintf(fd, "%sAppCEDirectory: %s\n", prefix.c_str(), cePath.c_str());
-        dprintf(fd, "%sStore count   : %u\n", prefix.c_str(), static_cast<uint32_t>(singleStoreNum));
-    }
+    const std::string prefix(8, ' ');
+    size_t singleStoreNum = singleStores_[PATH_DE].size() + singleStores_[PATH_CE].size();
+    dprintf(fd, "%s----------------------------------------------------------\n", prefix.c_str());
+    dprintf(fd, "%sAppID         : %s\n", prefix.c_str(), trueAppId_.c_str());
+    dprintf(fd, "%sBundleName    : %s\n", prefix.c_str(), bundleName_.c_str());
+    dprintf(fd, "%sStore count   : %u\n", prefix.c_str(), static_cast<uint32_t>(singleStoreNum));
     for (const auto &singleStoreMap : singleStores_) {
         for (const auto &pair : singleStoreMap) {
-            pair.second->OnDump(fd, flag);
+            pair.second->OnDump(fd);
+        }
+    }
+}
+
+void KvStoreAppManager::DumpUserInfo(int fd) const
+{
+    const std::string prefix(8, ' ');
+    dprintf(fd, "%s----------------------------------------------------------\n", prefix.c_str());
+    dprintf(fd, "%sAppID         : %s\n", prefix.c_str(), trueAppId_.c_str());
+}
+
+void KvStoreAppManager::DumpAppInfo(int fd) const
+{
+    const std::string prefix(8, ' ');
+    size_t singleStoreNum = singleStores_[PATH_DE].size() + singleStores_[PATH_CE].size();
+    dprintf(fd, "%s----------------------------------------------------------\n", prefix.c_str());
+    dprintf(fd, "%sAppID         : %s\n", prefix.c_str(), trueAppId_.c_str());
+    dprintf(fd, "%sBundleName    : %s\n", prefix.c_str(), bundleName_.c_str());
+    dprintf(fd, "%sStore count   : %u\n", prefix.c_str(), static_cast<uint32_t>(singleStoreNum));
+    for (const auto &singleStoreMap : singleStores_) {
+        for (const auto &pair : singleStoreMap) {
+            pair.second->DumpStoreName(fd);
+        }
+    }
+}
+
+void KvStoreAppManager::DumpStoreInfo(int fd, bool isSpecified, const std::string &storeId) const
+{
+    const std::string prefix(8, ' ');
+    if (isSpecified) {
+        for (const auto &singleStoreMap : singleStores_) {
+            auto it = singleStoreMap.find(storeId);
+            if (it != singleStoreMap.end()) {
+                dprintf(fd, "%s----------------------------------------------------------\n", prefix.c_str());
+                dprintf(fd, "%sAppID         : %s\n", prefix.c_str(), trueAppId_.c_str());
+                it->second->OnDump(fd);
+            }
+        }
+        return;
+    }
+    dprintf(fd, "%sAppID         : %s\n", prefix.c_str(), trueAppId_.c_str());
+    for (const auto &singleStoreMap : singleStores_) {
+        for (const auto &pair : singleStoreMap) {
+            pair.second->OnDump(fd);
         }
     }
 }
