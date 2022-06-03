@@ -14,10 +14,8 @@
  */
 
 #include "dump_helper.h"
-
-#include "log_print.h"
 #include "kvstore_data_service.h"
-
+#include "log_print.h"
 
 namespace OHOS {
 namespace DistributedKv {
@@ -25,14 +23,14 @@ namespace {
 constexpr const int32_t MAX_RECORED_ERROR = 10;
 constexpr const int32_t FIRST_PARAM = 0;
 constexpr const int32_t SECOND_PARAM = 1;
-
+constexpr const int32_t ONE_COMMEND_PARAM = 1;
+constexpr const int32_t TWO_COMMEND_PARAM = 2;
 constexpr const char *ARGS_HELP = "-h";
 constexpr const char *ARGS_USER_INFO = "-userInfo";
 constexpr const char *ARGS_APP_INFO = "-appInfo";
 constexpr const char *ARGS_STORE_INFO = "-storeInfo";
 constexpr const char *ARGS_ERROR_INFO = "-errorInfo";
 constexpr const char *ILLEGAL_INFOMATION = "The arguments are illegal and you can enter '-h' for help.\n";
-
 }
 
 void DumpHelper::AddErrorInfo(std::string &error)
@@ -63,9 +61,9 @@ bool DumpHelper::Dump(int fd, KvStoreDataService &kvStoreDataService, const std:
     std::string commend = "";
     std::string commendParam = "";
 
-    if (args.size() == 1) {
+    if (args.size() == ONE_COMMEND_PARAM) {
         commend = args.at(FIRST_PARAM);
-    } else if (args.size() == 2) {
+    } else if (args.size() == TWO_COMMEND_PARAM) {
         commend = args.at(FIRST_PARAM);
         commendParam = args.at(SECOND_PARAM);
         isTwoParm = true;
@@ -76,20 +74,15 @@ bool DumpHelper::Dump(int fd, KvStoreDataService &kvStoreDataService, const std:
 
     if (!commend.compare(ARGS_HELP)) {
        ShowHelp(fd);
-    }
-    else if (!commend.compare(ARGS_ERROR_INFO)) {
-       ShowError(fd);
-    }
-    else if (!commend.compare(ARGS_USER_INFO)) {
-       kvStoreDataService.DumpUserInfo(fd);
-    }
-    else if (!commend.compare(ARGS_APP_INFO)) {
-       kvStoreDataService.DumpAppInfo(fd, isTwoParm, commendParam);
-    }
-    else if (!commend.compare(ARGS_STORE_INFO)) {
-       kvStoreDataService.DumpStoreInfo(fd, isTwoParm, commendParam);
-    }
-    else {
+    } else if (!commend.compare(ARGS_ERROR_INFO)) {
+        ShowError(fd);
+    } else if (!commend.compare(ARGS_USER_INFO)) {
+        kvStoreDataService.DumpUserInfo(fd);
+    } else if (!commend.compare(ARGS_APP_INFO)) {
+        kvStoreDataService.DumpAppInfo(fd, isTwoParm, commendParam);
+    } else if (!commend.compare(ARGS_STORE_INFO)) {
+        kvStoreDataService.DumpStoreInfo(fd, isTwoParm, commendParam);
+    } else {
         ShowIllealInfomation(fd);
     }
     return true;

@@ -807,7 +807,7 @@ void KvStoreDataService::StartService()
         std::string errorInfo;
         errorInfo.append(__FUNCTION__)
             .append("Service publish failed.");
-        HidumpHelper::GetInstance().AddErrorInfo(errorInfo);
+        DumpHelper::GetInstance().AddErrorInfo(errorInfo);
     }
     Uninstaller::GetInstance().Init(this);
 
