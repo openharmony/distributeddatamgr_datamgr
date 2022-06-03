@@ -18,6 +18,7 @@
 #include <vector>
 #include "log_print.h"
 #include "reporter.h"
+#include "store_util.h"
 #include "utils/anonymous.h"
 #undef LOG_TAG
 #define LOG_TAG "Sensitive"
@@ -77,7 +78,8 @@ bool Sensitive::operator >= (const DistributedDB::SecurityOption &option)
 
     if (level < static_cast<uint32_t>(option.securityLabel - 1)) {
         Reporter::GetInstance()->SensitiveLevelSecurity()->Report(
-            {deviceId, static_cast<int>(level), option.securityLabel, SecurityInfo::SENSITIVE_LEVEL_FAILE});
+            {StoreUtil::Anonymous(deviceId), static_cast<int>(level), option.securityLabel,
+            SecurityInfo::SENSITIVE_LEVEL_FAILE});
     }
     return (level >= static_cast<uint32_t>(option.securityLabel - 1));
 }

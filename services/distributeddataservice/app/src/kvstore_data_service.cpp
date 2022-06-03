@@ -54,6 +54,7 @@
 #include "rdb_service_impl.h"
 #include "reporter.h"
 #include "route_head_handler_impl.h"
+#include "store_util.h"
 #include "system_ability_definition.h"
 #include "uninstaller/uninstaller.h"
 #include "upgrade_manager.h"
@@ -942,7 +943,7 @@ bool KvStoreDataService::CheckPermissions(const std::string &userId, const std::
         if (qstatus != Status::SUCCESS) {
             ZLOGW("query appId failed.");
             Reporter::GetInstance()->PermissionsSecurity()->Report(
-                {userId, appId, storeId, deviceId, SecurityInfo::PERMISSIONS_APPID_FAILE});
+                {userId, appId, storeId, StoreUtil::Anonymous(deviceId), SecurityInfo::PERMISSIONS_APPID_FAILE});
             return false;
         }
     }
@@ -954,7 +955,7 @@ bool KvStoreDataService::CheckPermissions(const std::string &userId, const std::
     if (status != Status::SUCCESS) {
         ZLOGW("PermissionCheck failed.");
         Reporter::GetInstance()->PermissionsSecurity()->Report(
-            {userId, appId, storeId, deviceId, SecurityInfo::PERMISSIONS_DEVICEID_FAILE});
+            {userId, appId, storeId, StoreUtil::Anonymous(deviceId), SecurityInfo::PERMISSIONS_DEVICEID_FAILE});
         return false;
     }
 
@@ -966,7 +967,7 @@ bool KvStoreDataService::CheckPermissions(const std::string &userId, const std::
     bool ret = PermissionValidator::GetInstance().CheckSyncPermission(metaData.tokenId);
     if (!ret) {
         Reporter::GetInstance()->PermissionsSecurity()->Report(
-            {userId, appId, storeId, deviceId, SecurityInfo::PERMISSIONS_TOKENID_FAILE});
+            {userId, appId, storeId, StoreUtil::Anonymous(deviceId), SecurityInfo::PERMISSIONS_TOKENID_FAILE});
     }
 
     return ret;
