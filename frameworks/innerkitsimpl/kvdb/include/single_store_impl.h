@@ -12,28 +12,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #ifndef OHOS_DISTRIBUTED_DATA_FRAMEWORKS_KVDB_SINGLE_STORE_IMPL_H
 #define OHOS_DISTRIBUTED_DATA_FRAMEWORKS_KVDB_SINGLE_STORE_IMPL_H
-
-#include <concurrent_map.h>
-
 #include <functional>
 #include <shared_mutex>
+
+#include "concurrent_map.h"
 #include "kv_store_nb_delegate.h"
+#include "kvdb_service.h"
+#include "kvstore_sync_callback_client.h"
 #include "observer_bridge.h"
 #include "single_kvstore.h"
 #include "sync_observer.h"
-#include "ikvstore_observer.h"
-
 namespace OHOS::DistributedKv {
 class API_EXPORT SingleStoreImpl : public SingleKvStore {
 public:
     using Observer = KvStoreObserver;
-    using IPCObserver = IKvStoreObserver;
     using SyncCallback = KvStoreSyncCallback;
     using ResultSet = KvStoreResultSet;
     using DBStore = DistributedDB::KvStoreNbDelegate;
+    using SyncInfo = KVDBService::SyncInfo;
     SingleStoreImpl(const AppId &appId, std::shared_ptr<DBStore> dbStore);
     ~SingleStoreImpl() = default;
     StoreId GetStoreId() const override;
@@ -53,12 +51,12 @@ public:
     Status GetResultSet(const DataQuery &query, std::shared_ptr<ResultSet> &resultSet) const override;
     Status CloseResultSet(std::shared_ptr<ResultSet> &resultSet) override;
     Status GetCount(const DataQuery &query, int &count) const override;
-    Status GetSecurityLevel(SecurityLevel &securityLevel) const override;
+    Status GetSecurityLevel(SecurityLevel &secLevel) const override;
     Status RemoveDeviceData(const std::string &device) override;
     Status Close();
 
     // IPC interface
-    Status Sync(const std::vector<std::string> &devices, SyncMode mode, uint32_t allowedDelayMs) override;
+    Status Sync(const std::vector<std::string> &devices, SyncMode mode, uint32_t delay) override;
     Status Sync(const std::vector<std::string> &devices, SyncMode mode, const DataQuery &query,
         std::shared_ptr<SyncCallback> syncCallback) override;
     Status RegisterSyncCallback(std::shared_ptr<SyncCallback> callback) override;
@@ -73,23 +71,25 @@ public:
 
 protected:
     static constexpr size_t MAX_KEY_LENGTH = 1024;
-    int ConvertMode(SubscribeType type) const;
     virtual std::vector<uint8_t> ConvertDBKey(const Key &key) const;
     virtual Key ConvertKey(DistributedDB::Key &&key) const;
-    virtual sptr<IPCObserver> GetIPCObserver(std::shared_ptr<Observer> observer) const;
-    std::function<void(ObserverBridge *)> BridgeReleaser(SubscribeType type);
+    std::function<void(ObserverBridge *)> BridgeReleaser();
 
 private:
     Status GetResultSet(const DistributedDB::Query &query, std::shared_ptr<ResultSet> &resultSet) const;
     Status GetEntries(const DistributedDB::Query &query, std::vector<Entry> &entries) const;
     std::vector<uint8_t> GetPrefix(const DataQuery &query) const;
+    sptr<KvStoreSyncCallbackClient> GetIPCSyncClient(std::shared_ptr<KVDBService> service);
+    Status DoSync(const SyncInfo &syncInfo, std::shared_ptr<SyncCallback> observer);
 
-    mutable std::shared_mutex mutex_;
+    std::string appId_;
     std::string storeId_;
-    AppId appId_;
+    mutable std::shared_mutex rwMutex_;
+    mutable std::mutex mutex_;
     std::shared_ptr<DBStore> dbStore_ = nullptr;
     std::shared_ptr<SyncObserver> syncObserver_ = nullptr;
-    ConcurrentMap<uintptr_t, std::map<int32_t, std::shared_ptr<ObserverBridge>>> observers_;
+    sptr<KvStoreSyncCallbackClient> syncCallback_ = nullptr;
+    ConcurrentMap<uintptr_t, std::pair<uint32_t, std::shared_ptr<ObserverBridge>>> observers_;
 };
 } // namespace OHOS::DistributedKv
 #endif // OHOS_DISTRIBUTED_DATA_FRAMEWORKS_KVDB_SINGLE_STORE_IMPL_H

@@ -19,12 +19,18 @@
 #include "security_manager.h"
 #include "single_store_impl.h"
 #include "store_util.h"
+#include "system_api.h"
 namespace OHOS::DistributedKv {
 using namespace DistributedDB;
 StoreFactory &StoreFactory::GetInstance()
 {
     static StoreFactory instance;
     return instance;
+}
+
+StoreFactory::StoreFactory()
+{
+    (void)DBManager::SetProcessSystemAPIAdapter(std::make_shared<SystemApi>());
 }
 
 std::shared_ptr<SingleKvStore> StoreFactory::Create(
@@ -34,6 +40,7 @@ std::shared_ptr<SingleKvStore> StoreFactory::Create(
     std::shared_ptr<SingleStoreImpl> kvStore;
     stores_.Compute(appId, [&](auto &, auto &stores) {
         if (stores.find(storeId) != stores.end()) {
+            kvStore = stores[storeId];
             return !stores.empty();
         }
         auto dbManager = GetDBManager(path, appId);

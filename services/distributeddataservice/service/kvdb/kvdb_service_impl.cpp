@@ -44,12 +44,12 @@ Status KVDBServiceImpl::GetStoreIds(const AppId &appId, std::vector<StoreId> &st
     return SUCCESS;
 }
 
-Status KVDBServiceImpl::Delete(const AppId &appId, const StoreId &storeId, const std::string &path)
+Status KVDBServiceImpl::Delete(const AppId &appId, const StoreId &storeId)
 {
     return NOT_SUPPORT;
 }
 
-Status KVDBServiceImpl::Sync(const AppId &appId, const StoreId &storeId, KVDBService::SyncInfo &syncInfo)
+Status KVDBServiceImpl::Sync(const AppId &appId, const StoreId &storeId, const SyncInfo &syncInfo)
 {
     return NOT_SUPPORT;
 }
@@ -105,12 +105,12 @@ Status KVDBServiceImpl::RmvSubscribeInfo(
 
 Status KVDBServiceImpl::Subscribe(const AppId &appId, const StoreId &storeId, sptr<IKvStoreObserver> observer)
 {
-    return NOT_SUPPORT;
+    return SUCCESS;
 }
 
 Status KVDBServiceImpl::Unsubscribe(const AppId &appId, const StoreId &storeId, sptr<IKvStoreObserver> observer)
 {
-    return NOT_SUPPORT;
+    return SUCCESS;
 }
 
 Status KVDBServiceImpl::BeforeCreate(const AppId &appId, const StoreId &storeId, const Options &options)

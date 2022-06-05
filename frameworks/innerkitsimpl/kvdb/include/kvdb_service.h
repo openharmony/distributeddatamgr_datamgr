@@ -45,8 +45,8 @@ public:
     virtual Status BeforeCreate(const AppId &appId, const StoreId &storeId, const Options &options) = 0;
     virtual Status AfterCreate(
         const AppId &appId, const StoreId &storeId, const Options &options, const std::vector<uint8_t> &password) = 0;
-    virtual Status Delete(const AppId &appId, const StoreId &storeId, const std::string &path) = 0;
-    virtual Status Sync(const AppId &appId, const StoreId &storeId, SyncInfo &syncInfo) = 0;
+    virtual Status Delete(const AppId &appId, const StoreId &storeId) = 0;
+    virtual Status Sync(const AppId &appId, const StoreId &storeId, const SyncInfo &syncInfo) = 0;
     virtual Status RegisterSyncCallback(
         const AppId &appId, const StoreId &storeId, sptr<IKvStoreSyncCallback> callback) = 0;
     virtual Status UnregisterSyncCallback(const AppId &appId, const StoreId &storeId) = 0;
