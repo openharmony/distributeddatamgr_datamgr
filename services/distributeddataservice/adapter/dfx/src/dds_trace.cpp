@@ -32,11 +32,11 @@ std::atomic_uint DdsTrace::indexCount = 0; // the value is changed by different 
 std::atomic_bool DdsTrace::isSetBytraceEnabled = false;
 
 DdsTrace::DdsTrace(const std::string& value, unsigned int option)
+    : traceSwitch(option)
 {
     traceValue = value;
     traceCount = ++indexCount;
     SetBytraceEnable();
-    SetOptionSwitch(option);
     Start(value);
 }
 
@@ -53,16 +53,16 @@ void DdsTrace::SetMiddleTrace(const std::string& beforeValue, const std::string&
 
 void DdsTrace::Start(const std::string& value)
 {
-    if (switchOption == DEBUG_CLOSE) {
+    if (traceSwitch == DEBUG_CLOSE) {
         return;
     }
-    if ((switchOption & BYTRACE_ON) == BYTRACE_ON) {
+    if ((traceSwitch & BYTRACE_ON) == BYTRACE_ON) {
         StartTrace(BYTRACE_LABEL, value);
     }
-    if ((switchOption & TRACE_CHAIN_ON) == TRACE_CHAIN_ON) {
+    if ((traceSwitch & TRACE_CHAIN_ON) == TRACE_CHAIN_ON) {
         traceId = HiTrace::Begin(value, HITRACE_FLAG_DEFAULT);
     }
-    if ((switchOption & API_PERFORMANCE_TRACE_ON) == API_PERFORMANCE_TRACE_ON) {
+    if ((traceSwitch & API_PERFORMANCE_TRACE_ON) == API_PERFORMANCE_TRACE_ON) {
         lastTime = TimeUtils::CurrentTimeMicros();
     }
     ZLOGD("DdsTrace-Start: Trace[%{public}u] %{public}s In", traceCount, value.c_str());
@@ -70,10 +70,10 @@ void DdsTrace::Start(const std::string& value)
 
 void DdsTrace::Middle(const std::string& beforeValue, const std::string& afterValue)
 {
-    if (switchOption == DEBUG_CLOSE) {
+    if (traceSwitch == DEBUG_CLOSE) {
         return;
     }
-    if (switchOption & BYTRACE_ON) {
+    if (traceSwitch & BYTRACE_ON) {
         MiddleTrace(BYTRACE_LABEL, beforeValue, afterValue);
     }
     ZLOGD("DdsTrace-Middle: Trace[%{public}u] %{public}s --- %{public}s", traceCount,
@@ -83,16 +83,16 @@ void DdsTrace::Middle(const std::string& beforeValue, const std::string& afterVa
 void DdsTrace::Finish(const std::string& value)
 {
     uint64_t delta = 0;
-    if (switchOption == DEBUG_CLOSE) {
+    if (traceSwitch == DEBUG_CLOSE) {
         return;
     }
-    if (switchOption & BYTRACE_ON) {
+    if (traceSwitch & BYTRACE_ON) {
         FinishTrace(BYTRACE_LABEL);
     }
-    if ((switchOption & TRACE_CHAIN_ON) == TRACE_CHAIN_ON) {
+    if ((traceSwitch & TRACE_CHAIN_ON) == TRACE_CHAIN_ON) {
         HiTrace::End(traceId);
     }
-    if (switchOption & API_PERFORMANCE_TRACE_ON) {
+    if (traceSwitch & API_PERFORMANCE_TRACE_ON) {
         delta = TimeUtils::CurrentTimeMicros() - lastTime;
         Reporter::GetInstance()->ApiPerformanceStatistic()->Report({value, delta, delta, delta});
     }
@@ -112,17 +112,5 @@ bool DdsTrace::SetBytraceEnable()
     return true;
 }
 
-void DdsTrace::SetOptionSwitch(unsigned int option)
-{
-    if ((option & BYTRACE_ON) == BYTRACE_ON) {
-        switchOption |= BYTRACE_ON;
-    }
-    if ((option & TRACE_CHAIN_ON) == TRACE_CHAIN_ON) {
-        switchOption |= TRACE_CHAIN_ON;
-    }
-    if ((option & API_PERFORMANCE_TRACE_ON) == API_PERFORMANCE_TRACE_ON) {
-        switchOption |= API_PERFORMANCE_TRACE_ON;
-    }
-}
 } // namespace DistributedKv
 } // namespace OHOS
