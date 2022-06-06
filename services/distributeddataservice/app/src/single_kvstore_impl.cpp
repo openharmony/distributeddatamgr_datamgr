@@ -1477,6 +1477,7 @@ void SingleKvStoreImpl::OnDump(int fd) const
     DistributedDB::KvStoreResultSet *dbResultSet = nullptr;
     kvStoreNbDelegate_->GetEntries(tmpKeyPrefix, dbResultSet);
     int count = dbResultSet->GetCount();
+    kvStoreNbDelegate_->CloseResultSet(dbResultSet);
 
     const std::string prefix(12, ' ');
     dprintf(fd, "%s------------------------------------------------------\n", prefix.c_str());

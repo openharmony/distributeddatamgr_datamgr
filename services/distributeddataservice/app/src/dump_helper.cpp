@@ -20,11 +20,11 @@
 namespace OHOS {
 namespace DistributedKv {
 namespace {
-constexpr const int32_t MAX_RECORED_ERROR = 10;
-constexpr const int32_t FIRST_PARAM = 0;
-constexpr const int32_t SECOND_PARAM = 1;
-constexpr const int32_t ONE_COMMEND_PARAM = 1;
-constexpr const int32_t TWO_COMMEND_PARAM = 2;
+constexpr int32_t MAX_RECORED_ERROR = 10;
+constexpr int32_t FIRST_PARAM = 0;
+constexpr int32_t SECOND_PARAM = 1;
+constexpr int32_t ONE_COMMEND_PARAM = 1;
+constexpr int32_t TWO_COMMEND_PARAM = 2;
 constexpr const char *ARGS_HELP = "-h";
 constexpr const char *ARGS_USER_INFO = "-userInfo";
 constexpr const char *ARGS_APP_INFO = "-appInfo";
