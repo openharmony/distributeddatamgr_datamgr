@@ -100,11 +100,6 @@ public:
     bool CheckBackupFileExist(const std::string &userId, const std::string &bundleName,
                               const std::string &storeId, int pathType);
 
-    Status DumpAll(int fd) const;
-    Status DumpUserInfo(int fd) const;
-    Status DumpAppInfo(int fd, bool isSpecified = false, const std::string &appId = "") const;
-    Status DumpStoreInfo(int fd, bool isSpecified = false, const std::string &storeId = "") const;
-
     struct SecretKeyPara {
         std::vector<uint8_t> metaKey;
         std::vector<uint8_t> secretKey;
@@ -179,6 +174,11 @@ private:
     bool IsStoreOpened(const std::string &userId, const std::string &appId, const std::string &storeId);
     static Status FillStoreParam(
         const Options &options, const AppId &appId, const StoreId &storeId, StoreMetaData &metaData);
+
+    void DumpAll(int fd);
+    void DumpUserInfo(int fd);
+    void DumpAppInfo(int fd, const std::string &appId);
+    void DumpStoreInfo(int fd, const std::string &storeId);
 
     static constexpr int TEN_SEC = 10;
 

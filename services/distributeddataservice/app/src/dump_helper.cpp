@@ -33,7 +33,7 @@ constexpr const char *ARGS_ERROR_INFO = "-errorInfo";
 constexpr const char *ILLEGAL_INFOMATION = "The arguments are illegal and you can enter '-h' for help.\n";
 }
 
-void DumpHelper::AddErrorInfo(std::string &error)
+void DumpHelper::AddErrorInfo(const std::string &error)
 {
     std::lock_guard<std::mutex> lock(hidumperMutex_);
     if (g_errorInfo.size() + 1 > MAX_RECORED_ERROR) {
@@ -47,51 +47,40 @@ void DumpHelper::AddErrorInfo(std::string &error)
 void DumpHelper::ShowError(int fd)
 {
     dprintf(fd, "The number of recent errors recorded is %d\n", g_errorInfo.size());
-    if (!g_errorInfo.empty()) {
-        int i = 0;
-        for (const auto &it : g_errorInfo) {
-            dprintf(fd, "Error ID: %d        ErrorInfo: %s\n", ++i, it.c_str());
-        }
+    int i = 0;
+    for (const auto &it : g_errorInfo) {
+        dprintf(fd, "Error ID: %d        ErrorInfo: %s\n", ++i, it.c_str());
     }
 }
 
-bool DumpHelper::Dump(int fd, KvStoreDataService &kvStoreDataService, const std::vector<std::string> &args)
+DumpFlag DumpHelper::Dump(int fd, const std::vector<std::string> &args, std::string &options)
 {
-    bool isTwoParm = false;
-    std::string commend = "";
-    std::string commendParam = "";
+    std::string command = "";
 
     if (args.size() == ONE_COMMEND_PARAM) {
-        commend = args.at(FIRST_PARAM);
+        command = args.at(FIRST_PARAM);
     } else if (args.size() == TWO_COMMEND_PARAM) {
-        commend = args.at(FIRST_PARAM);
-        commendParam = args.at(SECOND_PARAM);
-        isTwoParm = true;
+        command = args.at(FIRST_PARAM);
+        options = args.at(SECOND_PARAM);
     } else {
-        DumpAll(fd, kvStoreDataService);
-        return true;
+        ShowError(fd);
+        return DumpFlag::DUMP_ALL;
     }
 
-    if (!commend.compare(ARGS_HELP)) {
+    if (command == ARGS_HELP) {
         ShowHelp(fd);
-    } else if (!commend.compare(ARGS_ERROR_INFO)) {
+    } else if (command ==ARGS_ERROR_INFO) {
         ShowError(fd);
-    } else if (!commend.compare(ARGS_USER_INFO)) {
-        kvStoreDataService.DumpUserInfo(fd);
-    } else if (!commend.compare(ARGS_APP_INFO)) {
-        kvStoreDataService.DumpAppInfo(fd, isTwoParm, commendParam);
-    } else if (!commend.compare(ARGS_STORE_INFO)) {
-        kvStoreDataService.DumpStoreInfo(fd, isTwoParm, commendParam);
+    } else if (command == ARGS_USER_INFO) {
+        return DumpFlag::DUMP_USER_INFO;
+    } else if (command == ARGS_APP_INFO) {
+        return DumpFlag::DUMP_APP_INFO;
+    } else if (command == ARGS_STORE_INFO) {
+        return DumpFlag::DUMP_STORE_INFO;
     } else {
         ShowIllealInfomation(fd);
     }
-    return true;
-}
-
-Status DumpHelper::DumpAll(int fd, KvStoreDataService &kvStoreDataService)
-{
-    ShowError(fd);
-    return kvStoreDataService.DumpAll(fd);
+    return DumpFlag::DUMP_DONE;
 }
 
 void DumpHelper::ShowHelp(int fd)
@@ -99,17 +88,23 @@ void DumpHelper::ShowHelp(int fd)
     std::string result;
     result.append("Usage:dump  <command> [options]\n")
           .append("Description:\n")
-          .append("-userInfo            ")
+          .append(ARGS_USER_INFO)
+		  .append("            ")
           .append("dump all user information in the system\n")
-          .append("-appInfo             ")
+          .append(ARGS_APP_INFO)
+		  .append("             ")
           .append("dump list of all app information in the system\n")
-          .append("-appInfo [appID]     ")
+          .append(ARGS_APP_INFO)
+		  .append(" [appID]     ")
           .append("dump information about the specified app in the system\n")
-          .append("-storeInfo           ")
+          .append(ARGS_STORE_INFO)
+		  .append("           ")
           .append("dump list of all store information in the system\n")
-          .append("-storeInfo [storeID] ")
+          .append(ARGS_STORE_INFO)
+		  .append(" [storeID] ")
           .append("dump information about the specified store in the system\n")
-          .append("-errorInfo           ")
+          .append(ARGS_ERROR_INFO)
+		  .append("           ")
           .append("dump the recent errors information in the system\n");
     dprintf(fd, "%s\n", result.c_str());
 }

@@ -125,25 +125,26 @@ void KvStoreUserManager::DumpUserInfo(int fd) const
     }
 }
 
-void KvStoreUserManager::DumpAppInfo(int fd, bool isSpecified, const std::string &appId) const
+void KvStoreUserManager::DumpAppInfo(int fd, const std::string &appId) const
 {
     const std::string prefix(4, ' ');
-    if (isSpecified) {
+    if (appId != "") {
         auto it = appMap_.find(appId);
         if (it != appMap_.end()) {
             it->second.DumpAppInfo(fd);
+            return;
         }
-        return;
     }
+
     for (const auto &pair : appMap_) {
         pair.second.DumpAppInfo(fd);
     }
 }
 
-void KvStoreUserManager::DumpStoreInfo(int fd, bool isSpecified, const std::string &storeId) const
+void KvStoreUserManager::DumpStoreInfo(int fd, const std::string &storeId) const
 {
     for (const auto &pair : appMap_) {
-        pair.second.DumpStoreInfo(fd, isSpecified, storeId);
+        pair.second.DumpStoreInfo(fd, storeId);
     }
 }
 

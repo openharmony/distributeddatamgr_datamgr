@@ -717,52 +717,64 @@ int KvStoreDataService::Dump(int fd, const std::vector<std::u16string> &args)
     }
 
     std::vector<std::string> argsStr;
+    std::string options = "";
     for (auto item : args) {
         argsStr.emplace_back(Str16ToStr8(item));
     }
 
-    if (DumpHelper::GetInstance().Dump(fd, *this, argsStr)) {
-        return 0;
+    DumpFlag flag = DumpHelper::GetInstance().Dump(fd, argsStr, options);
+    switch (flag) {
+        case DumpFlag::DUMP_ALL:
+            DumpAll(fd);
+            return 0;
+        case DumpFlag::DUMP_USER_INFO:
+            DumpUserInfo(fd);
+            return 0;
+        case DumpFlag::DUMP_APP_INFO:
+            DumpAppInfo(fd, options);
+            return 0;
+        case DumpFlag::DUMP_STORE_INFO:
+            DumpStoreInfo(fd, options);
+            return 0;
+        case DumpFlag::DUMP_DONE:
+            return 0;
+        default:
+            break;
     }
-
-    ZLOGD("DumpHelper failed");
+    ZLOGE("DumpHelper failed");
     return ERROR;
 }
 
-Status KvStoreDataService::DumpAll(int fd) const
+void KvStoreDataService::DumpAll(int fd)
 {
     dprintf(fd, "------------------------------------------------------------------\n");
     dprintf(fd, "DeviceAccount count : %u\n", static_cast<uint32_t>(deviceAccountMap_.size()));
     for (const auto &pair : deviceAccountMap_) {
         pair.second.Dump(fd);
     }
-    return SUCCESS;
 }
 
-Status KvStoreDataService::DumpUserInfo(int fd) const
+void KvStoreDataService::DumpUserInfo(int fd)
 {
     dprintf(fd, "------------------------------------------------------------------\n");
     dprintf(fd, "DeviceAccount count : %u\n", static_cast<uint32_t>(deviceAccountMap_.size()));
     for (const auto &pair : deviceAccountMap_) {
         pair.second.DumpUserInfo(fd);
     }
-    return SUCCESS;
 }
 
-Status KvStoreDataService::DumpAppInfo(int fd, bool isSpecified, const std::string &appId) const
+void KvStoreDataService::DumpAppInfo(int fd, const std::string &appId)
 {
     for (const auto &pair : deviceAccountMap_) {
-        pair.second.DumpAppInfo(fd, isSpecified, appId);
+        pair.second.DumpAppInfo(fd, appId);
     }
-    return SUCCESS;
 }
 
-Status KvStoreDataService::DumpStoreInfo(int fd, bool isSpecified, const std::string &storeId) const
+void KvStoreDataService::DumpStoreInfo(int fd, const std::string &storeId)
 {
     for (const auto &pair : deviceAccountMap_) {
-        pair.second.DumpStoreInfo(fd, isSpecified, storeId);
+        pair.second.DumpStoreInfo(fd, storeId);
     }
-    return SUCCESS;
 }
 
 void KvStoreDataService::OnStart()
@@ -804,10 +816,7 @@ void KvStoreDataService::StartService()
     if (!ret) {
         FaultMsg msg = {FaultType::SERVICE_FAULT, "service", __FUNCTION__, Fault::SF_SERVICE_PUBLISH};
         Reporter::GetInstance()->ServiceFault()->Report(msg);
-        std::string errorInfo;
-        errorInfo.append(__FUNCTION__)
-            .append("Service publish failed.");
-        DumpHelper::GetInstance().AddErrorInfo(errorInfo);
+        DumpHelper::GetInstance().AddErrorInfo("StartService: Service publish failed.");
     }
     Uninstaller::GetInstance().Init(this);
 

@@ -26,31 +26,22 @@
 namespace OHOS {
 namespace DistributedKv {
 enum class DumpFlag {
-    UNKNOW = 0,
-    GET_HELP,
-    GET_USER_INFO,
-    GET_APP_INFO,
-    GET_STORE_INFO,
-    GET_ERROR_INFO,
+    DUMP_DONE = 0,
+    DUMP_ALL,
+    DUMP_USER_INFO,
+    DUMP_APP_INFO,
+    DUMP_STORE_INFO,
 };
 
-struct HidumpParam {
-    DumpFlag dumpFlag = DumpFlag::UNKNOW;
-    std::string args;
-};
-
-
-class KvStoreDataService;
 class DumpHelper : public Singleton<DumpHelper> {
 public:
     DumpHelper() = default;
     virtual ~DumpHelper() = default;
-    void AddErrorInfo(std::string &error);
+    void AddErrorInfo(const std::string &error);
     void ShowError(int fd);
-    bool Dump(int fd, KvStoreDataService &kvStoreDataService, const std::vector<std::string> &args);
+    DumpFlag Dump(int fd, const std::vector<std::string> &args, std::string &options);
 
 private:
-    Status DumpAll(int fd, KvStoreDataService &kvStoreDataService);
     void ShowHelp(int fd);
     void ShowIllealInfomation(int fd);
     mutable std::mutex hidumperMutex_;

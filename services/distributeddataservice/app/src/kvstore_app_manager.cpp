@@ -549,10 +549,10 @@ void KvStoreAppManager::DumpAppInfo(int fd) const
     }
 }
 
-void KvStoreAppManager::DumpStoreInfo(int fd, bool isSpecified, const std::string &storeId) const
+void KvStoreAppManager::DumpStoreInfo(int fd, const std::string &storeId) const
 {
     const std::string prefix(8, ' ');
-    if (isSpecified) {
+    if (storeId != "") {
         for (const auto &singleStoreMap : singleStores_) {
             auto it = singleStoreMap.find(storeId);
             if (it != singleStoreMap.end()) {
@@ -560,9 +560,10 @@ void KvStoreAppManager::DumpStoreInfo(int fd, bool isSpecified, const std::strin
                 dprintf(fd, "%sAppID         : %s\n", prefix.c_str(), trueAppId_.c_str());
                 it->second->OnDump(fd);
             }
+            return;
         }
-        return;
     }
+
     dprintf(fd, "%sAppID         : %s\n", prefix.c_str(), trueAppId_.c_str());
     for (const auto &singleStoreMap : singleStores_) {
         for (const auto &pair : singleStoreMap) {

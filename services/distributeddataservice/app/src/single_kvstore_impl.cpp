@@ -225,7 +225,7 @@ Status SingleKvStoreImpl::Get(const Key &key, Value &value)
     if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
         ZLOGI("Get failed, distributeddb need recover.");
         std::string errorInfo;
-        errorInfo.append(__FUNCTION__).append(" Get failed.")
+        errorInfo.append(__FUNCTION__).append(": Get failed. ")
             .append("key is ").append(key.ToString())
             .append(". bundleName is ").append(bundleName_);
         DumpHelper::GetInstance().AddErrorInfo(errorInfo);
@@ -934,8 +934,8 @@ Status SingleKvStoreImpl::DoSubscribe(const std::vector<std::string> &deviceIds,
         if (kvStoreNbDelegate_ == nullptr) {
             ZLOGE("kvstore is not open");
             std::string errorInfo;
-            errorInfo.append(__FUNCTION__).append(". Subscribe failed because kvstore is not open.")
-                .append(". bundleName is ").append(bundleName_);
+            errorInfo.append(__FUNCTION__).append(": Subscribe failed because kvstore is not open. ")
+                .append("bundleName is ").append(bundleName_);
             DumpHelper::GetInstance().AddErrorInfo(errorInfo);
             return Status::ILLEGAL_STATE;
         }
@@ -1154,8 +1154,8 @@ Status SingleKvStoreImpl::PutBatch(const std::vector<Entry> &entries)
     }
     if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
         std::string errorInfo;
-        errorInfo.append(__FUNCTION__).append(". PutBatch failed.")
-            .append(". bundleName is ").append(bundleName_);
+        errorInfo.append(__FUNCTION__).append(": PutBatch failed. ")
+            .append("bundleName is ").append(bundleName_);
         DumpHelper::GetInstance().AddErrorInfo(errorInfo);
         ZLOGE("PutBatch failed, distributeddb need recover.");
         return (Import(bundleName_) ? Status::RECOVER_SUCCESS : Status::RECOVER_FAILED);
@@ -1209,7 +1209,7 @@ Status SingleKvStoreImpl::DeleteBatch(const std::vector<Key> &keys)
     }
     if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
         std::string errorInfo;
-        errorInfo.append(__FUNCTION__).append(". DeleteBatch failed.")
+        errorInfo.append(__FUNCTION__).append(": DeleteBatch failed. ")
             .append("bundleName is ").append(bundleName_);
         DumpHelper::GetInstance().AddErrorInfo(errorInfo);
         ZLOGE("DeleteBatch failed, distributeddb need recover.");
@@ -1251,7 +1251,7 @@ Status SingleKvStoreImpl::StartTransaction()
     }
     if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
         std::string errorInfo;
-        errorInfo.append(__FUNCTION__).append(". StartTransaction failed.")
+        errorInfo.append(__FUNCTION__).append(": StartTransaction failed. ")
             .append("bundleName is ").append(bundleName_);
         DumpHelper::GetInstance().AddErrorInfo(errorInfo);
         ZLOGE("StartTransaction failed, distributeddb need recover.");
@@ -1285,7 +1285,7 @@ Status SingleKvStoreImpl::Commit()
     }
     if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
         std::string errorInfo;
-        errorInfo.append(__FUNCTION__).append(". Commit failed.")
+        errorInfo.append(__FUNCTION__).append(": Commit failed. ")
             .append("bundleName is ").append(bundleName_);
         DumpHelper::GetInstance().AddErrorInfo(errorInfo);
         ZLOGE("Commit failed, distributeddb need recover.");
@@ -1320,7 +1320,7 @@ Status SingleKvStoreImpl::Rollback()
     }
     if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
         std::string errorInfo;
-        errorInfo.append(__FUNCTION__).append(". Rollback failed.")
+        errorInfo.append(__FUNCTION__).append(": Rollback failed. ")
             .append("bundleName is ").append(bundleName_);
         DumpHelper::GetInstance().AddErrorInfo(errorInfo);
         ZLOGE("Rollback failed, distributeddb need recover.");

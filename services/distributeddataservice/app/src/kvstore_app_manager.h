@@ -67,7 +67,7 @@ public:
     void Dump(int fd) const;
     void DumpUserInfo(int fd) const;
     void DumpAppInfo(int fd) const;
-    void DumpStoreInfo(int fd, bool isSpecified, const std::string &storeId) const;
+    void DumpStoreInfo(int fd, const std::string &storeId) const;
 
     static DistributedDB::SecurityOption ConvertSecurity(int securityLevel);
 

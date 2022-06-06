@@ -152,11 +152,8 @@ void KvStoreMetaManager::InitMetaParameter()
     if (!ret) {
         FaultMsg msg = {FaultType::SERVICE_FAULT, "user", __FUNCTION__, Fault::SF_CREATE_DIR};
         Reporter::GetInstance()->ServiceFault()->Report(msg);
-        std::string errorInfo;
-        errorInfo.append(__FUNCTION__)
-            .append(". user create directories failed.");
-        DumpHelper::GetInstance().AddErrorInfo(errorInfo);
-        ZLOGE("create directories failed");
+        DumpHelper::GetInstance().AddErrorInfo("InitMetaParameter: user create directories failed.");
+		ZLOGE("create directories failed");
         return;
     }
     ForceCreateDirectory(metaDBDirectory_ + "/backup");
