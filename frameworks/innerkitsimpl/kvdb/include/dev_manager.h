@@ -18,12 +18,29 @@
 #include <string>
 
 #include "types.h"
+#include "concurrent_map.h"
 namespace OHOS::DistributedKv {
 class API_EXPORT DevManager {
 public:
+    struct DeviceInfo {
+        std::string uuid;
+        std::string udid;
+        std::string networkId;
+    };
     static DevManager &GetInstance();
     std::string ToUUID(const std::string &networkId) const;
-    DeviceInfo GetLocalDevice() const;
+    DeviceInfo GetLocalDevice();
+    std::vector<DeviceInfo> GetRemoteDevices() const;
+    DeviceInfo GetDeviceInfo(const std::string &id) const;
+    std::string ToNodeID(const std::string &nodeId) const;
+private:
+    DeviceInfo localInfo_ {};
+    mutable ConcurrentMap<std::string, DeviceInfo> deviceInfos_ {};
+    std::string GetUuidByNodeId(const std::string &nodeId) const;
+    std::string GetUdidByNodeId(const std::string &nodeId) const;
+    DeviceInfo GetDeviceInfoFromCache(const std::string &id) const;
+    DeviceInfo GetDeviceCacheInfo(const std::string &id) const;
+    void UpdateDeviceCacheInfo() const;
 };
 } // namespace OHOS::DistributedKv
 #endif // OHOS_DISTRIBUTED_DATA_FRAMEWORKS_KVDB_DEV_MANAGER_H

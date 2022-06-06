@@ -20,7 +20,7 @@
 namespace OHOS::DistributedKv {
 std::vector<uint8_t> DeviceStoreImpl::ToLocalDBKey(const Key &key) const
 {
-    auto deviceId = DevManager::GetInstance().GetLocalDevice().deviceId;
+    auto deviceId = DevManager::GetInstance().GetLocalDevice().uuid;
     if (deviceId.empty()) {
         return {};
     }
