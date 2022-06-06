@@ -41,13 +41,13 @@ private:
     void Finish(const std::string &value);
     bool SetBytraceEnable();
 
-    static std::atomic_uint indexCount;
-    static std::atomic_bool isSetBytraceEnabled;
-    std::string traceValue{ };
-    HiviewDFX::HiTraceId traceId;
-    uint32_t traceSwitch{ 0 };;
-    uint64_t lastTime{ 0 };
-    uint32_t traceCount{ 0 };
+    static std::atomic_uint indexCount_;
+    static std::atomic_bool isSetBytraceEnabled_;
+    std::string traceValue_{ };
+    HiviewDFX::HiTraceId traceId_;
+    uint32_t traceSwitch_{ 0 };
+    uint64_t lastTime_{ 0 };
+    uint32_t traceCount_{ 0 };
 };
 } // namespace DistributedKv
 } // namespace OHOS

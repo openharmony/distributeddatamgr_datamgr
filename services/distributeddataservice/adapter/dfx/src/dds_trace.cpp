@@ -28,14 +28,14 @@ namespace DistributedKv {
 static constexpr uint64_t BYTRACE_LABEL = HITRACE_TAG_DISTRIBUTEDDATA;
 using OHOS::HiviewDFX::HiTrace;
 
-std::atomic_uint DdsTrace::indexCount = 0; // the value is changed by different thread
-std::atomic_bool DdsTrace::isSetBytraceEnabled = false;
+std::atomic_uint DdsTrace::indexCount_ = 0; // the value is changed by different thread
+std::atomic_bool DdsTrace::isSetBytraceEnabled_ = false;
 
 DdsTrace::DdsTrace(const std::string& value, unsigned int option)
-    : traceSwitch(option)
+    : traceSwitch_(option)
 {
-    traceValue = value;
-    traceCount = ++indexCount;
+    traceValue_ = value;
+    traceCount_ = ++indexCount;
     SetBytraceEnable();
     Start(value);
 }
@@ -47,33 +47,33 @@ DdsTrace::~DdsTrace()
 
 void DdsTrace::SetMiddleTrace(const std::string& beforeValue, const std::string& afterValue)
 {
-    traceValue = afterValue;
+    traceValue_ = afterValue;
     Middle(beforeValue, afterValue);
 }
 
 void DdsTrace::Start(const std::string& value)
 {
-    if (traceSwitch == DEBUG_CLOSE) {
+    if (traceSwitch_ == DEBUG_CLOSE) {
         return;
     }
-    if ((traceSwitch & BYTRACE_ON) == BYTRACE_ON) {
+    if ((traceSwitch_ & BYTRACE_ON) == BYTRACE_ON) {
         StartTrace(BYTRACE_LABEL, value);
     }
-    if ((traceSwitch & TRACE_CHAIN_ON) == TRACE_CHAIN_ON) {
+    if ((traceSwitch_ & TRACE_CHAIN_ON) == TRACE_CHAIN_ON) {
         traceId = HiTrace::Begin(value, HITRACE_FLAG_DEFAULT);
     }
-    if ((traceSwitch & API_PERFORMANCE_TRACE_ON) == API_PERFORMANCE_TRACE_ON) {
-        lastTime = TimeUtils::CurrentTimeMicros();
+    if ((traceSwitch_ & API_PERFORMANCE_TRACE_ON) == API_PERFORMANCE_TRACE_ON) {
+        lastTime_ = TimeUtils::CurrentTimeMicros();
     }
-    ZLOGD("DdsTrace-Start: Trace[%{public}u] %{public}s In", traceCount, value.c_str());
+    ZLOGD("DdsTrace-Start: Trace[%{public}u] %{public}s In", traceCount_, value_.c_str());
 }
 
 void DdsTrace::Middle(const std::string& beforeValue, const std::string& afterValue)
 {
-    if (traceSwitch == DEBUG_CLOSE) {
+    if (traceSwitch_ == DEBUG_CLOSE) {
         return;
     }
-    if (traceSwitch & BYTRACE_ON) {
+    if ((traceSwitch_ & BYTRACE_ON) == BYTRACE_ON) {
         MiddleTrace(BYTRACE_LABEL, beforeValue, afterValue);
     }
     ZLOGD("DdsTrace-Middle: Trace[%{public}u] %{public}s --- %{public}s", traceCount,
@@ -83,17 +83,17 @@ void DdsTrace::Middle(const std::string& beforeValue, const std::string& afterVa
 void DdsTrace::Finish(const std::string& value)
 {
     uint64_t delta = 0;
-    if (traceSwitch == DEBUG_CLOSE) {
+    if (traceSwitch_ == DEBUG_CLOSE) {
         return;
     }
-    if (traceSwitch & BYTRACE_ON) {
+    if ((traceSwitch_ & BYTRACE_ON) == BYTRACE_ON) {
         FinishTrace(BYTRACE_LABEL);
     }
-    if ((traceSwitch & TRACE_CHAIN_ON) == TRACE_CHAIN_ON) {
-        HiTrace::End(traceId);
+    if ((traceSwitch_ & TRACE_CHAIN_ON) == TRACE_CHAIN_ON) {
+        HiTrace::End(traceId_);
     }
-    if (traceSwitch & API_PERFORMANCE_TRACE_ON) {
-        delta = TimeUtils::CurrentTimeMicros() - lastTime;
+    if ((traceSwitch_ & API_PERFORMANCE_TRACE_ON) == API_PERFORMANCE_TRACE_ON) {
+        delta = TimeUtils::CurrentTimeMicros() - lastTime_;
         Reporter::GetInstance()->ApiPerformanceStatistic()->Report({value, delta, delta, delta});
     }
     ZLOGD("DdsTrace-Finish: Trace[%u] %{public}s Out: %{public}" PRIu64"us.", traceCount, value.c_str(), delta);
@@ -101,12 +101,12 @@ void DdsTrace::Finish(const std::string& value)
 
 bool DdsTrace::SetBytraceEnable()
 {
-    if (isSetBytraceEnabled) {
+    if (isSetBytraceEnabled_) {
         return true;
     }
 
     UpdateTraceLabel();
-    isSetBytraceEnabled = true;
+    isSetBytraceEnabled_ = true;
 
     ZLOGD("success, current tag is true");
     return true;
