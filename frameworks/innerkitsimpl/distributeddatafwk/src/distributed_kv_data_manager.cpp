@@ -54,6 +54,7 @@ Status DistributedKvDataManager::GetSingleKvStore(const Options &options, const 
         ZLOGE("proxy is nullptr.");
         return status;
     }
+
     ZLOGD("call proxy.");
     sptr<ISingleKvStore> proxyTmp;
     status = kvDataServiceProxy->GetSingleKvStore(options, appId, storeId,
