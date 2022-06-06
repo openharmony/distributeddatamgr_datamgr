@@ -20,13 +20,15 @@ namespace DistributedKv {
 ReportStatus DatabaseFaultImpl::Report(const DBFaultMsg &msg)
 {
     int eventID = DfxCodeConstant::DATABASE_FAULT;
-    if (msg.errorType == Fault::DF_DB_RECOVERY_FAILE) {
+    if (msg.errorType == Fault::DF_DB_RECOVERY_FAILED) {
         eventID = DfxCodeConstant::DATABASE_RECOVERY_FAILED;
-    } else if (msg.errorType == Fault::DF_DB_OPEN_FAILE) {
+    } else if (msg.errorType == Fault::DF_DB_OPEN_FAILED) {
         eventID = DfxCodeConstant::DATABASE_OPEN_FAILED;
-    } else if (msg.errorType == Fault::DF_DB_REKEY_FAILE) {
+    } else if (msg.errorType == Fault::DF_DB_REKEY_FAILED) {
         eventID = DfxCodeConstant::DATABASE_REKEY_FAILED;
-    } else {}
+    } else {
+        return ReportStatus::ERROR;
+    }
 
     HiViewAdapter::ReportDBFault(eventID, msg);
     return ReportStatus::SUCCESS;

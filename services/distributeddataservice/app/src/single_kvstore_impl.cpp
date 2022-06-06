@@ -123,7 +123,7 @@ Status SingleKvStoreImpl::CheckDbIsCorrupted(DistributedDB::DBStatus status, con
         bool result = Import(bundleName_);
         if (!result) {
             Reporter::GetInstance()->DatabaseFault()->Report(
-                {bundleName_, storeId_, "KVDB", Fault::DF_DB_RECOVERY_FAILE });
+                {bundleName_, storeId_, "KVDB", Fault::DF_DB_RECOVERY_FAILED });
             return Status::RECOVER_FAILED;
         } else {
             Reporter::GetInstance()->BehaviourReporter()->Report(

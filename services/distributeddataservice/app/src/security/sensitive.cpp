@@ -76,12 +76,13 @@ bool Sensitive::operator >= (const DistributedDB::SecurityOption &option)
         level = GetSensitiveLevel(deviceId);
     }
 
-    if (level < static_cast<uint32_t>(option.securityLabel - 1)) {
+    bool checkResult = (level >= static_cast<uint32_t>(option.securityLabel - 1)) ? true : false;
+    if (!checkResult) {
         Reporter::GetInstance()->SensitiveLevelSecurity()->Report(
-            {StoreUtil::Anonymous(deviceId), static_cast<int>(level), option.securityLabel,
-            SecurityInfo::SENSITIVE_LEVEL_FAILE});
+            {StoreUtil::Anonymous(deviceId), static_cast<int>(level),
+                option.securityLabel, SecurityInfo::SENSITIVE_LEVEL_FAILE});
     }
-    return (level >= static_cast<uint32_t>(option.securityLabel - 1));
+    return checkResult;
 }
 
 Sensitive::Sensitive(const Sensitive &sensitive)

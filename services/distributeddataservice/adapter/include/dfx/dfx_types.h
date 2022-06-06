@@ -63,9 +63,9 @@ enum class Fault {
 
     // Database Fault
     DF_DB_DAMAGE = 60,
-    DF_DB_RECOVERY_FAILE = 61,
-    DF_DB_OPEN_FAILE = 62,
-    DF_DB_REKEY_FAILE = 63,
+    DF_DB_RECOVERY_FAILED = 61,
+    DF_DB_OPEN_FAILED = 62,
+    DF_DB_REKEY_FAILED = 63,
 };
 
 enum class FaultType {

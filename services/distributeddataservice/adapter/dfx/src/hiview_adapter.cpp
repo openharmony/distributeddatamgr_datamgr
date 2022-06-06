@@ -22,6 +22,8 @@
 
 namespace OHOS {
 namespace DistributedKv {
+
+using OHOS::HiviewDFX::HiSysEvent;
 std::shared_ptr<KvStoreThreadPool> HiViewAdapter::pool_ = KvStoreThreadPool::GetPool(POOL_SIZE, true);
 
 std::mutex HiViewAdapter::visitMutex_;
@@ -41,10 +43,10 @@ std::mutex HiViewAdapter::runMutex_;
 
 void HiViewAdapter::ReportFault(int dfxCode, const FaultMsg &msg)
 {
-    KvStoreTask task([=]() {
-        OHOS::HiviewDFX::HiSysEvent::Write(OHOS::HiviewDFX::HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
+    KvStoreTask task([dfxCode, msg]() {
+        HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
             std::to_string(dfxCode),
-            OHOS::HiviewDFX::HiSysEvent::EventType::FAULT,
+            HiSysEvent::EventType::FAULT,
             FAULT_TYPE, static_cast<int>(msg.faultType),
             MODULE_NAME, msg.moduleName,
             INTERFACE_NAME, msg.interfaceName,
@@ -57,10 +59,10 @@ void HiViewAdapter::ReportFault(int dfxCode, const FaultMsg &msg)
 
 void HiViewAdapter::ReportDBFault(int dfxCode, const DBFaultMsg &msg)
 {
-    KvStoreTask task([=]() {
-        OHOS::HiviewDFX::HiSysEvent::Write(OHOS::HiviewDFX::HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
+    KvStoreTask task([dfxCode, msg]() {
+        HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
             std::to_string(dfxCode),
-            OHOS::HiviewDFX::HiSysEvent::EventType::FAULT,
+            HiSysEvent::EventType::FAULT,
             APP_ID, msg.appId,
             STORE_ID, msg.storeId,
             MODULE_NAME, msg.moduleName,
@@ -74,16 +76,16 @@ void HiViewAdapter::ReportDBFault(int dfxCode, const DBFaultMsg &msg)
 
 void HiViewAdapter::ReportCommFault(int dfxCode, const CommFaultMsg &msg)
 {
-    KvStoreTask task([=]() {
+    KvStoreTask task([dfxCode, msg]() {
         std::string message;
 
         for (int i = 0; i < msg.deviceId.size(); i++) {
             message.append("sync to device: ").append(msg.deviceId[i])
             .append(" error:").append(std::to_string(msg.errorCode[i]));
         }
-        OHOS::HiviewDFX::HiSysEvent::Write(OHOS::HiviewDFX::HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
+        HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
             std::to_string(dfxCode),
-            OHOS::HiviewDFX::HiSysEvent::EventType::FAULT,
+            HiSysEvent::EventType::FAULT,
             USER_ID, msg.userId,
             APP_ID, msg.appId,
             STORE_ID, msg.storeId,
@@ -96,10 +98,10 @@ void HiViewAdapter::ReportCommFault(int dfxCode, const CommFaultMsg &msg)
 
 void HiViewAdapter::ReportPermissionsSecurity(int dfxCode, const SecurityPermissionsMsg &msg)
 {
-    KvStoreTask task([=]() {
-        OHOS::HiviewDFX::HiSysEvent::Write(OHOS::HiviewDFX::HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
+    KvStoreTask task([dfxCode, msg]() {
+        HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
             std::to_string(dfxCode),
-            OHOS::HiviewDFX::HiSysEvent::EventType::SECURITY,
+            HiSysEvent::EventType::SECURITY,
             USER_ID, msg.appId,
             APP_ID, msg.appId,
             STORE_ID, msg.storeId,
@@ -113,10 +115,10 @@ void HiViewAdapter::ReportPermissionsSecurity(int dfxCode, const SecurityPermiss
 
 void HiViewAdapter::ReportSensitiveLevelSecurity(int dfxCode, const SecuritySensitiveLevelMsg &msg)
 {
-    KvStoreTask task([=]() {
-        OHOS::HiviewDFX::HiSysEvent::Write(OHOS::HiviewDFX::HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
+    KvStoreTask task([dfxCode, msg]() {
+        HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
             std::to_string(dfxCode),
-            OHOS::HiviewDFX::HiSysEvent::EventType::SECURITY,
+            HiSysEvent::EventType::SECURITY,
             DEVICE_ID, msg.deviceId,
             DEVICE_SENSITIVE_LEVEL, msg.deviceSensitiveLevel,
             OPTION_SENSITIVE_LEVEL, msg.optionSensitiveLevel,
@@ -129,10 +131,10 @@ void HiViewAdapter::ReportSensitiveLevelSecurity(int dfxCode, const SecuritySens
 
 void HiViewAdapter::ReportBehaviour(int dfxCode, const BehaviourMsg &msg)
 {
-    KvStoreTask task([=]() {
-        OHOS::HiviewDFX::HiSysEvent::Write(OHOS::HiviewDFX::HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
+    KvStoreTask task([dfxCode, msg]() {
+        HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
             std::to_string(dfxCode),
-            OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR,
+            HiSysEvent::EventType::BEHAVIOR,
             USER_ID, msg.appId,
             APP_ID, msg.appId,
             STORE_ID, msg.storeId,
@@ -145,7 +147,7 @@ void HiViewAdapter::ReportBehaviour(int dfxCode, const BehaviourMsg &msg)
 
 void HiViewAdapter::ReportDatabaseStatistic(int dfxCode, const DbStat &stat)
 {
-    KvStoreTask task([=]() {
+    KvStoreTask task([dfxCode, stat]() {
         std::lock_guard<std::mutex> lock(dbMutex_);
         if (!dbStat_.count(stat.GetKey())) {
             dbStat_.insert({stat.GetKey(), {stat, 0, dfxCode}});
@@ -170,9 +172,9 @@ void HiViewAdapter::ReportDbSize(const StatisticWrap<DbStat> &stat)
         return;
     }
 
-    OHOS::HiviewDFX::HiSysEvent::Write(OHOS::HiviewDFX::HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
+    HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
         std::to_string(stat.code),
-        OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC,
+        HiSysEvent::EventType::STATISTIC,
         USER_ID, userId, APP_ID, stat.val.appId, STORE_ID, stat.val.storeId, DB_SIZE, dbSize);
 }
 
@@ -204,7 +206,7 @@ void HiViewAdapter::InvokeDbSize()
 
 void HiViewAdapter::ReportTrafficStatistic(int dfxCode, const TrafficStat &stat)
 {
-    KvStoreTask task([=]() {
+    KvStoreTask task([dfxCode, stat]() {
         std::lock_guard<std::mutex> lock(trafficMutex_);
         auto it = trafficStat_.find(stat.GetKey());
         if (it != trafficStat_.end()) {
@@ -230,9 +232,9 @@ void HiViewAdapter::InvokeTraffic()
             continue;
         }
 
-        OHOS::HiviewDFX::HiSysEvent::Write(OHOS::HiviewDFX::HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
+        HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
             std::to_string(kv.second.code),
-            OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC,
+            HiSysEvent::EventType::STATISTIC,
             TAG, POWERSTATS,
             APP_ID, kv.second.val.appId,
             DEVICE_ID, deviceId,
@@ -244,7 +246,7 @@ void HiViewAdapter::InvokeTraffic()
 
 void HiViewAdapter::ReportVisitStatistic(int dfxCode, const VisitStat &stat)
 {
-    KvStoreTask task([=]() {
+    KvStoreTask task([dfxCode, stat]() {
         std::lock_guard<std::mutex> lock(visitMutex_);
         auto it = visitStat_.find(stat.GetKey());
         if (it == visitStat_.end()) {
@@ -263,9 +265,9 @@ void HiViewAdapter::InvokeVisit()
 {
     std::lock_guard<std::mutex> lock(visitMutex_);
     for (auto const &kv : visitStat_) {
-        OHOS::HiviewDFX::HiSysEvent::Write(OHOS::HiviewDFX::HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
+        HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
             std::to_string(kv.second.code),
-            OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC,
+            HiSysEvent::EventType::STATISTIC,
             TAG, POWERSTATS,
             APP_ID, kv.second.val.appId,
             INTERFACE_NAME, kv.second.val.interfaceName,
@@ -276,7 +278,7 @@ void HiViewAdapter::InvokeVisit()
 
 void HiViewAdapter::ReportApiPerformanceStatistic(int dfxCode, const ApiPerformanceStat &stat)
 {
-    KvStoreTask task([=]() {
+    KvStoreTask task([dfxCode, stat]() {
         std::lock_guard<std::mutex> lock(apiPerformanceMutex_);
         auto it = apiPerformanceStat_.find(stat.GetKey());
         if (it == apiPerformanceStat_.end()) {
@@ -312,9 +314,9 @@ void HiViewAdapter::InvokeApiPerformance()
         .append("\"").append(WORST_TIMES).append("\":").append(std::to_string(kv.second.val.worstTime)).append("}");
     }
     message.append("]");
-    OHOS::HiviewDFX::HiSysEvent::Write(OHOS::HiviewDFX::HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
+    HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
         std::to_string(DfxCodeConstant::API_PERFORMANCE_STATISTIC),
-        OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC,
+        HiSysEvent::EventType::STATISTIC,
         INTERFACES, message);
     apiPerformanceStat_.clear();
     ZLOGI("DdsTrace interface: clean");
@@ -330,7 +332,7 @@ void HiViewAdapter::StartTimerThread()
         return;
     }
     running_ = true;
-    auto fun = [=]() {
+    auto fun = []() {
         while (true) {
             time_t current = time(nullptr);
             tm localTime = { 0 };
