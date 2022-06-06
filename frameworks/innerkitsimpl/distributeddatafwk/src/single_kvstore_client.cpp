@@ -169,7 +169,7 @@ Status SingleKvStoreClient::GetCount(const DataQuery &query, int &count) const
     return kvStoreProxy_->GetCountWithQuery(query.ToString(), count);
 }
 
-Status SingleKvStoreClient::Sync(const std::vector<std::string> &devices, SyncMode mode, uint32_t allowedDelayMs)
+Status SingleKvStoreClient::Sync(const std::vector<std::string> &devices, SyncMode mode, uint32_t delay)
 {
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
         SwitchOption::BYTRACE_ON | SwitchOption::API_PERFORMANCE_TRACE_ON | SwitchOption::TRACE_CHAIN_ON);
@@ -184,7 +184,7 @@ Status SingleKvStoreClient::Sync(const std::vector<std::string> &devices, SyncMo
     uint64_t sequenceId = KvStoreUtils::GenerateSequenceId();
     syncCallbackClient_->AddSyncCallback(syncObserver_, sequenceId);
     RegisterCallback();
-    return kvStoreProxy_->Sync(devices, mode, allowedDelayMs, sequenceId);
+    return kvStoreProxy_->Sync(devices, mode, delay, sequenceId);
 }
 
 Status SingleKvStoreClient::RemoveDeviceData(const std::string &device)
@@ -266,9 +266,7 @@ Status SingleKvStoreClient::SubscribeKvStore(SubscribeType subscribeType, std::s
         return Status::STORE_ALREADY_SUBSCRIBE;
     }
     // remove storeId after remove SubscribeKvStore function in manager. currently reserve for convenience.
-    sptr<KvStoreObserverClient> ipcObserver =
-            new (std::nothrow) KvStoreObserverClient(GetStoreId(),
-            subscribeType, observer, KvStoreType::SINGLE_VERSION);
+    sptr<KvStoreObserverClient> ipcObserver = new (std::nothrow) KvStoreObserverClient(observer);
     if (ipcObserver == nullptr) {
         ZLOGW("new KvStoreObserverClient failed");
         return Status::ERROR;
@@ -470,10 +468,10 @@ Status SingleKvStoreClient::SetCapabilityRange(const std::vector<std::string> &l
     return Status::SERVER_UNAVAILABLE;
 }
 
-Status SingleKvStoreClient::GetSecurityLevel(SecurityLevel &securityLevel) const
+Status SingleKvStoreClient::GetSecurityLevel(SecurityLevel &secLevel) const
 {
     if (kvStoreProxy_ != nullptr) {
-        return kvStoreProxy_->GetSecurityLevel(securityLevel);
+        return kvStoreProxy_->GetSecurityLevel(secLevel);
     }
     ZLOGE("singleKvstore proxy is nullptr.");
     return Status::SERVER_UNAVAILABLE;
