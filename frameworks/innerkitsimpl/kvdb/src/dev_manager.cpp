@@ -39,7 +39,7 @@ std::string DevManager::ToUUID(const std::string &networkId) const
 
     std::string uuid = GetUuidByNetworkId(networkId);
     std::string udid = GetUdidByNetworkId(networkId);
-    if (uuid.empty() && udid.empty()) {
+    if (uuid.empty() || udid.empty()) {
         return uuid.empty() ? networkId : uuid;
     }
     deviceInfo = { uuid, std::move(udid), networkId, "", "" };
