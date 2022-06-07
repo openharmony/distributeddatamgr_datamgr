@@ -101,7 +101,7 @@ void DdsTrace::Finish(const std::string& value)
 
 bool DdsTrace::SetBytraceEnable()
 {
-    if (isSetBytraceEnabled_exchange(true)) {
+    if (isSetBytraceEnabled_.exchange(true)) {
         return true;
     }
     UpdateTraceLabel();
