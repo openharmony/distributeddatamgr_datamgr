@@ -24,10 +24,12 @@ namespace DistributedKv {
 class CommunicationFaultImpl : public FaultReporter {
 public:
     virtual ~CommunicationFaultImpl() {}
-    ReportStatus Report(const FaultMsg &msg) override {
+    ReportStatus Report(const FaultMsg &msg) override
+    {
         return ReportStatus::SUCCESS;
     };
-    ReportStatus Report(const DBFaultMsg &ms) override {
+    ReportStatus Report(const DBFaultMsg &ms) override
+    {
         return ReportStatus::SUCCESS;
     };
     ReportStatus Report(const struct CommFaultMsg &msg) override;

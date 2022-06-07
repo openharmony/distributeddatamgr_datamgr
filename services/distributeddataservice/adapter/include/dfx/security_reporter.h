@@ -20,10 +20,10 @@
 
 namespace OHOS {
 namespace DistributedKv {
-template<typename T>
 class SecurityReporter {
 public:
-    KVSTORE_API virtual ReportStatus Report(const T &securityMsg) = 0;
+    KVSTORE_API virtual ReportStatus Report(const SecurityPermissionsMsg &msg) = 0;
+    KVSTORE_API virtual ReportStatus Report(const SecuritySensitiveLevelMsg &msg) = 0;
     KVSTORE_API virtual ~SecurityReporter() {}
 };
 }  // namespace DistributedKv
