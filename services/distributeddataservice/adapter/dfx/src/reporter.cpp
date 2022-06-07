@@ -24,9 +24,6 @@
 #include "statistic/database_statistic_impl.h"
 #include "statistic/api_performance_statistic_impl.h"
 
-#include "security/security_reporter_impl.h"
-#include "behaviour/behaviour_reporter_impl.h"
-
 namespace OHOS {
 namespace DistributedKv {
 Reporter* Reporter::GetInstance()
