@@ -13,9 +13,19 @@
  * limitations under the License.
  */
 
-#include "statistic_reporter.h"
+#include "security_reporter_impl.h"
 
 namespace OHOS {
 namespace DistributedKv {
+ReportStatus SecurityReporterImpl::Report(const SecurityPermissionsMsg &msg)
+{
+    HiViewAdapter::ReportPermissionsSecurity(DfxCodeConstant::DATABASE_SECURITY, msg);
+    return ReportStatus::SUCCESS;
+}
+ReportStatus SecurityReporterImpl::Report(const SecuritySensitiveLevelMsg &msg)
+{
+    HiViewAdapter::ReportSensitiveLevelSecurity(DfxCodeConstant::DATABASE_SECURITY, msg);
+    return ReportStatus::SUCCESS;
+}
 } // namespace DistributedKv
 } // namespace OHOS

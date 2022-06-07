@@ -20,10 +20,11 @@
 
 namespace OHOS {
 namespace DistributedKv {
-template<typename T>
 class FaultReporter {
 public:
-    KVSTORE_API virtual ReportStatus Report(const T &fault) = 0;
+    KVSTORE_API virtual ReportStatus Report(const FaultMsg &msg) = 0;
+    KVSTORE_API virtual ReportStatus Report(const CommFaultMsg &msg) = 0;
+    KVSTORE_API virtual ReportStatus Report(const DBFaultMsg &ms) = 0;
     KVSTORE_API virtual ~FaultReporter() {}
 };
 }  // namespace DistributedKv

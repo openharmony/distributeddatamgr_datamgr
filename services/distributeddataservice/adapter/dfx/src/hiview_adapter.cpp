@@ -42,6 +42,9 @@ std::mutex HiViewAdapter::runMutex_;
 
 void HiViewAdapter::ReportFault(int dfxCode, const FaultMsg &msg)
 {
+    if (pool_ == nullptr) {
+        return;
+    }
     KvStoreTask task([dfxCode, msg]() {
         HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
             std::to_string(dfxCode),
@@ -51,13 +54,14 @@ void HiViewAdapter::ReportFault(int dfxCode, const FaultMsg &msg)
             INTERFACE_NAME, msg.interfaceName,
             ERROR_TYPE, static_cast<int>(msg.errorType));
     });
-    if (pool_ != nullptr) {
-        pool_->AddTask(std::move(task));
-    }
+    pool_->AddTask(std::move(task));
 }
 
 void HiViewAdapter::ReportDBFault(int dfxCode, const DBFaultMsg &msg)
 {
+    if (pool_ == nullptr) {
+        return;
+    }
     KvStoreTask task([dfxCode, msg]() {
         HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
             std::to_string(dfxCode),
@@ -67,20 +71,21 @@ void HiViewAdapter::ReportDBFault(int dfxCode, const DBFaultMsg &msg)
             MODULE_NAME, msg.moduleName,
             ERROR_TYPE, static_cast<int>(msg.errorType));
     });
-    if (pool_ != nullptr) {
-        pool_->AddTask(std::move(task));
-    }
+    pool_->AddTask(std::move(task));
 }
 
 
 void HiViewAdapter::ReportCommFault(int dfxCode, const CommFaultMsg &msg)
 {
+    if (pool_ == nullptr) {
+        return;
+    }
     KvStoreTask task([dfxCode, msg]() {
         std::string message;
-
         for (int i = 0; i < msg.deviceId.size(); i++) {
-            message.append("sync to device: ").append(msg.deviceId[i])
-            .append(" error:").append(std::to_string(msg.errorCode[i]));
+            message.append("No: ").append(std::to_string(i))
+            .append(" sync to device: ").append(msg.deviceId[i])
+            .append(" has error, errCode:").append(std::to_string(msg.errorCode[i])).append(". ");
         }
         HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
             std::to_string(dfxCode),
@@ -90,13 +95,14 @@ void HiViewAdapter::ReportCommFault(int dfxCode, const CommFaultMsg &msg)
             STORE_ID, msg.storeId,
             SYNC_ERROR_INFO, message);
     });
-    if (pool_ != nullptr) {
-        pool_->AddTask(std::move(task));
-    }
+    pool_->AddTask(std::move(task));
 }
 
 void HiViewAdapter::ReportPermissionsSecurity(int dfxCode, const SecurityPermissionsMsg &msg)
 {
+    if (pool_ == nullptr) {
+        return;
+    }
     KvStoreTask task([dfxCode, msg]() {
         HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
             std::to_string(dfxCode),
@@ -107,13 +113,14 @@ void HiViewAdapter::ReportPermissionsSecurity(int dfxCode, const SecurityPermiss
             DEVICE_ID, msg.deviceId,
             SECURITY_INFO, static_cast<int>(msg.securityInfo));
     });
-    if (pool_ != nullptr) {
-        pool_->AddTask(std::move(task));
-    }
+    pool_->AddTask(std::move(task));
 }
 
 void HiViewAdapter::ReportSensitiveLevelSecurity(int dfxCode, const SecuritySensitiveLevelMsg &msg)
 {
+    if (pool_ == nullptr) {
+        return;
+    }
     KvStoreTask task([dfxCode, msg]() {
         HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
             std::to_string(dfxCode),
@@ -123,13 +130,14 @@ void HiViewAdapter::ReportSensitiveLevelSecurity(int dfxCode, const SecuritySens
             OPTION_SENSITIVE_LEVEL, msg.optionSensitiveLevel,
             SECURITY_INFO, static_cast<int>(msg.securityInfo));
     });
-    if (pool_ != nullptr) {
-        pool_->AddTask(std::move(task));
-    }
+    pool_->AddTask(std::move(task));
 }
 
 void HiViewAdapter::ReportBehaviour(int dfxCode, const BehaviourMsg &msg)
 {
+    if (pool_ == nullptr) {
+        return;
+    }
     KvStoreTask task([dfxCode, msg]() {
         HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
             std::to_string(dfxCode),
@@ -139,22 +147,21 @@ void HiViewAdapter::ReportBehaviour(int dfxCode, const BehaviourMsg &msg)
             STORE_ID, msg.storeId,
             BEHAVIOUR_INFO, static_cast<int>(msg.behaviourType));
     });
-    if (pool_ != nullptr) {
-        pool_->AddTask(std::move(task));
-    }
+    pool_->AddTask(std::move(task));
 }
 
 void HiViewAdapter::ReportDatabaseStatistic(int dfxCode, const DbStat &stat)
 {
+    if (pool_ == nullptr) {
+        return;
+    }
     KvStoreTask task([dfxCode, stat]() {
         std::lock_guard<std::mutex> lock(dbMutex_);
         if (!dbStat_.count(stat.GetKey())) {
             dbStat_.insert({stat.GetKey(), {stat, 0, dfxCode}});
         }
     });
-    if (pool_ != nullptr) {
-        pool_->AddTask(std::move(task));
-    }
+    pool_->AddTask(std::move(task));
     StartTimerThread();
 }
 
@@ -205,6 +212,9 @@ void HiViewAdapter::InvokeDbSize()
 
 void HiViewAdapter::ReportTrafficStatistic(int dfxCode, const TrafficStat &stat)
 {
+    if (pool_ == nullptr) {
+        return;
+    }
     KvStoreTask task([dfxCode, stat]() {
         std::lock_guard<std::mutex> lock(trafficMutex_);
         auto it = trafficStat_.find(stat.GetKey());
@@ -215,9 +225,7 @@ void HiViewAdapter::ReportTrafficStatistic(int dfxCode, const TrafficStat &stat)
             trafficStat_.insert({stat.GetKey(), {stat, 0, dfxCode}});
         }
     });
-    if (pool_ != nullptr) {
-        pool_->AddTask(std::move(task));
-    }
+    pool_->AddTask(std::move(task));
     StartTimerThread();
 }
 
@@ -245,6 +253,9 @@ void HiViewAdapter::InvokeTraffic()
 
 void HiViewAdapter::ReportVisitStatistic(int dfxCode, const VisitStat &stat)
 {
+    if (pool_ == nullptr) {
+        return;
+    }
     KvStoreTask task([dfxCode, stat]() {
         std::lock_guard<std::mutex> lock(visitMutex_);
         auto it = visitStat_.find(stat.GetKey());
@@ -254,9 +265,7 @@ void HiViewAdapter::ReportVisitStatistic(int dfxCode, const VisitStat &stat)
             it->second.times++;
         }
     });
-    if (pool_ != nullptr) {
-        pool_->AddTask(std::move(task));
-    }
+    pool_->AddTask(std::move(task));
     StartTimerThread();
 }
 
@@ -277,6 +286,9 @@ void HiViewAdapter::InvokeVisit()
 
 void HiViewAdapter::ReportApiPerformanceStatistic(int dfxCode, const ApiPerformanceStat &stat)
 {
+    if (pool_ == nullptr) {
+        return;
+    }
     KvStoreTask task([dfxCode, stat]() {
         std::lock_guard<std::mutex> lock(apiPerformanceMutex_);
         auto it = apiPerformanceStat_.find(stat.GetKey());
@@ -294,9 +306,7 @@ void HiViewAdapter::ReportApiPerformanceStatistic(int dfxCode, const ApiPerforma
             }
         }
     });
-    if (pool_ != nullptr) {
-        pool_->AddTask(std::move(task));
-    }
+    pool_->AddTask(std::move(task));
     StartTimerThread();
 }
 

@@ -24,9 +24,7 @@
 #include "statistic/database_statistic_impl.h"
 #include "statistic/api_performance_statistic_impl.h"
 
-#include "security/permissions_security_impl.h"
-#include "security/sensitive_level_security_impl.h"
-
+#include "security/security_reporter_impl.h"
 #include "behaviour/behaviour_reporter_impl.h"
 
 namespace OHOS {
@@ -37,25 +35,25 @@ Reporter* Reporter::GetInstance()
     return &reporter;
 }
 
-FaultReporter<CommFaultMsg>* Reporter::CommunicationFault()
+FaultReporter* Reporter::CommunicationFault()
 {
     static CommunicationFaultImpl communicationFault;
     return &communicationFault;
 }
 
-FaultReporter<DBFaultMsg>* Reporter::DatabaseFault()
+FaultReporter* Reporter::DatabaseFault()
 {
     static DatabaseFaultImpl databaseFault;
     return &databaseFault;
 }
 
-FaultReporter<FaultMsg>* Reporter::RuntimeFault()
+FaultReporter* Reporter::RuntimeFault()
 {
     static RuntimeFaultImpl runtimeFault;
     return &runtimeFault;
 }
 
-FaultReporter<FaultMsg>* Reporter::ServiceFault()
+FaultReporter* Reporter::ServiceFault()
 {
     static ServiceFaultImpl serviceFault;
     return &serviceFault;
@@ -85,22 +83,16 @@ StatisticReporter<ApiPerformanceStat>* Reporter::ApiPerformanceStatistic()
     return &apiPerformanceStat;
 }
 
-SecurityReporter<struct SecurityPermissionsMsg>* Reporter::PermissionsSecurity()
+SecurityReporter* Reporter::SecurityReporter()
 {
-    static PermissionsSecurityImpl permissionsSecurity;
-    return &permissionsSecurity;
-}
-
-SecurityReporter<struct SecuritySensitiveLevelMsg>* Reporter::SensitiveLevelSecurity()
-{
-    static SensitiveLevelSecurityImpl sensitiveLevelSecurity;
-    return &sensitiveLevelSecurity;
+    static SecurityReporterImpl securityReporterImpl;
+    return &securityReporterImpl;
 }
 
 BehaviourReporter* Reporter::BehaviourReporter()
 {
-    static BehaviourReporterImpl behaviourReporter;
-    return &behaviourReporter;
+    static BehaviourReporterImpl behaviourReporterImpl;
+    return &behaviourReporterImpl;
 }
 } // namespace DistributedKv
 } // namespace OHOS

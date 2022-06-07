@@ -24,7 +24,7 @@ namespace DistributedKv {
 class BehaviourReporterImpl : public BehaviourReporter {
 public:
     virtual ~BehaviourReporterImpl() {}
-    ReportStatus Report(const BehaviourMsg &msg) override;
+    ReportStatus Report(const struct BehaviourMsg &msg) override;
 };
 }  // namespace DistributedKv
 }  // namespace OHOS

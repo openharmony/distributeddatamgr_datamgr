@@ -40,7 +40,6 @@ config("module_private_config") {
   include_dirs = [
     "//foundation/distributeddatamgr/distributeddatamgr/frameworks/common",
     "//foundation/distributeddatamgr/distributeddatamgr/frameworks/innerkitsimpl/distributeddatafwk/include",
-    "//foundation/distributeddatamgr/distributeddatamgr/frameworks/innerkitsimpl/kvdb/include",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/service/bootstrap/include",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/service/config/include",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/service/directory/include",

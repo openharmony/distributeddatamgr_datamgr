@@ -31,7 +31,6 @@
 #include "permission_validator.h"
 #include "query_helper.h"
 #include "reporter.h"
-#include "store_util.h"
 #include "upgrade_manager.h"
 #include "metadata/meta_data_manager.h"
 
@@ -119,7 +118,7 @@ Status SingleKvStoreImpl::Put(const Key &key, const Value &value)
 Status SingleKvStoreImpl::CheckDbIsCorrupted(DistributedDB::DBStatus status, const char* funName)
 {
     if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
-        ZLOGW("option %{public}s faile, recovery database.", funName);
+        ZLOGW("option %{public}s failed, recovery database.", funName);
         bool result = Import(bundleName_);
         if (!result) {
             Reporter::GetInstance()->DatabaseFault()->Report(
@@ -822,7 +821,7 @@ void SingleKvStoreImpl::DoSyncComplete(const std::map<std::string, DistributedDB
     for (auto device : devicesSyncResult) {
         resultMap[device.first] = ConvertDbStatus(device.second);
         if (resultMap[device.first] != SUCCESS) {
-            msg.deviceId.push_back(StoreUtil::Anonymous(device.first));
+            msg.deviceId.push_back(KvStoreUtils::ToBeAnonymous(device.first));
             msg.errorCode.push_back(resultMap[device.first]);
         }
     }
