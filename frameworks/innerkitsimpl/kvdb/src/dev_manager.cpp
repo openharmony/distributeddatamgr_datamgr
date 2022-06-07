@@ -28,10 +28,6 @@ DevManager &DevManager::GetInstance()
 
 std::string DevManager::ToUUID(const std::string &networkId) const
 {
-    if (networkId.empty()) {
-        ZLOGE("networkId is empty, get uuid failed");
-        return networkId;
-    }
     DetailInfo deviceInfo;
     if (deviceInfos_.Get(networkId, deviceInfo)) {
         return deviceInfo.uuid;
@@ -39,8 +35,8 @@ std::string DevManager::ToUUID(const std::string &networkId) const
 
     std::string uuid = GetUuidByNetworkId(networkId);
     std::string udid = GetUdidByNetworkId(networkId);
-    if (uuid.empty() || udid.empty()) {
-        return uuid.empty() ? networkId : uuid;
+    if (uuid.empty() || udid.empty() || networkId.empty()) {
+        return "";
     }
     deviceInfo = { uuid, std::move(udid), networkId, "", "" };
     deviceInfos_.Set(networkId, deviceInfo);
