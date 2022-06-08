@@ -61,6 +61,7 @@
 #include "user_delegate.h"
 #include "utils/block_integer.h"
 #include "utils/converter.h"
+#include "string_ex.h"
 #include "utils/crypto.h"
 
 namespace OHOS::DistributedKv {
@@ -712,13 +713,54 @@ int KvStoreDataService::Dump(int fd, const std::vector<std::u16string> &args)
     if (uid > maxUid) {
         return 0;
     }
+
+    std::vector<std::string> argsStr;
+    for (auto item : args) {
+        argsStr.emplace_back(Str16ToStr8(item));
+    }
+
+    if (DumpHelper::GetInstance().Dump(fd, argsStr)) {
+        return 0;
+    }
+
+    ZLOGE("DumpHelper failed");
+    return ERROR;
+}
+
+void KvStoreDataService::DumpAll(int fd)
+{
     dprintf(fd, "------------------------------------------------------------------\n");
-    dprintf(fd, "DeviceAccount count : %u\n", static_cast<uint32_t>(deviceAccountMap_.size()));
+    dprintf(fd, "User count : %u\n", static_cast<uint32_t>(deviceAccountMap_.size()));
     for (const auto &pair : deviceAccountMap_) {
-        dprintf(fd, "DeviceAccountID    : %s\n", pair.first.c_str());
         pair.second.Dump(fd);
     }
-    return 0;
+}
+
+void KvStoreDataService::DumpUserInfo(int fd)
+{
+    dprintf(fd, "------------------------------------------------------------------\n");
+    dprintf(fd, "User count : %u\n", static_cast<uint32_t>(deviceAccountMap_.size()));
+    for (const auto &pair : deviceAccountMap_) {
+        pair.second.DumpUserInfo(fd);
+    }
+}
+
+void KvStoreDataService::DumpAppInfo(int fd, const std::string &appId)
+{
+    dprintf(fd, "------------------------------------------------------------------\n");
+    dprintf(fd, "User count : %u\n", static_cast<uint32_t>(deviceAccountMap_.size()));
+    for (const auto &pair : deviceAccountMap_) {
+        pair.second.DumpAppInfo(fd, appId);
+    }
+}
+
+void KvStoreDataService::DumpStoreInfo(int fd, const std::string &storeId)
+{
+    dprintf(fd, "------------------------------------------------------------------\n");
+    dprintf(fd, "User count : %u\n", static_cast<uint32_t>(deviceAccountMap_.size()));
+    for (const auto &pair : deviceAccountMap_) {
+        pair.second.DumpStoreInfo(fd, storeId);
+    }
 }
 
 void KvStoreDataService::OnStart()
@@ -757,6 +799,9 @@ void KvStoreDataService::StartService()
     KvStoreMetaManager::GetInstance().InitMetaListener();
     InitObjectStore();
     bool ret = SystemAbility::Publish(this);
+    if (!ret) {
+        DumpHelper::GetInstance().AddErrorInfo("StartService: Service publish failed.");
+    }
     Uninstaller::GetInstance().Init(this);
 
     std::string backupPath = BackupHandler::GetBackupPath(
@@ -785,7 +830,6 @@ void KvStoreDataService::StartService()
     if (dbStatus != DistributedDB::DBStatus::OK) {
         ZLOGE("SetPermissionCheck callback failed.");
     }
-    ZLOGI("autoLaunchRequestCallback start");
     auto autoLaunchRequestCallback =
         [this](const std::string &identifier, DistributedDB::AutoLaunchParam &param) -> bool {
             return ResolveAutoLaunchParamByIdentifier(identifier, param);
@@ -800,6 +844,12 @@ void KvStoreDataService::StartService()
         KvStoreAppAccessor::GetInstance().EnableKvStoreAutoLaunch();
     });
     th.detach();
+    DumpHelper::GetInstance().AddDumpOperation(
+        std::bind(&KvStoreDataService::DumpAll, this, std::placeholders::_1),
+        std::bind(&KvStoreDataService::DumpUserInfo, this, std::placeholders::_1),
+        std::bind(&KvStoreDataService::DumpAppInfo, this, std::placeholders::_1, std::placeholders::_2),
+        std::bind(&KvStoreDataService::DumpStoreInfo, this, std::placeholders::_1, std::placeholders::_2)
+    );
     ZLOGI("Publish ret: %{public}d", static_cast<int>(ret));
 }
 
