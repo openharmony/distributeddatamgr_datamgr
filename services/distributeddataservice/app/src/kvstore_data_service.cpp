@@ -757,9 +757,6 @@ void KvStoreDataService::StartService()
     KvStoreMetaManager::GetInstance().InitMetaListener();
     InitObjectStore();
     bool ret = SystemAbility::Publish(this);
-    if (!ret) {
-
-    }
     Uninstaller::GetInstance().Init(this);
 
     std::string backupPath = BackupHandler::GetBackupPath(

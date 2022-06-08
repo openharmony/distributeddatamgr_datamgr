@@ -1218,7 +1218,7 @@ Status SingleKvStoreImpl::DeleteBatch(const std::vector<Key> &keys)
         DdsTrace trace(std::string(LOG_TAG "Delegate::") + std::string(__FUNCTION__));
         status = kvStoreNbDelegate_->DeleteBatch(dbKeys);
     }
-   ZLOGE("DeleteBatch failed, distributeddb need recover.");
+    ZLOGE("DeleteBatch failed, distributeddb need recover.");
     Status statusTmp = CheckDbIsCorrupted(status, __FUNCTION__);
     if (statusTmp != Status::SUCCESS) {
         return statusTmp;
