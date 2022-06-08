@@ -108,13 +108,29 @@ Status SingleKvStoreImpl::Put(const Key &key, const Value &value)
         return Status::SUCCESS;
     }
     ZLOGW("failed status: %d.", static_cast<int>(status));
-
-    if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
-        ZLOGI("Put failed, distributeddb need recover.");
-        return (Import(bundleName_) ? Status::RECOVER_SUCCESS : Status::RECOVER_FAILED);
+    Status statusTmp = CheckDbIsCorrupted(status, __FUNCTION__);
+    if (statusTmp != Status::SUCCESS) {
+        return statusTmp;
     }
-
     return ConvertDbStatus(status);
+}
+
+Status SingleKvStoreImpl::CheckDbIsCorrupted(DistributedDB::DBStatus status, const char* funName)
+{
+    if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
+        ZLOGW("option %{public}s failed, recovery database.", funName);
+        bool result = Import(bundleName_);
+        if (!result) {
+            Reporter::GetInstance()->DatabaseFault()->Report(
+                {bundleName_, storeId_, "KVDB", Fault::DF_DB_RECOVERY_FAILED });
+            return Status::RECOVER_FAILED;
+        } else {
+            Reporter::GetInstance()->BehaviourReporter()->Report(
+                {deviceAccountId_, bundleName_, storeId_, BehaviourType::DATABASE_RECOVERY_SUCCESS });
+            return Status::RECOVER_SUCCESS;
+        }
+    }
+    return Status::SUCCESS;
 }
 
 Status SingleKvStoreImpl::ConvertDbStatus(DistributedDB::DBStatus status)
@@ -184,9 +200,9 @@ Status SingleKvStoreImpl::Delete(const Key &key)
         return Status::SUCCESS;
     }
     ZLOGW("failed status: %d.", static_cast<int>(status));
-    if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
-        ZLOGI("Delete failed, distributeddb need recover.");
-        return (Import(bundleName_) ? Status::RECOVER_SUCCESS : Status::RECOVER_FAILED);
+    Status statusTmp = CheckDbIsCorrupted(status, __FUNCTION__);
+    if (statusTmp != Status::SUCCESS) {
+        return statusTmp;
     }
     return ConvertDbStatus(status);
 }
@@ -222,9 +238,9 @@ Status SingleKvStoreImpl::Get(const Key &key, Value &value)
         value = tmpValueForCopy;
         return Status::SUCCESS;
     }
-    if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
-        ZLOGI("Get failed, distributeddb need recover.");
-        return (Import(bundleName_) ? Status::RECOVER_SUCCESS : Status::RECOVER_FAILED);
+    Status statusTmp = CheckDbIsCorrupted(status, __FUNCTION__);
+    if (statusTmp != Status::SUCCESS) {
+        return statusTmp;
     }
     return ConvertDbStatus(status);
 }
@@ -398,9 +414,9 @@ Status SingleKvStoreImpl::GetEntries(const Key &prefixKey, std::vector<Entry> &e
         }
         return Status::SUCCESS;
     }
-    if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
-        ZLOGE("GetEntries failed, distributeddb need recover.");
-        return (Import(bundleName_) ? Status::RECOVER_SUCCESS : Status::RECOVER_FAILED);
+    Status statusTmp = CheckDbIsCorrupted(status, __FUNCTION__);
+    if (statusTmp != Status::SUCCESS) {
+        return statusTmp;
     }
     if (status == DistributedDB::DBStatus::BUSY || status == DistributedDB::DBStatus::DB_ERROR) {
         return Status::DB_ERROR;
@@ -503,9 +519,9 @@ void SingleKvStoreImpl::GetResultSet(const Key &prefixKey,
         storeResultSetMap_.emplace(storeResultSet->AsObject().GetRefPtr(), storeResultSet);
         return;
     }
-    if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
-        bool success = Import(bundleName_);
-        callback(success ? Status::RECOVER_SUCCESS : Status::RECOVER_FAILED, nullptr);
+    Status statusTmp = CheckDbIsCorrupted(status, __FUNCTION__);
+    if (statusTmp != Status::SUCCESS) {
+        callback(statusTmp, nullptr);
         return;
     }
     callback(ConvertDbStatus(status), nullptr);
@@ -701,9 +717,9 @@ Status SingleKvStoreImpl::RemoveDeviceData(const std::string &device)
         DdsTrace trace(std::string(LOG_TAG "Delegate::") + std::string(__FUNCTION__));
         status = kvStoreNbDelegate_->RemoveDeviceData(deviceUDID);
     }
-    if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
-        ZLOGE("RemoveDeviceData failed, distributeddb need recover.");
-        return (Import(bundleName_) ? Status::RECOVER_SUCCESS : Status::RECOVER_FAILED);
+    Status statusTmp = CheckDbIsCorrupted(status, __FUNCTION__);
+    if (statusTmp != Status::SUCCESS) {
+        return statusTmp;
     }
     if (status == DistributedDB::DBStatus::OK) {
         return Status::SUCCESS;
@@ -801,8 +817,16 @@ void SingleKvStoreImpl::DoSyncComplete(const std::map<std::string, DistributedDB
 {
     DdsTrace trace(std::string("DdsTrace " LOG_TAG "::") + std::string(__FUNCTION__));
     std::map<std::string, Status> resultMap;
+    CommFaultMsg msg = {deviceAccountId_, bundleName_, storeId_};
     for (auto device : devicesSyncResult) {
         resultMap[device.first] = ConvertDbStatus(device.second);
+        if (resultMap[device.first] != SUCCESS) {
+            msg.deviceId.push_back(KvStoreUtils::ToBeAnonymous(device.first));
+            msg.errorCode.push_back(resultMap[device.first]);
+        }
+    }
+    if (msg.deviceId.size() != 0) {
+        Reporter::GetInstance()->CommunicationFault()->Report(msg);
     }
     syncRetries_ = 0;
     ZLOGD("callback.");
@@ -1143,9 +1167,9 @@ Status SingleKvStoreImpl::PutBatch(const std::vector<Entry> &entries)
         DdsTrace trace(std::string(LOG_TAG "Delegate::") + std::string(__FUNCTION__));
         status = kvStoreNbDelegate_->PutBatch(dbEntries);
     }
-    if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
-        ZLOGE("PutBatch failed, distributeddb need recover.");
-        return (Import(bundleName_) ? Status::RECOVER_SUCCESS : Status::RECOVER_FAILED);
+    Status statusTmp = CheckDbIsCorrupted(status, __FUNCTION__);
+    if (statusTmp != Status::SUCCESS) {
+        return statusTmp;
     }
 
     if (status == DistributedDB::DBStatus::EKEYREVOKED_ERROR ||
@@ -1194,9 +1218,10 @@ Status SingleKvStoreImpl::DeleteBatch(const std::vector<Key> &keys)
         DdsTrace trace(std::string(LOG_TAG "Delegate::") + std::string(__FUNCTION__));
         status = kvStoreNbDelegate_->DeleteBatch(dbKeys);
     }
-    if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
-        ZLOGE("DeleteBatch failed, distributeddb need recover.");
-        return (Import(bundleName_) ? Status::RECOVER_SUCCESS : Status::RECOVER_FAILED);
+   ZLOGE("DeleteBatch failed, distributeddb need recover.");
+    Status statusTmp = CheckDbIsCorrupted(status, __FUNCTION__);
+    if (statusTmp != Status::SUCCESS) {
+        return statusTmp;
     }
 
     if (status == DistributedDB::DBStatus::EKEYREVOKED_ERROR ||
@@ -1232,9 +1257,10 @@ Status SingleKvStoreImpl::StartTransaction()
         DdsTrace trace(std::string(LOG_TAG "Delegate::") + std::string(__FUNCTION__));
         status = kvStoreNbDelegate_->StartTransaction();
     }
-    if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
-        ZLOGE("StartTransaction failed, distributeddb need recover.");
-        return (Import(bundleName_) ? Status::RECOVER_SUCCESS : Status::RECOVER_FAILED);
+    ZLOGE("StartTransaction failed, distributeddb need recover.");
+    Status statusTmp = CheckDbIsCorrupted(status, __FUNCTION__);
+    if (statusTmp != Status::SUCCESS) {
+        return statusTmp;
     }
     if (status != DistributedDB::DBStatus::OK) {
         ZLOGE("delegate return error.");
@@ -1262,9 +1288,10 @@ Status SingleKvStoreImpl::Commit()
         DdsTrace trace(std::string(LOG_TAG "Delegate::") + std::string(__FUNCTION__));
         status = kvStoreNbDelegate_->Commit();
     }
-    if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
-        ZLOGE("Commit failed, distributeddb need recover.");
-        return (Import(bundleName_) ? Status::RECOVER_SUCCESS : Status::RECOVER_FAILED);
+    ZLOGE("Commit failed, distributeddb need recover.");
+    Status statusTmp = CheckDbIsCorrupted(status, __FUNCTION__);
+    if (statusTmp != Status::SUCCESS) {
+        return statusTmp;
     }
     if (status != DistributedDB::DBStatus::OK) {
         ZLOGE("delegate return error.");
@@ -1293,9 +1320,10 @@ Status SingleKvStoreImpl::Rollback()
         DdsTrace trace(std::string(LOG_TAG "Delegate::") + std::string(__FUNCTION__));
         status = kvStoreNbDelegate_->Rollback();
     }
-    if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
-        ZLOGE("Rollback failed, distributeddb need recover.");
-        return (Import(bundleName_) ? Status::RECOVER_SUCCESS : Status::RECOVER_FAILED);
+    ZLOGE("Rollback failed, distributeddb need recover.");
+    Status statusTmp = CheckDbIsCorrupted(status, __FUNCTION__);
+    if (statusTmp != Status::SUCCESS) {
+        return statusTmp;
     }
     if (status != DistributedDB::DBStatus::OK) {
         ZLOGE("delegate return error.");
