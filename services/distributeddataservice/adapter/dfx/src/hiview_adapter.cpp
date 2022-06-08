@@ -47,7 +47,7 @@ void HiViewAdapter::ReportFault(int dfxCode, const FaultMsg &msg)
     }
     KvStoreTask task([dfxCode, msg]() {
         HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
-            std::to_string(dfxCode),
+            CoverEventID(dfxCode),
             HiSysEvent::EventType::FAULT,
             FAULT_TYPE, static_cast<int>(msg.faultType),
             MODULE_NAME, msg.moduleName,
@@ -64,7 +64,7 @@ void HiViewAdapter::ReportDBFault(int dfxCode, const DBFaultMsg &msg)
     }
     KvStoreTask task([dfxCode, msg]() {
         HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
-            std::to_string(dfxCode),
+            CoverEventID(dfxCode),
             HiSysEvent::EventType::FAULT,
             APP_ID, msg.appId,
             STORE_ID, msg.storeId,
@@ -88,7 +88,7 @@ void HiViewAdapter::ReportCommFault(int dfxCode, const CommFaultMsg &msg)
             .append(" has error, errCode:").append(std::to_string(msg.errorCode[i])).append(". ");
         }
         HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
-            std::to_string(dfxCode),
+            CoverEventID(dfxCode),
             HiSysEvent::EventType::FAULT,
             USER_ID, msg.userId,
             APP_ID, msg.appId,
@@ -105,7 +105,7 @@ void HiViewAdapter::ReportPermissionsSecurity(int dfxCode, const SecurityPermiss
     }
     KvStoreTask task([dfxCode, msg]() {
         HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
-            std::to_string(dfxCode),
+            CoverEventID(dfxCode),
             HiSysEvent::EventType::SECURITY,
             USER_ID, msg.appId,
             APP_ID, msg.appId,
@@ -123,7 +123,7 @@ void HiViewAdapter::ReportSensitiveLevelSecurity(int dfxCode, const SecuritySens
     }
     KvStoreTask task([dfxCode, msg]() {
         HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
-            std::to_string(dfxCode),
+            CoverEventID(dfxCode),
             HiSysEvent::EventType::SECURITY,
             DEVICE_ID, msg.deviceId,
             DEVICE_SENSITIVE_LEVEL, msg.deviceSensitiveLevel,
@@ -140,7 +140,7 @@ void HiViewAdapter::ReportBehaviour(int dfxCode, const BehaviourMsg &msg)
     }
     KvStoreTask task([dfxCode, msg]() {
         HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
-            std::to_string(dfxCode),
+            CoverEventID(dfxCode),
             HiSysEvent::EventType::BEHAVIOR,
             USER_ID, msg.appId,
             APP_ID, msg.appId,
@@ -179,7 +179,7 @@ void HiViewAdapter::ReportDbSize(const StatisticWrap<DbStat> &stat)
     }
 
     HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
-        std::to_string(stat.code),
+        CoverEventID(stat.code),
         HiSysEvent::EventType::STATISTIC,
         USER_ID, userId, APP_ID, stat.val.appId, STORE_ID, stat.val.storeId, DB_SIZE, dbSize);
 }
@@ -240,7 +240,7 @@ void HiViewAdapter::InvokeTraffic()
         }
 
         HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
-            std::to_string(kv.second.code),
+            CoverEventID(kv.second.code),
             HiSysEvent::EventType::STATISTIC,
             TAG, POWERSTATS,
             APP_ID, kv.second.val.appId,
@@ -274,7 +274,7 @@ void HiViewAdapter::InvokeVisit()
     std::lock_guard<std::mutex> lock(visitMutex_);
     for (auto const &kv : visitStat_) {
         HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
-            std::to_string(kv.second.code),
+            CoverEventID(kv.second.code),
             HiSysEvent::EventType::STATISTIC,
             TAG, POWERSTATS,
             APP_ID, kv.second.val.appId,
@@ -324,7 +324,7 @@ void HiViewAdapter::InvokeApiPerformance()
     }
     message.append("]");
     HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
-        std::to_string(DfxCodeConstant::API_PERFORMANCE_STATISTIC),
+        CoverEventID(DfxCodeConstant::API_PERFORMANCE_STATISTIC),
         HiSysEvent::EventType::STATISTIC,
         INTERFACES, message);
     apiPerformanceStat_.clear();
@@ -366,6 +366,16 @@ void HiViewAdapter::StartTimerThread()
     };
     std::thread th = std::thread(fun);
     th.detach();
+}
+
+std::string HiViewAdapter::CoverEventID(int dfxCode)
+{
+    std::string sysEventID = "";
+    auto operatorIter = EVENT_COVERT_TABLE.find(dfxCode);
+    if (operatorIter != EVENT_COVERT_TABLE.end()) {
+        sysEventID = operatorIter->second;
+    }
+    return sysEventID;
 }
 } // namespace DistributedKv
 } // namespace OHOS
