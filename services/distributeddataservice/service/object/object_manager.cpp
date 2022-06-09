@@ -21,7 +21,7 @@
 #include "checker/checker_manager.h"
 #include "kvstore_utils.h"
 #include "log_print.h"
-#include "query_helper.h"
+#include "datetime_ex.h"
 
 namespace OHOS {
 namespace DistributedObject {
@@ -56,6 +56,11 @@ int32_t ObjectStoreManager::Save(const std::string &appId, const std::string &se
     const std::map<std::string, std::vector<uint8_t>> &data, const std::vector<std::string> &deviceList,
     sptr<IObjectSaveCallback> &callback)
 {
+    if (deviceList.size() == 0) {
+        ZLOGE("deviceList empty");
+        callback->Completed(std::map<std::string, int32_t>());
+        return STORE_NOT_OPEN;
+    }
     int32_t result = Open();
     if (result != SUCCESS) {
         ZLOGE("Open objectStore DB failed,please check DB status");
@@ -64,7 +69,7 @@ int32_t ObjectStoreManager::Save(const std::string &appId, const std::string &se
     }
 
     ZLOGI("start SaveToStore");
-    result = SaveToStore(appId, sessionId, data);
+    result = SaveToStore(appId, sessionId, deviceList.at(0), data);
     if (result != SUCCESS) {
         ZLOGE("Save to store failed, please check DB status, status = %{public}d", result);
         Close();
@@ -74,7 +79,9 @@ int32_t ObjectStoreManager::Save(const std::string &appId, const std::string &se
     SyncCallBack tmp = [callback, appId, sessionId, this](const std::map<std::string, int32_t> &results) {
         callback->Completed(results);
         bool isLocal = false;
+        std::string deviceId;
         for (auto &item : results) {
+            deviceId = item.first;
             if (item.first == LOCAL_DEVICE) {
                 isLocal = true;
                 break;
@@ -88,7 +95,7 @@ int32_t ObjectStoreManager::Save(const std::string &appId, const std::string &se
                 return;
             }
             // delete local data
-            result = RevokeSaveToStore(appId, sessionId);
+            result = RevokeSaveToStore(GetPropertyPrefix(appId, sessionId, deviceId));
             if (result != SUCCESS) {
                 ZLOGE("Save to store failed,please check DB status, status = %{public}d", result);
                 Close();
@@ -99,7 +106,7 @@ int32_t ObjectStoreManager::Save(const std::string &appId, const std::string &se
         return;
     };
     ZLOGI("start SyncOnStore");
-    result = SyncOnStore(GetPropertyPrefix(appId, sessionId), deviceList, tmp);
+    result = SyncOnStore(GetPropertyPrefix(appId, sessionId, deviceList.at(0)), deviceList, tmp);
     if (result != SUCCESS) {
         ZLOGE("sync on store failed,please check DB status, status = %{public}d", result);
         callback->Completed(std::map<std::string, int32_t>());
@@ -118,7 +125,7 @@ int32_t ObjectStoreManager::RevokeSave(
         return STORE_NOT_OPEN;
     }
 
-    result = RevokeSaveToStore(appId, sessionId);
+    result = RevokeSaveToStore(GetPrefixWithoutDeviceId(appId, sessionId));
     if (result != SUCCESS) {
         ZLOGE("Save to store failed,please check DB status, status = %{public}d", result);
         Close();
@@ -166,7 +173,7 @@ int32_t ObjectStoreManager::Retrieve(
         return status;
     }
     // delete local data
-    status = RevokeSaveToStore(appId, sessionId);
+    status = RevokeSaveToStore(GetPrefixWithoutDeviceId(appId, sessionId));
     if (status != SUCCESS) {
         ZLOGE("revoke save to store failed,please check DB status, status = %{public}d", status);
         Close();
@@ -186,8 +193,21 @@ int32_t ObjectStoreManager::Clear()
         ZLOGE("Open objectStore DB failed,please check DB status");
         return STORE_NOT_OPEN;
     }
+    result = RevokeSaveToStore("");
+    Close();
+    return result;
+}
+
+int32_t ObjectStoreManager::DeleteByAppId(const std::string &appId)
+{
+    ZLOGI("enter, %{public}s", appId.c_str());
+    int32_t result = Open();
+    if (result != SUCCESS) {
+        ZLOGE("Open objectStore DB failed,please check DB status");
+        return STORE_NOT_OPEN;
+    }
     std::vector<DistributedDB::Entry> entries;
-    auto status = delegate_->GetEntries(std::vector<uint8_t>(), entries);
+    auto status = delegate_->GetEntries(std::vector<uint8_t>(appId.begin(), appId.end()), entries);
     if (status != DistributedDB::DBStatus::OK) {
         ZLOGE("GetEntries failed,please check DB status");
         Close();
@@ -268,14 +288,52 @@ void ObjectStoreManager::FlushClosedStore()
     }
 }
 
-int32_t ObjectStoreManager::SaveToStore(
-    const std::string &appId, const std::string &sessionId, const std::map<std::string, std::vector<uint8_t>> &data)
+void ObjectStoreManager::ProcessOldEntry(const std::string &appId)
 {
     std::vector<DistributedDB::Entry> entries;
-    std::string key;
+    auto status = delegate_->GetEntries(std::vector<uint8_t>(appId.begin(), appId.end()), entries);
+    if (status != DistributedDB::DBStatus::OK) {
+        ZLOGE("GetEntries fail %{public}d", status);
+        return;
+    }
+
+    std::map<std::string, int64_t> sessionIds;
+    int64_t oldestTime = 0;
+    std::string deleteKey;
+    for (auto &item: entries) {
+        std::string key(item.key.begin(), item.key.end());
+        std::string id = GetSessionId(key);
+        if (sessionIds.count(id) == 0) {
+            sessionIds[id] = GetTime(key);
+        }
+        if (oldestTime == 0 || oldestTime > sessionIds[id]) {
+            oldestTime = sessionIds[id];
+            deleteKey = key;
+        }
+    }
+    ZLOGI("hanlu oldest one %{public}s app size %{public}d", deleteKey.c_str(), sessionIds.size());
+    if (sessionIds.size() < MAX_OBJECT_SIZE_PER_APP) {
+        ZLOGI("app size %{public}d", sessionIds.size());
+        return;
+    }
+    ZLOGI("app object is full, delete oldest one %{public}s", deleteKey.c_str());
+    status = delegate_->Delete(std::vector<uint8_t>(deleteKey.begin(), deleteKey.end()));
+    if (status != DistributedDB::DBStatus::OK) {
+        ZLOGE("Delete fail %{public}d", status);
+        return;
+    }
+}
+
+int32_t ObjectStoreManager::SaveToStore(
+    const std::string &appId, const std::string &sessionId, const std::string &toDeviceId, const std::map<std::string, std::vector<uint8_t>> &data)
+{
+    ProcessOldEntry(appId);
+    RevokeSaveToStore(GetPropertyPrefix(appId, sessionId, toDeviceId));
+    std::string timestamp = std::to_string(GetSecondsSince1970ToNow());
+    std::vector<DistributedDB::Entry> entries;
     for (auto &item : data) {
         DistributedDB::Entry entry;
-        std::string tmp = GetPropertyPrefix(appId, sessionId) + item.first;
+        std::string tmp = GetPropertyPrefix(appId, sessionId, toDeviceId) + timestamp + SEPERATOR + item.first;
         entry.key = std::vector<uint8_t>(tmp.begin(), tmp.end());
         entry.value = item.second;
         entries.emplace_back(entry);
@@ -339,11 +397,9 @@ int32_t ObjectStoreManager::SetSyncStatus(bool status)
     return SUCCESS;
 }
 
-int32_t ObjectStoreManager::RevokeSaveToStore(const std::string &appId, const std::string &sessionId)
+int32_t ObjectStoreManager::RevokeSaveToStore(const std::string &prefix)
 {
     std::vector<DistributedDB::Entry> entries;
-    ZLOGI("revoke save object %{public}s", sessionId.c_str());
-    std::string prefix = GetDeletePrefix(appId, sessionId);
     auto status = delegate_->GetEntries(std::vector<uint8_t>(prefix.begin(), prefix.end()), entries);
     if (status == DistributedDB::DBStatus::NOT_FOUND) {
         ZLOGI("not found entry");
@@ -370,7 +426,7 @@ int32_t ObjectStoreManager::RetrieveFromStore(
     const std::string &appId, const std::string &sessionId, std::map<std::string, std::vector<uint8_t>> &results)
 {
     std::vector<DistributedDB::Entry> entries;
-    std::string prefix = GetPropertyPrefix(appId, sessionId);
+    std::string prefix = GetPrefixWithoutDeviceId(appId, sessionId);
     auto status = delegate_->GetEntries(std::vector<uint8_t>(prefix.begin(), prefix.end()), entries);
     if (status != DistributedDB::DBStatus::OK) {
         ZLOGE("GetEntries failed,please check DB status");
@@ -379,11 +435,54 @@ int32_t ObjectStoreManager::RetrieveFromStore(
     ZLOGI("GetEntries successfully");
     std::for_each(
         entries.begin(), entries.end(), [&results, &appId, &sessionId, this](const DistributedDB::Entry &entry) {
-            std::string key = BytesToStr(entry.key);
-            ZLOGI("transferm propName = %{public}s", key.c_str());
-            results[key.erase(0, GetPropertyPrefix(appId, sessionId).size())] = entry.value;
+            std::string key(entry.key.begin(), entry.key.end());
+            results[GetPropertyName(key)] = entry.value;
         });
     return SUCCESS;
+}
+
+std::string ObjectStoreManager::GetPropertyName(const std::string &key)
+{
+    std::string result = key;
+    std::size_t pos;
+    int8_t i = 0;
+    do {
+        pos = result.find(SEPERATOR);
+        result.erase(0, pos + 1);
+        i++;
+    } while(pos != std::string::npos && i < 5); // property name is after 5 '_'
+    return result;
+}
+
+std::string ObjectStoreManager::GetSessionId(const std::string &key)
+{
+    std::string result = key;
+    std::size_t pos;
+    int8_t i = 0;
+    do {
+        pos = result.find(SEPERATOR);
+        result.erase(0, pos + 1);
+        i++;
+    } while(pos != std::string::npos && i < 1); // sessionId is after 1 '_'
+    pos = result.find(SEPERATOR);
+    result.erase(pos);
+    return result;
+}
+
+int64_t ObjectStoreManager::GetTime(const std::string &key)
+{
+    std::string result = key;
+    std::size_t pos;
+    int8_t i = 0;
+    do {
+        pos = result.find(SEPERATOR);
+        result.erase(0, pos + 1);
+        i++;
+    } while(pos != std::string::npos && i < 4);// time is after 4 '_'
+    pos = result.find(SEPERATOR);
+    result.erase(pos);
+    char *end = nullptr;
+    return std::strtol(result.c_str(), &end, DECIMAL_BASE);
 }
 
 uint64_t SequenceSyncManager::AddNotifier(const std::string &userId, SyncCallBack &callback)
