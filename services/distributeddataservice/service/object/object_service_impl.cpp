@@ -159,7 +159,7 @@ void ObjectServiceImpl::Clear()
 
 int32_t ObjectServiceImpl::DeleteByAppId(const std::string &bundleName)
 {
-    ZLOGI("begin. %{public}s", bundleName);
+    ZLOGI("begin. %{public}s", bundleName.c_str());
     int32_t status = ObjectStoreManager::GetInstance()->DeleteByAppId(bundleName);
     if (status != SUCCESS) {
         ZLOGE("save fail %{public}d", status);

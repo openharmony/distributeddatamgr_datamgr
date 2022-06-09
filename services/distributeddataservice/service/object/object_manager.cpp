@@ -19,9 +19,9 @@
 
 #include "bootstrap.h"
 #include "checker/checker_manager.h"
+#include "datetime_ex.h"
 #include "kvstore_utils.h"
 #include "log_print.h"
-#include "datetime_ex.h"
 
 namespace OHOS {
 namespace DistributedObject {
@@ -59,7 +59,7 @@ int32_t ObjectStoreManager::Save(const std::string &appId, const std::string &se
     if (deviceList.size() == 0) {
         ZLOGE("deviceList empty");
         callback->Completed(std::map<std::string, int32_t>());
-        return STORE_NOT_OPEN;
+        return INVALID_ARGUMENT;
     }
     int32_t result = Open();
     if (result != SUCCESS) {
@@ -207,17 +207,9 @@ int32_t ObjectStoreManager::DeleteByAppId(const std::string &appId)
         return STORE_NOT_OPEN;
     }
     std::vector<DistributedDB::Entry> entries;
-    auto status = delegate_->GetEntries(std::vector<uint8_t>(appId.begin(), appId.end()), entries);
-    if (status != DistributedDB::DBStatus::OK) {
-        ZLOGE("GetEntries failed,please check DB status");
-        Close();
-        return DB_ERROR;
-    }
-    std::vector<std::vector<uint8_t>> keys;
-    std::for_each(
-        entries.begin(), entries.end(), [&keys](const DistributedDB::Entry &entry) { keys.emplace_back(entry.key); });
-    if (!keys.empty()) {
-        delegate_->DeleteBatch(keys);
+    result = RevokeSaveToStore(appId);
+    if (result != SUCCESS) {
+        ZLOGE("RevokeSaveToStore failed");
     }
     Close();
     return result;
@@ -226,9 +218,9 @@ int32_t ObjectStoreManager::DeleteByAppId(const std::string &appId)
 void ObjectStoreManager::SetData(const std::string &dataDir, const std::string &userId)
 {
     ZLOGI("enter %{public}s", dataDir.c_str());
-    kvStoreDelegateManager_ = new DistributedDB::KvStoreDelegateManager(
-        DistributedData::Bootstrap::GetInstance().GetProcessLabel(), userId);
-    DistributedDB::KvStoreConfig kvStoreConfig { dataDir };
+    kvStoreDelegateManager_ =
+        new DistributedDB::KvStoreDelegateManager(DistributedData::Bootstrap::GetInstance().GetProcessLabel(), userId);
+    DistributedDB::KvStoreConfig kvStoreConfig{ dataDir };
     kvStoreDelegateManager_->SetKvStoreConfig(kvStoreConfig);
     userId_ = userId;
 }
@@ -300,7 +292,7 @@ void ObjectStoreManager::ProcessOldEntry(const std::string &appId)
     std::map<std::string, int64_t> sessionIds;
     int64_t oldestTime = 0;
     std::string deleteKey;
-    for (auto &item: entries) {
+    for (auto &item : entries) {
         std::string key(item.key.begin(), item.key.end());
         std::string id = GetSessionId(key);
         if (sessionIds.count(id) == 0) {
@@ -311,7 +303,6 @@ void ObjectStoreManager::ProcessOldEntry(const std::string &appId)
             deleteKey = key;
         }
     }
-    ZLOGI("hanlu oldest one %{public}s app size %{public}d", deleteKey.c_str(), sessionIds.size());
     if (sessionIds.size() < MAX_OBJECT_SIZE_PER_APP) {
         ZLOGI("app size %{public}d", sessionIds.size());
         return;
@@ -324,8 +315,8 @@ void ObjectStoreManager::ProcessOldEntry(const std::string &appId)
     }
 }
 
-int32_t ObjectStoreManager::SaveToStore(
-    const std::string &appId, const std::string &sessionId, const std::string &toDeviceId, const std::map<std::string, std::vector<uint8_t>> &data)
+int32_t ObjectStoreManager::SaveToStore(const std::string &appId, const std::string &sessionId,
+    const std::string &toDeviceId, const std::map<std::string, std::vector<uint8_t>> &data)
 {
     ProcessOldEntry(appId);
     RevokeSaveToStore(GetPropertyPrefix(appId, sessionId, toDeviceId));
@@ -450,7 +441,7 @@ std::string ObjectStoreManager::GetPropertyName(const std::string &key)
         pos = result.find(SEPERATOR);
         result.erase(0, pos + 1);
         i++;
-    } while(pos != std::string::npos && i < 5); // property name is after 5 '_'
+    } while (pos != std::string::npos && i < 5); // property name is after 5 '_'
     return result;
 }
 
@@ -463,7 +454,7 @@ std::string ObjectStoreManager::GetSessionId(const std::string &key)
         pos = result.find(SEPERATOR);
         result.erase(0, pos + 1);
         i++;
-    } while(pos != std::string::npos && i < 1); // sessionId is after 1 '_'
+    } while (pos != std::string::npos && i < 1); // sessionId is after 1 '_'
     pos = result.find(SEPERATOR);
     result.erase(pos);
     return result;
@@ -478,7 +469,7 @@ int64_t ObjectStoreManager::GetTime(const std::string &key)
         pos = result.find(SEPERATOR);
         result.erase(0, pos + 1);
         i++;
-    } while(pos != std::string::npos && i < 4);// time is after 4 '_'
+    } while (pos != std::string::npos && i < 4); // time is after 4 '_'
     pos = result.find(SEPERATOR);
     result.erase(pos);
     char *end = nullptr;

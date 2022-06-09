@@ -101,7 +101,8 @@ private:
         return appId + SEPERATOR + sessionId + SEPERATOR
                + AppDistributedKv::CommunicationProvider::GetInstance().GetLocalDevice().udid + SEPERATOR;
     };
-    inline std::string GetPropertyPrefix(const std::string &appId, const std::string &sessionId, const std::string &toDeviceId)
+    inline std::string GetPropertyPrefix(
+        const std::string &appId, const std::string &sessionId, const std::string &toDeviceId)
     {
         return appId + SEPERATOR + sessionId + SEPERATOR
                + AppDistributedKv::CommunicationProvider::GetInstance().GetLocalDevice().udid + SEPERATOR + toDeviceId
