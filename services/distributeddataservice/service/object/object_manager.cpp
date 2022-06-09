@@ -206,7 +206,6 @@ int32_t ObjectStoreManager::DeleteByAppId(const std::string &appId)
         ZLOGE("Open objectStore DB failed,please check DB status");
         return STORE_NOT_OPEN;
     }
-    std::vector<DistributedDB::Entry> entries;
     result = RevokeSaveToStore(appId);
     if (result != SUCCESS) {
         ZLOGE("RevokeSaveToStore failed");
@@ -220,7 +219,7 @@ void ObjectStoreManager::SetData(const std::string &dataDir, const std::string &
     ZLOGI("enter %{public}s", dataDir.c_str());
     kvStoreDelegateManager_ =
         new DistributedDB::KvStoreDelegateManager(DistributedData::Bootstrap::GetInstance().GetProcessLabel(), userId);
-    DistributedDB::KvStoreConfig kvStoreConfig{ dataDir };
+    DistributedDB::KvStoreConfig kvStoreConfig { dataDir };
     kvStoreDelegateManager_->SetKvStoreConfig(kvStoreConfig);
     userId_ = userId;
 }
