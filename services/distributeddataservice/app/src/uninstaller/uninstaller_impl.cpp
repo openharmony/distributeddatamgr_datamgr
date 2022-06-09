@@ -77,7 +77,7 @@ Status UninstallerImpl::Init(KvStoreDataService *kvStoreDataService)
             ZLOGE("LoadKeys failed!");
             return;
         }
-        for (const auto &meta : storeMetaData) {
+        for (auto &meta : storeMetaData) {
             if (!meta.appId.empty() && !meta.storeId.empty()) {
                 ZLOGI("uninstalled bundleName:%s, stordId:%s", bundleName.c_str(), meta.storeId.c_str());
                 kvStoreDataService->DeleteKvStore(meta);
