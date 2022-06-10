@@ -52,34 +52,26 @@ DistributedDB::KvStoreNbDelegate *ObjectStoreManager::OpenObjectKvStore()
     return store;
 }
 
-void ObjectStoreManager::ProcessSyncCallback(
-    const std::map<std::string, int32_t> &results, const std::string &appId, const std::string &sessionId)
+void ObjectStoreManager::ProcessSyncCallback(const std::map<std::string, int32_t> &results, const std::string &appId,
+    const std::string &sessionId, const std::string &deviceId)
 {
-    bool isLocal = false;
-    std::string deviceId;
-    for (auto &item : results) {
-        deviceId = item.first;
-        if (item.first == LOCAL_DEVICE) {
-            isLocal = true;
-            break;
-        }
+    if (results.empty() || results.find(LOCAL_DEVICE) != results.end()) {
+        return;
     }
-    if (!isLocal) {
-        ZLOGE("delete local data sessionId = %{public}s", sessionId.c_str());
-        int32_t result = Open();
-        if (result != SUCCESS) {
-            ZLOGE("Open objectStore DB failed,please check DB status");
-            return;
-        }
-        // delete local data
-        result = RevokeSaveToStore(GetPropertyPrefix(appId, sessionId, deviceId));
-        if (result != SUCCESS) {
-            ZLOGE("Save to store failed,please check DB status, status = %{public}d", result);
-            Close();
-            return;
-        }
+    ZLOGE("delete local data sessionId = %{public}s", sessionId.c_str());
+    int32_t result = Open();
+    if (result != SUCCESS) {
+        ZLOGE("Open objectStore DB failed,please check DB status");
+        return;
+    }
+    // delete local data
+    result = RevokeSaveToStore(GetPropertyPrefix(appId, sessionId, deviceId));
+    if (result != SUCCESS) {
+        ZLOGE("Save to store failed,please check DB status, status = %{public}d", result);
         Close();
+        return;
     }
+    Close();
     return;
 }
 
@@ -100,19 +92,20 @@ int32_t ObjectStoreManager::Save(const std::string &appId, const std::string &se
     }
 
     ZLOGI("start SaveToStore");
-    result = SaveToStore(appId, sessionId, deviceList.at(0), data);
+    std::string deviceId = deviceList.at(0);
+    result = SaveToStore(appId, sessionId, deviceId, data);
     if (result != SUCCESS) {
         ZLOGE("Save to store failed, please check DB status, status = %{public}d", result);
         Close();
         callback->Completed(std::map<std::string, int32_t>());
         return result;
     }
-    SyncCallBack tmp = [callback, appId, sessionId, this](const std::map<std::string, int32_t> &results) {
+    SyncCallBack tmp = [callback, appId, sessionId, deviceId, this](const std::map<std::string, int32_t> &results) {
         callback->Completed(results);
-        ProcessSyncCallback(results, appId, sessionId);
+        ProcessSyncCallback(results, appId, sessionId, deviceId);
     };
     ZLOGI("start SyncOnStore");
-    result = SyncOnStore(GetPropertyPrefix(appId, sessionId, deviceList.at(0)), deviceList, tmp);
+    result = SyncOnStore(GetPropertyPrefix(appId, sessionId, deviceId), deviceList, tmp);
     if (result != SUCCESS) {
         ZLOGE("sync on store failed,please check DB status, status = %{public}d", result);
         callback->Completed(std::map<std::string, int32_t>());
@@ -436,30 +429,35 @@ int32_t ObjectStoreManager::RetrieveFromStore(
     return SUCCESS;
 }
 
-std::string ObjectStoreManager::GetPropertyName(const std::string &key)
+void ObjectStoreManager::ProcessKeyByIndex(std::string &key, uint8_t index)
 {
-    std::string result = key;
     std::size_t pos;
     int8_t i = 0;
     do {
-        pos = result.find(SEPERATOR);
-        result.erase(0, pos + 1);
+        pos = key.find(SEPERATOR);
+        if (pos == std::string::npos) {
+            return;
+        }
+        key.erase(0, pos + 1);
         i++;
-    } while (pos != std::string::npos && i < 5); // property name is after 5 '_'
+    } while (i < index);
+}
+
+std::string ObjectStoreManager::GetPropertyName(const std::string &key)
+{
+    std::string result = key;
+    ProcessKeyByIndex(result, 5); // property name is after 5 '_'
     return result;
 }
 
 std::string ObjectStoreManager::GetSessionId(const std::string &key)
 {
     std::string result = key;
-    std::size_t pos;
-    int8_t i = 0;
-    do {
-        pos = result.find(SEPERATOR);
-        result.erase(0, pos + 1);
-        i++;
-    } while (pos != std::string::npos && i < 1); // sessionId is after 1 '_'
-    pos = result.find(SEPERATOR);
+    ProcessKeyByIndex(result, 1); // sessionId is after 1 '_'
+    auto pos = result.find(SEPERATOR);
+    if (pos == std::string::npos) {
+        return result;
+    }
     result.erase(pos);
     return result;
 }

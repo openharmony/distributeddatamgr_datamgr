@@ -92,12 +92,13 @@ private:
     int32_t RetrieveFromStore(
         const std::string &appId, const std::string &sessionId, std::map<std::string, std::vector<uint8_t>> &results);
     void SyncCompleted(const std::map<std::string, DistributedDB::DBStatus> &results, uint64_t sequenceId);
+    void ProcessKeyByIndex(std::string &key, uint8_t index);
     std::string GetPropertyName(const std::string &key);
     std::string GetSessionId(const std::string &key);
     int64_t GetTime(const std::string &key);
     void ProcessOldEntry(const std::string &appId);
-    void ProcessSyncCallback(
-        const std::map<std::string, int32_t> &results, const std::string &appId, const std::string &sessionId);
+    void ProcessSyncCallback(const std::map<std::string, int32_t> &results, const std::string &appId,
+        const std::string &sessionId, const std::string &deviceId);
     inline std::string GetPropertyPrefix(const std::string &appId, const std::string &sessionId)
     {
         return appId + SEPERATOR + sessionId + SEPERATOR
