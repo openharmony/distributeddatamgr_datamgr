@@ -634,8 +634,9 @@ Status KvStoreDataService::DeleteKvStore(StoreMetaData &metaData)
         if (!MetaDataManager::GetInstance().DelMeta(metaKey)) {
             ZLOGW("Remove Kvstore MetaData failed.");
         }
-        std::string instancId = metaData.instanceId == 0 ? "" : std::to_string(metaData.instanceId);
-        metaKey = SecretKeyMeta::GetKey({ metaData.user, "default", metaData.bundleName, metaData.storeId, instancId});
+        std::string instanceId = metaData.instanceId == 0 ? "" : std::to_string(metaData.instanceId);
+        metaKey = SecretKeyMeta::GetKey({
+            metaData.user, "default", metaData.bundleName, metaData.storeId, instanceId});
         MetaDataManager::GetInstance().DelMeta(metaKey, true);
         metaKey = StrategyMetaData::GetPrefix({
             metaData.deviceId, metaData.user, "default", metaData.bundleName, metaData.storeId });
