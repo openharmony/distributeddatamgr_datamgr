@@ -66,6 +66,7 @@ enum class Fault {
     DF_DB_RECOVERY_FAILED = 61,
     DF_DB_OPEN_FAILED = 62,
     DF_DB_REKEY_FAILED = 63,
+    DF_DB_CORRUPTED = 63,
 };
 
 enum class FaultType {
@@ -77,7 +78,9 @@ enum class FaultType {
 
 enum class BehaviourType {
     DATABASE_BACKUP_SUCCESS = 0,
-    DATABASE_RECOVERY_SUCCESS = 1,
+    DATABASE_BACKUP_FAILED = 1,
+    DATABASE_RECOVERY_SUCCESS = 3,
+    DATABASE_RECOVERY_FAILED = 4,
 };
 
 enum class SecurityInfo {

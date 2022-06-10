@@ -121,16 +121,9 @@ Status SingleKvStoreImpl::CheckDbIsCorrupted(DistributedDB::DBStatus status, con
 {
     if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
         ZLOGW("option %{public}s failed, recovery database.", funName);
-        bool result = Import(bundleName_);
-        if (!result) {
-            Reporter::GetInstance()->DatabaseFault()->Report(
-                {bundleName_, storeId_, "KVDB", Fault::DF_DB_RECOVERY_FAILED });
-            return Status::RECOVER_FAILED;
-        } else {
-            Reporter::GetInstance()->BehaviourReporter()->Report(
-                {deviceAccountId_, bundleName_, storeId_, BehaviourType::DATABASE_RECOVERY_SUCCESS });
-            return Status::RECOVER_SUCCESS;
-        }
+        Reporter::GetInstance()->DatabaseFault()->Report(
+            {bundleName_, storeId_, "KVDB", Fault::DF_DB_CORRUPTED});
+        return (Import(bundleName_) ? Status::RECOVER_SUCCESS : Status::RECOVER_FAILED);
     }
     return Status::SUCCESS;
 }
@@ -1412,7 +1405,11 @@ bool SingleKvStoreImpl::Import(const std::string &bundleName) const
     metaData.deviceId = DeviceKvStoreImpl::GetLocalDeviceId();
     MetaDataManager::GetInstance().LoadMeta(metaData.GetKey(), metaData);
     std::shared_lock<std::shared_mutex> lock(storeNbDelegateMutex_);
-    return std::make_unique<BackupHandler>()->SingleKvStoreRecover(metaData, kvStoreNbDelegate_);
+    auto result = std::make_unique<BackupHandler>()->SingleKvStoreRecover(metaData, kvStoreNbDelegate_);
+    Reporter::GetInstance()->BehaviourReporter()->Report(
+        { deviceAccountId_, bundleName_, storeId_,
+        (result) ? BehaviourType::DATABASE_RECOVERY_SUCCESS : BehaviourType::DATABASE_RECOVERY_FAILED });
+    return result;
 }
 
 Status SingleKvStoreImpl::SetCapabilityEnabled(bool enabled)
