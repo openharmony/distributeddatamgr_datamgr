@@ -589,7 +589,7 @@ Status KvStoreDataService::DeleteKvStore(const AppId &appId, const StoreId &stor
 
     HapTokenInfo tokenInfo;
     tokenInfo.instIndex = 0;
-    if (AccessTokenKit::GetTokenTypeFlag(tokenId) == TOKEN_HAP) {
+    if (AccessTokenKit::GetTokenTypeFlag(info.tokenId) == TOKEN_HAP) {
         AccessTokenKit::GetHapTokenInfo(info.tokenId, tokenInfo);
     }
 
