@@ -601,7 +601,6 @@ Status KvStoreDataService::DeleteKvStore(const AppId &appId, const StoreId &stor
         ZLOGE("load key failed, appId:%s, storeId:%s, instanceId:%u",
             appId.appId.c_str(), storeId.storeId.c_str(), storeMetaData.instanceId);
         return Status::ERROR;
-
     }
     return DeleteKvStore(storeMetaData);
 }
@@ -637,7 +636,6 @@ Status KvStoreDataService::DeleteKvStore(StoreMetaData &metaData)
         metaKey = StrategyMetaData::GetPrefix({
             metaData.deviceId, metaData.user, "default", metaData.bundleName, metaData.storeId });
         MetaDataManager::GetInstance().DelMeta(metaKey);
-
     }
     return status;
 }
