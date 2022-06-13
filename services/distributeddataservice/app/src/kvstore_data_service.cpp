@@ -47,6 +47,8 @@
 #include "kvstore_utils.h"
 #include "log_print.h"
 #include "metadata/meta_data_manager.h"
+#include "metadata/secret_key_meta_data.h"
+#include "metadata/strategy_meta_data.h"
 #include "object_common.h"
 #include "object_manager.h"
 #include "object_service_impl.h"
@@ -69,6 +71,8 @@ using namespace std::chrono;
 using namespace OHOS::DistributedData;
 using namespace OHOS::Security::AccessToken;
 using KvStoreDelegateManager = DistributedDB::KvStoreDelegateManager;
+using SecretKeyMeta = DistributedData::SecretKeyMetaData;
+using StrategyMetaData = DistributedData::StrategyMeta;
 
 REGISTER_SYSTEM_ABILITY_BY_ID(KvStoreDataService, DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID, true);
 
@@ -582,24 +586,62 @@ Status KvStoreDataService::DeleteKvStore(const AppId &appId, const StoreId &stor
         return Status::PERMISSION_DENIED;
     }
 
-    // delete the backup file
-    std::initializer_list<std::string> backFileList = {
-        AccountDelegate::GetInstance()->GetCurrentAccountId(), "_", appId.appId, "_", storeId.storeId};
-    auto backupFileName = Constant::Concatenate(backFileList);
-    const std::string userId = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(info.uid);
-    std::initializer_list<std::string> backPathListDE = {BackupHandler::GetBackupPath(userId,
-        KvStoreAppManager::PATH_DE), "/", BackupHandler::GetHashedBackupName(backupFileName)};
-    auto backFilePath = Constant::Concatenate(backPathListDE);
-    if (!BackupHandler::RemoveFile(backFilePath)) {
+    HapTokenInfo tokenInfo;
+    tokenInfo.instIndex = 0;
+    if (AccessTokenKit::GetTokenTypeFlag(info.tokenId) == TOKEN_HAP) {
+        AccessTokenKit::GetHapTokenInfo(info.tokenId, tokenInfo);
+    }
+
+    StoreMetaData storeMetaData;
+    storeMetaData.deviceId = DeviceKvStoreImpl::GetLocalDeviceId();
+    storeMetaData.user = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(info.uid);
+    storeMetaData.bundleName = appId.appId;
+    storeMetaData.storeId = storeId.storeId;
+    storeMetaData.instanceId = tokenInfo.instIndex;
+    auto metaKey = storeMetaData.GetKey();
+    if (!MetaDataManager::GetInstance().LoadMeta(metaKey, storeMetaData)) {
+        ZLOGE("load key failed, appId:%s, storeId:%s, instanceId:%u",
+            appId.appId.c_str(), storeId.storeId.c_str(), storeMetaData.instanceId);
+        return Status::ERROR;
+    }
+    return DeleteKvStore(storeMetaData);
+}
+
+Status KvStoreDataService::DeleteKvStore(StoreMetaData &metaData)
+{
+     // delete the backup file
+    auto backFilePath = DirectoryManager::GetInstance().GetStoreBackupPath(metaData);
+    auto backupFileName = Constant::Concatenate({ metaData.account, "_", metaData.bundleName, "_", metaData.storeId });
+    auto backFile = Constant::Concatenate({ backFilePath, BackupHandler::GetHashedBackupName(backupFileName) });
+    if (!BackupHandler::RemoveFile(backFile)) {
         ZLOGE("DeleteKvStore RemoveFile backFilePath failed.");
     }
-    std::initializer_list<std::string> backPathListCE = {BackupHandler::GetBackupPath(userId,
-        KvStoreAppManager::PATH_CE), "/", BackupHandler::GetHashedBackupName(backupFileName)};
-    backFilePath = Constant::Concatenate(backPathListCE);
-    if (!BackupHandler::RemoveFile(backFilePath)) {
-        ZLOGE("DeleteKvStore RemoveFile backFilePath failed.");
+
+    std::lock_guard<std::mutex> lg(accountMutex_);
+    Status status;
+    auto it = deviceAccountMap_.find(metaData.user);
+    if (it != deviceAccountMap_.end()) {
+        status = (it->second).DeleteKvStore(metaData.bundleName, metaData.uid, metaData.tokenId, metaData.storeId);
+    } else {
+        KvStoreUserManager kvStoreUserManager(metaData.user);
+        status = kvStoreUserManager.DeleteKvStore(
+            metaData.bundleName, metaData.uid, metaData.tokenId, metaData.storeId);
     }
-    return DeleteKvStore(appId.appId, storeId);
+
+    if (status == Status::SUCCESS) {
+        auto metaKey = metaData.GetKey();
+        if (!MetaDataManager::GetInstance().DelMeta(metaKey)) {
+            ZLOGW("Remove Kvstore MetaData failed.");
+        }
+        std::string instanceId = metaData.instanceId == 0 ? "" : std::to_string(metaData.instanceId);
+        metaKey = SecretKeyMeta::GetKey({
+            metaData.user, "default", metaData.bundleName, metaData.storeId, instanceId});
+        MetaDataManager::GetInstance().DelMeta(metaKey, true);
+        metaKey = StrategyMetaData::GetPrefix({
+            metaData.deviceId, metaData.user, "default", metaData.bundleName, metaData.storeId });
+        MetaDataManager::GetInstance().DelMeta(metaKey);
+    }
+    return status;
 }
 
 /* delete all kv store */
@@ -1091,39 +1133,6 @@ void KvStoreDataService::KvStoreClientDeathObserverImpl::KvStoreDeathRecipient::
     kvStoreClientDeathObserverImpl_.NotifyClientDie();
 }
 
-Status KvStoreDataService::DeleteKvStore(const std::string &bundleName, const StoreId &storeId)
-{
-    ZLOGI("begin.");
-    if (!storeId.IsValid()) {
-        ZLOGE("invalid storeId.");
-        return Status::INVALID_ARGUMENT;
-    }
-
-    const pid_t uid = IPCSkeleton::GetCallingUid();
-    uint32_t tokenId = IPCSkeleton::GetCallingTokenID();
-    const std::string userId = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(uid);
-    std::lock_guard<std::mutex> lg(accountMutex_);
-    Status status;
-    auto it = deviceAccountMap_.find(userId);
-    if (it != deviceAccountMap_.end()) {
-        status = (it->second).DeleteKvStore(bundleName, uid, tokenId, storeId.storeId);
-    } else {
-        KvStoreUserManager kvStoreUserManager(userId);
-        status = kvStoreUserManager.DeleteKvStore(bundleName, uid, tokenId, storeId.storeId);
-    }
-
-    if (status == Status::SUCCESS) {
-        auto metaKey = KvStoreMetaManager::GetMetaKey(userId, "default", bundleName, storeId.storeId);
-        status = KvStoreMetaManager::GetInstance().CheckUpdateServiceMeta(metaKey, DELETE);
-        if (status != Status::SUCCESS) {
-            ZLOGW("Remove Kvstore Metakey failed.");
-        }
-        KvStoreMetaManager::GetInstance().RemoveSecretKey(uid, bundleName, storeId.storeId);
-        KvStoreMetaManager::GetInstance().DeleteStrategyMeta(bundleName, storeId.storeId, userId);
-    }
-    return status;
-}
-
 Status KvStoreDataService::DeleteKvStoreOnly(const StoreMetaData &metaData)
 {
     ZLOGI("DeleteKvStoreOnly begin.");
@@ -1143,12 +1152,13 @@ void KvStoreDataService::AccountEventChanged(const AccountEventInfo &eventInfo)
         case AccountStatus::DEVICE_ACCOUNT_DELETE: {
             g_kvStoreAccountEventStatus = 1;
             // delete all kvstore belong to this device account
-            for (auto &it : deviceAccountMap_) {
-                (it.second).DeleteAllKvStore();
-            }
             auto it = deviceAccountMap_.find(eventInfo.deviceAccountId);
             if (it != deviceAccountMap_.end()) {
+                (it->second).DeleteAllKvStore();
                 deviceAccountMap_.erase(eventInfo.deviceAccountId);
+            } else {
+                KvStoreUserManager kvStoreUserManager(eventInfo.deviceAccountId);
+                kvStoreUserManager.DeleteAllKvStore();
             }
             std::initializer_list<std::string> dirList = {Constant::ROOT_PATH_DE, "/",
                 Constant::SERVICE_NAME, "/", eventInfo.deviceAccountId};

@@ -100,6 +100,8 @@ public:
     bool CheckBackupFileExist(const std::string &userId, const std::string &bundleName,
                               const std::string &storeId, int pathType);
 
+    Status DeleteKvStore(StoreMetaData &metaData);
+
     struct SecretKeyPara {
         std::vector<uint8_t> metaKey;
         std::vector<uint8_t> secretKey;
@@ -143,8 +145,6 @@ private:
     void StartService();
 
     void InitSecurityAdapter();
-
-    Status DeleteKvStore(const std::string &bundleName, const StoreId &storeId);
 
     template<class T>
     Status RecoverKvStore(const Options &options, const StoreMetaData &metaData,
