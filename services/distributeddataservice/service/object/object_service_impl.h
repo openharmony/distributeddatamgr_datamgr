@@ -34,6 +34,7 @@ public:
     int32_t ObjectStoreRevokeSave(const std::string &bundleName, const std::string &sessionId,
         sptr<IObjectRevokeSaveCallback> callback) override;
     void Clear();
+    int32_t DeleteByAppId(const std::string &appId);
 };
 } // namespace OHOS::DistributedObject
 #endif

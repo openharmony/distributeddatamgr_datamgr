@@ -70,38 +70,50 @@ public:
     int32_t Retrieve(const std::string &appId, const std::string &sessionId, sptr<IObjectRetrieveCallback> callback);
     void SetData(const std::string &dataDir, const std::string &userId);
     int32_t Clear();
+    int32_t DeleteByAppId(const std::string &appId);
 private:
     enum Status {
         SUCCESS,
         FAILED
     };
     constexpr static const char *SEPERATOR = "_";
-    constexpr static const char *PROPERTY_PREFIX = "p_";
     constexpr static const char *LOCAL_DEVICE = "local";
+    constexpr static int8_t MAX_OBJECT_SIZE_PER_APP = 16;
+    constexpr static int8_t DECIMAL_BASE = 10;
     DistributedDB::KvStoreNbDelegate *OpenObjectKvStore();
     void FlushClosedStore();
     int32_t Open();
     int32_t Close();
     int32_t SetSyncStatus(bool status);
-    int32_t SaveToStore(const std::string &appId, const std::string &sessionId,
-        const std::map<std::string, std::vector<uint8_t>> &data);
+    int32_t SaveToStore(const std::string &appId, const std::string &sessionId, const std::string &toDeviceId,
+                        const std::map<std::string, std::vector<uint8_t>> &data);
     int32_t SyncOnStore(const std::string &prefix, const std::vector<std::string> &deviceList, SyncCallBack &callback);
-    int32_t RevokeSaveToStore(const std::string &appId, const std::string &sessionId);
+    int32_t RevokeSaveToStore(const std::string &prefix);
     int32_t RetrieveFromStore(
         const std::string &appId, const std::string &sessionId, std::map<std::string, std::vector<uint8_t>> &results);
     void SyncCompleted(const std::map<std::string, DistributedDB::DBStatus> &results, uint64_t sequenceId);
+    void ProcessKeyByIndex(std::string &key, uint8_t index);
+    std::string GetPropertyName(const std::string &key);
+    std::string GetSessionId(const std::string &key);
+    int64_t GetTime(const std::string &key);
+    void ProcessOldEntry(const std::string &appId);
+    void ProcessSyncCallback(const std::map<std::string, int32_t> &results, const std::string &appId,
+        const std::string &sessionId, const std::string &deviceId);
     inline std::string GetPropertyPrefix(const std::string &appId, const std::string &sessionId)
     {
         return appId + SEPERATOR + sessionId + SEPERATOR
-               + AppDistributedKv::CommunicationProvider::GetInstance().GetLocalDevice().udid + PROPERTY_PREFIX;
+               + AppDistributedKv::CommunicationProvider::GetInstance().GetLocalDevice().udid + SEPERATOR;
     };
-    inline std::string GetDeletePrefix(const std::string &appId, const std::string &sessionId)
+    inline std::string GetPropertyPrefix(
+        const std::string &appId, const std::string &sessionId, const std::string &toDeviceId)
+    {
+        return appId + SEPERATOR + sessionId + SEPERATOR
+               + AppDistributedKv::CommunicationProvider::GetInstance().GetLocalDevice().udid + SEPERATOR + toDeviceId
+               + SEPERATOR;
+    };
+    inline std::string GetPrefixWithoutDeviceId(const std::string &appId, const std::string &sessionId)
     {
         return appId + SEPERATOR + sessionId + SEPERATOR;
-    };
-    inline std::string BytesToStr(const std::vector<uint8_t> &src)
-    {
-        return std::string(src.begin(), src.end());
     };
     std::mutex kvStoreMutex_;
     DistributedDB::KvStoreDelegateManager *kvStoreDelegateManager_ = nullptr;

@@ -1173,6 +1173,7 @@ void KvStoreDataService::AccountEventChanged(const AccountEventInfo &eventInfo)
         case AccountStatus::DEVICE_ACCOUNT_SWITCHED: {
             auto ret = DistributedDB::KvStoreDelegateManager::NotifyUserChanged();
             ZLOGI("notify delegate manager result:%{public}d", ret);
+            objectService_->Clear();
             break;
         }
         default: {
@@ -1362,5 +1363,10 @@ void DbMetaCallbackDelegateMgr::GetKvStoreKeys(std::vector<StoreInfo> &dbStats)
         }
     }
     delegate_->CloseKvStore(kvStoreNbDelegatePtr);
+}
+
+int32_t KvStoreDataService::DeleteObjectsByAppId(const std::string &appId)
+{
+    return objectService_->DeleteByAppId(appId);
 }
 } // namespace OHOS::DistributedKv

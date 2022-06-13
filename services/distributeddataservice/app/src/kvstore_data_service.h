@@ -99,6 +99,7 @@ public:
 
     bool CheckBackupFileExist(const std::string &userId, const std::string &bundleName,
                               const std::string &storeId, int pathType);
+    int32_t DeleteObjectsByAppId(const std::string &appId);
 
     Status DeleteKvStore(StoreMetaData &metaData);
 

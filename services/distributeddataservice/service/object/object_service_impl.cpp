@@ -51,7 +51,7 @@ int32_t ObjectServiceImpl::ObjectStoreSave(const std::string &bundleName, const 
         ZLOGE("object save permission denied");
         return PERMISSION_DENIED;
     }
-    int32_t status = ObjectStoreManager::GetInstance()->Save(appId, sessionId, data, deviceList, callback);
+    int32_t status = ObjectStoreManager::GetInstance()->Save(bundleName, sessionId, data, deviceList, callback);
     if (status != SUCCESS) {
         ZLOGE("save fail %{public}d", status);
     }
@@ -86,7 +86,6 @@ void ObjectServiceImpl::Initialize()
     saveMeta.dataDir = DistributedData::DirectoryManager::GetInstance().GetStorePath(saveMeta);
     saveMeta.storeType = KvStoreType::SINGLE_VERSION;
     ObjectStoreManager::GetInstance()->SetData(saveMeta.dataDir, userId);
-    DistributedData::StoreMetaData oldMeta;
     auto saved = DistributedData::MetaDataManager::GetInstance().SaveMeta(saveMeta.GetKey(), saveMeta);
     if (!saved) {
         ZLOGE("SaveMeta failed");
@@ -115,7 +114,7 @@ int32_t ObjectServiceImpl::ObjectStoreRevokeSave(
         ZLOGE("object revoke save permission denied");
         return PERMISSION_DENIED;
     }
-    int32_t status = ObjectStoreManager::GetInstance()->RevokeSave(appId, sessionId, callback);
+    int32_t status = ObjectStoreManager::GetInstance()->RevokeSave(bundleName, sessionId, callback);
     if (status != SUCCESS) {
         ZLOGE("revoke save fail %{public}d", status);
     }
@@ -141,7 +140,7 @@ int32_t ObjectServiceImpl::ObjectStoreRetrieve(
         ZLOGE("object retrieve permission denied");
         return PERMISSION_DENIED;
     }
-    int32_t status = ObjectStoreManager::GetInstance()->Retrieve(appId, sessionId, callback);
+    int32_t status = ObjectStoreManager::GetInstance()->Retrieve(bundleName, sessionId, callback);
     if (status != SUCCESS) {
         ZLOGE("retrieve fail %{public}d", status);
     }
@@ -156,6 +155,16 @@ void ObjectServiceImpl::Clear()
         ZLOGE("save fail %{public}d", status);
     }
     return;
+}
+
+int32_t ObjectServiceImpl::DeleteByAppId(const std::string &bundleName)
+{
+    ZLOGI("begin. %{public}s", bundleName.c_str());
+    int32_t status = ObjectStoreManager::GetInstance()->DeleteByAppId(bundleName);
+    if (status != SUCCESS) {
+        ZLOGE("save fail %{public}d", status);
+    }
+    return status;
 }
 
 ObjectServiceImpl::ObjectServiceImpl()
