@@ -22,7 +22,6 @@ ohos_static_library("distributeddata_dfx_static") {
     "src/fault/service_fault_impl.cpp",
     "src/hiview_adapter.cpp",
     "src/reporter.cpp",
-    "src/security/security_reporter_impl.cpp",
     "src/statistic/api_performance_statistic_impl.cpp",
     "src/statistic/database_statistic_impl.cpp",
     "src/statistic/traffic_statistic_impl.cpp",

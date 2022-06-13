@@ -44,8 +44,6 @@ public:
     static void ReportTrafficStatistic(int dfxCode, const TrafficStat &stat);
     static void ReportDatabaseStatistic(int dfxCode, const DbStat &stat);
     static void ReportApiPerformanceStatistic(int dfxCode, const ApiPerformanceStat &stat);
-    static void ReportPermissionsSecurity(int dfxCode, const SecurityPermissionsMsg &msg);
-    static void ReportSensitiveLevelSecurity(int dfxCode, const SecuritySensitiveLevelMsg &msg);
     static void ReportBehaviour(int dfxCode, const BehaviourMsg &msg);
     static void StartTimerThread();
 

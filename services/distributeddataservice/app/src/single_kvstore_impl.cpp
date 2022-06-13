@@ -29,6 +29,9 @@
 #include "ipc_skeleton.h"
 #include "log_print.h"
 #include "permission_validator.h"
+#include "preferences.h"
+#include "preferences_errno.h"
+#include "preferences_helper.h"
 #include "query_helper.h"
 #include "reporter.h"
 #include "upgrade_manager.h"
@@ -38,6 +41,7 @@
 
 namespace OHOS::DistributedKv {
 using namespace OHOS::DistributedData;
+using namespace OHOS::NativePreferences;
 static bool TaskIsBackground(pid_t pid)
 {
     std::ifstream ifs("/proc/" + std::to_string(pid) + "/cgroup", std::ios::in);
@@ -121,11 +125,38 @@ Status SingleKvStoreImpl::CheckDbIsCorrupted(DistributedDB::DBStatus status, con
 {
     if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
         ZLOGW("option %{public}s failed, recovery database.", funName);
-        Reporter::GetInstance()->DatabaseFault()->Report(
-            {bundleName_, storeId_, "KVDB", Fault::DF_DB_CORRUPTED});
+        if (IsDbCorruptedFirstTime(true)) {
+            Reporter::GetInstance()->DatabaseFault()->Report(
+                {bundleName_, storeId_, "KVDB", Fault::DF_DB_CORRUPTED});
+        }
         return (Import(bundleName_) ? Status::RECOVER_SUCCESS : Status::RECOVER_FAILED);
     }
     return Status::SUCCESS;
+}
+
+bool SingleKvStoreImpl::IsDbCorruptedFirstTime(bool corruptedStatus) const
+{
+    int errCode = E_OK;
+    std::string prefKey = bundleName_ + storeId_;
+    std::shared_ptr<Preferences> pref = PreferencesHelper::GetPreferences(Constant::ROOT_PATH_PERF, errCode);
+    if ((errCode =! E_OK) || pref == nullptr) {
+        return true;
+    }
+    if (corruptedStatus) {
+        auto ret = pref->GetBool(prefKey, false);
+        if (ret) {
+            return false;
+        } else {
+            pref->PutBool(prefKey, corruptedStatus);
+            pref->Flush();
+            return true;
+        }
+    } else {
+        pref->Delete(prefKey);
+        pref->Flush();
+        return false;
+    }
+    return false;
 }
 
 Status SingleKvStoreImpl::ConvertDbStatus(DistributedDB::DBStatus status)
@@ -1406,6 +1437,7 @@ bool SingleKvStoreImpl::Import(const std::string &bundleName) const
     MetaDataManager::GetInstance().LoadMeta(metaData.GetKey(), metaData);
     std::shared_lock<std::shared_mutex> lock(storeNbDelegateMutex_);
     auto result = std::make_unique<BackupHandler>()->SingleKvStoreRecover(metaData, kvStoreNbDelegate_);
+    (void) IsDbCorruptedFirstTime((!result));
     Reporter::GetInstance()->BehaviourReporter()->Report(
         { deviceAccountId_, bundleName_, storeId_,
         (result) ? BehaviourType::DATABASE_RECOVERY_SUCCESS : BehaviourType::DATABASE_RECOVERY_FAILED });

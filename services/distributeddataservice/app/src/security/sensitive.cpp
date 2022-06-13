@@ -17,7 +17,6 @@
 #include <utility>
 #include <vector>
 #include "log_print.h"
-#include "reporter.h"
 #include "utils/anonymous.h"
 #undef LOG_TAG
 #define LOG_TAG "Sensitive"
@@ -68,20 +67,12 @@ bool Sensitive::operator >= (const DistributedDB::SecurityOption &option)
     if (option.securityLabel == DistributedDB::NOT_SET) {
         return true;
     }
-    
     uint32_t level = securityLevel;
     if (level <= DATA_SEC_LEVEL1) {
         ZLOGI("the device security level hadn't gotten");
         level = GetSensitiveLevel(deviceId);
     }
-
-    bool checkResult = (level >= static_cast<uint32_t>(option.securityLabel - 1)) ? true : false;
-    if (!checkResult) {
-        Reporter::GetInstance()->SecurityReporter()->Report(
-            { Anonymous::Change(deviceId), static_cast<int>(level),
-                option.securityLabel, SecurityInfo::SENSITIVE_LEVEL_FAILE });
-    }
-    return checkResult;
+    return (level >= static_cast<uint32_t>(option.securityLabel - 1)) ? true : false;
 }
 
 Sensitive::Sensitive(const Sensitive &sensitive)

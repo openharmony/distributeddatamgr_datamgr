@@ -44,10 +44,6 @@ constexpr const char *WORST_TIMES = "WORST_TIME";
 constexpr const char *INTERFACES = "INTERFACES";
 constexpr const char *TAG = "TAG";
 constexpr const char *POWERSTATS = "PowerStats";
-// security key
-constexpr const char *SECURITY_INFO = "SECURITY_INFO";
-constexpr const char *DEVICE_SENSITIVE_LEVEL = "DEVICE_SENSITIVE_LEVEL";
-constexpr const char *OPTION_SENSITIVE_LEVEL = "OPTION_SENSITIVE_LEVEL";
 // behaviour key
 constexpr const char *BEHAVIOUR_INFO = "BEHAVIOUR_INFO";
 
@@ -55,18 +51,16 @@ const std::map<int, std::string> EVENT_COVERT_TABLE = {
     { DfxCodeConstant::SERVICE_FAULT, "SERVICE_FAULT" },
     { DfxCodeConstant::RUNTIME_FAULT, "RUNTIME_FAULT" },
     { DfxCodeConstant::DATABASE_FAULT, "DATABASE_FAULT" },
-    { DfxCodeConstant::COMMUNICATION_FAULT, "DATABASE_FAULT" },
-    { DfxCodeConstant::DATABASE_STATISTIC, "COMMUNICATION_FAULT}" },
+    { DfxCodeConstant::COMMUNICATION_FAULT, "COMMUNICATION_FAULT" },
+    { DfxCodeConstant::DATABASE_STATISTIC, "DATABASE_STATISTIC}" },
     { DfxCodeConstant::VISIT_STATISTIC, "VISIT_STATISTIC" },
     { DfxCodeConstant::TRAFFIC_STATISTIC, "VISIT_STATISTIC" },
     { DfxCodeConstant::DATABASE_PERFORMANCE_STATISTIC, "DATABASE_PERFORMANCE_STATISTIC" },
     { DfxCodeConstant::API_PERFORMANCE_STATISTIC, "API_PERFORMANCE_STATISTIC" },
     { DfxCodeConstant::API_PERFORMANCE_INTERFACE, "API_PERFORMANCE_STATISTIC" },
     { DfxCodeConstant::DATABASE_SYNC_FAILED, "DATABASE_SYNC_FAILED" },
-    { DfxCodeConstant::DATABASE_RECOVERY_FAILED, "DATABASE_SYNC_FAILED" },
-    { DfxCodeConstant::DATABASE_OPEN_FAILED, "DATABASE_RECOVERY_FAILED" },
-    { DfxCodeConstant::DATABASE_REKEY_FAILED, "DATABASE_OPEN_FAILED" },
-    { DfxCodeConstant::DATABASE_SECURITY, "DATABASE_REKEY_FAILED" },
+    { DfxCodeConstant::DATABASE_CORRUPTED_FAILED, "DATABASE_CORRUPTED_FAILED" },
+    { DfxCodeConstant::DATABASE_REKEY_FAILED, "DATABASE_REKEY_FAILED" },
     { DfxCodeConstant::DATABASE_BEHAVIOUR, "DATABASE_BEHAVIOUR" },
 };
 }
@@ -146,41 +140,6 @@ void HiViewAdapter::ReportCommFault(int dfxCode, const CommFaultMsg &msg)
     pool_->AddTask(std::move(task));
 }
 
-void HiViewAdapter::ReportPermissionsSecurity(int dfxCode, const SecurityPermissionsMsg &msg)
-{
-    if (pool_ == nullptr) {
-        return;
-    }
-    KvStoreTask task([dfxCode, msg]() {
-        HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
-            CoverEventID(dfxCode),
-            HiSysEvent::EventType::SECURITY,
-            USER_ID, msg.appId,
-            APP_ID, msg.appId,
-            STORE_ID, msg.storeId,
-            DEVICE_ID, msg.deviceId,
-            SECURITY_INFO, static_cast<int>(msg.securityInfo));
-    });
-    pool_->AddTask(std::move(task));
-}
-
-void HiViewAdapter::ReportSensitiveLevelSecurity(int dfxCode, const SecuritySensitiveLevelMsg &msg)
-{
-    if (pool_ == nullptr) {
-        return;
-    }
-    KvStoreTask task([dfxCode, msg]() {
-        HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
-            CoverEventID(dfxCode),
-            HiSysEvent::EventType::SECURITY,
-            DEVICE_ID, msg.deviceId,
-            DEVICE_SENSITIVE_LEVEL, msg.deviceSensitiveLevel,
-            OPTION_SENSITIVE_LEVEL, msg.optionSensitiveLevel,
-            SECURITY_INFO, static_cast<int>(msg.securityInfo));
-    });
-    pool_->AddTask(std::move(task));
-}
-
 void HiViewAdapter::ReportBehaviour(int dfxCode, const BehaviourMsg &msg)
 {
     if (pool_ == nullptr) {
@@ -190,7 +149,7 @@ void HiViewAdapter::ReportBehaviour(int dfxCode, const BehaviourMsg &msg)
         HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
             CoverEventID(dfxCode),
             HiSysEvent::EventType::BEHAVIOR,
-            USER_ID, msg.appId,
+            USER_ID, msg.userId,
             APP_ID, msg.appId,
             STORE_ID, msg.storeId,
             BEHAVIOUR_INFO, static_cast<int>(msg.behaviourType));

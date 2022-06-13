@@ -100,6 +100,9 @@ public:
     // root path for self-developed and non-self-developed app.
     KVSTORE_API static const std::string ROOT_PATH_CE;
 
+    /* root path for preferences of corrupted db. */
+    KVSTORE_API static const std::string ROOT_PATH_PERF;
+
     // the max length for key is 256.
     KVSTORE_API static const size_t MAX_KEY_LENGTH;
 
