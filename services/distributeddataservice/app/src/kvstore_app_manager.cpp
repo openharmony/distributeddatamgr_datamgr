@@ -33,6 +33,8 @@
 #include "kvstore_app_accessor.h"
 #include "kvstore_utils.h"
 #include "log_print.h"
+#include "metadata/corrupted_meta_data.h"
+#include "metadata/meta_data_manager.h"
 #include "permission_validator.h"
 #include "reporter.h"
 #include "route_head_handler_impl.h"
@@ -240,6 +242,8 @@ Status KvStoreAppManager::DeleteKvStore(const std::string &storeId)
     Status statusDE = DeleteKvStore(storeId, PATH_DE);
     Status statusCE = DeleteKvStore(storeId, PATH_CE);
     if (statusDE == Status::SUCCESS || statusCE == Status::SUCCESS) {
+        CorruptedMetaData corruptedMetaData = CorruptedMetaData(trueAppId_, bundleName_, storeId);
+        MetaDataManager::GetInstance().DelMeta(corruptedMetaData.GetKey(), true);
         return Status::SUCCESS;
     }
 

@@ -98,7 +98,7 @@ DATABASE_BEHAVIOUR:
   ANONYMOUS_UID: {type: STRING, desc: uid with anonymous }
   APP_ID: {type: STRING, desc: app id }
   STORE_ID: {type: STRING, desc: store id }
-  BEHAVIOUR_INFO: {type: INT32, desc: behaviour id }
+  BEHAVIOUR_INFO: {type: STRING, desc: behaviour type and behaviour resulte }
 
 OPEN_DATABASE_FAILED:
   __BASE: {type: FAULT, level: CRITICAL, desc: The database open failed}

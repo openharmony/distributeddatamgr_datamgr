@@ -126,12 +126,14 @@ void BackupHandler::SingleKvStoreBackup(const StoreMetaData &metaData)
                     ZLOGD("SingleKvStoreBackup export success.");
                     RemoveFile(backupBackFullName);
                     Reporter::GetInstance()->BehaviourReporter()->Report(
-                        {metaData.account, metaData.appId, metaData.storeId, BehaviourType::DATABASE_BACKUP_SUCCESS});
+                        {metaData.account, metaData.appId, metaData.storeId,
+                            BehaviourType::DATABASE_BACKUP, BehaviourResult::BEHAVIOUR_SUCCESS});
                 } else {
                     ZLOGE("SingleKvStoreBackup export failed, status is %d.", status);
                     RenameFile(backupBackFullName, backupFullName);
                     Reporter::GetInstance()->BehaviourReporter()->Report(
-                        {metaData.account, metaData.appId, metaData.storeId, BehaviourType::DATABASE_BACKUP_FAILED});
+                        {metaData.account, metaData.appId, metaData.storeId,
+                            BehaviourType::DATABASE_BACKUP, BehaviourResult::BEHAVIOUR_FAILED});
                 }
             }
             delegateMgr.CloseKvStore(delegate);

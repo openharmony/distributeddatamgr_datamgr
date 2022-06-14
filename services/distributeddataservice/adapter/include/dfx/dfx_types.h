@@ -77,10 +77,13 @@ enum class FaultType {
 };
 
 enum class BehaviourType {
-    DATABASE_BACKUP_SUCCESS = 0,
-    DATABASE_BACKUP_FAILED = 1,
-    DATABASE_RECOVERY_SUCCESS = 3,
-    DATABASE_RECOVERY_FAILED = 4,
+    DATABASE_BACKUP = 0,
+    DATABASE_RECOVERY = 1,
+};
+
+enum class BehaviourResult {
+    BEHAVIOUR_SUCCESS = 0,
+    BEHAVIOUR_FAILED = 1,
 };
 
 enum class SecurityInfo {
@@ -132,6 +135,7 @@ struct BehaviourMsg {
     std::string appId;
     std::string storeId;
     BehaviourType behaviourType;
+    BehaviourResult behaviourResult;
 };
 
 struct VisitStat {
