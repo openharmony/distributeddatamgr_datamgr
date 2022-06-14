@@ -43,6 +43,7 @@ constexpr int32_t INVALID_SESSION_ID = -1;
 constexpr int32_t SESSION_NAME_SIZE_MAX = 65;
 constexpr int32_t DEVICE_ID_SIZE_MAX = 65;
 constexpr int32_t ID_BUF_LEN = 65;
+constexpr uint32_t INTERVAL_SECOND = 5;
 using namespace std;
 using namespace OHOS::DistributedKv;
 
@@ -531,7 +532,7 @@ std::shared_ptr<BlockData<int32_t>> SoftBusAdapter::GetSemaphore(int32_t session
 {
     lock_guard<mutex> lock(statusMutex_);
     if (sessionsStatus_.find(sessionId) == sessionsStatus_.end()) {
-        sessionsStatus_.emplace(sessionId, std::make_shared<BlockData<int32_t>>(5, SOFTBUS_ERR));
+        sessionsStatus_.emplace(sessionId, std::make_shared<BlockData<int32_t>>(INTERVAL_SECOND, SOFTBUS_ERR));
     }
     return sessionsStatus_[sessionId];
 }
