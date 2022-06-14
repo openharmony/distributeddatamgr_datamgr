@@ -522,7 +522,7 @@ void SoftBusAdapter::OnSessionClose(int32_t sessionId)
     lock_guard<mutex> lock(statusMutex_);
     auto it = sessionsStatus_.find(sessionId);
     if (it != sessionsStatus_.end()) {
-        it->second->Clear();
+        it->second->Clear(SOFTBUS_ERR);
         sessionsStatus_.erase(it);
     }
 }
@@ -531,7 +531,7 @@ std::shared_ptr<BlockData<int32_t>> SoftBusAdapter::GetSemaphore(int32_t session
 {
     lock_guard<mutex> lock(statusMutex_);
     if (sessionsStatus_.find(sessionId) == sessionsStatus_.end()) {
-        sessionsStatus_.emplace(sessionId, std::make_shared<BlockData<int32_t>>());
+        sessionsStatus_.emplace(sessionId, std::make_shared<BlockData<int32_t>>(5, SOFTBUS_ERR));
     }
     return sessionsStatus_[sessionId];
 }

@@ -29,7 +29,7 @@ using SchedulerTask =  std::map<std::chrono::system_clock::time_point, std::func
 
 class KvScheduler {
 public:
-    KVSTORE_API KvScheduler();
+    KVSTORE_API KvScheduler(size_t capacity = std::numeric_limits<size_t>::max());
     KVSTORE_API ~KvScheduler();
     // execute task at specific time
     KVSTORE_API SchedulerTask At(const std::chrono::system_clock::time_point &time, std::function<void()> task);
@@ -46,6 +46,7 @@ public:
 private:
     void Loop();
     bool isRunning_;
+    size_t capacity_;
     std::multimap<std::chrono::system_clock::time_point, std::function<void()>> kvTasks_;
     std::mutex mutex_;
     std::unique_ptr<std::thread> thread_;
