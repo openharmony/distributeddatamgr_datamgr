@@ -602,7 +602,7 @@ Status KvStoreDataService::DeleteKvStore(const AppId &appId, const StoreId &stor
     if (!MetaDataManager::GetInstance().LoadMeta(metaKey, storeMetaData)) {
         ZLOGE("load key failed, appId:%s, storeId:%s, instanceId:%u",
             appId.appId.c_str(), storeId.storeId.c_str(), storeMetaData.instanceId);
-        return Status::ERROR;
+        return Status::STORE_NOT_FOUND;
     }
     return DeleteKvStore(storeMetaData);
 }
@@ -633,10 +633,18 @@ Status KvStoreDataService::DeleteKvStore(StoreMetaData &metaData)
         if (!MetaDataManager::GetInstance().DelMeta(metaKey)) {
             ZLOGW("Remove Kvstore MetaData failed.");
         }
-        std::string instanceId = metaData.instanceId == 0 ? "" : std::to_string(metaData.instanceId);
-        metaKey = SecretKeyMeta::GetKey({
-            metaData.user, "default", metaData.bundleName, metaData.storeId, instanceId});
+        if (metaData.instanceId == 0) {
+            metaKey = SecretKeyMeta::GetKey({metaData.user, "default", metaData.bundleName, metaData.storeId});
+        } else {
+            metaKey = SecretKeyMeta::GetKey({
+                metaData.user, "default", metaData.bundleName, metaData.storeId, metaData.instanceId});
+        }
         MetaDataManager::GetInstance().DelMeta(metaKey, true);
+        auto secretKeyFile = KvStoreMetaManager::GetSecretSingleKeyFile(
+            metaData.user, metaData.bundleName, metaData.storeId, KvStoreAppManager::ConvertPathType(metaData));
+        if (!RemoveFile(secretKeyFile)) {
+            ZLOGE("remove secretkey file single fail.");
+        }
         metaKey = StrategyMetaData::GetPrefix({
             metaData.deviceId, metaData.user, "default", metaData.bundleName, metaData.storeId });
         MetaDataManager::GetInstance().DelMeta(metaKey);
