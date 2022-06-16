@@ -82,6 +82,11 @@ ObserverBridge::ObserverClient::ObserverClient(std::shared_ptr<Observer> observe
 
 void ObserverBridge::ObserverClient::OnChange(const ChangeNotification &data)
 {
+    if (convert_ == nullptr) {
+        KvStoreObserverClient::OnChange(data);
+        return;
+    }
+
     std::string deviceId;
     auto inserted = ConvertDB(data.GetInsertEntries(), deviceId);
     auto updated = ConvertDB(data.GetInsertEntries(), deviceId);
@@ -90,7 +95,8 @@ void ObserverBridge::ObserverClient::OnChange(const ChangeNotification &data)
     KvStoreObserverClient::OnChange(notice);
 }
 
-std::vector<Entry> ObserverBridge::ObserverClient::ConvertDB(const std::vector<Entry> &dbEntries, std::string &deviceId) const
+std::vector<Entry> ObserverBridge::ObserverClient::ConvertDB(const std::vector<Entry> &dbEntries,
+    std::string &deviceId) const
 {
     std::vector<Entry> entries(dbEntries.size());
     auto it = entries.begin();
