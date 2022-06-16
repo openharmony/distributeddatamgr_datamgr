@@ -24,13 +24,15 @@ namespace OHOS::DistributedKv {
 using namespace OHOS::DistributedData;
 constexpr int64_t StoreCache::INTERVAL;
 constexpr size_t StoreCache::TIME_TASK_NUM;
-std::shared_ptr<StoreCache::DBStore> StoreCache::GetStore(const StoreMetaData &data, DBStatus &status)
+StoreCache::DBStore *StoreCache::GetStore(const StoreMetaData &data, std::shared_ptr<Observers> observers,
+    DBStatus &status)
 {
     DBStore *store = nullptr;
     status = DBStatus::NOT_FOUND;
-    stores_.Compute(data.tokenId, [this, &store, &data, &status](auto &key, auto &stores) {
+    stores_.Compute(data.tokenId, [this, &store, &data, &status, &observers](auto &key, auto &stores) {
         auto it = stores.find(data.storeId);
         if (it != stores.end()) {
+            it->second.SetObservers(observers);
             store = it->second;
             return true;
         }
@@ -43,7 +45,8 @@ std::shared_ptr<StoreCache::DBStore> StoreCache::GetStore(const StoreMetaData &d
         });
 
         if (store != nullptr) {
-            stores.emplace(std::piecewise_construct, std::forward_as_tuple(data.storeId), std::forward_as_tuple(store));
+            stores.emplace(std::piecewise_construct, std::forward_as_tuple(data.storeId),
+                std::forward_as_tuple(store, observers));
         }
         return !stores.empty();
     });
@@ -51,7 +54,7 @@ std::shared_ptr<StoreCache::DBStore> StoreCache::GetStore(const StoreMetaData &d
     scheduler_.At(std::chrono::system_clock::now() + std::chrono::minutes(INTERVAL),
         std::bind(&StoreCache::CollectGarbage, this));
 
-    return std::shared_ptr<DBStore>(store, [](DBStore *) {});
+    return store;
 }
 
 void StoreCache::CollectGarbage()
@@ -61,7 +64,7 @@ void StoreCache::CollectGarbage()
     stores_.EraseIf([&manager, &current](auto &key, std::map<std::string, DBStoreDelegate> &delegates) {
         for (auto it = delegates.begin(); it != delegates.end();) {
             // if the kv store is BUSY we wait more INTERVAL minutes again
-            if ((it->second < current) || manager.CloseKvStore(it->second) == DBStatus::BUSY) {
+            if ((it->second < current) || !it->second.Close(manager)) {
                 ++it;
             } else {
                 it = delegates.erase(it);
@@ -120,9 +123,13 @@ StoreCache::DBSecurity StoreCache::GetDBSecurity(int32_t secLevel) const
     return { secLevel, DistributedDB::ECE };
 }
 
-StoreCache::DBStoreDelegate::DBStoreDelegate(DBStore *delegate) : delegate_(std::move(delegate))
+StoreCache::DBStoreDelegate::DBStoreDelegate(DBStore *delegate, std::shared_ptr<Observers> observers)
+    : delegate_(delegate), observers_(std::move(observers))
 {
     time_ = std::chrono::system_clock::now() + std::chrono::minutes(INTERVAL);
+    if (observers_ != nullptr && !observers_->empty()) {
+        delegate_->RegisterObserver({}, DistributedDB::OBSERVER_CHANGES_FOREIGN, this);
+    }
 }
 
 StoreCache::DBStoreDelegate::~DBStoreDelegate()
@@ -130,14 +137,64 @@ StoreCache::DBStoreDelegate::~DBStoreDelegate()
     delegate_ = nullptr;
 }
 
-StoreCache::DBStoreDelegate::operator DBStore *() const
+StoreCache::DBStoreDelegate::operator DBStore *()
 {
     time_ = std::chrono::system_clock::now() + std::chrono::minutes(INTERVAL);
+    if (observers_ != nullptr && !observers_->empty()) {
+        delegate_->RegisterObserver({}, DistributedDB::OBSERVER_CHANGES_FOREIGN, this);
+    }
     return delegate_;
 }
 
 bool StoreCache::DBStoreDelegate::operator<(const Time &time) const
 {
     return time_ < time;
+}
+
+bool StoreCache::DBStoreDelegate::Close(DBManager &manager)
+{
+    if (delegate_ != nullptr) {
+        delegate_->UnRegisterObserver(this);
+    }
+
+    auto status = manager.CloseKvStore(delegate_);
+    if (status == DBStatus::BUSY) {
+        return false;
+    }
+    delegate_ = nullptr;
+    return true;
+}
+
+void StoreCache::DBStoreDelegate::OnChange(const DistributedDB::KvStoreChangedData &data)
+{
+    if (observers_ == nullptr) {
+        return;
+    }
+
+    const auto &dbInserts = data.GetEntriesInserted();
+    const auto &dbUpdates = data.GetEntriesUpdated();
+    const auto &dbDeletes = data.GetEntriesDeleted();
+    ChangeNotification change(Convert(dbInserts), Convert(dbUpdates), Convert(dbDeletes), std::string(), false);
+    for (auto &observer : *observers_) {
+        observer->OnChange(change);
+    }
+}
+
+void StoreCache::DBStoreDelegate::SetObservers(std::shared_ptr<Observers> observers)
+{
+    if (observers_ != observers && observers != nullptr) {
+        observers_ = observers;
+    }
+}
+std::vector<Entry> StoreCache::DBStoreDelegate::Convert(const std::list<DBEntry> &dbEntries)
+{
+    std::vector<Entry> entries;
+    for (const auto &entry : dbEntries) {
+        Entry tmpEntry;
+        tmpEntry.key = entry.key;
+        tmpEntry.value = entry.value;
+        entries.push_back(tmpEntry);
+    }
+    return entries;
 }
 }; // namespace OHOS::DistributedKv

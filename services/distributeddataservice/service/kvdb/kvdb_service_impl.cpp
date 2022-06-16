@@ -223,7 +223,11 @@ Status KVDBServiceImpl::Subscribe(const AppId &appId, const StoreId &storeId, sp
         if (value.pid_ != IPCSkeleton::GetCallingPid()) {
             value.ReInit(IPCSkeleton::GetCallingPid(), appId);
         }
-        value.observers_[storeId].insert(observer);
+        auto it = value.observers_.find(storeId);
+        if (it == value.observers_.end()) {
+            value.observers_[storeId] = std::make_shared<StoreCache::Observers>();
+        }
+        value.observers_[storeId]->insert(observer);
         return true;
     });
     return SUCCESS;
@@ -238,7 +242,7 @@ Status KVDBServiceImpl::Unsubscribe(const AppId &appId, const StoreId &storeId, 
         }
         auto it = value.observers_.find(storeId);
         if (it != value.observers_.end()) {
-            it->second.erase(observer);
+            it->second->erase(observer);
         }
         return true;
     });
@@ -285,8 +289,37 @@ Status KVDBServiceImpl::AppExit(pid_t uid, pid_t pid, uint32_t tokenId, const Ap
     return SUCCESS;
 }
 
-Status KVDBServiceImpl::ResolveAutoLaunch(const std::string &identifier, KVDBServiceImpl::DBLaunchParam &param)
+Status KVDBServiceImpl::ResolveAutoLaunch(const std::string &identifier, DBLaunchParam &param)
 {
+    std::vector<StoreMetaData> metaData;
+    auto prefix = StoreMetaData::GetPrefix(
+        { AppDistributedKv::CommunicationProvider::GetInstance().GetLocalDevice().uuid, param.userId, "default" });
+    if (!MetaDataManager::GetInstance().LoadMeta(prefix, metaData)) {
+        ZLOGE("There is no store");
+        return STORE_NOT_FOUND;
+    }
+
+    for (const auto &storeMeta : metaData) {
+        auto storeIdentifier = DBManager::GetKvStoreIdentifier("", storeMeta.appId, storeMeta.storeId, true);
+        if (identifier != storeIdentifier) {
+            continue;
+        }
+        std::shared_ptr<StoreCache::Observers> observers;
+        syncAgents_.ComputeIfPresent(storeMeta.tokenId, [&storeMeta, &observers](auto, SyncAgent &agent) {
+            auto it = agent.observers_.find(storeMeta.storeId);
+            if (it != agent.observers_.end()) {
+                observers = it->second;
+            }
+            return true;
+        });
+
+        if (observers == nullptr || observers->empty()) {
+            continue;
+        }
+
+        DBStatus status;
+        storeCache_.GetStore(storeMeta, observers, status);
+    }
     return SUCCESS;
 }
 
@@ -363,7 +396,7 @@ Status KVDBServiceImpl::DoSync(const StoreMetaData &metaData, const SyncInfo &sy
         return Status::ERROR;
     }
     DistributedDB::DBStatus status;
-    auto store = storeCache_.GetStore(metaData, status);
+    auto store = storeCache_.GetStore(metaData, nullptr, status);
     if (store == nullptr) {
         return ConvertDbStatus(status);
     }
@@ -419,38 +452,38 @@ uint32_t KVDBServiceImpl::GetSyncDelayTime(uint32_t delay, const StoreId &storeI
     return delay;
 }
 
-Status KVDBServiceImpl::ConvertDbStatus(DistributedDB::DBStatus status)
+Status KVDBServiceImpl::ConvertDbStatus(DBStatus status)
 {
     switch (status) {
-        case DistributedDB::DBStatus::BUSY: // fallthrough
-        case DistributedDB::DBStatus::DB_ERROR:
+        case DBStatus::BUSY: // fallthrough
+        case DBStatus::DB_ERROR:
             return Status::DB_ERROR;
-        case DistributedDB::DBStatus::OK:
+        case DBStatus::OK:
             return Status::SUCCESS;
-        case DistributedDB::DBStatus::INVALID_ARGS:
+        case DBStatus::INVALID_ARGS:
             return Status::INVALID_ARGUMENT;
-        case DistributedDB::DBStatus::NOT_FOUND:
+        case DBStatus::NOT_FOUND:
             return Status::KEY_NOT_FOUND;
-        case DistributedDB::DBStatus::INVALID_VALUE_FIELDS:
+        case DBStatus::INVALID_VALUE_FIELDS:
             return Status::INVALID_VALUE_FIELDS;
-        case DistributedDB::DBStatus::INVALID_FIELD_TYPE:
+        case DBStatus::INVALID_FIELD_TYPE:
             return Status::INVALID_FIELD_TYPE;
-        case DistributedDB::DBStatus::CONSTRAIN_VIOLATION:
+        case DBStatus::CONSTRAIN_VIOLATION:
             return Status::CONSTRAIN_VIOLATION;
-        case DistributedDB::DBStatus::INVALID_FORMAT:
+        case DBStatus::INVALID_FORMAT:
             return Status::INVALID_FORMAT;
-        case DistributedDB::DBStatus::INVALID_QUERY_FORMAT:
+        case DBStatus::INVALID_QUERY_FORMAT:
             return Status::INVALID_QUERY_FORMAT;
-        case DistributedDB::DBStatus::INVALID_QUERY_FIELD:
+        case DBStatus::INVALID_QUERY_FIELD:
             return Status::INVALID_QUERY_FIELD;
-        case DistributedDB::DBStatus::NOT_SUPPORT:
+        case DBStatus::NOT_SUPPORT:
             return Status::NOT_SUPPORT;
-        case DistributedDB::DBStatus::TIME_OUT:
+        case DBStatus::TIME_OUT:
             return Status::TIME_OUT;
-        case DistributedDB::DBStatus::OVER_MAX_LIMITS:
+        case DBStatus::OVER_MAX_LIMITS:
             return Status::OVER_MAX_SUBSCRIBE_LIMITS;
-        case DistributedDB::DBStatus::EKEYREVOKED_ERROR: // fallthrough
-        case DistributedDB::DBStatus::SECURITY_OPTION_CHECK_ERROR:
+        case DBStatus::EKEYREVOKED_ERROR: // fallthrough
+        case DBStatus::SECURITY_OPTION_CHECK_ERROR:
             return Status::SECURITY_LEVEL_ERROR;
         default:
             break;

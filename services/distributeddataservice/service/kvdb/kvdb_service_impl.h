@@ -58,8 +58,10 @@ private:
     using StoreMetaData = OHOS::DistributedData::StoreMetaData;
     using StrategyMeta = OHOS::DistributedData::StrategyMeta;
     using DBStore = DistributedDB::KvStoreNbDelegate;
+    using DBManager = DistributedDB::KvStoreDelegateManager;
     using SyncEnd = KvStoreSyncManager::SyncEnd;
     using DBResult = std::map<std::string, DistributedDB::DBStatus>;
+    using DBStatus = DistributedDB::DBStatus;
     void AddOptions(const Options &options, StoreMetaData &metaData);
     StoreMetaData GetStoreMetaData(const AppId &appId, const StoreId &storeId);
     StrategyMeta GetStrategyMeta(const AppId &appId, const StoreId &storeId);
@@ -67,22 +69,14 @@ private:
     Status DoSync(const StoreMetaData &metaData, const SyncInfo &syncInfo, const SyncEnd &complete);
     Status DoComplete(const StoreMetaData &metaData, const SyncInfo &syncInfo, const DBResult &dbResult);
     uint32_t GetSyncDelayTime(uint32_t delay, const StoreId &storeId);
-    Status ConvertDbStatus(DistributedDB::DBStatus status);
+    Status ConvertDbStatus(DBStatus status);
 
-    template<class T>
-    struct Less {
-    public:
-        bool operator()(const sptr<T> &__x, const sptr<T> &__y) const
-        {
-            return __x.GetRefPtr() < __y.GetRefPtr();
-        }
-    };
     struct SyncAgent {
         pid_t pid_ = 0;
         AppId appId_;
         sptr<IKvStoreSyncCallback> callback_;
         std::map<std::string, uint32_t> delayTimes_;
-        std::map<std::string, std::set<sptr<IKvStoreObserver>, Less<IKvStoreObserver>>> observers_;
+        std::map<std::string, std::shared_ptr<StoreCache::Observers>> observers_;
         std::map<std::string, std::pair<std::vector<std::string>, std::string>> conditions_;
         void ReInit(pid_t pid, const AppId &appId)
         {

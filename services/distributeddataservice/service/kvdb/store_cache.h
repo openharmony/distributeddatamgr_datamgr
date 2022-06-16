@@ -24,27 +24,48 @@
 #include "kv_scheduler.h"
 #include "kv_store_nb_delegate.h"
 #include "metadata/store_meta_data.h"
+#include "refbase.h"
+#include "ikvstore_observer.h"
 namespace OHOS::DistributedKv {
 class StoreCache {
 public:
+    template<class T>
+    struct Less {
+    public:
+        bool operator()(const sptr<T> &__x, const sptr<T> &__y) const
+        {
+            return __x.GetRefPtr() < __y.GetRefPtr();
+        }
+    };
     using DBStatus = DistributedDB::DBStatus;
     using DBStore = DistributedDB::KvStoreNbDelegate;
+    using DBManager = DistributedDB::KvStoreDelegateManager;
+    using DBObserver = DistributedDB::KvStoreObserver;
+    using DBChangeData = DistributedDB::KvStoreChangedData;
+    using DBEntry = DistributedDB::Entry;
+    using Observers = std::set<sptr<IKvStoreObserver>, Less<IKvStoreObserver>>;
     using StoreMetaData = OHOS::DistributedData::StoreMetaData;
     using Time = std::chrono::system_clock::time_point;
-    struct DBStoreDelegate {
-        DBStoreDelegate(DBStore *delegate);
+
+    struct DBStoreDelegate : public DBObserver {
+        DBStoreDelegate(DBStore *delegate, std::shared_ptr<Observers> observers);
         ~DBStoreDelegate();
-        operator DBStore *() const;
-        bool operator < (const Time &time) const;
+        operator DBStore *();
+        bool operator<(const Time &time) const;
+        bool Close(DBManager &manager);
+        void OnChange(const DBChangeData &data) override;
+        void SetObservers(std::shared_ptr<Observers> observers);
 
     private:
+        std::vector<Entry> Convert(const std::list<DBEntry> &dbEntries);
         mutable Time time_;
         DBStore *delegate_;
+        std::shared_ptr<Observers> observers_;
     };
-    std::shared_ptr<DBStore> GetStore(const StoreMetaData &data, DBStatus &status);
+
+    DBStore *GetStore(const StoreMetaData &data, std::shared_ptr<Observers> observers, DBStatus &status);
 
 private:
-    using DBManager = DistributedDB::KvStoreDelegateManager;
     using DBOption = DistributedDB::KvStoreNbDelegate::Option;
     using DBSecurity = DistributedDB::SecurityOption;
     void CollectGarbage();
