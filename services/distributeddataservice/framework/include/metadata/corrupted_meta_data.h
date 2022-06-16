@@ -22,7 +22,7 @@ struct API_EXPORT CorruptedMetaData final : public Serializable {
     std::string appId = "";
     std::string bundleName = "";
     std::string storeId = "";
-    bool CorruptedStatus = false;
+    bool corruptedStatus = false;
     API_EXPORT CorruptedMetaData();
     API_EXPORT CorruptedMetaData(const std::string &appId, const std::string &bundleName, const std::string &storeId);
     API_EXPORT ~CorruptedMetaData();

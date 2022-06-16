@@ -23,7 +23,6 @@
 
 namespace OHOS {
 namespace DistributedKv {
-using namespace DistributedDataDfx;
 using Anonymous = DistributedData::Anonymous;
 Sensitive::Sensitive(std::string deviceId)
     : deviceId(std::move(deviceId)), securityLevel(DATA_SEC_LEVEL1)

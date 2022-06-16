@@ -122,32 +122,17 @@ Status SingleKvStoreImpl::CheckDbIsCorrupted(DistributedDB::DBStatus status, con
 {
     if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
         ZLOGW("option %{public}s failed, recovery database.", funName);
-        if (IsDbCorruptedFirstTime(true)) {
+        CorruptedMetaData corruptedMetaData = CorruptedMetaData(appId_, bundleName_, storeId_);
+        MetaDataManager::GetInstance().LoadMeta(corruptedMetaData.GetKey(), corruptedMetaData, true);
+        if (!corruptedMetaData.corruptedStatus) {
+            corruptedMetaData.corruptedStatus = true;
+            MetaDataManager::GetInstance().SaveMeta(corruptedMetaData.GetKey(), corruptedMetaData, true);
             Reporter::GetInstance()->DatabaseFault()->Report(
                 {bundleName_, storeId_, "KVDB", Fault::DF_DB_CORRUPTED});
         }
         return (Import(bundleName_) ? Status::RECOVER_SUCCESS : Status::RECOVER_FAILED);
     }
     return Status::SUCCESS;
-}
-
-bool SingleKvStoreImpl::IsDbCorruptedFirstTime(bool corruptedStatus) const
-{
-    CorruptedMetaData corruptedMetaData = CorruptedMetaData(appId_, bundleName_, storeId_);
-    MetaDataManager::GetInstance().LoadMeta(corruptedMetaData.GetKey(), corruptedMetaData, true);
-    if (corruptedStatus) {
-        if (corruptedMetaData.CorruptedStatus == true) {
-            return false;
-        } else {
-            corruptedMetaData.CorruptedStatus = true;
-            MetaDataManager::GetInstance().SaveMeta(corruptedMetaData.GetKey(), corruptedMetaData, true);
-            return true;
-        }
-    } else {
-        MetaDataManager::GetInstance().DelMeta(corruptedMetaData.GetKey(), true);
-        return false;
-    }
-    return false;
 }
 
 Status SingleKvStoreImpl::ConvertDbStatus(DistributedDB::DBStatus status)
@@ -1428,10 +1413,10 @@ bool SingleKvStoreImpl::Import(const std::string &bundleName) const
     MetaDataManager::GetInstance().LoadMeta(metaData.GetKey(), metaData);
     std::shared_lock<std::shared_mutex> lock(storeNbDelegateMutex_);
     auto result = std::make_unique<BackupHandler>()->SingleKvStoreRecover(metaData, kvStoreNbDelegate_);
-    (void) IsDbCorruptedFirstTime((!result));
-    Reporter::GetInstance()->BehaviourReporter()->Report(
-        { deviceAccountId_, bundleName_, storeId_, BehaviourType::DATABASE_RECOVERY,
-            (result) ? BehaviourResult::BEHAVIOUR_FAILED : BehaviourResult::BEHAVIOUR_FAILED });
+    if (result) {
+        CorruptedMetaData corruptedMetaData = CorruptedMetaData(appId_, bundleName_, storeId_);
+        MetaDataManager::GetInstance().DelMeta(corruptedMetaData.GetKey(), true);
+    }
     return result;
 }
 

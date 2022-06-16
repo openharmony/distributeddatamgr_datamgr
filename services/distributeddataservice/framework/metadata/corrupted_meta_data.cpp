@@ -23,15 +23,16 @@ bool CorruptedMetaData::Marshal(json &node) const
     SetValue(node[GET_NAME(appId)], appId);
     SetValue(node[GET_NAME(bundleName)], bundleName);
     SetValue(node[GET_NAME(storeId)], storeId);
-    SetValue(node[GET_NAME(CorruptedStatus)], CorruptedStatus);
+    SetValue(node[GET_NAME(corruptedStatus)], corruptedStatus);
     return true;
 }
+
 bool CorruptedMetaData::Unmarshal(const json &node)
 {
     GetValue(node, GET_NAME(appId), appId);
     GetValue(node, GET_NAME(bundleName), bundleName);
     GetValue(node, GET_NAME(storeId), storeId);
-    GetValue(node, GET_NAME(CorruptedStatus), CorruptedStatus);
+    GetValue(node, GET_NAME(corruptedStatus), corruptedStatus);
     return true;
 }
 

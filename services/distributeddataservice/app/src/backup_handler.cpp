@@ -42,6 +42,7 @@ namespace OHOS::DistributedKv {
 using namespace DistributedData;
 using namespace DistributedDataDfx;
 using namespace AppDistributedKv;
+constexpr const int64_t NANOSEC_TO_MICROSEC = 1000;
 BackupHandler::BackupHandler(IKvStoreDataService *kvStoreDataService)
 {
 }
@@ -128,13 +129,13 @@ void BackupHandler::SingleKvStoreBackup(const StoreMetaData &metaData)
                     RemoveFile(backupBackFullName);
                     Reporter::GetInstance()->BehaviourReporter()->Report(
                         {metaData.account, metaData.appId, metaData.storeId,
-                            BehaviourType::DATABASE_BACKUP, BehaviourResult::BEHAVIOUR_SUCCESS});
+                            BehaviourType::DATABASE_BACKUP, BehaviourResult::BEHAVIOUR_SUCCESS, ""});
                 } else {
                     ZLOGE("SingleKvStoreBackup export failed, status is %d.", status);
                     RenameFile(backupBackFullName, backupFullName);
                     Reporter::GetInstance()->BehaviourReporter()->Report(
                         {metaData.account, metaData.appId, metaData.storeId,
-                            BehaviourType::DATABASE_BACKUP, BehaviourResult::BEHAVIOUR_FAILED});
+                            BehaviourType::DATABASE_BACKUP, BehaviourResult::BEHAVIOUR_FAILED, ""});
                 }
             }
             delegateMgr.CloseKvStore(delegate);
@@ -202,32 +203,56 @@ bool BackupHandler::GetPassword(const StoreMetaData &metaData, DistributedDB::Ci
 bool BackupHandler::SingleKvStoreRecover(StoreMetaData &metaData, DistributedDB::KvStoreNbDelegate *delegate)
 {
     ZLOGI("start.");
-    if (delegate == nullptr) {
-        ZLOGE("SingleKvStoreRecover failed, delegate is null.");
-        return false;
-    }
-    auto pathType = KvStoreAppManager::ConvertPathType(metaData);
-    if (!BackupHandler::FileExists(BackupHandler::GetBackupPath(metaData.user, pathType))) {
-        ZLOGE("SingleKvStoreRecover failed, backupDir_ file is not exist.");
-        return false;
-    }
+    bool result = false;
+    do {
+        if (delegate == nullptr) {
+            ZLOGE("SingleKvStoreRecover failed, delegate is null.");
+            break;
+        }
+        auto pathType = KvStoreAppManager::ConvertPathType(metaData);
+        if (!BackupHandler::FileExists(BackupHandler::GetBackupPath(metaData.user, pathType))) {
+            ZLOGE("SingleKvStoreRecover failed, backupDir_ file is not exist.");
+            break;
+        }
+        DistributedDB::CipherPassword password;
+        if (!GetPassword(metaData, password)) {
+            ZLOGE("Set secret key failed.");
+            break;
+        }
+        std::string backupName = Constant::Concatenate({ metaData.account, "_", metaData.appId, "_", metaData.storeId });
+        auto backupFullName = Constant::Concatenate(
+            { BackupHandler::GetBackupPath(metaData.user, pathType), "/", GetHashedBackupName(backupName) });
+        DistributedDB::DBStatus dbStatus = delegate->Import(backupFullName, password);
+        if (dbStatus == DistributedDB::DBStatus::OK) {
+            ZLOGI("SingleKvStoreRecover success.");
+            result =  true;
+        } else {
+            ZLOGI("SingleKvStoreRecover failed.");
+        }
+        std::string message;
+        int64_t currentTime = TimeUtils::CurrentTimeMicros();
+        int64_t backupTime = GetBackupTime(backupFullName);
+        message.append(" Extension Info: backup name [").append(backupFullName)
+            .append("], backup time [").append(std::to_string(backupTime))
+            .append("], recovery time [").append(std::to_string(currentTime)).append("]");
+        Reporter::GetInstance()->BehaviourReporter()->Report(
+            { metaData.user, metaData.bundleName, metaData.storeId, BehaviourType::DATABASE_RECOVERY,
+                (result) ? BehaviourResult::BEHAVIOUR_FAILED : BehaviourResult::BEHAVIOUR_FAILED , message});
+    } while (false);
+    return result;
+}
 
-    DistributedDB::CipherPassword password;
-    if (!GetPassword(metaData, password)) {
-        ZLOGE("Set secret key failed.");
-        return false;
+int64_t BackupHandler::GetBackupTime(const std::string &path)
+{
+    if (path.empty()) {
+        return 0;
     }
-
-    std::string backupName = Constant::Concatenate({ metaData.account, "_", metaData.appId, "_", metaData.storeId });
-    auto backupFullName = Constant::Concatenate(
-        { BackupHandler::GetBackupPath(metaData.user, pathType), "/", GetHashedBackupName(backupName) });
-    DistributedDB::DBStatus dbStatus = delegate->Import(backupFullName, password);
-    if (dbStatus == DistributedDB::DBStatus::OK) {
-        ZLOGI("SingleKvStoreRecover success.");
-        return true;
+    struct stat curStat;
+    stat(path.c_str(), &curStat);
+    if (S_ISDIR(curStat.st_mode)) {
+        return 0;
     }
-    ZLOGI("SingleKvStoreRecover failed.");
-    return false;
+    return (curStat.st_mtim.tv_sec * SEC_TO_MICROSEC + curStat.st_mtim.tv_nsec / NANOSEC_TO_MICROSEC);
 }
 
 std::string BackupHandler::backupDirCe_;

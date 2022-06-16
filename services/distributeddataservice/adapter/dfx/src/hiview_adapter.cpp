@@ -149,7 +149,8 @@ void HiViewAdapter::ReportBehaviour(int dfxCode, const BehaviourMsg &msg)
     KvStoreTask task([dfxCode, msg]() {
         std::string message;
         message.append("Behaviour type : ").append(std::to_string(static_cast<int>(msg.behaviourType)))
-            .append(" behaviour result : ").append(std::to_string(static_cast<int>(msg.behaviourResult)));
+            .append(" behaviour result : ").append(std::to_string(static_cast<int>(msg.behaviourResult)))
+            .append(msg.extensionInfo);
         HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
             CoverEventID(dfxCode),
             HiSysEvent::EventType::BEHAVIOR,

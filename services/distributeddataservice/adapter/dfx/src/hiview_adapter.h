@@ -76,7 +76,7 @@ private:
     static const inline int EXEC_MIN_TIME = 60;
     static const inline int SIXTY_SEC = 60;
 
-    static const inline int WAIT_TIME = 1 * 60 * 60; // 1 hours
+    static const inline int WAIT_TIME = 1 * 60; // 1 minute
     static const inline int PERIOD_TIME_US = 1 * 1000 * 1000; // 1 s
 };
 }  // namespace DistributedDataDfx

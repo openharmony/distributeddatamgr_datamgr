@@ -20,7 +20,6 @@ module_output_path = "distributeddatamgr/distributeddataservice"
 config("module_private_config") {
   visibility = [ ":*" ]
   include_dirs = [
-    "//foundation/distributeddatamgr/appdatamgr/interfaces/inner_api/native/preferences/include",
     "//foundation/distributeddatamgr/distributeddatamgr/frameworks/common",
     "//foundation/distributeddatamgr/distributeddatamgr/frameworks/innerkitsimpl/distributeddatafwk/include",
     "//foundation/distributeddatamgr/distributeddatamgr/frameworks/innerkitsimpl/distributeddatafwk/src",

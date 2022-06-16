@@ -136,6 +136,7 @@ struct BehaviourMsg {
     std::string storeId;
     BehaviourType behaviourType;
     BehaviourResult behaviourResult;
+    std::string extensionInfo;
 };
 
 struct VisitStat {
