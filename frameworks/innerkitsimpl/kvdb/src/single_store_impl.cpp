@@ -664,10 +664,7 @@ std::vector<uint8_t> SingleStoreImpl::GetPrefix(const DataQuery &query) const
 
 SingleStoreImpl::Convert SingleStoreImpl::GetConvert() const
 {
-    return [](const DBKey &key, std::string &deviceId) {
-        deviceId = "";
-        return Key(key);
-    };
+    return nullptr;
 }
 
 Status SingleStoreImpl::DoSync(const SyncInfo &syncInfo, std::shared_ptr<SyncCallback> observer)
