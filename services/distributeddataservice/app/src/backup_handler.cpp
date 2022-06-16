@@ -219,7 +219,8 @@ bool BackupHandler::SingleKvStoreRecover(StoreMetaData &metaData, DistributedDB:
             ZLOGE("Set secret key failed.");
             break;
         }
-        std::string backupName = Constant::Concatenate({ metaData.account, "_", metaData.appId, "_", metaData.storeId });
+        std::string backupName = Constant::Concatenate(
+            { metaData.account, "_", metaData.appId, "_", metaData.storeId });
         auto backupFullName = Constant::Concatenate(
             { BackupHandler::GetBackupPath(metaData.user, pathType), "/", GetHashedBackupName(backupName) });
         DistributedDB::DBStatus dbStatus = delegate->Import(backupFullName, password);
