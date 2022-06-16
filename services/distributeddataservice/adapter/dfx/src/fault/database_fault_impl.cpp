@@ -27,7 +27,7 @@ ReportStatus DatabaseFaultImpl::Report(const DBFaultMsg &msg)
     } else if (msg.errorType == Fault::DF_DB_REKEY_FAILED) {
         eventID = DfxCodeConstant::DATABASE_REKEY_FAILED;
     } else {
-        return ReportStatus::ERROR;
+        eventID = DfxCodeConstant::DATABASE_FAULT;
     }
 
     HiViewAdapter::ReportDBFault(eventID, msg);
