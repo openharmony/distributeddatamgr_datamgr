@@ -560,7 +560,7 @@ HWTEST_F(DistributedKvDataManagerTest, DeleteKvStore003, TestSize.Level1)
 {
     ZLOGI("DeleteKvStore003 begin.");
     Status stat = manager.DeleteKvStore(appId, storeId64);
-    EXPECT_EQ(stat, Status::DB_ERROR);
+    EXPECT_EQ(stat, Status::STORE_NOT_FOUND);
 }
 
 /**

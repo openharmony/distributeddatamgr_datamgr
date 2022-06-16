@@ -24,7 +24,7 @@
 #include "behaviour_reporter.h"
 
 namespace OHOS {
-namespace DistributedKv {
+namespace DistributedDataDfx {
 class Reporter {
 public:
     KVSTORE_API static Reporter* GetInstance();
@@ -40,6 +40,6 @@ public:
 
     KVSTORE_API BehaviourReporter* BehaviourReporter();
 };
-}  // namespace DistributedKv
+}  // namespace DistributedDataDfx
 }  // namespace OHOS
 #endif // DISTRIBUTEDDATAMGR_REPORTER_H

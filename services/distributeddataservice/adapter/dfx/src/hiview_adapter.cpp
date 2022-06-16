@@ -21,7 +21,8 @@
 #include "log_print.h"
 
 namespace OHOS {
-namespace DistributedKv {
+namespace DistributedDataDfx {
+using namespace DistributedKv;
 namespace {
 // fault key
 constexpr const char *FAULT_TYPE = "FAULT_TYPE";
@@ -387,5 +388,5 @@ std::string HiViewAdapter::CoverEventID(int dfxCode)
     }
     return sysEventID;
 }
-} // namespace DistributedKv
+} // namespace DistributedDataDfx
 } // namespace OHOS
