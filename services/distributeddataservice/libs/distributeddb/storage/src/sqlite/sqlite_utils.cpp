@@ -307,20 +307,17 @@ void SQLiteUtils::ResetStatement(sqlite3_stmt *&statement, bool isNeedFinalize, 
 
     int innerCode = SQLITE_OK;
     // if need finalize the statement, just goto finalize.
-    if (isNeedFinalize) {
-        goto FINAL;
+    if (!isNeedFinalize) {
+        // reset the statement firstly.
+        innerCode = sqlite3_reset(statement);
+        if (innerCode != SQLITE_OK) {
+            LOGE("[SQLiteUtils] reset statement error:%d, sys:%d", innerCode, errno);
+            isNeedFinalize = true;
+        } else {
+            sqlite3_clear_bindings(statement);
+        }
     }
 
-    // reset the statement firstly.
-    innerCode = sqlite3_reset(statement);
-    if (innerCode != SQLITE_OK) {
-        LOGE("[SQLiteUtils] reset statement error:%d, sys:%d", innerCode, errno);
-        isNeedFinalize = true;
-    } else {
-        sqlite3_clear_bindings(statement);
-    }
-
-FINAL:
     if (isNeedFinalize) {
         int finalizeResult = sqlite3_finalize(statement);
         if (finalizeResult != SQLITE_OK) {
@@ -1776,7 +1773,7 @@ void SQLiteUtils::FlatBufferExtractByPath(sqlite3_context *ctx, int argc, sqlite
         LOGE("[FlatBufferExtract] Path null or offset=%d(skipsize=%u) invalid.", offset, schema->GetSkipSize());
         return;
     }
-    FlatBufferExtractInnerFunc(ctx, *schema, RawValue{valueBlob, valueBlobLen}, path);
+    FlatBufferExtractInnerFunc(ctx, *schema, RawValue { valueBlob, valueBlobLen }, path);
 }
 
 namespace {
