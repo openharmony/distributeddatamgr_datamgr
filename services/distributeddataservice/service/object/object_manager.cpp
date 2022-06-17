@@ -277,7 +277,7 @@ void ObjectStoreManager::FlushClosedStore()
         ZLOGD("close store");
         auto status = kvStoreDelegateManager_->CloseKvStore(delegate_);
         if (status != DistributedDB::DBStatus::OK) {
-            timer_.Register([this]() { FlushClosedStore(); }, 1000, true);
+            timer_.Register([this]() { FlushClosedStore(); }, 1000, true); // retry after 1000ms
             ZLOGE("GetEntries fail %{public}d", status);
             return;
         }
