@@ -26,14 +26,14 @@ public:
     static constexpr uint32_t SYNC_DELAY_MS = 50;
     static AutoSyncTimer &GetInstance();
     void AddAutoSyncStore(const std::string& appId, const std::set<StoreId>& storeIds);
-    ConcurrentMap<std::string, std::set<StoreId>> GetStoreIds(ConcurrentMap<std::string, std::set<StoreId>> &remain);
+    std::map<std::string, std::set<StoreId>> GetStoreIds();
     std::function<void()> ProcessTask();
-    ConcurrentMap<std::string, std::set<StoreId>> stores_;
-    SchedulerTask delaySyncTask_;
-    SchedulerTask forceSyncTask_;
 private:
     static constexpr size_t TIME_TASK_NUM = 5;
     static constexpr size_t SYNC_STORE_NUM = 10;
+    ConcurrentMap<std::string, std::set<StoreId>> stores_;
+    SchedulerTask delaySyncTask_;
+    SchedulerTask forceSyncTask_;
     std::mutex mutex_;
     KvScheduler scheduler_ { TIME_TASK_NUM };
 };

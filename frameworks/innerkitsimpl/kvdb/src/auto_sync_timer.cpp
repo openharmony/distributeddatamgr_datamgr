@@ -46,32 +46,24 @@ void AutoSyncTimer::AddAutoSyncStore(const std::string &appId, const std::set<St
     }
 }
 
-ConcurrentMap<std::string, std::set<StoreId>> AutoSyncTimer::GetStoreIds(
-    ConcurrentMap<std::string, std::set<StoreId>> &remain)
+std::map<std::string, std::set<StoreId>> AutoSyncTimer::GetStoreIds()
 {
-    ConcurrentMap<std::string, std::set<StoreId>> stores;
-    std::lock_guard<decltype(mutex_)> lockGuard(mutex_);
+    std::map<std::string, std::set<StoreId>> stores;
     int count = SYNC_STORE_NUM;
-    stores_.EraseIf([this, &stores, &count, &remain](const std::string &key, std::set<StoreId> &value) {
+    stores_.EraseIf([this, &stores, &count](const std::string &key, std::set<StoreId> &value) {
         int size = stores_[key].size();
         if (size <= count) {
-            stores.Insert(key, value);
+            stores.insert({ key, value });
             count = count - size;
-        } else {
-            auto iter = value.begin();
-            if (count != 0) {
-                while (count > 0) {
-                    iter++;
-                }
-                std::set<StoreId> ids(value.begin(), iter);
-                value.erase(value.begin(), iter);
-                stores.Insert(key, ids);
-                remain.Insert(key, value);
-            } else {
-                remain.Insert(key, value);
-            }
+            return true;
         }
-        return true;
+        auto &innerStore = stores[key];
+        for(auto it = value.begin(); it != value.end() && count > 0;) {
+            innerStore.insert(*it);
+            it = value.erase(it);
+            count--;
+        }
+        return value.empty();
     });
     return stores;
 }
@@ -89,18 +81,15 @@ std::function<void()> AutoSyncTimer::ProcessTask()
             forceSyncTask_ = {};
             delaySyncTask_ = {};
         }
-        ConcurrentMap<std::string, std::set<StoreId>> remains;
-        ConcurrentMap<std::string, std::set<StoreId>> ids = GetStoreIds(remains);
-
+        std::map<std::string, std::set<StoreId>> storeIds = GetStoreIds();
         KVDBService::SyncInfo syncInfo;
-        ids.ForEach([this, &service, &syncInfo](const std::string &key, const std::set<StoreId> &value) {
-            for (auto &storeId : value) {
-                service->Sync({ key }, storeId, syncInfo);
+        for(auto &id : storeIds) {
+            for (const auto &storeId : id.second) {
+                service->Sync({ id.first }, storeId, syncInfo);
             }
-            return false;
-        });
-        if (!remains.Empty()) {
-            remains.ForEach([this, &service, &syncInfo](const std::string &key, const std::set<StoreId> &value) {
+        }
+        if (!stores_.Empty()) {
+            stores_.ForEach([this, &service, &syncInfo](const std::string &key, const std::set<StoreId> &value) {
                 AddAutoSyncStore(key, value);
                 return false;
             });
