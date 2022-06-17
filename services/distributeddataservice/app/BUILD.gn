@@ -67,7 +67,6 @@ config("module_private_config") {
     "src",
     "src/security",
     "//third_party/json/single_include",
-    "//base/security/permission/interfaces/innerkits/permission_standard/permissionsdk/main/cpp/include",
     "//base/security/huks/interfaces/innerkits/huks_standard/main/include",
   ]
 
