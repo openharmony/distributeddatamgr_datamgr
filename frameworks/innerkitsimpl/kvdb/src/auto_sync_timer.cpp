@@ -46,7 +46,8 @@ void AutoSyncTimer::AddAutoSyncStore(const std::string &appId, const std::set<St
     }
 }
 
-ConcurrentMap<std::string, std::set<StoreId>> AutoSyncTimer::GetStoreIds(ConcurrentMap<std::string, std::set<StoreId>> &remain)
+ConcurrentMap<std::string, std::set<StoreId>> AutoSyncTimer::GetStoreIds(
+    ConcurrentMap<std::string, std::set<StoreId>> &remain)
 {
     ConcurrentMap<std::string, std::set<StoreId>> stores;
     std::lock_guard<decltype(mutex_)> lockGuard(mutex_);
@@ -92,14 +93,14 @@ std::function<void()> AutoSyncTimer::ProcessTask()
         ConcurrentMap<std::string, std::set<StoreId>> ids = GetStoreIds(remains);
 
         KVDBService::SyncInfo syncInfo;
-        ids.ForEach([this, &service, &syncInfo](const std::string &key, const std::set<StoreId> &value){
+        ids.ForEach([this, &service, &syncInfo](const std::string &key, const std::set<StoreId> &value) {
             for (auto &storeId : value) {
                 service->Sync({ key }, storeId, syncInfo);
             }
             return false;
         });
         if (!remains.Empty()) {
-            remains.ForEach([this, &service, &syncInfo](const std::string &key, const std::set<StoreId> &value){
+            remains.ForEach([this, &service, &syncInfo](const std::string &key, const std::set<StoreId> &value) {
                 AddAutoSyncStore(key, value);
                 return false;
             });
