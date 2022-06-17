@@ -44,6 +44,33 @@ SchedulerTask KvScheduler::At(const std::chrono::system_clock::time_point &time,
     return it;
 }
 
+SchedulerTask KvScheduler::Reset(SchedulerTask task, const std::chrono::system_clock::time_point &time,
+    const std::chrono::system_clock::duration &interval)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (kvTasks_.begin()->first > time) {
+        return {};
+    }
+
+    auto current = std::chrono::system_clock::now();
+    if (current >= time) {
+        return {};
+    }
+
+    auto it = kvTasks_.insert({ current + interval, std::move(task->second) });
+    if (it == kvTasks_.begin()) {
+        condition_.notify_one();
+    }
+    kvTasks_.erase(task);
+    return it;
+}
+
+void KvScheduler::Clean()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    kvTasks_.clear();
+}
+
 void KvScheduler::Every(const std::chrono::system_clock::duration interval, std::function<void()> task)
 {
     std::function<void()> waitFunc = [this, interval, task]() {

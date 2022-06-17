@@ -33,6 +33,11 @@ public:
     KVSTORE_API ~KvScheduler();
     // execute task at specific time
     KVSTORE_API SchedulerTask At(const std::chrono::system_clock::time_point &time, std::function<void()> task);
+
+    KVSTORE_API SchedulerTask Reset(SchedulerTask task, const std::chrono::system_clock::time_point &time,
+                                    const std::chrono::system_clock::duration &interval);
+    KVSTORE_API void Clean();
+
     // execute task periodically with duration
     KVSTORE_API void Every(const std::chrono::system_clock::duration interval, std::function<void()> task);
     // remove task in SchedulerTask
