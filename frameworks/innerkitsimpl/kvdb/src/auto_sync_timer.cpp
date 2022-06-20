@@ -67,7 +67,7 @@ std::map<std::string, std::set<StoreId>> AutoSyncTimer::GetStoreIds()
     stores_.EraseIf([&stores, &count](const std::string &key, std::set<StoreId> &value) {
         int size = value.size();
         if (size <= count) {
-            stores.insert({key, std::move(value)});
+            stores.insert({ key, std::move(value) });
             count = count - size;
             return true;
         }
