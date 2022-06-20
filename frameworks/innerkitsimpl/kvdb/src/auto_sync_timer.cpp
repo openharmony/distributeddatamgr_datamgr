@@ -58,7 +58,7 @@ std::map<std::string, std::set<StoreId>> AutoSyncTimer::GetStoreIds()
             return true;
         }
         auto &innerStore = stores[key];
-        for(auto it = value.begin(); it != value.end() && count > 0;) {
+        for (auto it = value.begin(); it != value.end() && count > 0;) {
             innerStore.insert(*it);
             it = value.erase(it);
             count--;
@@ -83,7 +83,7 @@ std::function<void()> AutoSyncTimer::ProcessTask()
         }
         std::map<std::string, std::set<StoreId>> storeIds = GetStoreIds();
         KVDBService::SyncInfo syncInfo;
-        for(auto &id : storeIds) {
+        for (auto &id : storeIds) {
             for (const auto &storeId : id.second) {
                 service->Sync({ id.first }, storeId, syncInfo);
             }
