@@ -22,8 +22,8 @@
 namespace OHOS::DistributedKv {
 class AutoSyncTimer {
 public:
-    static constexpr uint32_t FORCE_SYNC__DELAY_MS = 500;
-    static constexpr uint32_t SYNC_DELAY_MS = 50;
+    static constexpr uint32_t FORCE_SYNC_INTERVAL = 500;
+    static constexpr uint32_t AUTO_SYNC_INTERVAL = 50;
     static AutoSyncTimer &GetInstance();
     void DoAutoSync(const std::string &appId, const std::set<StoreId> &storeIds);
 private:
