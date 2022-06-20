@@ -88,6 +88,11 @@ struct API_EXPORT StoreId {
         return storeId;
     }
 
+    bool operator<(const StoreId &a) const noexcept
+    {
+        return this->storeId < a.storeId;
+    }
+
     inline bool IsValid() const
     {
         if (storeId.empty() || storeId.size() > MAX_STORE_ID_LEN) {

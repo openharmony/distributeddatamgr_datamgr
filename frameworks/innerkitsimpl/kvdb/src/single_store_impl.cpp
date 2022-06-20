@@ -22,6 +22,7 @@
 #include "log_print.h"
 #include "store_result_set.h"
 #include "store_util.h"
+#include "auto_sync_timer.h"
 namespace OHOS::DistributedKv {
 using namespace OHOS::DistributedDataDfx;
 SingleStoreImpl::SingleStoreImpl(std::shared_ptr<DBStore> dbStore, const AppId &appId, const Options &options)
@@ -689,12 +690,6 @@ void SingleStoreImpl::DoAutoSync()
     if (!autoSync_) {
         return;
     }
-
-    SyncInfo syncInfo;
-    auto service = KVDBServiceClient::GetInstance();
-    if (service == nullptr) {
-        return;
-    }
-    service->Sync({ appId_ }, { storeId_ }, syncInfo);
+    AutoSyncTimer::GetInstance().DoAutoSync(appId_, {{storeId_}});
 }
 } // namespace OHOS::DistributedKv

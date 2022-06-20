@@ -34,6 +34,8 @@ public:
     const DetailInfo &GetLocalDevice();
     std::vector<DetailInfo> GetRemoteDevices() const;
 private:
+    DevManager() = default;
+    ~DevManager() = default;
     const DetailInfo invalidDetail_ {};
     std::mutex mutex_ {};
     DetailInfo localInfo_ {};
