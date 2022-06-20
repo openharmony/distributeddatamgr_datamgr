@@ -27,16 +27,16 @@ public:
     static AutoSyncTimer &GetInstance();
     void DoAutoSync(const std::string &appId, const std::set<StoreId> &storeIds);
 private:
+    static constexpr size_t TIME_TASK_NUM = 5;
+    static constexpr size_t SYNC_STORE_NUM = 10;
+    AutoSyncTimer() = default;
+    ~AutoSyncTimer() = default;
+    std::map<std::string, std::set<StoreId>> GetStoreIds();
+    std::function<void()> ProcessTask();
     void StartTimer();
     void StopTimer();
     void AddSyncStores(const std::string &appId, std::set<StoreId> storeIds);
     bool HasSyncStores();
-    AutoSyncTimer() = default;
-    ~AutoSyncTimer() = default;
-    static constexpr size_t TIME_TASK_NUM = 5;
-    static constexpr size_t SYNC_STORE_NUM = 10;
-    std::map<std::string, std::set<StoreId>> GetStoreIds();
-    std::function<void()> ProcessTask();
     ConcurrentMap<std::string, std::set<StoreId>> stores_;
     SchedulerTask delaySyncTask_;
     SchedulerTask forceSyncTask_;
