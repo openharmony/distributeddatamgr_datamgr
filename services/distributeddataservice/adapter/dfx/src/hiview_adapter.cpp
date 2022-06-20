@@ -126,7 +126,7 @@ void HiViewAdapter::ReportCommFault(int dfxCode, const CommFaultMsg &msg)
     }
     KvStoreTask task([dfxCode, msg]() {
         std::string message;
-        for (int i = 0; i < msg.deviceId.size(); i++) {
+        for (size_t i = 0; i < msg.deviceId.size(); i++) {
             message.append("No: ").append(std::to_string(i))
             .append(" sync to device: ").append(msg.deviceId[i])
             .append(" has error, errCode:").append(std::to_string(msg.errorCode[i])).append(". ");
@@ -311,7 +311,8 @@ void HiViewAdapter::ReportApiPerformanceStatistic(int dfxCode, const ApiPerforma
             it->second.times++;
             it->second.val.costTime = stat.costTime;
             if (it->second.times > 0) {
-                it->second.val.averageTime = (it->second.val.averageTime * (it->second.times - 1) + stat.costTime)
+                it->second.val.averageTime =
+                    (it->second.val.averageTime * static_cast<uint64_t>(it->second.times - 1) + stat.costTime)
                     / it->second.times;
             }
             if (stat.costTime > it->second.val.worstTime) {
