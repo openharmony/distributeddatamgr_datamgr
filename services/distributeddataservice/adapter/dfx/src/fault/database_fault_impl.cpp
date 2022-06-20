@@ -19,13 +19,15 @@ namespace OHOS {
 namespace DistributedDataDfx {
 ReportStatus DatabaseFaultImpl::Report(const DBFaultMsg &msg)
 {
-    int eventID = DfxCodeConstant::DATABASE_FAULT;
+    int eventID;
     if (msg.errorType == Fault::DF_DB_CORRUPTED) {
         eventID = DfxCodeConstant::DATABASE_CORRUPTED_FAILED;
     } else if (msg.errorType == Fault::DF_DB_REKEY_FAILED) {
         eventID = DfxCodeConstant::DATABASE_REKEY_FAILED;
-    } else {
+    } else if (msg.errorType == Fault::DF_DB_DAMAGE){
         eventID = DfxCodeConstant::DATABASE_FAULT;
+    } else {
+        return ReportStatus::ERROR;
     }
 
     HiViewAdapter::ReportDBFault(eventID, msg);
