@@ -88,9 +88,9 @@ struct API_EXPORT StoreId {
         return storeId;
     }
 
-    bool operator<(const StoreId &a) const noexcept
+    bool operator<(const StoreId &id) const noexcept
     {
-        return this->storeId < a.storeId;
+        return this->storeId < id.storeId;
     }
 
     inline bool IsValid() const
