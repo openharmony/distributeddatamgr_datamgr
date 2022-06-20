@@ -690,6 +690,6 @@ void SingleStoreImpl::DoAutoSync()
     if (!autoSync_) {
         return;
     }
-    AutoSyncTimer::GetInstance().AddAutoSyncStore(appId_, {{ storeId_ }});
+    AutoSyncTimer::GetInstance().DoAutoSync(appId_, {{storeId_}});
 }
 } // namespace OHOS::DistributedKv

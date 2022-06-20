@@ -25,12 +25,12 @@ AutoSyncTimer &AutoSyncTimer::GetInstance()
     return instance;
 }
 
-void AutoSyncTimer::AddAutoSyncStore(const std::string &appId, const std::set<StoreId> &storeIds)
+void AutoSyncTimer::StartTimer()
 {
     std::lock_guard<decltype(mutex_)> lockGuard(mutex_);
     if (forceSyncTask_ == SchedulerTask()) {
         auto expiredTime = std::chrono::system_clock::now() + std::chrono::milliseconds(FORCE_SYNC__DELAY_MS);
-        delaySyncTask_ = scheduler_.At(expiredTime, ProcessTask());
+        forceSyncTask_ = scheduler_.At(expiredTime, ProcessTask());
     }
     if (delaySyncTask_ == SchedulerTask()) {
         auto expiredTime = std::chrono::system_clock::now() + std::chrono::milliseconds(SYNC_DELAY_MS);
@@ -39,21 +39,35 @@ void AutoSyncTimer::AddAutoSyncStore(const std::string &appId, const std::set<St
         delaySyncTask_ = scheduler_.Reset(delaySyncTask_, delaySyncTask_->first,
                                           std::chrono::milliseconds(SYNC_DELAY_MS));
     }
-    if (stores_.Contains(appId)) {
-        stores_[appId].insert(storeIds.begin(), storeIds.end());
-    } else {
-        stores_.Insert(appId, storeIds);
-    }
+}
+
+void AutoSyncTimer::DoAutoSync(const std::string &appId, const std::set<StoreId> &storeIds)
+{
+    AddSyncStores(appId, storeIds);
+    StartTimer();
+}
+
+void AutoSyncTimer::AddSyncStores(const std::string &appId, std::set<StoreId> storeIds)
+{
+    stores_.Compute(appId, [&storeIds](const auto &key, std::set<StoreId> &value) {
+        value.merge(std::move(storeIds));
+        return !value.empty();
+    });
+}
+
+bool AutoSyncTimer::HasSyncStores()
+{
+    return stores_.Empty();
 }
 
 std::map<std::string, std::set<StoreId>> AutoSyncTimer::GetStoreIds()
 {
     std::map<std::string, std::set<StoreId>> stores;
     int count = SYNC_STORE_NUM;
-    stores_.EraseIf([this, &stores, &count](const std::string &key, std::set<StoreId> &value) {
-        int size = stores_[key].size();
+    stores_.EraseIf([&stores, &count](const std::string &key, std::set<StoreId> &value) {
+        int size = value.size();
         if (size <= count) {
-            stores.insert({ key, value });
+            stores.insert({key, std::move(value)});
             count = count - size;
             return true;
         }
@@ -71,30 +85,28 @@ std::map<std::string, std::set<StoreId>> AutoSyncTimer::GetStoreIds()
 std::function<void()> AutoSyncTimer::ProcessTask()
 {
     return [this]() {
+        StopTimer();
         auto service = KVDBServiceClient::GetInstance();
         if (service == nullptr) {
             return;
         }
-        {
-            std::lock_guard<decltype(mutex_)> lockGuard(mutex_);
-            scheduler_.Clean();
-            forceSyncTask_ = {};
-            delaySyncTask_ = {};
-        }
-        std::map<std::string, std::set<StoreId>> storeIds = GetStoreIds();
-        KVDBService::SyncInfo syncInfo;
-        for (auto &id : storeIds) {
+        auto storeIds = GetStoreIds();
+        for (const auto &id : storeIds) {
             for (const auto &storeId : id.second) {
-                service->Sync({ id.first }, storeId, syncInfo);
+                service->Sync({ id.first }, storeId, {});
             }
         }
-        if (!stores_.Empty()) {
-            stores_.ForEach([this](const std::string &key, const std::set<StoreId> &value) {
-                AddAutoSyncStore(key, value);
-                return false;
-            });
+        if (HasSyncStores()) {
+            StartTimer();
         }
     };
 }
-}
 
+void AutoSyncTimer::StopTimer()
+{
+    std::lock_guard<decltype(mutex_)> lockGuard(mutex_);
+    scheduler_.Clean();
+    forceSyncTask_ = {};
+    delaySyncTask_ = {};
+}
+}

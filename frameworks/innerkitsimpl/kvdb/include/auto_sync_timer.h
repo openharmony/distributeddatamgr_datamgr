@@ -25,8 +25,14 @@ public:
     static constexpr uint32_t FORCE_SYNC__DELAY_MS = 500;
     static constexpr uint32_t SYNC_DELAY_MS = 50;
     static AutoSyncTimer &GetInstance();
-    void AddAutoSyncStore(const std::string &appId, const std::set<StoreId> &storeIds);
+    void DoAutoSync(const std::string &appId, const std::set<StoreId> &storeIds);
 private:
+    void StartTimer();
+    void StopTimer();
+    void AddSyncStores(const std::string &appId, std::set<StoreId> storeIds);
+    bool HasSyncStores();
+    AutoSyncTimer() = default;
+    ~AutoSyncTimer() = default;
     static constexpr size_t TIME_TASK_NUM = 5;
     static constexpr size_t SYNC_STORE_NUM = 10;
     std::map<std::string, std::set<StoreId>> GetStoreIds();
