@@ -21,6 +21,7 @@
 #include "communication_provider.h"
 #include "iobject_callback.h"
 #include "kvstore_sync_callback.h"
+#include "timer.h"
 #include "types.h"
 #include "kv_store_delegate_manager.h"
 #include "object_common.h"
@@ -71,6 +72,7 @@ public:
     void SetData(const std::string &dataDir, const std::string &userId);
     int32_t Clear();
     int32_t DeleteByAppId(const std::string &appId);
+
 private:
     enum Status {
         SUCCESS,
@@ -115,12 +117,13 @@ private:
     {
         return appId + SEPERATOR + sessionId + SEPERATOR;
     };
-    std::mutex kvStoreMutex_;
+    std::recursive_mutex kvStoreMutex_;
     DistributedDB::KvStoreDelegateManager *kvStoreDelegateManager_ = nullptr;
     DistributedDB::KvStoreNbDelegate *delegate_ = nullptr;
     uint32_t syncCount_ = 0;
     std::string userId_;
     std::atomic<bool> isSyncing_ = false;
+    Utils::Timer timer_;
 };
 } // namespace DistributedObject
 } // namespace OHOS
