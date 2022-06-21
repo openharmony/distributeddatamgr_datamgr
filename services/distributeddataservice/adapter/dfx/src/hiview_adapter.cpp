@@ -81,7 +81,7 @@ std::mutex HiViewAdapter::apiPerformanceMutex_;
 std::map<std::string, StatisticWrap<ApiPerformanceStat>> HiViewAdapter::apiPerformanceStat_;
 
 bool HiViewAdapter::running_ = false;
-Utils::Timer *HiViewAdapter::timer_ = nullptr;
+DistributedKv::KvScheduler *HiViewAdapter::scheduler_ = nullptr;
 std::mutex HiViewAdapter::runMutex_;
 
 void HiViewAdapter::ReportFault(int dfxCode, const FaultMsg &msg)
@@ -347,25 +347,29 @@ void HiViewAdapter::InvokeApiPerformance()
 
 void HiViewAdapter::StartTimerThread()
 {
-    if (timer_ != nullptr) {
+    if (running_) {
         return;
     }
-    timer_ = new Utils::Timer("hiviewAdapterTimer");
-    timer_->Register(DoReport, WAIT_TIME);
-    timer_->Setup();
-}
-
-void HiViewAdapter::DoReport()
-{
-    time_t current = time(nullptr);
-    tm localTime = { 0 };
-    tm *result = localtime_r(&current, &localTime);
-    if ((result != nullptr) && (localTime.tm_hour == DAILY_REPORT_TIME)) {
-        InvokeDbSize();
-        InvokeApiPerformance();
+    std::lock_guard<std::mutex> lock(runMutex_);
+    if (running_) {
+        return;
     }
-    InvokeTraffic();
-    InvokeVisit();
+    running_ = true;
+    std::chrono::duration<int> delay(0);
+    std::chrono::duration<int> internal(WAIT_TIME);
+    auto fun = []() {
+        time_t current = time(nullptr);
+        tm localTime = { 0 };
+        tm *result = localtime_r(&current, &localTime);
+        if ((result != nullptr) && (localTime.tm_hour == DAILY_REPORT_TIME)) {
+            InvokeDbSize();
+            InvokeApiPerformance();
+        }
+        InvokeTraffic();
+        InvokeVisit();
+    };
+    scheduler_ = new DistributedKv::KvScheduler();
+    scheduler_->Every(delay, internal, fun);
 }
 
 std::string HiViewAdapter::CoverEventID(int dfxCode)
