@@ -90,6 +90,7 @@ ohos_shared_library("distributeddata_inner") {
   ]
 
   kvdb_sources = [
+    "../../../frameworks/innerkitsimpl/kvdb/src/auto_sync_timer.cpp",
     "../../../frameworks/innerkitsimpl/kvdb/src/dev_manager.cpp",
     "../../../frameworks/innerkitsimpl/kvdb/src/device_store_impl.cpp",
     "../../../frameworks/innerkitsimpl/kvdb/src/kvdb_service_client.cpp",
@@ -115,7 +116,7 @@ ohos_shared_library("distributeddata_inner") {
   ]
   external_deps = [
     "dataclassification:data_transit_mgr",
-    "dsoftbus_standard:softbus_client",
+    "dsoftbus:softbus_client",
     "hitrace_native:libhitrace",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",

@@ -610,9 +610,9 @@ Status KvStoreDataService::DeleteKvStore(const AppId &appId, const StoreId &stor
 Status KvStoreDataService::DeleteKvStore(StoreMetaData &metaData)
 {
      // delete the backup file
-    auto backFilePath = DirectoryManager::GetInstance().GetStoreBackupPath(metaData);
+    auto backFilePath = BackupHandler::GetBackupPath(metaData.user, KvStoreAppManager::ConvertPathType(metaData));
     auto backupFileName = Constant::Concatenate({ metaData.account, "_", metaData.bundleName, "_", metaData.storeId });
-    auto backFile = Constant::Concatenate({ backFilePath, BackupHandler::GetHashedBackupName(backupFileName) });
+    auto backFile = Constant::Concatenate({ backFilePath, "/", BackupHandler::GetHashedBackupName(backupFileName) });
     if (!BackupHandler::RemoveFile(backFile)) {
         ZLOGE("DeleteKvStore RemoveFile backFilePath failed.");
     }
@@ -882,7 +882,11 @@ void KvStoreDataService::StartService()
     }
     auto autoLaunchRequestCallback =
         [this](const std::string &identifier, DistributedDB::AutoLaunchParam &param) -> bool {
-            return ResolveAutoLaunchParamByIdentifier(identifier, param);
+            auto status = ResolveAutoLaunchParamByIdentifier(identifier, param);
+            if (kvdbService_) {
+                kvdbService_->ResolveAutoLaunch(identifier, param);
+            }
+            return status;
         };
     KvStoreDelegateManager::SetAutoLaunchRequestCallback(autoLaunchRequestCallback);
 
@@ -1003,7 +1007,6 @@ void KvStoreDataService::ResolveAutoLaunchCompatible(const MetaData &meta, const
         .autoSync = storeMeta.isAutoSync,
         .securityLevel = storeMeta.securityLevel,
         .kvStoreType = static_cast<KvStoreType>(storeMeta.kvStoreType),
-        .dataOwnership = true,
     };
     DistributedDB::KvStoreNbDelegate::Option dbOptions;
     KvStoreAppManager::InitNbDbOption(options, meta.secretKeyMetaData.secretKey, dbOptions);

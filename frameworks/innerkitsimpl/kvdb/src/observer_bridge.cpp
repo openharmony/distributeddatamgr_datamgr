@@ -45,7 +45,7 @@ Status ObserverBridge::RegisterRemoteObserver()
         return SERVER_UNAVAILABLE;
     }
 
-    remote_ = new (std::nothrow) KvStoreObserverClient(observer_);
+    remote_ = new (std::nothrow) ObserverClient(observer_, convert_);
     return service->Subscribe(appId_, storeId_, remote_);
 }
 
@@ -68,10 +68,45 @@ Status ObserverBridge::UnregisterRemoteObserver()
 void ObserverBridge::OnChange(const DBChangedData &data)
 {
     std::string deviceId;
-    ChangeNotification notice(ConvertDB(data.GetEntriesInserted(), deviceId),
-        ConvertDB(data.GetEntriesUpdated(), deviceId), ConvertDB(data.GetEntriesDeleted(), deviceId), deviceId, false);
-
+    auto inserted = ConvertDB(data.GetEntriesInserted(), deviceId);
+    auto updated = ConvertDB(data.GetEntriesUpdated(), deviceId);
+    auto deleted = ConvertDB(data.GetEntriesDeleted(), deviceId);
+    ChangeNotification notice(std::move(inserted), std::move(updated), std::move(deleted), deviceId, false);
     observer_->OnChange(notice);
+}
+
+ObserverBridge::ObserverClient::ObserverClient(std::shared_ptr<Observer> observer, Convert &convert)
+    : KvStoreObserverClient(observer), convert_(convert)
+{
+}
+
+void ObserverBridge::ObserverClient::OnChange(const ChangeNotification &data)
+{
+    if (convert_ == nullptr) {
+        KvStoreObserverClient::OnChange(data);
+        return;
+    }
+
+    std::string deviceId;
+    auto inserted = ConvertDB(data.GetInsertEntries(), deviceId);
+    auto updated = ConvertDB(data.GetInsertEntries(), deviceId);
+    auto deleted = ConvertDB(data.GetInsertEntries(), deviceId);
+    ChangeNotification notice(std::move(inserted), std::move(updated), std::move(deleted), deviceId, false);
+    KvStoreObserverClient::OnChange(notice);
+}
+
+std::vector<Entry> ObserverBridge::ObserverClient::ConvertDB(const std::vector<Entry> &dbEntries,
+    std::string &deviceId) const
+{
+    std::vector<Entry> entries(dbEntries.size());
+    auto it = entries.begin();
+    for (const auto &dbEntry : dbEntries) {
+        Entry &entry = *it;
+        entry.key = convert_ ? convert_(dbEntry.key, deviceId) : Key(dbEntry.key);
+        entry.value = dbEntry.value;
+        ++it;
+    }
+    return entries;
 }
 
 std::vector<Entry> ObserverBridge::ConvertDB(const std::list<DBEntry> &dbEntries, std::string &deviceId) const
