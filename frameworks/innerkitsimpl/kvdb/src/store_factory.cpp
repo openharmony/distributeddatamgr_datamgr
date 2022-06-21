@@ -47,10 +47,9 @@ std::shared_ptr<SingleKvStore> StoreFactory::GetOrOpenStore(
         auto dbManager = GetDBManager(path, appId);
         auto password = SecurityManager::GetInstance().GetDBPassword(appId, storeId, path);
         dbManager->GetKvStore(storeId, GetDBOption(options, password),
-            [&dbManager, &kvStore, &stores, &appId, &dbStatus, &options](auto status, auto *store) {
+            [&dbManager, &kvStore, &appId, &dbStatus, &options](auto status, auto *store) {
                 dbStatus = status;
                 if (store == nullptr) {
-                    ZLOGE("Create DBStore failed, status:%{public}d", status);
                     return;
                 }
                 auto release = [dbManager](auto *store) { dbManager->CloseKvStore(store); };
@@ -60,8 +59,15 @@ std::shared_ptr<SingleKvStore> StoreFactory::GetOrOpenStore(
                 } else {
                     kvStore = std::make_shared<SingleStoreImpl>(dbStore, appId, options);
                 }
-                stores[dbStore->GetStoreId()] = kvStore;
             });
+
+        if (kvStore == nullptr) {
+            ZLOGE("failed! status:%{public}d appId:%{public}s storeId:%{public}s path:%{public}s", dbStatus,
+                appId.appId.c_str(), storeId.storeId.c_str(), options.baseDir.c_str());
+            return !stores.empty();
+        }
+
+        stores[storeId] = kvStore;
         return !stores.empty();
     });
     status = StoreUtil::ConvertStatus(dbStatus);

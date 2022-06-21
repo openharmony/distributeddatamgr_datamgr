@@ -57,6 +57,19 @@ StoreCache::DBStore *StoreCache::GetStore(const StoreMetaData &data, std::shared
     return store;
 }
 
+void StoreCache::CloseStore(uint32_t tokenId, const std::string &storeId)
+{
+    stores_.ComputeIfPresent(tokenId, [&storeId](auto &key, std::map<std::string, DBStoreDelegate> &delegates) {
+        DBManager manager("", "");
+        auto it = delegates.find(storeId);
+        if (it != delegates.end()) {
+            it->second.Close(manager);
+            delegates.erase(it);
+        }
+        return !delegates.empty();
+    });
+}
+
 void StoreCache::CollectGarbage()
 {
     DBManager manager("", "");
