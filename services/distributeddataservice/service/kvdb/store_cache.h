@@ -64,6 +64,7 @@ public:
     };
 
     DBStore *GetStore(const StoreMetaData &data, std::shared_ptr<Observers> observers, DBStatus &status);
+    void CloseStore(uint32_t tokenId, const std::string &storeId);
 
 private:
     using DBOption = DistributedDB::KvStoreNbDelegate::Option;

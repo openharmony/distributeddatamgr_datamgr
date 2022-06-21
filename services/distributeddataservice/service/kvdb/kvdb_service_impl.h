@@ -78,15 +78,7 @@ private:
         std::map<std::string, uint32_t> delayTimes_;
         std::map<std::string, std::shared_ptr<StoreCache::Observers>> observers_;
         std::map<std::string, std::pair<std::vector<std::string>, std::string>> conditions_;
-        void ReInit(pid_t pid, const AppId &appId)
-        {
-            pid_ = pid;
-            appId_ = appId;
-            callback_ = nullptr;
-            delayTimes_.clear();
-            observers_.clear();
-            conditions_.clear();
-        }
+        void ReInit(pid_t pid, const AppId &appId);
     };
     ConcurrentMap<uint32_t, SyncAgent> syncAgents_;
     StoreCache storeCache_;

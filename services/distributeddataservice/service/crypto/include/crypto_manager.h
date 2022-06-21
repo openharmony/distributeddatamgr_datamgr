@@ -12,13 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #ifndef OHOS_DISTRIBUTED_DATA_SERVICES_SERVICE_CRYPTO_CRYPTO_MANAGER_H
 #define OHOS_DISTRIBUTED_DATA_SERVICES_SERVICE_CRYPTO_CRYPTO_MANAGER_H
 #include <cstdint>
 #include <vector>
+#include "visibility.h"
 namespace OHOS::DistributedData {
-class CryptoManager {
+class API_EXPORT CryptoManager {
 public:
     static CryptoManager &GetInstance();
     int32_t GenerateRootKey();

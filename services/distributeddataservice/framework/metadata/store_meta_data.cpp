@@ -118,6 +118,11 @@ bool StoreMetaData::operator==(const StoreMetaData &metaData) const
             appType == metaData.appId && bundleName == metaData.bundleName && dataDir == metaData.dataDir);
 }
 
+bool StoreMetaData::operator!=(const StoreMetaData &metaData) const
+{
+    return !(*this == metaData);
+}
+
 std::string StoreMetaData::GetKey(const std::initializer_list<std::string> &fields)
 {
     std::string prefix = KEY_PREFIX;
