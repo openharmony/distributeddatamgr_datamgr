@@ -75,8 +75,8 @@ public:
 private:
     enum Status {
         SUCCESS,
-        DBERROR,
-        INNERERROR
+        DB_ERROR,
+        INNER_ERROR
     };
     constexpr static const char *SEPERATOR = "_";
     constexpr static const char *LOCAL_DEVICE = "local";

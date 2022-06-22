@@ -87,7 +87,6 @@ int32_t ObjectStoreManager::Save(const std::string &appId, const std::string &se
     }
 
     ZLOGD("start SaveToStore");
-    std::vector<std::string> deviceList = {deviceId};
     result = SaveToStore(appId, sessionId, deviceId, data);
     if (result != SUCCESS) {
         ZLOGE("Save to store failed, please check DB errCode, errCode = %{public}d", result);
@@ -100,6 +99,7 @@ int32_t ObjectStoreManager::Save(const std::string &appId, const std::string &se
         ProcessSyncCallback(results, appId, sessionId, deviceId);
     };
     ZLOGD("start SyncOnStore");
+    std::vector<std::string> deviceList = {deviceId};
     result = SyncOnStore(GetPropertyPrefix(appId, sessionId, deviceId), deviceList, tmp);
     if (result != SUCCESS) {
         ZLOGI("sync on store failed,please check DB errCode, errCode = %{public}d", result);
@@ -222,7 +222,7 @@ int32_t ObjectStoreManager::Open()
 {
     if (kvStoreDelegateManager_ == nullptr) {
         ZLOGE("not init");
-        return INNERERROR;
+        return INNER_ERROR;
     }
     std::lock_guard<std::recursive_mutex> lock(kvStoreMutex_);
     if (delegate_ == nullptr) {
@@ -230,7 +230,7 @@ int32_t ObjectStoreManager::Open()
         delegate_ = OpenObjectKvStore();
         if (delegate_ == nullptr) {
             ZLOGE("open failed,please check DB status");
-            return DBERROR;
+            return DB_ERROR;
         }
         syncCount_ = 1;
     } else {
