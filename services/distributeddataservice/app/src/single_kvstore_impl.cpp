@@ -81,7 +81,8 @@ Status SingleKvStoreImpl::Put(const Key &key, const Value &value)
         ZLOGE("flow control denied");
         return Status::EXCEED_MAX_ACCESS_RATE;
     }
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
 
     auto trimmedKey = Constant::TrimCopy<std::vector<uint8_t>>(key.Data());
     // Restrict key and value size to interface specification.
@@ -173,7 +174,8 @@ Status SingleKvStoreImpl::ConvertDbStatus(DistributedDB::DBStatus status)
 
 Status SingleKvStoreImpl::Delete(const Key &key)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
         return Status::EXCEED_MAX_ACCESS_RATE;
@@ -208,7 +210,8 @@ Status SingleKvStoreImpl::Delete(const Key &key)
 
 Status SingleKvStoreImpl::Get(const Key &key, Value &value)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
         return Status::EXCEED_MAX_ACCESS_RATE;
@@ -251,7 +254,8 @@ Status SingleKvStoreImpl::Get(const Key &key, Value &value)
 
 Status SingleKvStoreImpl::SubscribeKvStore(const SubscribeType subscribeType, sptr<IKvStoreObserver> observer)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     ZLOGD("start.");
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
@@ -336,7 +340,8 @@ DistributedDB::SyncMode SingleKvStoreImpl::ConvertToDbSyncMode(SyncMode syncMode
 
 Status SingleKvStoreImpl::UnSubscribeKvStore(const SubscribeType subscribeType, sptr<IKvStoreObserver> observer)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
         return Status::EXCEED_MAX_ACCESS_RATE;
@@ -383,7 +388,8 @@ Status SingleKvStoreImpl::UnSubscribeKvStore(const SubscribeType subscribeType, 
 
 Status SingleKvStoreImpl::GetEntries(const Key &prefixKey, std::vector<Entry> &entries)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
         return Status::EXCEED_MAX_ACCESS_RATE;
@@ -441,7 +447,8 @@ Status SingleKvStoreImpl::GetEntries(const Key &prefixKey, std::vector<Entry> &e
 
 Status SingleKvStoreImpl::GetEntriesWithQuery(const std::string &query, std::vector<Entry> &entries)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
         return Status::EXCEED_MAX_ACCESS_RATE;
@@ -490,7 +497,8 @@ Status SingleKvStoreImpl::GetEntriesWithQuery(const std::string &query, std::vec
 void SingleKvStoreImpl::GetResultSet(const Key &prefixKey,
                                      std::function<void(Status, sptr<IKvStoreResultSet>)> callback)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
         callback(Status::EXCEED_MAX_ACCESS_RATE, nullptr);
@@ -534,7 +542,8 @@ void SingleKvStoreImpl::GetResultSet(const Key &prefixKey,
 void SingleKvStoreImpl::GetResultSetWithQuery(const std::string &query,
                                               std::function<void(Status, sptr<IKvStoreResultSet>)> callback)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
         callback(Status::EXCEED_MAX_ACCESS_RATE, nullptr);
@@ -609,7 +618,8 @@ KvStoreResultSetImpl *SingleKvStoreImpl::CreateResultSet(
 
 Status SingleKvStoreImpl::GetCountWithQuery(const std::string &query, int &result)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
         return Status::EXCEED_MAX_ACCESS_RATE;
@@ -670,7 +680,8 @@ Status SingleKvStoreImpl::GetCountWithQuery(const std::string &query, int &resul
 
 Status SingleKvStoreImpl::CloseResultSet(sptr<IKvStoreResultSet> resultSet)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (resultSet == nullptr) {
         return Status::INVALID_ARGUMENT;
     }
@@ -700,7 +711,8 @@ Status SingleKvStoreImpl::CloseResultSet(sptr<IKvStoreResultSet> resultSet)
 
 Status SingleKvStoreImpl::RemoveDeviceData(const std::string &device)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
         return Status::EXCEED_MAX_ACCESS_RATE;
@@ -738,7 +750,8 @@ Status SingleKvStoreImpl::RemoveDeviceData(const std::string &device)
 Status SingleKvStoreImpl::Sync(const std::vector<std::string> &deviceIds, SyncMode mode,
                                uint32_t allowedDelayMs, uint64_t sequenceId)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     ZLOGD("start.");
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
@@ -761,7 +774,8 @@ Status SingleKvStoreImpl::Sync(const std::vector<std::string> &deviceIds, SyncMo
 Status SingleKvStoreImpl::Sync(const std::vector<std::string> &deviceIds, SyncMode mode,
                                const std::string &query, uint64_t sequenceId)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     ZLOGD("start.");
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
@@ -1021,7 +1035,8 @@ Status SingleKvStoreImpl::AddUnSubscribe(const std::vector<std::string> &deviceI
 Status SingleKvStoreImpl::Subscribe(const std::vector<std::string> &deviceIds,
                                     const std::string &query, uint64_t sequenceId)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     ZLOGD("start.");
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
@@ -1034,7 +1049,8 @@ Status SingleKvStoreImpl::Subscribe(const std::vector<std::string> &deviceIds,
 Status SingleKvStoreImpl::UnSubscribe(const std::vector<std::string> &deviceIds,
                                       const std::string &query, uint64_t sequenceId)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     ZLOGD("start.");
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
@@ -1046,7 +1062,8 @@ Status SingleKvStoreImpl::UnSubscribe(const std::vector<std::string> &deviceIds,
 
 InnerStatus SingleKvStoreImpl::Close(DistributedDB::KvStoreDelegateManager *kvStoreDelegateManager)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
 
     ZLOGW("start Close");
     if (openCount_ > 1) {
@@ -1105,7 +1122,8 @@ Status SingleKvStoreImpl::ForceClose(DistributedDB::KvStoreDelegateManager *kvSt
 
 Status SingleKvStoreImpl::ReKey(const std::vector<uint8_t> &key)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
 
     std::shared_lock<std::shared_mutex> lock(storeNbDelegateMutex_);
     if (kvStoreNbDelegate_ == nullptr) {
@@ -1143,7 +1161,8 @@ Status SingleKvStoreImpl::UnRegisterSyncCallback()
 
 Status SingleKvStoreImpl::PutBatch(const std::vector<Entry> &entries)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
 
     std::shared_lock<std::shared_mutex> lock(storeNbDelegateMutex_);
     if (kvStoreNbDelegate_ == nullptr) {
@@ -1201,7 +1220,8 @@ Status SingleKvStoreImpl::PutBatch(const std::vector<Entry> &entries)
 
 Status SingleKvStoreImpl::DeleteBatch(const std::vector<Key> &keys)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
 
     std::shared_lock<std::shared_mutex> lock(storeNbDelegateMutex_);
     if (kvStoreNbDelegate_ == nullptr) {
@@ -1257,8 +1277,8 @@ Status SingleKvStoreImpl::DeleteBatch(const std::vector<Key> &keys)
 
 Status SingleKvStoreImpl::StartTransaction()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
-
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     std::shared_lock<std::shared_mutex> lock(storeNbDelegateMutex_);
     if (kvStoreNbDelegate_ == nullptr) {
         ZLOGE("delegate is null.");
@@ -1292,7 +1312,8 @@ Status SingleKvStoreImpl::StartTransaction()
 
 Status SingleKvStoreImpl::Commit()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
 
     std::shared_lock<std::shared_mutex> lock(storeNbDelegateMutex_);
     if (kvStoreNbDelegate_ == nullptr) {
@@ -1328,7 +1349,8 @@ Status SingleKvStoreImpl::Commit()
 
 Status SingleKvStoreImpl::Rollback()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
 
     std::shared_lock<std::shared_mutex> lock(storeNbDelegateMutex_);
     if (kvStoreNbDelegate_ == nullptr) {
