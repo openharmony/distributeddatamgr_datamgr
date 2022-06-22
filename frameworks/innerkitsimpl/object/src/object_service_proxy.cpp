@@ -27,7 +27,7 @@ ObjectServiceProxy::ObjectServiceProxy(const sptr<IRemoteObject> &impl) : IRemot
 }
 
 int32_t ObjectServiceProxy::ObjectStoreSave(const std::string &bundleName, const std::string &sessionId,
-    const std::vector<std::string> &deviceList, const std::map<std::string, std::vector<uint8_t>> &objectData,
+    const std::string &deviceId, const std::map<std::string, std::vector<uint8_t>> &objectData,
     sptr<IObjectSaveCallback> callback)
 {
     MessageParcel data;
@@ -35,7 +35,7 @@ int32_t ObjectServiceProxy::ObjectStoreSave(const std::string &bundleName, const
         ZLOGE("write descriptor failed");
         return Status::IPC_ERROR;
     }
-    if (!ITypesUtil::Marshal(data, bundleName, sessionId, deviceList, objectData, callback->AsObject().GetRefPtr())) {
+    if (!ITypesUtil::Marshal(data, bundleName, sessionId, deviceId, objectData, callback->AsObject().GetRefPtr())) {
         ZLOGE("Marshalling failed, bundleName = %{public}s", bundleName.c_str());
         return Status::IPC_ERROR;
     }

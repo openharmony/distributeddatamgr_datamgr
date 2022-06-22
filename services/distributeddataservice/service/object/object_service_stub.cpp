@@ -28,10 +28,10 @@ int32_t ObjectServiceStub::ObjectStoreSaveOnRemote(MessageParcel &data, MessageP
 {
     std::string sessionId;
     std::string bundleName;
-    std::vector<std::string> deviceList;
+    std::string deviceId;
     std::map<std::string, std::vector<uint8_t>> objectData;
     sptr<IRemoteObject> obj;
-    if (!ITypesUtil::Unmarshal(data, bundleName, sessionId, deviceList, objectData, obj)) {
+    if (!ITypesUtil::Unmarshal(data, bundleName, sessionId, deviceId, objectData, obj)) {
         ZLOGW("read device list failed.");
         return -1;
     }
@@ -40,7 +40,7 @@ int32_t ObjectServiceStub::ObjectStoreSaveOnRemote(MessageParcel &data, MessageP
         return -1;
     }
     sptr<IObjectSaveCallback> callback = iface_cast<IObjectSaveCallback>(obj);
-    int32_t status = ObjectStoreSave(bundleName, sessionId, deviceList, objectData, callback);
+    int32_t status = ObjectStoreSave(bundleName, sessionId, deviceId, objectData, callback);
     if (!reply.WriteInt32(static_cast<int>(status))) {
         ZLOGE("ObjectStoreSaveOnRemote fail %d", static_cast<int>(status));
         return -1;

@@ -31,7 +31,7 @@
 
 namespace OHOS::DistributedObject {
 int32_t ObjectServiceImpl::ObjectStoreSave(const std::string &bundleName, const std::string &sessionId,
-    const std::vector<std::string> &deviceList, const std::map<std::string, std::vector<uint8_t>> &data,
+    const std::string &deviceId, const std::map<std::string, std::vector<uint8_t>> &data,
     sptr<IObjectSaveCallback> callback)
 {
     ZLOGI("begin.");
@@ -44,14 +44,14 @@ int32_t ObjectServiceImpl::ObjectStoreSave(const std::string &bundleName, const 
     storeInfo.storeId = sessionId;
     std::string appId = DistributedData::CheckerManager::GetInstance().GetAppId(storeInfo);
     if (appId.empty()) {
-        ZLOGE("object bundleName wrong");
+        ZLOGE("object bundleName wrong, bundleName = %{public}s", bundleName.c_str());
         return PERMISSION_DENIED;
     }
     if (!PermissionValidator::GetInstance().CheckSyncPermission(storeInfo.tokenId)) {
         ZLOGE("object save permission denied");
         return PERMISSION_DENIED;
     }
-    int32_t status = ObjectStoreManager::GetInstance()->Save(bundleName, sessionId, data, deviceList, callback);
+    int32_t status = ObjectStoreManager::GetInstance()->Save(bundleName, sessionId, data, deviceId, callback);
     if (status != SUCCESS) {
         ZLOGE("save fail %{public}d", status);
     }
@@ -107,7 +107,7 @@ int32_t ObjectServiceImpl::ObjectStoreRevokeSave(
     storeInfo.storeId = sessionId;
     std::string appId = DistributedData::CheckerManager::GetInstance().GetAppId(storeInfo);
     if (appId.empty()) {
-        ZLOGE("object bundleName wrong");
+        ZLOGE("object bundleName wrong, bundleName = %{public}s", bundleName.c_str());
         return PERMISSION_DENIED;
     }
     if (!PermissionValidator::GetInstance().CheckSyncPermission(storeInfo.tokenId)) {
@@ -133,7 +133,7 @@ int32_t ObjectServiceImpl::ObjectStoreRetrieve(
     storeInfo.storeId = sessionId;
     std::string appId = DistributedData::CheckerManager::GetInstance().GetAppId(storeInfo);
     if (appId.empty()) {
-        ZLOGE("object bundleName wrong");
+        ZLOGE("object bundleName wrong, bundleName = %{public}s", bundleName.c_str());
         return PERMISSION_DENIED;
     }
     if (!PermissionValidator::GetInstance().CheckSyncPermission(storeInfo.tokenId)) {
@@ -160,11 +160,11 @@ void ObjectServiceImpl::Clear()
 int32_t ObjectServiceImpl::DeleteByAppId(const std::string &bundleName)
 {
     ZLOGI("begin. %{public}s", bundleName.c_str());
-    int32_t status = ObjectStoreManager::GetInstance()->DeleteByAppId(bundleName);
-    if (status != SUCCESS) {
-        ZLOGE("save fail %{public}d", status);
+    int32_t result = ObjectStoreManager::GetInstance()->DeleteByAppId(bundleName);
+    if (result != SUCCESS) {
+        ZLOGE("save fail %{public}d", result);
     }
-    return status;
+    return result;
 }
 
 ObjectServiceImpl::ObjectServiceImpl()
