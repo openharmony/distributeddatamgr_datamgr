@@ -1270,7 +1270,7 @@ Status KvStoreDataService::StopWatchDeviceChange(sptr<IDeviceStatusChangeListene
     return Status::SUCCESS;
 }
 
-std::set<std::string> KvStoreDataService::GetStoreOpenedUser(const std::string &appId, const std::string &storeId)
+std::set<std::string> KvStoreDataService::GetUsersByStore(const std::string &appId, const std::string &storeId)
 {
     std::set<std::string> users;
     for (auto &[user, value] : deviceAccountMap_) {
@@ -1293,13 +1293,13 @@ bool KvStoreDataService::CheckSyncActivation(
 {
     ZLOGD("user:%{public}s, app:%{public}s, store:%{public}s", userId.c_str(), appId.c_str(), storeId.c_str());
     std::set<std::string> activeUsers = UserDelegate::GetInstance().GetLocalUsers();
-    std::set<std::string> storeOpenedUser = GetStoreOpenedUser(appId, storeId);
-    storeOpenedUser.emplace(userId);
-    auto users = GetIntersectionUser(activeUsers, storeOpenedUser);
-    return users.size() == storeOpenedUser.size();
+    auto storeUsers = GetUsersByStore(appId, storeId);
+    storeUsers.emplace(userId);
+    auto users = Intersect(activeUsers, storeUsers);
+    return users.size() == storeUsers.size();
 }
 
-std::vector<std::string> KvStoreDataService::GetIntersectionUser(
+std::vector<std::string> KvStoreDataService::Intersect(
     const std::set<std::string> &left, const std::set<std::string> &right)
 {
     std::vector<std::string> users;
