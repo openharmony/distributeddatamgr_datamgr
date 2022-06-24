@@ -123,6 +123,7 @@ int32_t StoreUtil::InitPath(const std::string &path)
         return true;
     }
     if (mkdir(path.c_str(), (S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)) != 0 && errno != EEXIST) {
+        ZLOGE("mkdir error:%{public}d, path:%{public}s", errno, path.c_str());
         return false;
     }
     return true;

@@ -33,7 +33,6 @@
 #include "kvstore_app_accessor.h"
 #include "kvstore_utils.h"
 #include "log_print.h"
-#include "permission_validator.h"
 #include "reporter.h"
 #include "route_head_handler_impl.h"
 #include "types.h"
@@ -298,7 +297,7 @@ Status KvStoreAppManager::InitNbDbOption(const Options &options, const std::vect
     }
 
     dbOption.schema = options.schema;
-    dbOption.createDirByStoreIdOnly = options.dataOwnership;
+    dbOption.createDirByStoreIdOnly = true;
     dbOption.secOption = ConvertSecurity(options.securityLevel);
     return Status::SUCCESS;
 }

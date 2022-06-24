@@ -25,8 +25,9 @@
 
 namespace OHOS {
 namespace DistributedObject {
-ObjectStoreManager::ObjectStoreManager()
+ObjectStoreManager::ObjectStoreManager() : timer_("CloseRetryTimer")
 {
+    timer_.Setup();
 }
 
 DistributedDB::KvStoreNbDelegate *ObjectStoreManager::OpenObjectKvStore()
@@ -229,7 +230,7 @@ int32_t ObjectStoreManager::Open()
         ZLOGE("not init");
         return FAILED;
     }
-    std::lock_guard<std::mutex> lock(kvStoreMutex_);
+    std::lock_guard<std::recursive_mutex> lock(kvStoreMutex_);
     if (delegate_ == nullptr) {
         ZLOGI("open store");
         delegate_ = OpenObjectKvStore();
@@ -247,7 +248,7 @@ int32_t ObjectStoreManager::Open()
 
 int32_t ObjectStoreManager::Close()
 {
-    std::lock_guard<std::mutex> lock(kvStoreMutex_);
+    std::lock_guard<std::recursive_mutex> lock(kvStoreMutex_);
     if (delegate_ == nullptr) {
         return SUCCESS;
     }
@@ -263,7 +264,7 @@ void ObjectStoreManager::SyncCompleted(
     std::string userId;
     SequenceSyncManager::Result result = SequenceSyncManager::GetInstance()->Process(sequenceId, results, userId);
     if (result == SequenceSyncManager::SUCCESS_USER_HAS_FINISHED && userId == userId_) {
-        std::lock_guard<std::mutex> lock(kvStoreMutex_);
+        std::lock_guard<std::recursive_mutex> lock(kvStoreMutex_);
         SetSyncStatus(false);
         FlushClosedStore();
     }
@@ -271,9 +272,15 @@ void ObjectStoreManager::SyncCompleted(
 
 void ObjectStoreManager::FlushClosedStore()
 {
+    std::lock_guard<std::recursive_mutex> lock(kvStoreMutex_);
     if (!isSyncing_ && syncCount_ == 0 && delegate_ != nullptr) {
         ZLOGD("close store");
-        kvStoreDelegateManager_->CloseKvStore(delegate_);
+        auto status = kvStoreDelegateManager_->CloseKvStore(delegate_);
+        if (status != DistributedDB::DBStatus::OK) {
+            timer_.Register([this]() { FlushClosedStore(); }, 1000, true); // retry after 1000ms
+            ZLOGE("GetEntries fail %{public}d", status);
+            return;
+        }
         delegate_ = nullptr;
     }
 }
@@ -381,6 +388,7 @@ int32_t ObjectStoreManager::SyncOnStore(
 
 int32_t ObjectStoreManager::SetSyncStatus(bool status)
 {
+    std::lock_guard<std::recursive_mutex> lock(kvStoreMutex_);
     isSyncing_ = status;
     return SUCCESS;
 }
@@ -421,11 +429,10 @@ int32_t ObjectStoreManager::RetrieveFromStore(
         return DB_ERROR;
     }
     ZLOGI("GetEntries successfully");
-    std::for_each(
-        entries.begin(), entries.end(), [&results, &appId, &sessionId, this](const DistributedDB::Entry &entry) {
-            std::string key(entry.key.begin(), entry.key.end());
-            results[GetPropertyName(key)] = entry.value;
-        });
+    std::for_each(entries.begin(), entries.end(), [&results, this](const DistributedDB::Entry &entry) {
+        std::string key(entry.key.begin(), entry.key.end());
+        results[GetPropertyName(key)] = entry.value;
+    });
     return SUCCESS;
 }
 
@@ -495,14 +502,12 @@ SequenceSyncManager::Result SequenceSyncManager::Process(
         ZLOGE("not exist");
         return ERR_SID_NOT_EXIST;
     }
-    ZLOGI("start complete");
     std::map<std::string, int32_t> syncResults;
     for (auto &item : results) {
-        ZLOGI("sync result %{public}s, %{public}d", item.first.c_str(), item.second);
         syncResults[item.first] = item.second == DistributedDB::DBStatus::OK ? 0 : -1;
     }
     seqIdCallbackRelations_[sequenceId](syncResults);
-    ZLOGI("end complete");
+    ZLOGD("end complete");
     return DeleteNotifierNoLock(sequenceId, userId);
 }
 

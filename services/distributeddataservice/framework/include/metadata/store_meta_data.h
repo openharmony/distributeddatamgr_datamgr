@@ -35,7 +35,7 @@ struct API_EXPORT StoreMetaData final : public Serializable {
     int32_t area = 0;
     int32_t uid = -1;
     uint32_t tokenId = 0;
-    uint32_t instanceId = 0;
+    int32_t instanceId = 0;
     std::string appId = "";
     std::string appType = "";
     std::string bundleName = "";
@@ -51,6 +51,7 @@ struct API_EXPORT StoreMetaData final : public Serializable {
     API_EXPORT StoreMetaData();
     API_EXPORT StoreMetaData(const std::string &userId, const std::string &appId, const std::string &storeId);
     API_EXPORT bool operator==(const StoreMetaData &metaData) const;
+    API_EXPORT bool operator!=(const StoreMetaData &metaData) const;
     API_EXPORT bool Marshal(json &node) const override;
     API_EXPORT bool Unmarshal(const json &node) override;
     API_EXPORT std::string GetKey();

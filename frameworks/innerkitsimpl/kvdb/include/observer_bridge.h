@@ -18,6 +18,7 @@
 #include "kv_store_nb_delegate.h"
 #include "kv_store_observer.h"
 #include "kvstore_observer.h"
+#include "kvstore_observer_client.h"
 #include "visibility.h"
 namespace OHOS::DistributedKv {
 class IKvStoreObserver;
@@ -36,6 +37,16 @@ public:
     void OnChange(const DBChangedData &data) override;
 
 private:
+    class ObserverClient : public KvStoreObserverClient {
+    public:
+        ObserverClient(std::shared_ptr<Observer> observer, Convert &convert);
+        void OnChange(const ChangeNotification &changeNotification) override;
+
+    private:
+        std::vector<Entry> ConvertDB(const std::vector<Entry> &dbEntries, std::string &deviceId) const;
+        Convert &convert_;
+    };
+
     std::vector<Entry> ConvertDB(const std::list<DBEntry> &dbEntries, std::string &deviceId) const;
     AppId appId_;
     StoreId storeId_;

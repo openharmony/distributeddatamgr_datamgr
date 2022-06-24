@@ -67,7 +67,6 @@ config("module_private_config") {
     "src",
     "src/security",
     "//third_party/json/single_include",
-    "//base/security/permission/interfaces/innerkits/permission_standard/permissionsdk/main/cpp/include",
     "//base/security/huks/interfaces/innerkits/huks_standard/main/include",
   ]
 
@@ -107,6 +106,7 @@ ohos_shared_library("distributeddataservice") {
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter:distributeddata_adapter",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/broadcaster:distributeddata_broadcaster_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/utils:distributeddata_utils_static",
+    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/app/src/checker:distributeddata_checker_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/app/src/flowctrl_manager:distributeddata_flowctrl_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/app/src/uninstaller:distributeddata_uninstaller_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/framework:distributeddatasvcfwk",
@@ -122,7 +122,7 @@ ohos_shared_library("distributeddataservice") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "dataclassification:data_transit_mgr",
-    "deviceauth_standard:deviceauth_sdk",
+    "device_auth:deviceauth_sdk",
     "hitrace_native:libhitrace",
     "hiviewdfx_hilog_native:libhilog",
     "huks:libhukssdk",

@@ -194,6 +194,7 @@ Status KvStoreDataService::GetSingleKvStore(const Options &options, const AppId 
         return status;
     }
 
+    std::lock_guard<std::mutex> lg(accountMutex_);
     auto it = deviceAccountMap_.find(metaData.user);
     if (it == deviceAccountMap_.end()) {
         auto result = deviceAccountMap_.emplace(std::piecewise_construct,
@@ -611,9 +612,9 @@ Status KvStoreDataService::DeleteKvStore(const AppId &appId, const StoreId &stor
 Status KvStoreDataService::DeleteKvStore(StoreMetaData &metaData)
 {
      // delete the backup file
-    auto backFilePath = DirectoryManager::GetInstance().GetStoreBackupPath(metaData);
+    auto backFilePath = BackupHandler::GetBackupPath(metaData.user, KvStoreAppManager::ConvertPathType(metaData));
     auto backupFileName = Constant::Concatenate({ metaData.account, "_", metaData.bundleName, "_", metaData.storeId });
-    auto backFile = Constant::Concatenate({ backFilePath, BackupHandler::GetHashedBackupName(backupFileName) });
+    auto backFile = Constant::Concatenate({ backFilePath, "/", BackupHandler::GetHashedBackupName(backupFileName) });
     if (!BackupHandler::RemoveFile(backFile)) {
         ZLOGE("DeleteKvStore RemoveFile backFilePath failed.");
     }
@@ -731,7 +732,7 @@ Status KvStoreDataService::AppExit(pid_t uid, pid_t pid, uint32_t token, const A
     // memory of parameter appId locates in a member of clientDeathObserverMap_ and will be freed after
     // clientDeathObserverMap_ erase, so we have to take a copy if we want to use this parameter after erase operation.
     AppId appIdTmp = appId;
-    if (appId.appId == "com.ohos.medialibrary.MediaLibraryDataA") {
+    if (appId.appId == "com.ohos.medialibrary.medialibrarydata") {
         HapTokenInfo tokenInfo;
         AccessTokenKit::GetHapTokenInfo(token, tokenInfo);
         ZLOGI("not close bundle:%{public}s, tokenInfo.bundle:%{public}s, uid:%{public}d, token:%{public}u",
@@ -883,7 +884,11 @@ void KvStoreDataService::StartService()
     }
     auto autoLaunchRequestCallback =
         [this](const std::string &identifier, DistributedDB::AutoLaunchParam &param) -> bool {
-            return ResolveAutoLaunchParamByIdentifier(identifier, param);
+            auto status = ResolveAutoLaunchParamByIdentifier(identifier, param);
+            if (kvdbService_) {
+                kvdbService_->ResolveAutoLaunch(identifier, param);
+            }
+            return status;
         };
     KvStoreDelegateManager::SetAutoLaunchRequestCallback(autoLaunchRequestCallback);
 
@@ -1004,7 +1009,6 @@ void KvStoreDataService::ResolveAutoLaunchCompatible(const MetaData &meta, const
         .autoSync = storeMeta.isAutoSync,
         .securityLevel = storeMeta.securityLevel,
         .kvStoreType = static_cast<KvStoreType>(storeMeta.kvStoreType),
-        .dataOwnership = true,
     };
     DistributedDB::KvStoreNbDelegate::Option dbOptions;
     KvStoreAppManager::InitNbDbOption(options, meta.secretKeyMetaData.secretKey, dbOptions);
@@ -1266,10 +1270,15 @@ Status KvStoreDataService::StopWatchDeviceChange(sptr<IDeviceStatusChangeListene
     return Status::SUCCESS;
 }
 
-bool KvStoreDataService::IsStoreOpened(const std::string &userId, const std::string &appId, const std::string &storeId)
+std::set<std::string> KvStoreDataService::GetUsersByStore(const std::string &appId, const std::string &storeId)
 {
-    auto it = deviceAccountMap_.find(userId);
-    return it != deviceAccountMap_.end() && it->second.IsStoreOpened(appId, storeId);
+    std::set<std::string> users;
+    for (auto &[user, value] : deviceAccountMap_) {
+        if (value.IsStoreOpened(appId, storeId)) {
+            users.emplace(user);
+        }
+    }
+    return users;
 }
 
 void KvStoreDataService::SetCompatibleIdentify(const AppDistributedKv::DeviceInfo &info) const
@@ -1283,24 +1292,31 @@ bool KvStoreDataService::CheckSyncActivation(
     const std::string &userId, const std::string &appId, const std::string &storeId)
 {
     ZLOGD("user:%{public}s, app:%{public}s, store:%{public}s", userId.c_str(), appId.c_str(), storeId.c_str());
-    std::vector<UserStatus> users = UserDelegate::GetInstance().GetLocalUserStatus();
-    // active sync feature with single active user
-    for (const auto &user : users) {
-        if (userId == std::to_string(user.id)) {
-            if (!user.isActive) {
-                ZLOGD("the store is not in active user");
-                return false;
-            }
-            // check store in other active user
+    std::set<std::string> activeUsers = UserDelegate::GetInstance().GetLocalUsers();
+    auto storeUsers = GetUsersByStore(appId, storeId);
+    storeUsers.emplace(userId);
+    auto users = Intersect(activeUsers, storeUsers);
+    return users.size() == storeUsers.size();
+}
+
+std::vector<std::string> KvStoreDataService::Intersect(
+    const std::set<std::string> &left, const std::set<std::string> &right)
+{
+    std::vector<std::string> users;
+    for (auto lIt = left.begin(), rIt = right.begin(); lIt != left.end() && rIt != right.end();) {
+        if (*lIt == *rIt) {
+            users.emplace_back(*rIt);
+            ++lIt;
+            ++rIt;
             continue;
         }
-        if (IsStoreOpened(std::to_string(user.id), appId, storeId)) {
-            ZLOGD("the store already opened in user %{public}d", user.id);
-            return false;
+        if (*lIt < *rIt) {
+            lIt++;
+            continue;
         }
+        rIt++;
     }
-    ZLOGD("sync permitted");
-    return true;
+    return users;
 }
 
 sptr<IRemoteObject> KvStoreDataService::GetRdbService()
