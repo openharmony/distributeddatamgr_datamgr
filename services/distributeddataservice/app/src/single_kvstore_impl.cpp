@@ -28,7 +28,6 @@
 #include "query_helper.h"
 #include "dump_helper.h"
 #include "reporter.h"
-#include "time_utils.h"
 #include "upgrade_manager.h"
 #define DEFAUL_RETRACT "            "
 
@@ -1436,20 +1435,6 @@ bool SingleKvStoreImpl::Import(const std::string &bundleName) const
         metaData.isCorrupted = false;
         MetaDataManager::GetInstance().SaveMeta(metaData.GetKey(), metaData);
     }
-
-    int64_t currentTime = TimeUtils::CurrentTimeMicros();
-    int64_t backupTime;
-    std::string backupName;
-    std::string message;
-    std::make_unique<BackupHandler>()->GetBackupInfo(metaData, backupName, backupTime);
-
-    message.append(" Extension Info: backup name [").append(backupName)
-        .append("], backup time [").append(std::to_string(backupTime))
-        .append("], recovery time [").append(std::to_string(currentTime)).append("]");
-
-    Reporter::GetInstance()->BehaviourReporter()->Report(
-        {deviceAccountId_, bundleName_, storeId_, BehaviourType::DATABASE_RECOVERY,
-        (recoverResult) ? BehaviourResult::BEHAVIOUR_SUCCESS : BehaviourResult::BEHAVIOUR_FAILED, message});
     return recoverResult;
 }
 

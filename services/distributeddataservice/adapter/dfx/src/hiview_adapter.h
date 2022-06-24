@@ -73,7 +73,7 @@ private:
 private:
     static std::mutex runMutex_;
     static bool running_;
-    static std::unique_ptr<DistributedKv::KvScheduler> scheduler_;
+    static DistributedKv::KvScheduler scheduler_;
     static const inline int DAILY_REPORT_TIME = 23;
     static const inline int WAIT_TIME = 1 * 60 * 60; // 1 hours
 };

@@ -79,11 +79,6 @@ enum class BehaviourType {
     DATABASE_RECOVERY = 1,
 };
 
-enum class BehaviourResult {
-    BEHAVIOUR_SUCCESS = 0,
-    BEHAVIOUR_FAILED = 1,
-};
-
 enum class SecurityInfo {
     PERMISSIONS_APPID_FAILE = 0,
     PERMISSIONS_DEVICEID_FAILE = 1,
@@ -133,7 +128,6 @@ struct BehaviourMsg {
     std::string appId;
     std::string storeId;
     BehaviourType behaviourType;
-    BehaviourResult behaviourResult;
     std::string extensionInfo;
 };
 

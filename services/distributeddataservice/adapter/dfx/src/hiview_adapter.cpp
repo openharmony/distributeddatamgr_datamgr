@@ -81,7 +81,7 @@ std::mutex HiViewAdapter::apiPerformanceMutex_;
 std::map<std::string, StatisticWrap<ApiPerformanceStat>> HiViewAdapter::apiPerformanceStat_;
 
 bool HiViewAdapter::running_ = false;
-std::unique_ptr<KvScheduler> HiViewAdapter::scheduler_ = std::make_unique<KvScheduler>();
+KvScheduler HiViewAdapter::scheduler_;
 std::mutex HiViewAdapter::runMutex_;
 
 void HiViewAdapter::ReportFault(int dfxCode, const FaultMsg &msg)
@@ -150,8 +150,7 @@ void HiViewAdapter::ReportBehaviour(int dfxCode, const BehaviourMsg &msg)
     KvStoreTask task([dfxCode, msg]() {
         std::string message;
         message.append("Behaviour type : ").append(std::to_string(static_cast<int>(msg.behaviourType)))
-            .append(" behaviour result : ").append(std::to_string(static_cast<int>(msg.behaviourResult)))
-            .append(msg.extensionInfo);
+            .append(" behaviour info : ").append(msg.extensionInfo);
         HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
             CoverEventID(dfxCode),
             HiSysEvent::EventType::BEHAVIOR,
@@ -368,7 +367,7 @@ void HiViewAdapter::StartTimerThread()
         InvokeTraffic();
         InvokeVisit();
     };
-    scheduler_->Every(delay, internal, fun);
+    scheduler_.Every(delay, internal, fun);
 }
 
 std::string HiViewAdapter::CoverEventID(int dfxCode)
