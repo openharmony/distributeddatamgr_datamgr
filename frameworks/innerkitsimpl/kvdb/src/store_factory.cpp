@@ -64,6 +64,7 @@ std::shared_ptr<SingleKvStore> StoreFactory::GetOrOpenStore(const AppId &appId, 
                     kvStore = std::make_shared<SingleStoreImpl>(dbStore, appId, options);
                 }
             });
+        status = StoreUtil::ConvertStatus(dbStatus);
         if (kvStore == nullptr) {
             ZLOGE("failed! status:%{public}d appId:%{public}s storeId:%{public}s path:%{public}s", dbStatus,
                 appId.appId.c_str(), storeId.storeId.c_str(), options.baseDir.c_str());
@@ -71,7 +72,6 @@ std::shared_ptr<SingleKvStore> StoreFactory::GetOrOpenStore(const AppId &appId, 
         }
         isCreate = true;
         stores[storeId] = kvStore;
-        status = StoreUtil::ConvertStatus(dbStatus);
         return !stores.empty();
     });
     return kvStore;
