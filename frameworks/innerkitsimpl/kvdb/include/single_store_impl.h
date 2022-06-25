@@ -69,8 +69,8 @@ public:
     Status SetSyncParam(const KvSyncParam &syncParam) override;
     Status GetSyncParam(KvSyncParam &syncParam) override;
     Status SetCapabilityEnabled(bool enabled) const override;
-    Status SetCapabilityRange(
-        const std::vector<std::string> &localLabels, const std::vector<std::string> &remoteLabels) const override;
+    Status SetCapabilityRange(const std::vector<std::string> &local,
+        const std::vector<std::string> &remote) const override;
     Status SubscribeWithQuery(const std::vector<std::string> &devices, const DataQuery &query) override;
     Status UnsubscribeWithQuery(const std::vector<std::string> &devices, const DataQuery &query) override;
 

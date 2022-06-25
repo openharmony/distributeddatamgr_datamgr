@@ -732,6 +732,7 @@ void SingleStoreImpl::DoAutoSync()
     if (!autoSync_) {
         return;
     }
+    ZLOGD("app:%{public}s, store:%{public}s!", appId_.c_str(), storeId_.c_str());
     AutoSyncTimer::GetInstance().DoAutoSync(appId_, { { storeId_ } });
 }
 } // namespace OHOS::DistributedKv

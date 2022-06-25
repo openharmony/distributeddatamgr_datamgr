@@ -60,6 +60,7 @@ private:
     using SyncEnd = KvStoreSyncManager::SyncEnd;
     using DBResult = std::map<std::string, DistributedDB::DBStatus>;
     using DBStatus = DistributedDB::DBStatus;
+    using DBMode = DistributedDB::SyncMode;
     enum SyncAction {
         ACTION_SYNC,
         ACTION_SUBSCRIBE,
@@ -69,10 +70,11 @@ private:
     StoreMetaData GetStoreMetaData(const AppId &appId, const StoreId &storeId);
     StrategyMeta GetStrategyMeta(const AppId &appId, const StoreId &storeId);
     int32_t GetInstIndex(uint32_t tokenId, const AppId &appId);
-    Status DoSync(const StoreMetaData &metaData, const SyncInfo &syncInfo, const SyncEnd &complete, int32_t type);
-    Status DoComplete(const StoreMetaData &metaData, const SyncInfo &syncInfo, const DBResult &dbResult);
+    Status DoSync(StoreMetaData metaData, SyncInfo syncInfo, const SyncEnd &complete, int32_t type);
+    Status DoComplete(uint32_t tokenId, uint64_t seqId, const DBResult &dbResult);
     uint32_t GetSyncDelayTime(uint32_t delay, const StoreId &storeId);
-    Status ConvertDbStatus(DBStatus status);
+    Status ConvertDbStatus(DBStatus status) const;
+    DBMode ConvertDBMode(SyncMode syncMode) const;
 
     struct SyncAgent {
         pid_t pid_ = 0;

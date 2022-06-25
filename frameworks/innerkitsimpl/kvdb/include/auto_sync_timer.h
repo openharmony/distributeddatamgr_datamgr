@@ -15,9 +15,10 @@
 
 #ifndef SDB_AUTO_SYNC_TIMER_H
 #define SDB_AUTO_SYNC_TIMER_H
-
+#include <set>
 #include "kv_scheduler.h"
 #include "kvdb_service.h"
+#include "concurrent_map.h"
 
 namespace OHOS::DistributedKv {
 class AutoSyncTimer {

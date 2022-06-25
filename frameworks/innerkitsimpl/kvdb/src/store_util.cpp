@@ -20,6 +20,7 @@
 #include "types.h"
 
 namespace OHOS::DistributedKv {
+constexpr mode_t DEFAULT_UMASK = 0002;
 constexpr int32_t HEAD_SIZE = 3;
 constexpr int32_t END_SIZE = 3;
 constexpr int32_t MIN_SIZE = HEAD_SIZE + END_SIZE + 3;
@@ -127,6 +128,7 @@ bool StoreUtil::InitPath(const std::string &path)
     if (access(path.c_str(), F_OK) == 0) {
         return true;
     }
+    umask(DEFAULT_UMASK);
     if (mkdir(path.c_str(), (S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)) != 0 && errno != EEXIST) {
         ZLOGE("mkdir error:%{public}d, path:%{public}s", errno, path.c_str());
         return false;

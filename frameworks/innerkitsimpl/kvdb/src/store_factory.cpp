@@ -34,21 +34,22 @@ StoreFactory::StoreFactory()
     (void)DBManager::SetProcessSystemAPIAdapter(std::make_shared<SystemApi>());
 }
 
-std::shared_ptr<SingleKvStore> StoreFactory::GetOrOpenStore(
-    const AppId &appId, const StoreId &storeId, const Options &options, const std::string &path, Status &status)
+std::shared_ptr<SingleKvStore> StoreFactory::GetOrOpenStore(const AppId &appId, const StoreId &storeId,
+    const Options &options, Status &status, bool &isCreate)
 {
-    DBStatus dbStatus = DBStatus::OK;
     std::shared_ptr<SingleStoreImpl> kvStore;
-
+    isCreate = false;
     stores_.Compute(appId, [&](auto &, auto &stores) {
         if (stores.find(storeId) != stores.end()) {
             kvStore = stores[storeId];
             kvStore->AddRef();
+            status = SUCCESS;
             return !stores.empty();
         }
 
-        auto dbManager = GetDBManager(path, appId);
-        auto password = SecurityManager::GetInstance().GetDBPassword(storeId, path, options.encrypt);
+        auto dbManager = GetDBManager(options.baseDir, appId);
+        auto password = SecurityManager::GetInstance().GetDBPassword(storeId, options.baseDir, options.encrypt);
+        DBStatus dbStatus = DBStatus::DB_ERROR;
         dbManager->GetKvStore(storeId, GetDBOption(options, password),
             [&dbManager, &kvStore, &appId, &dbStatus, &options](auto status, auto *store) {
                 dbStatus = status;
@@ -68,12 +69,11 @@ std::shared_ptr<SingleKvStore> StoreFactory::GetOrOpenStore(
                 appId.appId.c_str(), storeId.storeId.c_str(), options.baseDir.c_str());
             return !stores.empty();
         }
-
+        isCreate = true;
         stores[storeId] = kvStore;
+        status = StoreUtil::ConvertStatus(dbStatus);
         return !stores.empty();
     });
-
-    status = StoreUtil::ConvertStatus(dbStatus);
     return kvStore;
 }
 
@@ -107,16 +107,6 @@ Status StoreFactory::Close(const AppId &appId, const StoreId &storeId, bool isFo
         return !values.empty();
     });
     return status;
-}
-
-bool StoreFactory::IsOpen(const AppId &appId, const StoreId &storeId)
-{
-    bool isExits = false;
-    stores_.ComputeIfPresent(appId, [&storeId, &isExits](auto &, auto &values) {
-        isExits = (values.find(storeId) != values.end());
-        return !values.empty();
-    });
-    return isExits;
 }
 
 std::shared_ptr<StoreFactory::DBManager> StoreFactory::GetDBManager(const std::string &path, const AppId &appId)

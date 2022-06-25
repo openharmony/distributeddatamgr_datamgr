@@ -12,12 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #define LOG_TAG "AutoSyncTimer"
-
-#include <set>
-#include "kvdb_service_client.h"
 #include "auto_sync_timer.h"
+
+#include "kvdb_service_client.h"
+#include "log_print.h"
+
 namespace OHOS::DistributedKv {
 AutoSyncTimer &AutoSyncTimer::GetInstance()
 {
@@ -57,7 +57,7 @@ void AutoSyncTimer::AddSyncStores(const std::string &appId, std::set<StoreId> st
 
 bool AutoSyncTimer::HasSyncStores()
 {
-    return stores_.Empty();
+    return !stores_.Empty();
 }
 
 std::map<std::string, std::set<StoreId>> AutoSyncTimer::GetStoreIds()
@@ -90,8 +90,10 @@ std::function<void()> AutoSyncTimer::ProcessTask()
         if (service == nullptr) {
             return;
         }
+
         auto storeIds = GetStoreIds();
         for (const auto &id : storeIds) {
+            ZLOGD("DoSync appId:%{public}s store size:%{public}zu", id.first.c_str(), id.second.size());
             for (const auto &storeId : id.second) {
                 service->Sync({ id.first }, storeId, {});
             }
