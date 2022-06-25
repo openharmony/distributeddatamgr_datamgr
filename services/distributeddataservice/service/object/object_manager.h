@@ -64,7 +64,7 @@ public:
         return manager;
     }
     int32_t Save(const std::string &appId, const std::string &sessionId,
-        const std::map<std::string, std::vector<uint8_t>> &data, const std::vector<std::string> &deviceList,
+        const std::map<std::string, std::vector<uint8_t>> &data, const std::string &deviceId,
         sptr<IObjectSaveCallback> &callback);
     int32_t RevokeSave(
         const std::string &appId, const std::string &sessionId, sptr<IObjectRevokeSaveCallback> &callback);
@@ -72,11 +72,11 @@ public:
     void SetData(const std::string &dataDir, const std::string &userId);
     int32_t Clear();
     int32_t DeleteByAppId(const std::string &appId);
-
 private:
     enum Status {
         SUCCESS,
-        FAILED
+        DBSTATUS_ERROR,
+        INNER_ERROR
     };
     constexpr static const char *SEPERATOR = "_";
     constexpr static const char *LOCAL_DEVICE = "local";
