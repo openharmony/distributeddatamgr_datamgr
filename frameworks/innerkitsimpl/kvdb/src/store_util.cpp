@@ -14,12 +14,11 @@
  */
 #define LOG_TAG "StoreUtil"
 #include "store_util.h"
-
 #include <sys/stat.h>
 #include <unistd.h>
-
 #include "log_print.h"
 #include "types.h"
+
 namespace OHOS::DistributedKv {
 constexpr int32_t HEAD_SIZE = 3;
 constexpr int32_t END_SIZE = 3;

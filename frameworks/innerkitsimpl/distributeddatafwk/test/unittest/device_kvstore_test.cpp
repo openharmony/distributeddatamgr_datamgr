@@ -33,9 +33,11 @@ public:
     void SetUp();
 
     void TearDown();
+    static std::string GetKey(const std::string &key);
 
     static std::shared_ptr<SingleKvStore> kvStore_; // declare kvstore instance.
     static Status status_;
+    static std::string deviceId_;
     static int MAX_VALUE_SIZE;
 };
 
@@ -49,6 +51,7 @@ const std::string VALID_SCHEMA = "{\"SCHEMA_VERSION\":\"1.0\","
 
 std::shared_ptr<SingleKvStore> DeviceKvStoreTest::kvStore_ = nullptr;
 Status DeviceKvStoreTest::status_ = Status::ERROR;
+std::string DeviceKvStoreTest::deviceId_;
 int DeviceKvStoreTest::MAX_VALUE_SIZE = 4 * 1024 * 1024; // max value size is 4M.
 
 void DeviceKvStoreTest::SetUpTestCase(void)
@@ -62,10 +65,14 @@ void DeviceKvStoreTest::SetUpTestCase(void)
     mkdir(options.baseDir.c_str(), (S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH));
     // [create and] open and initialize kvstore instance.
     status_ = manager.GetSingleKvStore(options, appId, storeId, kvStore_);
+    DeviceInfo deviceInfo;
+    manager.GetLocalDevice(deviceInfo);
+    deviceId_ = deviceInfo.deviceId;
 }
 
 void DeviceKvStoreTest::TearDownTestCase(void)
 {
+    remove("/data/service/el1/public/database/odmf/key");
     remove("/data/service/el1/public/database/odmf/kvdb");
     remove("/data/service/el1/public/database/odmf");
 }
@@ -75,6 +82,14 @@ void DeviceKvStoreTest::SetUp(void)
 
 void DeviceKvStoreTest::TearDown(void)
 {}
+
+std::string DeviceKvStoreTest::GetKey(const std::string& key)
+{
+    std::ostringstream oss;
+    oss << std::setfill('0') << std::setw(sizeof(uint32_t)) << deviceId_.length();
+    oss << deviceId_ << std::string(key.begin(), key.end());
+    return oss.str();
+}
 
 class DeviceObserverTestImpl : public KvStoreObserver {
 public:
@@ -200,7 +215,7 @@ HWTEST_F(DeviceKvStoreTest, PutGetDelete001, TestSize.Level1)
     EXPECT_EQ(validStatus, Status::SUCCESS) << "putting valid keys and values failed";
 
     Value rVal;
-    auto validPutStatus = kvStore_->Get(skey, rVal);
+    auto validPutStatus = kvStore_->Get({ GetKey("single_001")}, rVal);
     EXPECT_EQ(validPutStatus, Status::SUCCESS) << "Getting value failed";
     EXPECT_EQ(sval, rVal) << "Got and put values not equal";
 }
@@ -225,7 +240,7 @@ HWTEST_F(DeviceKvStoreTest, GetEntriesAndResultSet001, TestSize.Level1)
     }
 
     std::vector<Entry> results;
-    kvStore_->GetEntries({prefix}, results);
+    kvStore_->GetEntries({ GetKey(prefix) }, results);
     EXPECT_EQ(results.size(), sum) << "entries size is not equal 10.";
 
     std::shared_ptr<KvStoreResultSet> resultSet;
@@ -246,7 +261,7 @@ HWTEST_F(DeviceKvStoreTest, GetEntriesAndResultSet001, TestSize.Level1)
     resultSet->GetEntry(entry);
 
     for (size_t i = 0; i < sum; i++) {
-        kvStore_->Delete({prefix + std::to_string(i)});
+        kvStore_->Delete({GetKey(prefix + std::to_string(i))});
     }
 
     auto closeResultSetStatus = kvStore_->CloseResultSet(resultSet);
@@ -294,7 +309,7 @@ HWTEST_F(DeviceKvStoreTest, SyncCallback001, TestSize.Level1)
     Key skey = {"single_001"};
     Value sval = {"value_001"};
     kvStore_->Put(skey, sval);
-    kvStore_->Delete(skey);
+    kvStore_->Delete(GetKey(skey.ToString()));
 
     std::map<std::string, Status> results;
     results.insert({"aaa", Status::INVALID_ARGUMENT});
@@ -321,7 +336,7 @@ HWTEST_F(DeviceKvStoreTest, RemoveDeviceData001, TestSize.Level1)
     EXPECT_NE(removeStatus, Status::SUCCESS) << "remove device should not return success";
 
     Value retVal;
-    auto getRet = kvStore_->Get(skey, retVal);
+    auto getRet = kvStore_->Get(GetKey(skey.ToString()), retVal);
     EXPECT_EQ(getRet, Status::SUCCESS) << "get value failed.";
     EXPECT_EQ(retVal.Size(), sval.Size()) << "data base should be null.";
 }
@@ -370,8 +385,9 @@ HWTEST_F(DeviceKvStoreTest, TestSchemaStoreC001, TestSize.Level1)
     auto testStatus = deviceKvStore->Put(testKey, testValue);
     EXPECT_EQ(testStatus, Status::SUCCESS) << "putting data failed";
     Value resultValue;
-    auto status = deviceKvStore->Get(testKey, resultValue);
+    auto status = deviceKvStore->Get(GetKey(testKey.ToString()), resultValue);
     EXPECT_EQ(status, Status::SUCCESS) << "get value failed.";
+    manager.DeleteKvStore(appId, storeId, options.baseDir);
 }
 
 /**
@@ -457,7 +473,7 @@ HWTEST_F(DeviceKvStoreTest, SingleKvStoreDdmPutBatch001, TestSize.Level2)
     EXPECT_EQ(Status::SUCCESS, status) << "KvStore putbatch data return wrong status";
     // get value from kvstore.
     Value valueRet1;
-    Status statusRet1 = kvStore_->Get(entry1.key, valueRet1);
+    Status statusRet1 = kvStore_->Get(GetKey(entry1.key.ToString()), valueRet1);
     EXPECT_EQ(Status::SUCCESS, statusRet1) << "KvStoreSnapshot get data return wrong status";
     EXPECT_EQ(entry1.value, valueRet1) << "value and valueRet are not equal";
 
@@ -1025,6 +1041,7 @@ HWTEST_F(DeviceKvStoreTest, DeviceSync001 ,TestSize.Level1)
 
     auto testStatus = schemaSingleKvStorePtr->SetCapabilityEnabled(true);
     EXPECT_EQ(testStatus, Status::SUCCESS) << "set fail";
+    manager.DeleteKvStore(appId, storeId, options.baseDir);
 }
 
 /**
@@ -1053,6 +1070,7 @@ HWTEST_F(DeviceKvStoreTest, DeviceSync002 ,TestSize.Level1)
     std::vector<std::string> remote = {"C", "D"};
     auto testStatus = schemaSingleKvStorePtr->SetCapabilityRange(local, remote);
     EXPECT_EQ(testStatus, Status::SUCCESS) << "set range fail";
+    manager.DeleteKvStore(appId, storeId, options.baseDir);
 }
 
 /**

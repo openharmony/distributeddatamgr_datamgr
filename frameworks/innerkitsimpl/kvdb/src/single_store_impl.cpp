@@ -307,7 +307,7 @@ Status SingleStoreImpl::Get(const Key &key, Value &value)
 
     DBKey dbKey = ToWholeDBKey(key);
     if (dbKey.empty()) {
-        ZLOGE("invalid key:%{public}s, size:%{public}zu", key.ToString().c_str(), key.Size());
+        ZLOGE("invalid key:%{public}s, size:%{public}zu", StoreUtil::Anonymous(key.ToString()).c_str(), key.Size());
         return INVALID_ARGUMENT;
     }
 
@@ -316,7 +316,7 @@ Status SingleStoreImpl::Get(const Key &key, Value &value)
     value = std::move(dbValue);
     auto status = StoreUtil::ConvertStatus(dbStatus);
     if (status != SUCCESS) {
-        ZLOGE("status:0x%{public}x, key:%{public}s", status, key.ToString().c_str());
+        ZLOGE("status:0x%{public}x, key:%{public}s", status, StoreUtil::Anonymous(key.ToString()).c_str());
     }
     return status;
 }
@@ -326,7 +326,8 @@ Status SingleStoreImpl::GetEntries(const Key &prefix, std::vector<Entry> &entrie
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     DBKey dbPrefix = GetPrefix(prefix);
     if (dbPrefix.empty() && !prefix.Empty()) {
-        ZLOGE("invalid prefix:%{public}s, size:%{public}zu", prefix.ToString().c_str(), prefix.Size());
+        ZLOGE("invalid prefix:%{public}s, size:%{public}zu", StoreUtil::Anonymous(prefix.ToString()).c_str(),
+            prefix.Size());
         return INVALID_ARGUMENT;
     }
 
@@ -334,7 +335,7 @@ Status SingleStoreImpl::GetEntries(const Key &prefix, std::vector<Entry> &entrie
     dbQuery.PrefixKey(dbPrefix);
     auto status = GetEntries(dbQuery, entries);
     if (status != SUCCESS) {
-        ZLOGE("status:0x%{public}x, prefix:%{public}s", status, prefix.ToString().c_str());
+        ZLOGE("status:0x%{public}x, prefix:%{public}s", status, StoreUtil::Anonymous(prefix.ToString()).c_str());
     }
     return status;
 }
@@ -346,7 +347,7 @@ Status SingleStoreImpl::GetEntries(const DataQuery &query, std::vector<Entry> &e
     dbQuery.PrefixKey(GetPrefix(query));
     auto status = GetEntries(dbQuery, entries);
     if (status != SUCCESS) {
-        ZLOGE("status:0x%{public}x, query:%{public}s", status, query.ToString().c_str());
+        ZLOGE("status:0x%{public}x, query:%{public}s", status, StoreUtil::Anonymous(query.ToString()).c_str());
     }
     return status;
 }
@@ -356,7 +357,8 @@ Status SingleStoreImpl::GetResultSet(const Key &prefix, std::shared_ptr<ResultSe
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     DBKey dbPrefix = GetPrefix(prefix);
     if (dbPrefix.empty() && !prefix.Empty()) {
-        ZLOGE("invalid prefix:%{public}s, size:%{public}zu", prefix.ToString().c_str(), prefix.Size());
+        ZLOGE("invalid prefix:%{public}s, size:%{public}zu", StoreUtil::Anonymous(prefix.ToString()).c_str(),
+            prefix.Size());
         return INVALID_ARGUMENT;
     }
 
@@ -364,7 +366,7 @@ Status SingleStoreImpl::GetResultSet(const Key &prefix, std::shared_ptr<ResultSe
     dbQuery.PrefixKey(dbPrefix);
     auto status = GetResultSet(dbQuery, resultSet);
     if (status != SUCCESS) {
-        ZLOGE("status:0x%{public}x, prefix:%{public}s", status, prefix.ToString().c_str());
+        ZLOGE("status:0x%{public}x, prefix:%{public}s", status, StoreUtil::Anonymous(prefix.ToString()).c_str());
     }
     return status;
 }
@@ -376,7 +378,7 @@ Status SingleStoreImpl::GetResultSet(const DataQuery &query, std::shared_ptr<Res
     dbQuery.PrefixKey(GetPrefix(query));
     auto status = GetResultSet(dbQuery, resultSet);
     if (status != SUCCESS) {
-        ZLOGE("status:0x%{public}x, query:%{public}s", status, query.ToString().c_str());
+        ZLOGE("status:0x%{public}x, query:%{public}s", status, StoreUtil::Anonymous(query.ToString()).c_str());
     }
     return status;
 }
@@ -411,7 +413,7 @@ Status SingleStoreImpl::GetCount(const DataQuery &query, int &result) const
     auto dbStatus = dbStore_->GetCount(dbQuery, result);
     auto status = StoreUtil::ConvertStatus(dbStatus);
     if (status != SUCCESS) {
-        ZLOGE("status:0x%{public}x query:%{public}s", status, query.ToString().c_str());
+        ZLOGE("status:0x%{public}x query:%{public}s", status, StoreUtil::Anonymous(query.ToString()).c_str());
     }
     return status;
 }

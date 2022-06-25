@@ -31,6 +31,7 @@ public:
     static Status ConvertStatus(DBStatus status);
     static bool InitPath(const std::string &path);
     static bool Remove(const std::string &path);
+
 };
 } // namespace OHOS::DistributedKv
 #endif // OHOS_DISTRIBUTED_DATA_FRAMEWORKS_KVDB_STORE_UTIL_H

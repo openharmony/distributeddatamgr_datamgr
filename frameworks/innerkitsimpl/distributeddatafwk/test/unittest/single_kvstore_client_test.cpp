@@ -67,6 +67,7 @@ void SingleKvStoreClientTest::SetUpTestCase(void)
 
 void SingleKvStoreClientTest::TearDownTestCase(void)
 {
+    remove("/data/service/el1/public/database/odmf/key");
     remove("/data/service/el1/public/database/odmf/kvdb");
     remove("/data/service/el1/public/database/odmf");
 }
@@ -374,6 +375,7 @@ HWTEST_F(SingleKvStoreClientTest, TestSchemaStoreC001, TestSize.Level1)
     Value resultValue;
     auto getRet = schemaSingleKvStorePtr->Get(testKey, resultValue);
     EXPECT_EQ(getRet, Status::SUCCESS) << "get value failed.";
+    manager.DeleteKvStore(appId, storeId, options.baseDir);
 }
 
 /**
