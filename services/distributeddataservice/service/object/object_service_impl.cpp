@@ -44,7 +44,7 @@ int32_t ObjectServiceImpl::ObjectStoreSave(const std::string &bundleName, const 
     storeInfo.storeId = sessionId;
     std::string appId = DistributedData::CheckerManager::GetInstance().GetAppId(storeInfo);
     if (appId.empty()) {
-        ZLOGE("object bundleName wrong, bundleName = %{public}s", bundleName.c_str());
+        ZLOGE("object bundleName wrong, bundleName = %{public}s, uid = %{public}d, tokenId = %{public}d", bundleName.c_str(), storeInfo.uid, storeInfo.tokenId);
         return PERMISSION_DENIED;
     }
     if (!PermissionValidator::GetInstance().CheckSyncPermission(storeInfo.tokenId)) {
@@ -107,7 +107,7 @@ int32_t ObjectServiceImpl::ObjectStoreRevokeSave(
     storeInfo.storeId = sessionId;
     std::string appId = DistributedData::CheckerManager::GetInstance().GetAppId(storeInfo);
     if (appId.empty()) {
-        ZLOGE("object bundleName wrong, bundleName = %{public}s", bundleName.c_str());
+        ZLOGE("object bundleName wrong, bundleName = %{public}s, uid = %{public}d, tokenId = %{public}d", bundleName.c_str(), storeInfo.uid, storeInfo.tokenId);
         return PERMISSION_DENIED;
     }
     if (!PermissionValidator::GetInstance().CheckSyncPermission(storeInfo.tokenId)) {
@@ -133,7 +133,7 @@ int32_t ObjectServiceImpl::ObjectStoreRetrieve(
     storeInfo.storeId = sessionId;
     std::string appId = DistributedData::CheckerManager::GetInstance().GetAppId(storeInfo);
     if (appId.empty()) {
-        ZLOGE("object bundleName wrong, bundleName = %{public}s", bundleName.c_str());
+        ZLOGE("object bundleName wrong, bundleName = %{public}s, uid = %{public}d, tokenId = %{public}d", bundleName.c_str(), storeInfo.uid, storeInfo.tokenId);
         return PERMISSION_DENIED;
     }
     if (!PermissionValidator::GetInstance().CheckSyncPermission(storeInfo.tokenId)) {
@@ -162,7 +162,9 @@ int32_t ObjectServiceImpl::DeleteByAppId(const std::string &bundleName)
     ZLOGI("begin. %{public}s", bundleName.c_str());
     int32_t result = ObjectStoreManager::GetInstance()->DeleteByAppId(bundleName);
     if (result != SUCCESS) {
-        ZLOGE("Delete fail %{public}d, bundleName = %{public}s", result, bundleName.c_str());
+        pid_t uid= IPCSkeleton::GetCallingUid();
+        uint32_t tokenId = IPCSkeleton::GetCallingTokenID();
+        ZLOGE("Delete fail %{public}d, bundleName = %{public}s, uid = %{public}d, tokenId = %{public}d", result, bundleName.c_str(), uid, tokenId);
     }
     return result;
 }
