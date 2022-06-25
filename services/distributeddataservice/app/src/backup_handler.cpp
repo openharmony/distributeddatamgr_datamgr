@@ -42,6 +42,7 @@ namespace OHOS::DistributedKv {
 using namespace DistributedData;
 using namespace DistributedDataDfx;
 using namespace AppDistributedKv;
+constexpr const int64_t NANOSEC_TO_MICROSEC = 1000;
 BackupHandler::BackupHandler(IKvStoreDataService *kvStoreDataService)
 {
 }
@@ -126,12 +127,16 @@ void BackupHandler::SingleKvStoreBackup(const StoreMetaData &metaData)
                 if (status == DistributedDB::DBStatus::OK) {
                     ZLOGD("SingleKvStoreBackup export success.");
                     RemoveFile(backupBackFullName);
-                    Reporter::GetInstance()->BehaviourReporter()->Report(
-                        {metaData.account, metaData.appId, metaData.storeId, BehaviourType::DATABASE_BACKUP_SUCCESS});
                 } else {
                     ZLOGE("SingleKvStoreBackup export failed, status is %d.", status);
                     RenameFile(backupBackFullName, backupFullName);
                 }
+                std::string message;
+                message.append(" backup name [").append(backupFullName)
+                    .append("], isEncryptedDb [").append(std::to_string(dbOption.isEncryptedDb)).append("]")
+                    .append("], backup result status [").append(std::to_string(status)).append("]");
+                Reporter::GetInstance()->BehaviourReporter()->Report(
+                    {metaData.account, metaData.appId, metaData.storeId, BehaviourType::DATABASE_BACKUP, message});
             }
             delegateMgr.CloseKvStore(delegate);
         };
@@ -218,12 +223,29 @@ bool BackupHandler::SingleKvStoreRecover(StoreMetaData &metaData, DistributedDB:
     auto backupFullName = Constant::Concatenate(
         { BackupHandler::GetBackupPath(metaData.user, pathType), "/", GetHashedBackupName(backupName) });
     DistributedDB::DBStatus dbStatus = delegate->Import(backupFullName, password);
+
+    int64_t currentTime = TimeUtils::CurrentTimeMicros();
+    int64_t backupTime = GetBackupTime(backupFullName);
+    std::string message;
+    message.append(" backup name [").append(backupFullName)
+        .append("], backup time [").append(std::to_string(backupTime))
+        .append("], recovery time [").append(std::to_string(currentTime))
+        .append("], recovery result status [").append(std::to_string(dbStatus)).append("]");
+    Reporter::GetInstance()->BehaviourReporter()->Report(
+        {metaData.account, metaData.appId, metaData.storeId, BehaviourType::DATABASE_RECOVERY, message});
     if (dbStatus == DistributedDB::DBStatus::OK) {
         ZLOGI("SingleKvStoreRecover success.");
         return true;
     }
     ZLOGI("SingleKvStoreRecover failed.");
     return false;
+}
+
+int64_t BackupHandler::GetBackupTime(std::string &fullName)
+{
+    struct stat curStat;
+    stat(fullName.c_str(), &curStat);
+    return curStat.st_mtim.tv_sec * SEC_TO_MICROSEC + curStat.st_mtim.tv_nsec / NANOSEC_TO_MICROSEC;
 }
 
 std::string BackupHandler::backupDirCe_;

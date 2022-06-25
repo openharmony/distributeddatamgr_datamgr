@@ -45,10 +45,6 @@ constexpr const char *WORST_TIMES = "WORST_TIME";
 constexpr const char *INTERFACES = "INTERFACES";
 constexpr const char *TAG = "TAG";
 constexpr const char *POWERSTATS = "PowerStats";
-// security key
-constexpr const char *SECURITY_INFO = "SECURITY_INFO";
-constexpr const char *DEVICE_SENSITIVE_LEVEL = "DEVICE_SENSITIVE_LEVEL";
-constexpr const char *OPTION_SENSITIVE_LEVEL = "OPTION_SENSITIVE_LEVEL";
 // behaviour key
 constexpr const char *BEHAVIOUR_INFO = "BEHAVIOUR_INFO";
 
@@ -56,18 +52,16 @@ const std::map<int, std::string> EVENT_COVERT_TABLE = {
     { DfxCodeConstant::SERVICE_FAULT, "SERVICE_FAULT" },
     { DfxCodeConstant::RUNTIME_FAULT, "RUNTIME_FAULT" },
     { DfxCodeConstant::DATABASE_FAULT, "DATABASE_FAULT" },
-    { DfxCodeConstant::COMMUNICATION_FAULT, "DATABASE_FAULT" },
-    { DfxCodeConstant::DATABASE_STATISTIC, "COMMUNICATION_FAULT}" },
+    { DfxCodeConstant::COMMUNICATION_FAULT, "COMMUNICATION_FAULT" },
+    { DfxCodeConstant::DATABASE_STATISTIC, "DATABASE_STATISTIC}" },
     { DfxCodeConstant::VISIT_STATISTIC, "VISIT_STATISTIC" },
     { DfxCodeConstant::TRAFFIC_STATISTIC, "VISIT_STATISTIC" },
     { DfxCodeConstant::DATABASE_PERFORMANCE_STATISTIC, "DATABASE_PERFORMANCE_STATISTIC" },
     { DfxCodeConstant::API_PERFORMANCE_STATISTIC, "API_PERFORMANCE_STATISTIC" },
     { DfxCodeConstant::API_PERFORMANCE_INTERFACE, "API_PERFORMANCE_STATISTIC" },
     { DfxCodeConstant::DATABASE_SYNC_FAILED, "DATABASE_SYNC_FAILED" },
-    { DfxCodeConstant::DATABASE_RECOVERY_FAILED, "DATABASE_SYNC_FAILED" },
-    { DfxCodeConstant::DATABASE_OPEN_FAILED, "DATABASE_RECOVERY_FAILED" },
-    { DfxCodeConstant::DATABASE_REKEY_FAILED, "DATABASE_OPEN_FAILED" },
-    { DfxCodeConstant::DATABASE_SECURITY, "DATABASE_REKEY_FAILED" },
+    { DfxCodeConstant::DATABASE_CORRUPTED_FAILED, "DATABASE_CORRUPTED_FAILED" },
+    { DfxCodeConstant::DATABASE_REKEY_FAILED, "DATABASE_REKEY_FAILED" },
     { DfxCodeConstant::DATABASE_BEHAVIOUR, "DATABASE_BEHAVIOUR" },
 };
 }
@@ -87,6 +81,7 @@ std::mutex HiViewAdapter::apiPerformanceMutex_;
 std::map<std::string, StatisticWrap<ApiPerformanceStat>> HiViewAdapter::apiPerformanceStat_;
 
 bool HiViewAdapter::running_ = false;
+KvScheduler HiViewAdapter::scheduler_;
 std::mutex HiViewAdapter::runMutex_;
 
 void HiViewAdapter::ReportFault(int dfxCode, const FaultMsg &msg)
@@ -131,7 +126,7 @@ void HiViewAdapter::ReportCommFault(int dfxCode, const CommFaultMsg &msg)
     }
     KvStoreTask task([dfxCode, msg]() {
         std::string message;
-        for (int i = 0; i < msg.deviceId.size(); i++) {
+        for (size_t i = 0; i < msg.deviceId.size(); i++) {
             message.append("No: ").append(std::to_string(i))
             .append(" sync to device: ").append(msg.deviceId[i])
             .append(" has error, errCode:").append(std::to_string(msg.errorCode[i])).append(". ");
@@ -147,54 +142,22 @@ void HiViewAdapter::ReportCommFault(int dfxCode, const CommFaultMsg &msg)
     pool_->AddTask(std::move(task));
 }
 
-void HiViewAdapter::ReportPermissionsSecurity(int dfxCode, const SecurityPermissionsMsg &msg)
-{
-    if (pool_ == nullptr) {
-        return;
-    }
-    KvStoreTask task([dfxCode, msg]() {
-        HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
-            CoverEventID(dfxCode),
-            HiSysEvent::EventType::SECURITY,
-            USER_ID, msg.appId,
-            APP_ID, msg.appId,
-            STORE_ID, msg.storeId,
-            DEVICE_ID, msg.deviceId,
-            SECURITY_INFO, static_cast<int>(msg.securityInfo));
-    });
-    pool_->AddTask(std::move(task));
-}
-
-void HiViewAdapter::ReportSensitiveLevelSecurity(int dfxCode, const SecuritySensitiveLevelMsg &msg)
-{
-    if (pool_ == nullptr) {
-        return;
-    }
-    KvStoreTask task([dfxCode, msg]() {
-        HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
-            CoverEventID(dfxCode),
-            HiSysEvent::EventType::SECURITY,
-            DEVICE_ID, msg.deviceId,
-            DEVICE_SENSITIVE_LEVEL, msg.deviceSensitiveLevel,
-            OPTION_SENSITIVE_LEVEL, msg.optionSensitiveLevel,
-            SECURITY_INFO, static_cast<int>(msg.securityInfo));
-    });
-    pool_->AddTask(std::move(task));
-}
-
 void HiViewAdapter::ReportBehaviour(int dfxCode, const BehaviourMsg &msg)
 {
     if (pool_ == nullptr) {
         return;
     }
     KvStoreTask task([dfxCode, msg]() {
+        std::string message;
+        message.append("Behaviour type : ").append(std::to_string(static_cast<int>(msg.behaviourType)))
+            .append(" behaviour info : ").append(msg.extensionInfo);
         HiSysEvent::Write(HiSysEvent::Domain::DISTRIBUTED_DATAMGR,
             CoverEventID(dfxCode),
             HiSysEvent::EventType::BEHAVIOR,
-            USER_ID, msg.appId,
+            USER_ID, msg.userId,
             APP_ID, msg.appId,
             STORE_ID, msg.storeId,
-            BEHAVIOUR_INFO, static_cast<int>(msg.behaviourType));
+            BEHAVIOUR_INFO, message);
     });
     pool_->AddTask(std::move(task));
 }
@@ -347,7 +310,8 @@ void HiViewAdapter::ReportApiPerformanceStatistic(int dfxCode, const ApiPerforma
             it->second.times++;
             it->second.val.costTime = stat.costTime;
             if (it->second.times > 0) {
-                it->second.val.averageTime = (it->second.val.averageTime * (it->second.times - 1) + stat.costTime)
+                it->second.val.averageTime =
+                    (it->second.val.averageTime * static_cast<uint64_t>(it->second.times - 1) + stat.costTime)
                     / it->second.times;
             }
             if (stat.costTime > it->second.val.worstTime) {
@@ -390,31 +354,20 @@ void HiViewAdapter::StartTimerThread()
         return;
     }
     running_ = true;
+    std::chrono::duration<int> delay(0);
+    std::chrono::duration<int> internal(WAIT_TIME);
     auto fun = []() {
-        while (true) {
-            time_t current = time(nullptr);
-            tm localTime = { 0 };
-            tm *result = localtime_r(&current, &localTime);
-            if (result == nullptr) {
-                continue;
-            }
-            int currentHour = localTime.tm_hour;
-            int currentMin = localTime.tm_min;
-            if ((EXEC_MIN_TIME - currentMin) != EXEC_MIN_TIME) {
-                sleep((EXEC_MIN_TIME - currentMin) * SIXTY_SEC);
-                InvokeTraffic();
-                InvokeVisit();
-                if (currentHour == EXEC_HOUR_TIME) {
-                    InvokeDbSize();
-                    InvokeApiPerformance();
-                }
-            } else {
-                sleep(WAIT_TIME);
-            }
+        time_t current = time(nullptr);
+        tm localTime = { 0 };
+        tm *result = localtime_r(&current, &localTime);
+        if ((result != nullptr) && (localTime.tm_hour == DAILY_REPORT_TIME)) {
+            InvokeDbSize();
+            InvokeApiPerformance();
         }
+        InvokeTraffic();
+        InvokeVisit();
     };
-    std::thread th = std::thread(fun);
-    th.detach();
+    scheduler_.Every(delay, internal, fun);
 }
 
 std::string HiViewAdapter::CoverEventID(int dfxCode)

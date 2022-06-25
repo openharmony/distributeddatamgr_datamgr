@@ -55,7 +55,6 @@
 #include "permission_validator.h"
 #include "process_communicator_impl.h"
 #include "rdb_service_impl.h"
-#include "reporter.h"
 #include "route_head_handler_impl.h"
 #include "system_ability_definition.h"
 #include "uninstaller/uninstaller.h"
@@ -1046,8 +1045,6 @@ bool KvStoreDataService::CheckPermissions(const std::string &userId, const std::
         qstatus = instance.QueryKvStoreMetaDataByDeviceIdAndAppId("", appId, metaData); // local device id maybe null
         if (qstatus != Status::SUCCESS) {
             ZLOGW("query appId failed.");
-            Reporter::GetInstance()->SecurityReporter()->Report(
-                {userId, appId, storeId, KvStoreUtils::ToBeAnonymous(deviceId), SecurityInfo::PERMISSIONS_APPID_FAILE});
             return false;
         }
     }
@@ -1058,8 +1055,6 @@ bool KvStoreDataService::CheckPermissions(const std::string &userId, const std::
     Status status = instance.CheckSyncPermission(userId, appId, storeId, flag, deviceId);
     if (status != Status::SUCCESS) {
         ZLOGW("PermissionCheck failed.");
-        Reporter::GetInstance()->SecurityReporter()->Report(
-            {userId, appId, storeId, KvStoreUtils::ToBeAnonymous(deviceId), SecurityInfo::PERMISSIONS_DEVICEID_FAILE});
         return false;
     }
 
@@ -1067,14 +1062,7 @@ bool KvStoreDataService::CheckPermissions(const std::string &userId, const std::
         ZLOGD("it's A app, don't check sync permission.");
         return true;
     }
-
-    bool ret = PermissionValidator::GetInstance().CheckSyncPermission(metaData.tokenId);
-    if (!ret) {
-        Reporter::GetInstance()->SecurityReporter()->Report(
-            {userId, appId, storeId, KvStoreUtils::ToBeAnonymous(deviceId), SecurityInfo::PERMISSIONS_TOKENID_FAILE});
-    }
-
-    return ret;
+    return PermissionValidator::GetInstance().CheckSyncPermission(metaData.tokenId);
 }
 
 void KvStoreDataService::OnStop()

@@ -55,6 +55,7 @@ private:
     bool CheckNeedBackup();
     bool InitBackupPara(const StoreMetaData &metaData, BackupPara &backupPara);
     bool GetPassword(const StoreMetaData &metaData, DistributedDB::CipherPassword &password);
+    int64_t GetBackupTime(std::string &fullName);
     static std::string backupDirCe_;
     static std::string backupDirDe_;
 

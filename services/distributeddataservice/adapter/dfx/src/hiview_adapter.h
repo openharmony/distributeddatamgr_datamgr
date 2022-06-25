@@ -21,6 +21,7 @@
 #include "dfx_types.h"
 #include "dfx_code_constant.h"
 #include "hisysevent.h"
+#include "kv_scheduler.h"
 #include "kv_store_thread_pool.h"
 #include "kv_store_task.h"
 #include "value_hash.h"
@@ -44,8 +45,6 @@ public:
     static void ReportTrafficStatistic(int dfxCode, const TrafficStat &stat);
     static void ReportDatabaseStatistic(int dfxCode, const DbStat &stat);
     static void ReportApiPerformanceStatistic(int dfxCode, const ApiPerformanceStat &stat);
-    static void ReportPermissionsSecurity(int dfxCode, const SecurityPermissionsMsg &msg);
-    static void ReportSensitiveLevelSecurity(int dfxCode, const SecuritySensitiveLevelMsg &msg);
     static void ReportBehaviour(int dfxCode, const BehaviourMsg &msg);
     static void StartTimerThread();
 
@@ -74,12 +73,9 @@ private:
 private:
     static std::mutex runMutex_;
     static bool running_;
-    static const inline int EXEC_HOUR_TIME = 23;
-    static const inline int EXEC_MIN_TIME = 60;
-    static const inline int SIXTY_SEC = 60;
-
+    static DistributedKv::KvScheduler scheduler_;
+    static const inline int DAILY_REPORT_TIME = 23;
     static const inline int WAIT_TIME = 1 * 60 * 60; // 1 hours
-    static const inline int PERIOD_TIME_US = 1 * 1000 * 1000; // 1 s
 };
 }  // namespace DistributedDataDfx
 }  // namespace OHOS

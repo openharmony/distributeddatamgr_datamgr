@@ -63,9 +63,8 @@ enum class Fault {
 
     // Database Fault
     DF_DB_DAMAGE = 60,
-    DF_DB_RECOVERY_FAILED = 61,
-    DF_DB_OPEN_FAILED = 62,
-    DF_DB_REKEY_FAILED = 63,
+    DF_DB_REKEY_FAILED = 61,
+    DF_DB_CORRUPTED = 62,
 };
 
 enum class FaultType {
@@ -76,8 +75,8 @@ enum class FaultType {
 };
 
 enum class BehaviourType {
-    DATABASE_BACKUP_SUCCESS = 0,
-    DATABASE_RECOVERY_SUCCESS = 1,
+    DATABASE_BACKUP = 0,
+    DATABASE_RECOVERY = 1,
 };
 
 enum class SecurityInfo {
@@ -129,6 +128,7 @@ struct BehaviourMsg {
     std::string appId;
     std::string storeId;
     BehaviourType behaviourType;
+    std::string extensionInfo;
 };
 
 struct VisitStat {

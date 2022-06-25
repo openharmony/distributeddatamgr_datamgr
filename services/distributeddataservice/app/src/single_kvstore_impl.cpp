@@ -80,7 +80,8 @@ Status SingleKvStoreImpl::Put(const Key &key, const Value &value)
         ZLOGE("flow control denied");
         return Status::EXCEED_MAX_ACCESS_RATE;
     }
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
 
     auto trimmedKey = Constant::TrimCopy<std::vector<uint8_t>>(key.Data());
     // Restrict key and value size to interface specification.
@@ -117,16 +118,16 @@ Status SingleKvStoreImpl::CheckDbIsCorrupted(DistributedDB::DBStatus status, con
 {
     if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
         ZLOGW("option %{public}s failed, recovery database.", funName);
-        bool result = Import(bundleName_);
-        if (!result) {
+        StoreMetaData metaData = StoreMetaData(deviceAccountId_, bundleName_, storeId_);
+        metaData.deviceId = DeviceKvStoreImpl::GetLocalDeviceId();
+        MetaDataManager::GetInstance().LoadMeta(metaData.GetKey(), metaData);
+        if (!metaData.isCorrupted) {
+            metaData.isCorrupted = true;
+            MetaDataManager::GetInstance().SaveMeta(metaData.GetKey(), metaData);
             Reporter::GetInstance()->DatabaseFault()->Report(
-                {bundleName_, storeId_, "KVDB", Fault::DF_DB_RECOVERY_FAILED });
-            return Status::RECOVER_FAILED;
-        } else {
-            Reporter::GetInstance()->BehaviourReporter()->Report(
-                {deviceAccountId_, bundleName_, storeId_, BehaviourType::DATABASE_RECOVERY_SUCCESS });
-            return Status::RECOVER_SUCCESS;
+                {bundleName_, storeId_, "KVDB", Fault::DF_DB_CORRUPTED});
         }
+        return (Import(bundleName_) ? Status::RECOVER_SUCCESS : Status::RECOVER_FAILED);
     }
     return Status::SUCCESS;
 }
@@ -172,7 +173,8 @@ Status SingleKvStoreImpl::ConvertDbStatus(DistributedDB::DBStatus status)
 
 Status SingleKvStoreImpl::Delete(const Key &key)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
         return Status::EXCEED_MAX_ACCESS_RATE;
@@ -207,7 +209,8 @@ Status SingleKvStoreImpl::Delete(const Key &key)
 
 Status SingleKvStoreImpl::Get(const Key &key, Value &value)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
         return Status::EXCEED_MAX_ACCESS_RATE;
@@ -250,7 +253,8 @@ Status SingleKvStoreImpl::Get(const Key &key, Value &value)
 
 Status SingleKvStoreImpl::SubscribeKvStore(const SubscribeType subscribeType, sptr<IKvStoreObserver> observer)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     ZLOGD("start.");
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
@@ -335,7 +339,8 @@ DistributedDB::SyncMode SingleKvStoreImpl::ConvertToDbSyncMode(SyncMode syncMode
 
 Status SingleKvStoreImpl::UnSubscribeKvStore(const SubscribeType subscribeType, sptr<IKvStoreObserver> observer)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
         return Status::EXCEED_MAX_ACCESS_RATE;
@@ -382,7 +387,8 @@ Status SingleKvStoreImpl::UnSubscribeKvStore(const SubscribeType subscribeType, 
 
 Status SingleKvStoreImpl::GetEntries(const Key &prefixKey, std::vector<Entry> &entries)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
         return Status::EXCEED_MAX_ACCESS_RATE;
@@ -440,7 +446,8 @@ Status SingleKvStoreImpl::GetEntries(const Key &prefixKey, std::vector<Entry> &e
 
 Status SingleKvStoreImpl::GetEntriesWithQuery(const std::string &query, std::vector<Entry> &entries)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
         return Status::EXCEED_MAX_ACCESS_RATE;
@@ -489,7 +496,8 @@ Status SingleKvStoreImpl::GetEntriesWithQuery(const std::string &query, std::vec
 void SingleKvStoreImpl::GetResultSet(const Key &prefixKey,
                                      std::function<void(Status, sptr<IKvStoreResultSet>)> callback)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
         callback(Status::EXCEED_MAX_ACCESS_RATE, nullptr);
@@ -533,7 +541,8 @@ void SingleKvStoreImpl::GetResultSet(const Key &prefixKey,
 void SingleKvStoreImpl::GetResultSetWithQuery(const std::string &query,
                                               std::function<void(Status, sptr<IKvStoreResultSet>)> callback)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
         callback(Status::EXCEED_MAX_ACCESS_RATE, nullptr);
@@ -608,7 +617,8 @@ KvStoreResultSetImpl *SingleKvStoreImpl::CreateResultSet(
 
 Status SingleKvStoreImpl::GetCountWithQuery(const std::string &query, int &result)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
         return Status::EXCEED_MAX_ACCESS_RATE;
@@ -669,7 +679,8 @@ Status SingleKvStoreImpl::GetCountWithQuery(const std::string &query, int &resul
 
 Status SingleKvStoreImpl::CloseResultSet(sptr<IKvStoreResultSet> resultSet)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (resultSet == nullptr) {
         return Status::INVALID_ARGUMENT;
     }
@@ -699,7 +710,8 @@ Status SingleKvStoreImpl::CloseResultSet(sptr<IKvStoreResultSet> resultSet)
 
 Status SingleKvStoreImpl::RemoveDeviceData(const std::string &device)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
         return Status::EXCEED_MAX_ACCESS_RATE;
@@ -737,7 +749,8 @@ Status SingleKvStoreImpl::RemoveDeviceData(const std::string &device)
 Status SingleKvStoreImpl::Sync(const std::vector<std::string> &deviceIds, SyncMode mode,
                                uint32_t allowedDelayMs, uint64_t sequenceId)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     ZLOGD("start.");
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
@@ -760,7 +773,8 @@ Status SingleKvStoreImpl::Sync(const std::vector<std::string> &deviceIds, SyncMo
 Status SingleKvStoreImpl::Sync(const std::vector<std::string> &deviceIds, SyncMode mode,
                                const std::string &query, uint64_t sequenceId)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     ZLOGD("start.");
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
@@ -1020,7 +1034,8 @@ Status SingleKvStoreImpl::AddUnSubscribe(const std::vector<std::string> &deviceI
 Status SingleKvStoreImpl::Subscribe(const std::vector<std::string> &deviceIds,
                                     const std::string &query, uint64_t sequenceId)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     ZLOGD("start.");
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
@@ -1033,7 +1048,8 @@ Status SingleKvStoreImpl::Subscribe(const std::vector<std::string> &deviceIds,
 Status SingleKvStoreImpl::UnSubscribe(const std::vector<std::string> &deviceIds,
                                       const std::string &query, uint64_t sequenceId)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     ZLOGD("start.");
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
@@ -1045,7 +1061,8 @@ Status SingleKvStoreImpl::UnSubscribe(const std::vector<std::string> &deviceIds,
 
 InnerStatus SingleKvStoreImpl::Close(DistributedDB::KvStoreDelegateManager *kvStoreDelegateManager)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
 
     ZLOGW("start Close");
     if (openCount_ > 1) {
@@ -1104,7 +1121,8 @@ Status SingleKvStoreImpl::ForceClose(DistributedDB::KvStoreDelegateManager *kvSt
 
 Status SingleKvStoreImpl::ReKey(const std::vector<uint8_t> &key)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
 
     std::shared_lock<std::shared_mutex> lock(storeNbDelegateMutex_);
     if (kvStoreNbDelegate_ == nullptr) {
@@ -1142,7 +1160,8 @@ Status SingleKvStoreImpl::UnRegisterSyncCallback()
 
 Status SingleKvStoreImpl::PutBatch(const std::vector<Entry> &entries)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
 
     std::shared_lock<std::shared_mutex> lock(storeNbDelegateMutex_);
     if (kvStoreNbDelegate_ == nullptr) {
@@ -1200,7 +1219,8 @@ Status SingleKvStoreImpl::PutBatch(const std::vector<Entry> &entries)
 
 Status SingleKvStoreImpl::DeleteBatch(const std::vector<Key> &keys)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
 
     std::shared_lock<std::shared_mutex> lock(storeNbDelegateMutex_);
     if (kvStoreNbDelegate_ == nullptr) {
@@ -1256,8 +1276,8 @@ Status SingleKvStoreImpl::DeleteBatch(const std::vector<Key> &keys)
 
 Status SingleKvStoreImpl::StartTransaction()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
-
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     std::shared_lock<std::shared_mutex> lock(storeNbDelegateMutex_);
     if (kvStoreNbDelegate_ == nullptr) {
         ZLOGE("delegate is null.");
@@ -1291,7 +1311,8 @@ Status SingleKvStoreImpl::StartTransaction()
 
 Status SingleKvStoreImpl::Commit()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
 
     std::shared_lock<std::shared_mutex> lock(storeNbDelegateMutex_);
     if (kvStoreNbDelegate_ == nullptr) {
@@ -1327,7 +1348,8 @@ Status SingleKvStoreImpl::Commit()
 
 Status SingleKvStoreImpl::Rollback()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
 
     std::shared_lock<std::shared_mutex> lock(storeNbDelegateMutex_);
     if (kvStoreNbDelegate_ == nullptr) {
@@ -1408,7 +1430,12 @@ bool SingleKvStoreImpl::Import(const std::string &bundleName) const
     metaData.deviceId = DeviceKvStoreImpl::GetLocalDeviceId();
     MetaDataManager::GetInstance().LoadMeta(metaData.GetKey(), metaData);
     std::shared_lock<std::shared_mutex> lock(storeNbDelegateMutex_);
-    return std::make_unique<BackupHandler>()->SingleKvStoreRecover(metaData, kvStoreNbDelegate_);
+    auto recoverResult = std::make_unique<BackupHandler>()->SingleKvStoreRecover(metaData, kvStoreNbDelegate_);
+    if (recoverResult) {
+        metaData.isCorrupted = false;
+        MetaDataManager::GetInstance().SaveMeta(metaData.GetKey(), metaData);
+    }
+    return recoverResult;
 }
 
 Status SingleKvStoreImpl::SetCapabilityEnabled(bool enabled)

@@ -53,14 +53,7 @@ DATABASE_SYNC_FAILED:
   MODULE_NAME: {type: STRING, desc: module name }
   ERROR_TYPE: {type: INT32, desc: fault type }
 
-DATABASE_RECOVERY_FAILED:
-  __BASE: {type: FAULT, level: CRITICAL, desc: The event is database fault }
-  APP_ID: {type: STRING, desc: app id }
-  STORE_ID: {type: STRING, desc: store id }
-  MODULE_NAME: {type: STRING, desc: module name }
-  ERROR_TYPE: {type: INT32, desc: fault type }
-
-DATABASE_OPEN_FAILED:
+DATABASE_CORRUPTED_FAILED:
   __BASE: {type: FAULT, level: CRITICAL, desc: The event is database fault }
   APP_ID: {type: STRING, desc: app id }
   STORE_ID: {type: STRING, desc: store id }
@@ -100,24 +93,15 @@ API_PERFORMANCE_STATISTIC:
   __BASE: {type: STATISTIC, level: MINOR, desc: The event is api visit statistic }
   INTERFACES: {type: STRING, desc: api performanace of one day }
 
-DATABASE_SECURITY:
-  __BASE: {type: SECURITY, level: MINOR, desc: The event is security record }
-  ANONYMOUS_UID: {type: STRING, desc: uid with anonymous }
-  APP_ID: {type: STRING, desc: app id }
-  STORE_ID: {type: STRING, desc: store id }
-  ANONYMOUS_DID: {type: STRING, desc: decice id with anonymous }
-  SECURITY_INFO: {type: INT32, desc: security event id }
-
-DATABASE_SECURITY:
-  __BASE: {type: SECURITY, level: MINOR, desc: The event is security record }
-  ANONYMOUS_DID: {type: STRING, desc: decice id with anonymous }
-  DEVICE_SENSITIVE_LEVEL: {type: INT32, desc: sensitive level in device }
-  OPTION_SENSITIVE_LEVEL: {type: INT32, desc: sensitive level in option }
-  SECURITY_INFO: {type: INT32, desc: security event id }
-
 DATABASE_BEHAVIOUR:
   __BASE: {type: BEHAVIOR, level: MINOR, desc: The event is behaviour record }
   ANONYMOUS_UID: {type: STRING, desc: uid with anonymous }
   APP_ID: {type: STRING, desc: app id }
   STORE_ID: {type: STRING, desc: store id }
-  BEHAVIOUR_INFO: {type: INT32, desc: behaviour id }
+  BEHAVIOUR_INFO: {type: STRING, desc: behaviour type and behaviour resulte }
+
+OPEN_DATABASE_FAILED:
+  __BASE: {type: FAULT, level: CRITICAL, desc: The database open failed}
+  APP_ID: {type: STRING, desc: app id }
+  STORE_ID: {type: STRING, desc: store id }
+  ERROR_CODE: {type: STRING, desc: error code}
