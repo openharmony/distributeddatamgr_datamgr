@@ -44,8 +44,8 @@ int32_t ObjectServiceImpl::ObjectStoreSave(const std::string &bundleName, const 
     storeInfo.storeId = sessionId;
     std::string appId = DistributedData::CheckerManager::GetInstance().GetAppId(storeInfo);
     if (appId.empty()) {
-        ZLOGE("object bundleName wrong, bundleName = %{public}s, uid = %{public}d, tokenId = %{public}d", 
-		bundleName.c_str(), storeInfo.uid, storeInfo.tokenId);
+        ZLOGE("object bundleName wrong, bundleName = %{public}s, uid = %{public}d, tokenId = %{public}d",
+            bundleName.c_str(), storeInfo.uid, storeInfo.tokenId);
         return PERMISSION_DENIED;
     }
     if (!PermissionValidator::GetInstance().CheckSyncPermission(storeInfo.tokenId)) {
@@ -108,8 +108,8 @@ int32_t ObjectServiceImpl::ObjectStoreRevokeSave(
     storeInfo.storeId = sessionId;
     std::string appId = DistributedData::CheckerManager::GetInstance().GetAppId(storeInfo);
     if (appId.empty()) {
-        ZLOGE("object bundleName wrong, bundleName = %{public}s, uid = %{public}d, tokenId = %{public}d", 
-		bundleName.c_str(), storeInfo.uid, storeInfo.tokenId);
+        ZLOGE("object bundleName wrong, bundleName = %{public}s, uid = %{public}d, tokenId = %{public}d",
+            bundleName.c_str(), storeInfo.uid, storeInfo.tokenId);
         return PERMISSION_DENIED;
     }
     if (!PermissionValidator::GetInstance().CheckSyncPermission(storeInfo.tokenId)) {
@@ -136,7 +136,7 @@ int32_t ObjectServiceImpl::ObjectStoreRetrieve(
     std::string appId = DistributedData::CheckerManager::GetInstance().GetAppId(storeInfo);
     if (appId.empty()) {
         ZLOGE("object bundleName wrong, bundleName = %{public}s, uid = %{public}d, tokenId = %{public}d",
-		bundleName.c_str(), storeInfo.uid, storeInfo.tokenId);
+            bundleName.c_str(), storeInfo.uid, storeInfo.tokenId);
         return PERMISSION_DENIED;
     }
     if (!PermissionValidator::GetInstance().CheckSyncPermission(storeInfo.tokenId)) {
@@ -167,8 +167,8 @@ int32_t ObjectServiceImpl::DeleteByAppId(const std::string &bundleName)
     if (result != SUCCESS) {
         pid_t uid = IPCSkeleton::GetCallingUid();
         uint32_t tokenId = IPCSkeleton::GetCallingTokenID();
-        ZLOGE("Delete fail %{public}d, bundleName = %{public}s, uid = %{public}d, tokenId = %{public}d", 
-		result, bundleName.c_str(), uid, tokenId);
+        ZLOGE("Delete fail %{public}d, bundleName = %{public}s, uid = %{public}d, tokenId = %{public}d",
+            result, bundleName.c_str(), uid, tokenId);
     }
     return result;
 }
