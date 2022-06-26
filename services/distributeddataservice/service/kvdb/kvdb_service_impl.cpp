@@ -16,6 +16,7 @@
 #include "kvdb_service_impl.h"
 
 #include <chrono>
+#include <inttypes.h>
 
 #include "accesstoken_kit.h"
 #include "account/account_delegate.h"
@@ -27,8 +28,11 @@
 #include "log_print.h"
 #include "metadata/meta_data_manager.h"
 #include "metadata/secret_key_meta_data.h"
+#include "query_helper.h"
+#include "utils/anonymous.h"
 #include "utils/constant.h"
 #include "utils/converter.h"
+
 namespace OHOS::DistributedKv {
 using namespace OHOS::DistributedData;
 using namespace OHOS::AppDistributedKv;
@@ -90,9 +94,9 @@ Status KVDBServiceImpl::Sync(const AppId &appId, const StoreId &storeId, const S
     StoreMetaData metaData = GetStoreMetaData(appId, storeId);
     MetaDataManager::GetInstance().LoadMeta(metaData.GetKey(), metaData);
     auto delay = GetSyncDelayTime(syncInfo.delay, storeId);
-    return KvStoreSyncManager::GetInstance()->AddSyncOperation(reinterpret_cast<uintptr_t>(this), delay,
-        std::bind(&KVDBServiceImpl::DoSync, this, metaData, syncInfo, std::placeholders::_1),
-        std::bind(&KVDBServiceImpl::DoComplete, this, metaData, syncInfo, std::placeholders::_1));
+    return KvStoreSyncManager::GetInstance()->AddSyncOperation(uintptr_t(metaData.tokenId), delay,
+        std::bind(&KVDBServiceImpl::DoSync, this, metaData, syncInfo, std::placeholders::_1, ACTION_SYNC),
+        std::bind(&KVDBServiceImpl::DoComplete, this, metaData.tokenId, syncInfo.seqId, std::placeholders::_1));
 }
 
 Status KVDBServiceImpl::RegisterSyncCallback(const AppId &appId, sptr<IKvStoreSyncCallback> callback)
@@ -199,34 +203,24 @@ Status KVDBServiceImpl::SetCapability(const AppId &appId, const StoreId &storeId
     return SUCCESS;
 }
 
-Status KVDBServiceImpl::AddSubscribeInfo(const AppId &appId, const StoreId &storeId,
-    const std::vector<std::string> &devices, const std::string &query)
+Status KVDBServiceImpl::AddSubscribeInfo(const AppId &appId, const StoreId &storeId, const SyncInfo &syncInfo)
 {
-    auto tokenId = IPCSkeleton::GetCallingTokenID();
-    syncAgents_.Compute(tokenId, [&appId, &storeId, &devices, &query](auto &key, SyncAgent &value) {
-        if (value.pid_ != IPCSkeleton::GetCallingPid()) {
-            value.ReInit(IPCSkeleton::GetCallingPid(), appId);
-        }
-        value.conditions_[storeId] = { devices, query };
-        return true;
-    });
-    return SUCCESS;
+    StoreMetaData metaData = GetStoreMetaData(appId, storeId);
+    MetaDataManager::GetInstance().LoadMeta(metaData.GetKey(), metaData);
+    auto delay = GetSyncDelayTime(syncInfo.delay, storeId);
+    return KvStoreSyncManager::GetInstance()->AddSyncOperation(uintptr_t(metaData.tokenId), delay,
+        std::bind(&KVDBServiceImpl::DoSync, this, metaData, syncInfo, std::placeholders::_1, ACTION_SUBSCRIBE),
+        std::bind(&KVDBServiceImpl::DoComplete, this, metaData.tokenId, syncInfo.seqId, std::placeholders::_1));
 }
 
-Status KVDBServiceImpl::RmvSubscribeInfo(const AppId &appId, const StoreId &storeId,
-    const std::vector<std::string> &devices, const std::string &query)
+Status KVDBServiceImpl::RmvSubscribeInfo(const AppId &appId, const StoreId &storeId, const SyncInfo &syncInfo)
 {
-    auto tokenId = IPCSkeleton::GetCallingTokenID();
-    syncAgents_.Compute(tokenId, [&appId, &storeId](auto &key, SyncAgent &value) {
-        if (value.pid_ != IPCSkeleton::GetCallingPid()) {
-            ZLOGW("agent already changed! old pid:%{public}d, new pid:%{public}d, appId:%{public}s",
-                IPCSkeleton::GetCallingPid(), value.pid_, appId.appId.c_str());
-            return true;
-        }
-        value.conditions_.erase(storeId);
-        return true;
-    });
-    return SUCCESS;
+    StoreMetaData metaData = GetStoreMetaData(appId, storeId);
+    MetaDataManager::GetInstance().LoadMeta(metaData.GetKey(), metaData);
+    auto delay = GetSyncDelayTime(syncInfo.delay, storeId);
+    return KvStoreSyncManager::GetInstance()->AddSyncOperation(uintptr_t(metaData.tokenId), delay,
+        std::bind(&KVDBServiceImpl::DoSync, this, metaData, syncInfo, std::placeholders::_1, ACTION_UNSUBSCRIBE),
+        std::bind(&KVDBServiceImpl::DoComplete, this, metaData.tokenId, syncInfo.seqId, std::placeholders::_1));
 }
 
 Status KVDBServiceImpl::Subscribe(const AppId &appId, const StoreId &storeId, sptr<IKvStoreObserver> observer)
@@ -274,21 +268,21 @@ Status KVDBServiceImpl::AfterCreate(const AppId &appId, const StoreId &storeId, 
     const std::vector<uint8_t> &password)
 {
     if (!appId.IsValid() || !storeId.IsValid() || !options.IsValidType()) {
-        ZLOGE("failed, please type:%{public}d, appId:%{public}s, storeId:%{public}s", options.kvStoreType,
+        ZLOGE("failed, please check type:%{public}d, appId:%{public}s, storeId:%{public}s", options.kvStoreType,
             appId.appId.c_str(), storeId.storeId.c_str());
         return INVALID_ARGUMENT;
     }
     StoreMetaData metaData = GetStoreMetaData(appId, storeId);
     AddOptions(options, metaData);
     StoreMetaData oldMeta;
-    MetaDataManager::GetInstance().LoadMeta(metaData.GetKey(), oldMeta);
-    if (oldMeta != metaData) {
+    auto isCreated = MetaDataManager::GetInstance().LoadMeta(metaData.GetKey(), oldMeta);
+    if (isCreated && oldMeta != metaData) {
         // implement update
-        ZLOGI("update meta data appId:%{public}s, storeId:%{public}s instanceId:%{public}d", appId.appId.c_str(),
-            storeId.storeId.c_str(), metaData.instanceId);
-        MetaDataManager::GetInstance().SaveMeta(metaData.GetKey(), metaData);
+        ZLOGI("update appId:%{public}s, storeId:%{public}s instanceId:%{public}d type:%{public}d->%{public}d "
+              "dir:%{public}s", appId.appId.c_str(), storeId.storeId.c_str(), metaData.instanceId,
+            oldMeta.storeType, metaData.storeType, metaData.dataDir.c_str());
     }
-
+    MetaDataManager::GetInstance().SaveMeta(metaData.GetKey(), metaData);
     if (metaData.isEncrypt) {
         SecretKeyMetaData secretKey;
         secretKey.storeType = metaData.storeType;
@@ -298,6 +292,9 @@ Status KVDBServiceImpl::AfterCreate(const AppId &appId, const StoreId &storeId, 
         auto storeKey = SecretKeyMetaData::GetKey({ metaData.user, "default", metaData.bundleName, metaData.storeId });
         MetaDataManager::GetInstance().SaveMeta(storeKey, secretKey, true);
     }
+    ZLOGD("appId:%{public}s, storeId:%{public}s instanceId:%{public}d type:%{public}d dir:%{public}s",
+        appId.appId.c_str(), storeId.storeId.c_str(), metaData.instanceId, metaData.storeType,
+        metaData.dataDir.c_str());
     return SUCCESS;
 }
 
@@ -344,27 +341,30 @@ Status KVDBServiceImpl::ResolveAutoLaunch(const std::string &identifier, DBLaunc
 
 void KVDBServiceImpl::AddOptions(const Options &options, StoreMetaData &metaData)
 {
-    metaData.securityLevel = options.securityLevel;
-    metaData.storeType = options.kvStoreType;
+    metaData.isAutoSync = options.autoSync;
     metaData.isBackup = options.backup;
     metaData.isEncrypt = options.encrypt;
-    metaData.isAutoSync = options.autoSync;
+    metaData.storeType = options.kvStoreType;
+    metaData.securityLevel = options.securityLevel;
+    metaData.area = options.area;
     metaData.appId = CheckerManager::GetInstance().GetAppId(Converter::ConvertToStoreInfo(metaData));
-    metaData.user = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(metaData.uid);
-    metaData.account = AccountDelegate::GetInstance()->GetCurrentAccountId();
+    metaData.appType = "harmony";
+    metaData.hapName = options.hapName;
     metaData.dataDir = DirectoryManager::GetInstance().GetStorePath(metaData);
+    metaData.schema = options.schema;
+    metaData.account = AccountDelegate::GetInstance()->GetCurrentAccountId();
 }
 
 StoreMetaData KVDBServiceImpl::GetStoreMetaData(const AppId &appId, const StoreId &storeId)
 {
     StoreMetaData metaData;
-    metaData.deviceId = Commu::GetInstance().GetLocalDevice().uuid;
     metaData.uid = IPCSkeleton::GetCallingUid();
     metaData.tokenId = IPCSkeleton::GetCallingTokenID();
+    metaData.instanceId = GetInstIndex(metaData.tokenId, appId);
     metaData.bundleName = appId.appId;
+    metaData.deviceId = Commu::GetInstance().GetLocalDevice().uuid;
     metaData.storeId = storeId.storeId;
     metaData.user = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(metaData.uid);
-    metaData.instanceId = GetInstIndex(metaData.tokenId, appId);
     return metaData;
 }
 
@@ -395,9 +395,10 @@ int32_t KVDBServiceImpl::GetInstIndex(uint32_t tokenId, const AppId &appId)
     return tokenInfo.instIndex;
 }
 
-Status KVDBServiceImpl::DoSync(const StoreMetaData &metaData, const SyncInfo &syncInfo, const SyncEnd &complete)
+Status KVDBServiceImpl::DoSync(StoreMetaData metaData, SyncInfo syncInfo, const SyncEnd &complete, int32_t type)
 {
-    ZLOGD("start.");
+    ZLOGD("seqId:0x%{public}" PRIx64 " remote:%{public}zu appId:%{public}s storeId:%{public}s", syncInfo.seqId,
+        syncInfo.devices.size(), metaData.bundleName.c_str(), metaData.storeId.c_str());
     std::vector<std::string> uuids;
     if (syncInfo.devices.empty()) {
         auto remotes = Commu::GetInstance().GetRemoteDevices();
@@ -412,25 +413,50 @@ Status KVDBServiceImpl::DoSync(const StoreMetaData &metaData, const SyncInfo &sy
         }
     }
     if (uuids.empty()) {
-        ZLOGE("not found deviceIds.");
+        ZLOGW("no device online seqId:0x%{public}" PRIx64 " remote:%{public}zu appId:%{public}s storeId:%{public}s",
+            syncInfo.seqId, syncInfo.devices.size(), metaData.bundleName.c_str(), metaData.storeId.c_str());
         return Status::ERROR;
     }
+
     DistributedDB::DBStatus status;
     auto store = storeCache_.GetStore(metaData, nullptr, status);
     if (store == nullptr) {
+        ZLOGE("failed! status:%{public}d appId:%{public}s storeId:%{public}s dir:%{public}s", status,
+            metaData.bundleName.c_str(), metaData.storeId.c_str(), metaData.dataDir.c_str());
         return ConvertDbStatus(status);
     }
-    status = store->Sync(uuids, static_cast<DistributedDB::SyncMode>(syncInfo.mode), complete);
+    bool isSuccess = false;
+    auto dbQuery = QueryHelper::StringToDbQuery(syncInfo.query, isSuccess);
+    if (!isSuccess && !syncInfo.query.empty()) {
+        ZLOGE("failed DBQuery:%{public}s", Anonymous::Change(syncInfo.query).c_str());
+        return Status::INVALID_ARGUMENT;
+    }
+
+    switch (type) {
+        case ACTION_SYNC:
+            status = store->Sync(uuids, ConvertDBMode(SyncMode(syncInfo.mode)), complete, dbQuery, false);
+            break;
+        case ACTION_SUBSCRIBE:
+            status = store->SubscribeRemoteQuery(uuids, complete, dbQuery, false);
+            break;
+        case ACTION_UNSUBSCRIBE:
+            status = store->UnSubscribeRemoteQuery(uuids, complete, dbQuery, false);
+            break;
+        default:
+            status = DBStatus::INVALID_ARGS;
+            break;
+    }
     return ConvertDbStatus(status);
 }
 
-Status KVDBServiceImpl::DoComplete(const StoreMetaData &metaData, const SyncInfo &syncInfo, const DBResult &dbResult)
+Status KVDBServiceImpl::DoComplete(uint32_t tokenId, uint64_t seqId, const DBResult &dbResult)
 {
-    if (syncInfo.seqId == std::numeric_limits<uint64_t>::max()) {
+    ZLOGD("seqId:0x%{public}" PRIx64 " remote:%{public}zu", seqId, dbResult.size());
+    if (seqId == std::numeric_limits<uint64_t>::max()) {
         return SUCCESS;
     }
     sptr<IKvStoreSyncCallback> callback;
-    syncAgents_.ComputeIfPresent(metaData.tokenId, [&callback](auto &key, SyncAgent &agent) {
+    syncAgents_.ComputeIfPresent(tokenId, [&callback](auto &key, SyncAgent &agent) {
         callback = agent.callback_;
         return true;
     });
@@ -442,7 +468,7 @@ Status KVDBServiceImpl::DoComplete(const StoreMetaData &metaData, const SyncInfo
     for (auto &[key, status] : dbResult) {
         result[key] = ConvertDbStatus(status);
     }
-    callback->SyncCompleted(result, syncInfo.seqId);
+    callback->SyncCompleted(result, seqId);
     return SUCCESS;
 }
 
@@ -453,7 +479,7 @@ uint32_t KVDBServiceImpl::GetSyncDelayTime(uint32_t delay, const StoreId &storeI
     }
 
     bool isBackground = Constant::IsBackground(IPCSkeleton::GetCallingPid());
-    if (isBackground) {
+    if (!isBackground) {
         return delay;
     }
     delay = KvStoreSyncManager::SYNC_DEFAULT_DELAY_MS;
@@ -467,7 +493,7 @@ uint32_t KVDBServiceImpl::GetSyncDelayTime(uint32_t delay, const StoreId &storeI
     return delay;
 }
 
-Status KVDBServiceImpl::ConvertDbStatus(DBStatus status)
+Status KVDBServiceImpl::ConvertDbStatus(DBStatus status) const
 {
     switch (status) {
         case DBStatus::BUSY: // fallthrough
@@ -504,6 +530,19 @@ Status KVDBServiceImpl::ConvertDbStatus(DBStatus status)
             break;
     }
     return Status::ERROR;
+}
+
+KVDBServiceImpl::DBMode KVDBServiceImpl::ConvertDBMode(SyncMode syncMode) const
+{
+    DBMode dbMode;
+    if (syncMode == SyncMode::PUSH) {
+        dbMode = DBMode::SYNC_MODE_PUSH_ONLY;
+    } else if (syncMode == SyncMode::PULL) {
+        dbMode = DBMode::SYNC_MODE_PULL_ONLY;
+    } else {
+        dbMode = DBMode::SYNC_MODE_PUSH_PULL;
+    }
+    return dbMode;
 }
 
 void KVDBServiceImpl::SyncAgent::ReInit(pid_t pid, const AppId &appId)

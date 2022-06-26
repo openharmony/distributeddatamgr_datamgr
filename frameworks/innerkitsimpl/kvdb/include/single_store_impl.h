@@ -57,7 +57,8 @@ public:
     Status GetCount(const DataQuery &query, int &count) const override;
     Status GetSecurityLevel(SecurityLevel &secLevel) const override;
     Status RemoveDeviceData(const std::string &device) override;
-    Status Close();
+    int32_t Close(bool isForce = false);
+    int32_t AddRef();
 
     // IPC interface
     Status Sync(const std::vector<std::string> &devices, SyncMode mode, uint32_t delay) override;
@@ -68,8 +69,8 @@ public:
     Status SetSyncParam(const KvSyncParam &syncParam) override;
     Status GetSyncParam(KvSyncParam &syncParam) override;
     Status SetCapabilityEnabled(bool enabled) const override;
-    Status SetCapabilityRange(
-        const std::vector<std::string> &localLabels, const std::vector<std::string> &remoteLabels) const override;
+    Status SetCapabilityRange(const std::vector<std::string> &local,
+        const std::vector<std::string> &remote) const override;
     Status SubscribeWithQuery(const std::vector<std::string> &devices, const DataQuery &query) override;
     Status UnsubscribeWithQuery(const std::vector<std::string> &devices, const DataQuery &query) override;
 
@@ -93,6 +94,7 @@ private:
     std::string appId_;
     std::string storeId_;
     bool autoSync_ = false;
+    int32_t ref_ = 1;
     mutable std::shared_mutex rwMutex_;
     std::shared_ptr<SyncObserver> syncObserver_ = nullptr;
     ConcurrentMap<uintptr_t, std::pair<uint32_t, std::shared_ptr<ObserverBridge>>> observers_;

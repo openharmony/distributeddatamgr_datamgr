@@ -85,7 +85,7 @@ void SingleStoreImplTest::SetUp(void)
     StoreId storeId = { "LocalSingleKVStore" };
     std::string path = "";
     Status status = StoreManager::GetInstance().Delete(appId, storeId, path);
-    kvStore_ = StoreManager::GetInstance().GetKVStore(appId, storeId, options, path, status);
+    kvStore_ = StoreManager::GetInstance().GetKVStore(appId, storeId, options, status);
     ASSERT_EQ(status, SUCCESS);
 }
 

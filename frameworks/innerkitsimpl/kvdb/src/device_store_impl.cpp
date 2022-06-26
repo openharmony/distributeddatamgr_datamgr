@@ -23,12 +23,17 @@
 namespace OHOS::DistributedKv {
 std::vector<uint8_t> DeviceStoreImpl::ToLocalDBKey(const Key &key) const
 {
+    return ToLocal(key, true);
+}
+
+std::vector<uint8_t> DeviceStoreImpl::ToLocal(const Key &in, bool withLen) const
+{
     auto uuid = DevManager::GetInstance().GetLocalDevice().uuid;
     if (uuid.empty()) {
         return {};
     }
 
-    std::vector<uint8_t> input = SingleStoreImpl::GetPrefix(key);
+    std::vector<uint8_t> input = withLen ? SingleStoreImpl::GetPrefix(in) : in.Data();
     if (input.empty()) {
         return {};
     }
@@ -38,9 +43,12 @@ std::vector<uint8_t> DeviceStoreImpl::ToLocalDBKey(const Key &key) const
     std::vector<uint8_t> dbKey;
     dbKey.insert(dbKey.end(), uuid.begin(), uuid.end());
     dbKey.insert(dbKey.end(), input.begin(), input.end());
-    uint32_t length = uuid.length();
-    length = htole32(length);
-    dbKey.insert(dbKey.end(), &length, &length + sizeof(length));
+    if (withLen) {
+        uint32_t length = uuid.length();
+        length = htole32(length);
+        uint8_t *buf = reinterpret_cast<uint8_t *>(&length);
+        dbKey.insert(dbKey.end(), buf, buf + sizeof(length));
+    }
     return dbKey;
 }
 
@@ -48,14 +56,22 @@ std::vector<uint8_t> DeviceStoreImpl::ToWholeDBKey(const Key &key) const
 {
     // | device uuid | original key | uuid len |
     // |-------------|--------------|-----4----|
-    return ConvertNetwork(key);
+    return ConvertNetwork(key, true);
 }
 
 Key DeviceStoreImpl::ToKey(DBKey &&key) const
 {
     // |  uuid    |original key|uuid len|
     // |---- -----|------------|---4----|
+    if (key.size() < sizeof(uint32_t)) {
+        return std::move(key);
+    }
+
     uint32_t length = *(reinterpret_cast<uint32_t *>(&(*(key.end() - sizeof(uint32_t)))));
+    if (length > key.size() - sizeof(uint32_t)) {
+        return std::move(key);
+    }
+
     length = le32toh(length);
     key.erase(key.begin(), key.begin() + length);
     key.erase(key.end() - sizeof(uint32_t), key.end());
@@ -84,7 +100,15 @@ std::vector<uint8_t> DeviceStoreImpl::GetPrefix(const DataQuery &query) const
 SingleStoreImpl::Convert DeviceStoreImpl::GetConvert() const
 {
     return [](const DBKey &key, std::string &deviceId) {
+        if (key.size() < sizeof(uint32_t)) {
+            return std::move(key);
+        }
+
         uint32_t length = *(reinterpret_cast<const uint32_t *>(&(*(key.end() - sizeof(uint32_t)))));
+        if (length > key.size() - sizeof(uint32_t)) {
+            return std::move(key);
+        }
+
         length = le32toh(length);
         deviceId = { key.begin(), key.begin() + length };
         Key result(std::vector<uint8_t>(key.begin() + length, key.end() - sizeof(uint32_t)));
@@ -98,18 +122,23 @@ std::vector<uint8_t> DeviceStoreImpl::ConvertNetwork(const Key &in, bool withLen
     // | network ID len | networkID | original key|
     // |--------4-------|-----------|------------|
     if (in.Size() < sizeof(uint32_t)) {
-        return in.Data();
+        return ToLocal(in, withLen);
     }
-    size_t deviceLen = *(reinterpret_cast<const uint32_t *>(in.Data().data()));
-    std::string networkId(in.Data().begin() + sizeof(uint32_t), in.Data().begin() + sizeof(uint32_t) + deviceLen);
+    std::string deviceLen(in.Data().data(), in.Data().data() + sizeof(uint32_t));
     std::regex patten("^[0-9]*$");
-    if (!std::regex_match(networkId, patten)) {
-        ZLOGE("device id length is error.");
-        return in.Data();
+    if (!std::regex_match(deviceLen, patten)) {
+        return ToLocal(in, withLen);
     }
+
+    uint32_t devLen = atol(deviceLen.c_str());
+    if (devLen > in.Data().size() + sizeof(uint32_t)) {
+        return ToLocal(in, withLen);
+    }
+
+    std::string networkId(in.Data().begin() + sizeof(uint32_t), in.Data().begin() + sizeof(uint32_t) + devLen);
     std::string uuid = DevManager::GetInstance().ToUUID(networkId);
     if (uuid.empty()) {
-        return in.Data();
+        return ToLocal(in, withLen);
     }
 
     // output
@@ -118,11 +147,12 @@ std::vector<uint8_t> DeviceStoreImpl::ConvertNetwork(const Key &in, bool withLen
     // |  Mandatory  |   Mandatory  | Optional |
     std::vector<uint8_t> out;
     out.insert(out.end(), uuid.begin(), uuid.end());
-    out.insert(out.end(), in.Data().begin() + sizeof(uint32_t) + deviceLen, in.Data().end());
+    out.insert(out.end(), in.Data().begin() + sizeof(uint32_t) + devLen, in.Data().end());
     if (withLen) {
         uint32_t length = uuid.length();
         length = htole32(length);
-        out.insert(out.end(), &length, &length + sizeof(length));
+        uint8_t *buf = reinterpret_cast<uint8_t *>(&length);
+        out.insert(out.end(), buf, buf + sizeof(length));
     }
     return out;
 }

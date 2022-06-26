@@ -30,6 +30,7 @@ protected:
     std::vector<uint8_t> GetPrefix(const DataQuery &query) const override;
     Convert GetConvert() const override;
     std::vector<uint8_t> ConvertNetwork(const Key &in, bool withLen = false) const;
+    std::vector<uint8_t> ToLocal(const Key &in, bool withLen) const;
 };
 }
 #endif // OHOS_DISTRIBUTED_DATA_FRAMEWORKS_KVDB_DEVICE_STORE_IMPL_H

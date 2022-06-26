@@ -35,7 +35,7 @@ public:
     void TearDown();
 
     static std::shared_ptr<SingleKvStore> singleKvStorePtr; // declare kvstore instance.
-    static Status statusGetKvStore;
+    static Status status_;
     static int MAX_VALUE_SIZE;
 };
 
@@ -48,7 +48,7 @@ const std::string VALID_SCHEMA_STRICT_DEFINE = "{\"SCHEMA_VERSION\":\"1.0\","
         "\"SCHEMA_INDEXES\":[\"$.age\"]}";
 
 std::shared_ptr<SingleKvStore> SingleKvStoreClientTest::singleKvStorePtr = nullptr;
-Status SingleKvStoreClientTest::statusGetKvStore = Status::ERROR;
+Status SingleKvStoreClientTest::status_ = Status::ERROR;
 int SingleKvStoreClientTest::MAX_VALUE_SIZE = 4 * 1024 * 1024; // max value size is 4M.
 
 void SingleKvStoreClientTest::SetUpTestCase(void)
@@ -56,16 +56,21 @@ void SingleKvStoreClientTest::SetUpTestCase(void)
     DistributedKvDataManager manager;
     Options options = { .createIfMissing = true, .encrypt = false, .autoSync = true,
                         .kvStoreType = KvStoreType::SINGLE_VERSION };
-
+    options.area = EL1;
+    options.baseDir = std::string("/data/service/el1/public/database/odmf");
     AppId appId = { "odmf" };
     StoreId storeId = { "student_single" }; // define kvstore(database) name.
-
+    mkdir(options.baseDir.c_str(), (S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH));
     // [create and] open and initialize kvstore instance.
-    statusGetKvStore = manager.GetSingleKvStore(options, appId, storeId, singleKvStorePtr);
+    status_ = manager.GetSingleKvStore(options, appId, storeId, singleKvStorePtr);
 }
 
 void SingleKvStoreClientTest::TearDownTestCase(void)
-{}
+{
+    remove("/data/service/el1/public/database/odmf/key");
+    remove("/data/service/el1/public/database/odmf/kvdb");
+    remove("/data/service/el1/public/database/odmf");
+}
 
 void SingleKvStoreClientTest::SetUp(void)
 {}
@@ -350,10 +355,13 @@ HWTEST_F(SingleKvStoreClientTest, TestSchemaStoreC001, TestSize.Level1)
 {
     std::shared_ptr<SingleKvStore> schemaSingleKvStorePtr;
     DistributedKvDataManager manager;
-    Options options = { .createIfMissing = true, .encrypt = true, .autoSync = true,
-                        .kvStoreType = KvStoreType::SINGLE_VERSION };
+    Options options;
+    options.encrypt = true;
+    options.area = EL1;
+    options.kvStoreType = KvStoreType::SINGLE_VERSION;
+    options.baseDir = "/data/service/el1/public/database/odmf";
     options.schema = VALID_SCHEMA_STRICT_DEFINE;
-    AppId appId = { "schema_app_id" };
+    AppId appId = { "odmf" };
     StoreId storeId = { "schema_store_id" };
     (void)manager.GetSingleKvStore(options, appId, storeId, schemaSingleKvStorePtr);
     ASSERT_NE(schemaSingleKvStorePtr, nullptr) << "kvStorePtr is null.";
@@ -367,6 +375,7 @@ HWTEST_F(SingleKvStoreClientTest, TestSchemaStoreC001, TestSize.Level1)
     Value resultValue;
     auto getRet = schemaSingleKvStorePtr->Get(testKey, resultValue);
     EXPECT_EQ(getRet, Status::SUCCESS) << "get value failed.";
+    manager.DeleteKvStore(appId, storeId, options.baseDir);
 }
 
 /**
@@ -431,7 +440,7 @@ HWTEST_F(SingleKvStoreClientTest, SetSync002, TestSize.Level1)
 * @tc.require: AR000DPSEA
 * @tc.author: shanshuangshuang
 */
-HWTEST_F(SingleKvStoreClientTest, SingleKvStoreDdmPutBatch001, TestSize.Level2)
+HWTEST_F(SingleKvStoreClientTest, DdmPutBatch001, TestSize.Level2)
 {
     EXPECT_NE(nullptr, singleKvStorePtr) << "singleKvStorePtr is nullptr";
 
@@ -474,7 +483,7 @@ HWTEST_F(SingleKvStoreClientTest, SingleKvStoreDdmPutBatch001, TestSize.Level2)
 * @tc.require: AR000DPSEA
 * @tc.author: shanshuangshuang
 */
-HWTEST_F(SingleKvStoreClientTest, SingleKvStoreDdmPutBatch002, TestSize.Level2)
+HWTEST_F(SingleKvStoreClientTest, DdmPutBatch002, TestSize.Level2)
 {
     EXPECT_NE(nullptr, singleKvStorePtr) << "SinglekvStorePtr is nullptr";
 
@@ -528,13 +537,13 @@ HWTEST_F(SingleKvStoreClientTest, SingleKvStoreDdmPutBatch002, TestSize.Level2)
 }
 
 /**
-* @tc.name: SingleKvStoreDdmPutBatch003
+* @tc.name: DdmPutBatch003
 * @tc.desc: Batch put data that contains invalid data.
 * @tc.type: FUNC
 * @tc.require: AR000DPSEA
 * @tc.author: shanshuangshuang
 */
-HWTEST_F(SingleKvStoreClientTest, SingleKvStoreDdmPutBatch003, TestSize.Level2)
+HWTEST_F(SingleKvStoreClientTest, DdmPutBatch003, TestSize.Level2)
 {
     EXPECT_NE(nullptr, singleKvStorePtr) << "singleKvStorePtr is nullptr";
 
@@ -555,13 +564,13 @@ HWTEST_F(SingleKvStoreClientTest, SingleKvStoreDdmPutBatch003, TestSize.Level2)
 }
 
 /**
-* @tc.name: SingleKvStoreDdmPutBatch004
+* @tc.name: DdmPutBatch004
 * @tc.desc: Batch put data that contains invalid data.
 * @tc.type: FUNC
 * @tc.require: AR000DPSEA
 * @tc.author: shanshuangshuang
 */
-HWTEST_F(SingleKvStoreClientTest, SingleKvStoreDdmPutBatch004, TestSize.Level2)
+HWTEST_F(SingleKvStoreClientTest, DdmPutBatch004, TestSize.Level2)
 {
     EXPECT_NE(nullptr, singleKvStorePtr) << "singleKvStorePtr is nullptr";
 
@@ -581,7 +590,7 @@ HWTEST_F(SingleKvStoreClientTest, SingleKvStoreDdmPutBatch004, TestSize.Level2)
     EXPECT_EQ(Status::INVALID_ARGUMENT, status) << "singleKvStorePtr putbatch data return wrong status";
 }
 
-std::string SingleGenerate1025KeyLen()
+static std::string SingleGenerate1025KeyLen()
 {
     std::string str("prefix");
     // Generate a key with a length of more than 1024 bytes.
@@ -591,13 +600,13 @@ std::string SingleGenerate1025KeyLen()
     return str;
 }
 /**
-* @tc.name: SingleKvStoreDdmPutBatch005
+* @tc.name: DdmPutBatch005
 * @tc.desc: Batch put data that contains invalid data.
 * @tc.type: FUNC
 * @tc.require: AR000DPSEA
 * @tc.author: shanshuangshuang
 */
-HWTEST_F(SingleKvStoreClientTest, SingleKvStoreDdmPutBatch005, TestSize.Level2)
+HWTEST_F(SingleKvStoreClientTest, DdmPutBatch005, TestSize.Level2)
 {
 
     EXPECT_NE(nullptr, singleKvStorePtr) << "singleKvStorePtr is nullptr";
@@ -619,13 +628,13 @@ HWTEST_F(SingleKvStoreClientTest, SingleKvStoreDdmPutBatch005, TestSize.Level2)
 }
 
 /**
-* @tc.name: SingleKvStoreDdmPutBatch006
+* @tc.name: DdmPutBatch006
 * @tc.desc: Batch put large data.
 * @tc.type: FUNC
 * @tc.require: AR000DPSEA
 * @tc.author: shanshuangshuang
 */
-HWTEST_F(SingleKvStoreClientTest, SingleKvStoreDdmPutBatch006, TestSize.Level2)
+HWTEST_F(SingleKvStoreClientTest, DdmPutBatch006, TestSize.Level2)
 {
     EXPECT_NE(nullptr, singleKvStorePtr) << "singleKvStorePtr is nullptr";
 
@@ -667,13 +676,13 @@ HWTEST_F(SingleKvStoreClientTest, SingleKvStoreDdmPutBatch006, TestSize.Level2)
 }
 
 /**
-* @tc.name: SingleKvStoreDdmDeleteBatch001
+* @tc.name: DdmDeleteBatch001
 * @tc.desc: Batch delete data.
 * @tc.type: FUNC
 * @tc.require: AR000DPSEA
 * @tc.author: shanshuangshuang
 */
-HWTEST_F(SingleKvStoreClientTest, SingleKvStoreDdmDeleteBatch001, TestSize.Level2)
+HWTEST_F(SingleKvStoreClientTest, DdmDeleteBatch001, TestSize.Level2)
 {
     EXPECT_NE(nullptr, singleKvStorePtr) << "singleKvStorePtr is nullptr";
 
@@ -707,13 +716,13 @@ HWTEST_F(SingleKvStoreClientTest, SingleKvStoreDdmDeleteBatch001, TestSize.Level
 }
 
 /**
-* @tc.name: SingleKvStoreDdmDeleteBatch002
+* @tc.name: DdmDeleteBatch002
 * @tc.desc: Batch delete data when some keys are not in KvStore.
 * @tc.type: FUNC
 * @tc.require: AR000DPSEA
 * @tc.author: shanshuangshuang
 */
-HWTEST_F(SingleKvStoreClientTest, SingleKvStoreDdmDeleteBatch002, TestSize.Level2)
+HWTEST_F(SingleKvStoreClientTest, DdmDeleteBatch002, TestSize.Level2)
 {
     EXPECT_NE(nullptr, singleKvStorePtr) << "singleKvStorePtr is nullptr";
 
@@ -748,13 +757,13 @@ HWTEST_F(SingleKvStoreClientTest, SingleKvStoreDdmDeleteBatch002, TestSize.Level
 }
 
 /**
-* @tc.name: SingleKvStoreDdmDeleteBatch003
+* @tc.name: DdmDeleteBatch003
 * @tc.desc: Batch delete data when some keys are invalid.
 * @tc.type: FUNC
 * @tc.require: AR000DPSEA
 * @tc.author: shanshuangshuang
 */
-HWTEST_F(SingleKvStoreClientTest, SingleKvStoreDdmDeleteBatch003, TestSize.Level2)
+HWTEST_F(SingleKvStoreClientTest, DdmDeleteBatch003, TestSize.Level2)
 {
     EXPECT_NE(nullptr, singleKvStorePtr) << "SinglekvStorePtr is nullptr";
 
@@ -788,13 +797,13 @@ HWTEST_F(SingleKvStoreClientTest, SingleKvStoreDdmDeleteBatch003, TestSize.Level
 }
 
 /**
-* @tc.name: SingleKvStoreDdmDeleteBatch004
+* @tc.name: DdmDeleteBatch004
 * @tc.desc: Batch delete data when some keys are invalid.
 * @tc.type: FUNC
 * @tc.require: AR000DPSEA
 * @tc.author: shanshuangshuang
 */
-HWTEST_F(SingleKvStoreClientTest, SingleKvStoreDdmDeleteBatch004, TestSize.Level2)
+HWTEST_F(SingleKvStoreClientTest, DdmDeleteBatch004, TestSize.Level2)
 {
     EXPECT_NE(nullptr, singleKvStorePtr) << "singleKvStorePtr is nullptr";
 
@@ -833,13 +842,13 @@ HWTEST_F(SingleKvStoreClientTest, SingleKvStoreDdmDeleteBatch004, TestSize.Level
 }
 
 /**
-* @tc.name: SingleKvStoreDdmDeleteBatch005
+* @tc.name: DdmDeleteBatch005
 * @tc.desc: Batch delete data when some keys are invalid.
 * @tc.type: FUNC
 * @tc.require: AR000DPSEA
 * @tc.author: shanshuangshuang
 */
-HWTEST_F(SingleKvStoreClientTest, SingleKvStoreDdmDeleteBatch005, TestSize.Level2)
+HWTEST_F(SingleKvStoreClientTest, DdmDeleteBatch005, TestSize.Level2)
 {
     EXPECT_NE(nullptr, singleKvStorePtr) << "singleKvStorePtr is nullptr";
 
@@ -879,13 +888,13 @@ HWTEST_F(SingleKvStoreClientTest, SingleKvStoreDdmDeleteBatch005, TestSize.Level
 }
 
 /**
-* @tc.name: SingleKvStoreTransaction001
+* @tc.name: Transaction001
 * @tc.desc: Batch delete data when some keys are invalid.
 * @tc.type: FUNC
 * @tc.require: AR000DPSEA
 * @tc.author: shanshuangshuang
 */
-HWTEST_F(SingleKvStoreClientTest, SingleKvStoreTransaction001, TestSize.Level2)
+HWTEST_F(SingleKvStoreClientTest, Transaction001, TestSize.Level2)
 {
     EXPECT_NE(nullptr, singleKvStorePtr) << "singleKvStorePtr is nullptr";
     std::shared_ptr<KvStoreObserverTestImpl> observer = std::make_shared<KvStoreObserverTestImpl>();
@@ -936,13 +945,13 @@ HWTEST_F(SingleKvStoreClientTest, SingleKvStoreTransaction001, TestSize.Level2)
 }
 
 /**
-* @tc.name: SingleKvStoreTransaction002
+* @tc.name: Transaction002
 * @tc.desc: Batch delete data when some keys are invalid.
 * @tc.type: FUNC
 * @tc.require: AR000DPSEA
 * @tc.author: shanshuangshuang
 */
-HWTEST_F(SingleKvStoreClientTest, SingleKvStoreTransaction002, TestSize.Level2)
+HWTEST_F(SingleKvStoreClientTest, Transaction002, TestSize.Level2)
 {
     EXPECT_NE(nullptr, singleKvStorePtr) << "singleKvStorePtr is nullptr";
     std::shared_ptr<KvStoreObserverTestImpl> observer = std::make_shared<KvStoreObserverTestImpl>();
@@ -997,19 +1006,22 @@ HWTEST_F(SingleKvStoreClientTest, SingleKvStoreTransaction002, TestSize.Level2)
 }
 
 /**
-* @tc.name: SingleKvStoreDeviceSync001
+* @tc.name: DeviceSync001
 * @tc.desc: Test sync enable.
 * @tc.type: FUNC
 * @tc.require:AR000EPAM8 AR000EPAMD
 * @tc.author: HongBo
 */
-HWTEST_F(SingleKvStoreClientTest, SingleKvStoreDeviceSync001 ,TestSize.Level1)
+HWTEST_F(SingleKvStoreClientTest, DeviceSync001 ,TestSize.Level1)
 {
     std::shared_ptr<SingleKvStore> schemaSingleKvStorePtr;
     DistributedKvDataManager manager;
-    Options options = { .createIfMissing = true, .encrypt = true, .autoSync = true,
-            .kvStoreType = KvStoreType::SINGLE_VERSION};
-    AppId appId = { "schema_app_id001" };
+    Options options;
+    options.encrypt = true;
+    options.area = EL1;
+    options.kvStoreType = KvStoreType::SINGLE_VERSION;
+    options.baseDir = "/data/service/el1/public/database/odmf";
+    AppId appId = { "odmf" };
     StoreId storeId = { "schema_store_id001" };
     manager.GetSingleKvStore(options, appId, storeId, schemaSingleKvStorePtr);
     ASSERT_NE(schemaSingleKvStorePtr, nullptr) << "kvStorePtr is null.";
@@ -1018,22 +1030,26 @@ HWTEST_F(SingleKvStoreClientTest, SingleKvStoreDeviceSync001 ,TestSize.Level1)
 
     auto testStatus = schemaSingleKvStorePtr->SetCapabilityEnabled(true);
     EXPECT_EQ(testStatus, Status::SUCCESS) << "set fail";
+    manager.DeleteKvStore(appId, storeId, options.baseDir);
 }
 
 /**
-* @tc.name: SingleKvStoreDeviceSync002
+* @tc.name: DeviceSync002
 * @tc.desc: Test sync enable.
 * @tc.type: FUNC
 * @tc.require:SR000EPA22 AR000EPAM9
 * @tc.author: HongBo
 */
-HWTEST_F(SingleKvStoreClientTest, SingleKvStoreDeviceSync002 ,TestSize.Level1)
+HWTEST_F(SingleKvStoreClientTest, DeviceSync002 ,TestSize.Level1)
 {
     std::shared_ptr<SingleKvStore> schemaSingleKvStorePtr;
     DistributedKvDataManager manager;
-    Options options = { .createIfMissing = true, .encrypt = true, .autoSync = true,
-            .kvStoreType = KvStoreType::SINGLE_VERSION};
-    AppId appId = { "schema_app_id002" };
+    Options options;
+    options.encrypt = true;
+    options.area = EL1;
+    options.kvStoreType = KvStoreType::SINGLE_VERSION;
+    options.baseDir = "/data/service/el1/public/database/odmf";
+    AppId appId = { "odmf" };
     StoreId storeId = { "schema_store_id002" };
     manager.GetSingleKvStore(options, appId, storeId, schemaSingleKvStorePtr);
     ASSERT_NE(schemaSingleKvStorePtr, nullptr) << "kvStorePtr is null.";
@@ -1044,6 +1060,7 @@ HWTEST_F(SingleKvStoreClientTest, SingleKvStoreDeviceSync002 ,TestSize.Level1)
     std::vector<std::string> remote = {"C", "D"};
     auto testStatus = schemaSingleKvStorePtr->SetCapabilityRange(local, remote);
     EXPECT_EQ(testStatus, Status::SUCCESS) << "set range fail";
+    manager.DeleteKvStore(appId, storeId, options.baseDir);
 }
 
 /**
