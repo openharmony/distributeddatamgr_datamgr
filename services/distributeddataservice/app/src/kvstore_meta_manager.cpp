@@ -436,8 +436,7 @@ Status KvStoreMetaManager::GetSecretKeyFromMeta(const std::vector<uint8_t> &meta
     }
     SecretKeyMetaData sKeyValue(jsonObj);
     time_t createTime = TransferByteArrayToType<time_t>(sKeyValue.timeValue);
-    if (!CryptoManager::GetInstance().Decrypt(sKeyValue.secretKey, key))
-    {
+    if (!CryptoManager::GetInstance().Decrypt(sKeyValue.secretKey, key)) {
         return Status::ERROR;
     }
     system_clock::time_point createTimeChrono = system_clock::from_time_t(createTime);
