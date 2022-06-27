@@ -23,6 +23,7 @@ config("module_private_config") {
     "//foundation/distributeddatamgr/distributeddatamgr/frameworks/common",
     "//foundation/distributeddatamgr/distributeddatamgr/frameworks/innerkitsimpl/distributeddatafwk/include",
     "//foundation/distributeddatamgr/distributeddatamgr/frameworks/innerkitsimpl/distributeddatafwk/src",
+    "//foundation/distributeddatamgr/distributeddatamgr/frameworks/innerkitsimpl/kvdb/include",
     "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/distributeddata/include",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/include/permission",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/include/account",
@@ -32,9 +33,11 @@ config("module_private_config") {
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/framework/include",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/service/bootstrap/include",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/service/config/include",
+    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/service/crypto/include",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/service/directory/include",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/app/src/session_manager",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/service/kvdb",
+    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/service/object",
     "//foundation/distributeddatamgr/distributedfile/interfaces/kits/js/src/mod_securitylabel",
     "//utils/native/base/include",
     "//utils/system/safwk/native/include",
@@ -63,19 +66,16 @@ ohos_unittest("KvStoreImplLogicalIsolationTest") {
     "../src/device_kvstore_impl.cpp",
     "../src/device_kvstore_observer_impl.cpp",
     "../src/device_kvstore_resultset_impl.cpp",
+    "../src/dump_helper.cpp",
     "../src/kvstore_account_observer.cpp",
     "../src/kvstore_app_accessor.cpp",
     "../src/kvstore_app_manager.cpp",
     "../src/kvstore_data_service.cpp",
     "../src/kvstore_device_listener.cpp",
-    "../src/kvstore_impl.cpp",
     "../src/kvstore_meta_manager.cpp",
     "../src/kvstore_observer_impl.cpp",
     "../src/kvstore_resultset_impl.cpp",
-    "../src/kvstore_snapshot_impl.cpp",
-    "../src/kvstore_sync_manager.cpp",
     "../src/kvstore_user_manager.cpp",
-    "../src/query_helper.cpp",
     "../src/security/security.cpp",
     "../src/security/sensitive.cpp",
     "../src/session_manager/route_head_handler_impl.cpp",
@@ -88,8 +88,10 @@ ohos_unittest("KvStoreImplLogicalIsolationTest") {
   configs = [ ":module_private_config" ]
 
   external_deps = [
+    "access_token:libaccesstoken_sdk",
     "dataclassification:data_transit_mgr",
-    "deviceauth_standard:deviceauth_sdk",
+    "device_auth:deviceauth_sdk",
+    "hitrace_native:libhitrace",
     "hiviewdfx_hilog_native:libhilog",
     "huks:libhukssdk",
     "ipc:ipc_core",
@@ -104,20 +106,12 @@ ohos_unittest("KvStoreImplLogicalIsolationTest") {
     ]
   }
 
-  kv_sources = [
-    "../../service/kvdb/auth_delegate.cpp",
-    "../../service/kvdb/executor_factory.cpp",
-    "../../service/kvdb/user_delegate.cpp",
-  ]
-
-  sources += kv_sources
   deps = [
     "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/distributeddata:distributeddata_inner",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter:distributeddata_adapter",
-    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/account:distributeddata_account_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/broadcaster:distributeddata_broadcaster_static",
-    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/permission:distributeddata_permission_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/utils:distributeddata_utils_static",
+    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/app/src/checker:distributeddata_checker_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/app/src/flowctrl_manager:distributeddata_flowctrl_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/app/src/uninstaller:distributeddata_uninstaller_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/framework:distributeddatasvcfwk",
@@ -137,19 +131,16 @@ ohos_unittest("KvStoreImplPhysicalIsolationTest") {
     "../src/device_kvstore_impl.cpp",
     "../src/device_kvstore_observer_impl.cpp",
     "../src/device_kvstore_resultset_impl.cpp",
+    "../src/dump_helper.cpp",
     "../src/kvstore_account_observer.cpp",
     "../src/kvstore_app_accessor.cpp",
     "../src/kvstore_app_manager.cpp",
     "../src/kvstore_data_service.cpp",
     "../src/kvstore_device_listener.cpp",
-    "../src/kvstore_impl.cpp",
     "../src/kvstore_meta_manager.cpp",
     "../src/kvstore_observer_impl.cpp",
     "../src/kvstore_resultset_impl.cpp",
-    "../src/kvstore_snapshot_impl.cpp",
-    "../src/kvstore_sync_manager.cpp",
     "../src/kvstore_user_manager.cpp",
-    "../src/query_helper.cpp",
     "../src/security/security.cpp",
     "../src/security/sensitive.cpp",
     "../src/session_manager/route_head_handler_impl.cpp",
@@ -158,19 +149,14 @@ ohos_unittest("KvStoreImplPhysicalIsolationTest") {
     "../src/single_kvstore_impl.cpp",
     "unittest/kvstore_impl_physical_isolation_test.cpp",
   ]
-  kv_sources = [
-    "../../service/kvdb/auth_delegate.cpp",
-    "../../service/kvdb/executor_factory.cpp",
-    "../../service/kvdb/user_delegate.cpp",
-  ]
-
-  sources += kv_sources
 
   configs = [ ":module_private_config" ]
 
   external_deps = [
+    "access_token:libaccesstoken_sdk",
     "dataclassification:data_transit_mgr",
-    "deviceauth_standard:deviceauth_sdk",
+    "device_auth:deviceauth_sdk",
+    "hitrace_native:libhitrace",
     "hiviewdfx_hilog_native:libhilog",
     "huks:libhukssdk",
     "ipc:ipc_core",
@@ -188,10 +174,9 @@ ohos_unittest("KvStoreImplPhysicalIsolationTest") {
   deps = [
     "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/distributeddata:distributeddata_inner",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter:distributeddata_adapter",
-    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/account:distributeddata_account_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/broadcaster:distributeddata_broadcaster_static",
-    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/permission:distributeddata_permission_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/utils:distributeddata_utils_static",
+    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/app/src/checker:distributeddata_checker_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/app/src/flowctrl_manager:distributeddata_flowctrl_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/app/src/uninstaller:distributeddata_uninstaller_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/framework:distributeddatasvcfwk",
@@ -211,19 +196,16 @@ ohos_unittest("KvStoreDataServiceTest") {
     "../src/device_kvstore_impl.cpp",
     "../src/device_kvstore_observer_impl.cpp",
     "../src/device_kvstore_resultset_impl.cpp",
+    "../src/dump_helper.cpp",
     "../src/kvstore_account_observer.cpp",
     "../src/kvstore_app_accessor.cpp",
     "../src/kvstore_app_manager.cpp",
     "../src/kvstore_data_service.cpp",
     "../src/kvstore_device_listener.cpp",
-    "../src/kvstore_impl.cpp",
     "../src/kvstore_meta_manager.cpp",
     "../src/kvstore_observer_impl.cpp",
     "../src/kvstore_resultset_impl.cpp",
-    "../src/kvstore_snapshot_impl.cpp",
-    "../src/kvstore_sync_manager.cpp",
     "../src/kvstore_user_manager.cpp",
-    "../src/query_helper.cpp",
     "../src/security/security.cpp",
     "../src/security/sensitive.cpp",
     "../src/session_manager/route_head_handler_impl.cpp",
@@ -232,18 +214,14 @@ ohos_unittest("KvStoreDataServiceTest") {
     "../src/single_kvstore_impl.cpp",
     "unittest/kvstore_data_service_test.cpp",
   ]
-  kv_sources = [
-    "../../service/kvdb/auth_delegate.cpp",
-    "../../service/kvdb/executor_factory.cpp",
-    "../../service/kvdb/user_delegate.cpp",
-  ]
 
-  sources += kv_sources
   configs = [ ":module_private_config" ]
 
   external_deps = [
+    "access_token:libaccesstoken_sdk",
     "dataclassification:data_transit_mgr",
-    "deviceauth_standard:deviceauth_sdk",
+    "device_auth:deviceauth_sdk",
+    "hitrace_native:libhitrace",
     "hiviewdfx_hilog_native:libhilog",
     "huks:libhukssdk",
     "ipc:ipc_core",
@@ -261,10 +239,9 @@ ohos_unittest("KvStoreDataServiceTest") {
   deps = [
     "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/distributeddata:distributeddata_inner",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter:distributeddata_adapter",
-    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/account:distributeddata_account_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/broadcaster:distributeddata_broadcaster_static",
-    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/permission:distributeddata_permission_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/utils:distributeddata_utils_static",
+    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/app/src/checker:distributeddata_checker_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/app/src/flowctrl_manager:distributeddata_flowctrl_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/app/src/uninstaller:distributeddata_uninstaller_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/framework:distributeddatasvcfwk",
@@ -285,19 +262,16 @@ ohos_unittest("KvStoreBackupTest") {
     "../src/device_kvstore_impl.cpp",
     "../src/device_kvstore_observer_impl.cpp",
     "../src/device_kvstore_resultset_impl.cpp",
+    "../src/dump_helper.cpp",
     "../src/kvstore_account_observer.cpp",
     "../src/kvstore_app_accessor.cpp",
     "../src/kvstore_app_manager.cpp",
     "../src/kvstore_data_service.cpp",
     "../src/kvstore_device_listener.cpp",
-    "../src/kvstore_impl.cpp",
     "../src/kvstore_meta_manager.cpp",
     "../src/kvstore_observer_impl.cpp",
     "../src/kvstore_resultset_impl.cpp",
-    "../src/kvstore_snapshot_impl.cpp",
-    "../src/kvstore_sync_manager.cpp",
     "../src/kvstore_user_manager.cpp",
-    "../src/query_helper.cpp",
     "../src/security/security.cpp",
     "../src/security/sensitive.cpp",
     "../src/session_manager/route_head_handler_impl.cpp",
@@ -306,19 +280,14 @@ ohos_unittest("KvStoreBackupTest") {
     "../src/single_kvstore_impl.cpp",
     "unittest/kvstore_backup_test.cpp",
   ]
-  kv_sources = [
-    "../../service/kvdb/auth_delegate.cpp",
-    "../../service/kvdb/executor_factory.cpp",
-    "../../service/kvdb/user_delegate.cpp",
-  ]
 
-  sources += kv_sources
   cflags_cc = [ "-DUT_TEST" ]
   configs = [ ":module_private_config" ]
 
   external_deps = [
+    "access_token:libaccesstoken_sdk",
     "dataclassification:data_transit_mgr",
-    "deviceauth_standard:deviceauth_sdk",
+    "device_auth:deviceauth_sdk",
     "hiviewdfx_hilog_native:libhilog",
     "huks:libhukssdk",
     "ipc:ipc_core",
@@ -336,10 +305,9 @@ ohos_unittest("KvStoreBackupTest") {
   deps = [
     "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/distributeddata:distributeddata_inner",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter:distributeddata_adapter",
-    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/account:distributeddata_account_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/broadcaster:distributeddata_broadcaster_static",
-    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/permission:distributeddata_permission_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/utils:distributeddata_utils_static",
+    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/app/src/checker:distributeddata_checker_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/app/src/flowctrl_manager:distributeddata_flowctrl_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/app/src/uninstaller:distributeddata_uninstaller_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/framework:distributeddatasvcfwk",
@@ -359,8 +327,9 @@ ohos_unittest("KvStoreFlowCtrlManagerTest") {
   configs = [ ":module_private_config" ]
 
   external_deps = [
+    "access_token:libaccesstoken_sdk",
     "dataclassification:data_transit_mgr",
-    "deviceauth_standard:deviceauth_sdk",
+    "device_auth:deviceauth_sdk",
     "hiviewdfx_hilog_native:libhilog",
     "huks:libhukssdk",
     "ipc:ipc_core",
@@ -395,19 +364,16 @@ ohos_unittest("KvStoreSyncManagerTest") {
     "../src/device_kvstore_impl.cpp",
     "../src/device_kvstore_observer_impl.cpp",
     "../src/device_kvstore_resultset_impl.cpp",
+    "../src/dump_helper.cpp",
     "../src/kvstore_account_observer.cpp",
     "../src/kvstore_app_accessor.cpp",
     "../src/kvstore_app_manager.cpp",
     "../src/kvstore_data_service.cpp",
     "../src/kvstore_device_listener.cpp",
-    "../src/kvstore_impl.cpp",
     "../src/kvstore_meta_manager.cpp",
     "../src/kvstore_observer_impl.cpp",
     "../src/kvstore_resultset_impl.cpp",
-    "../src/kvstore_snapshot_impl.cpp",
-    "../src/kvstore_sync_manager.cpp",
     "../src/kvstore_user_manager.cpp",
-    "../src/query_helper.cpp",
     "../src/security/security.cpp",
     "../src/security/sensitive.cpp",
     "../src/session_manager/route_head_handler_impl.cpp",
@@ -415,18 +381,13 @@ ohos_unittest("KvStoreSyncManagerTest") {
     "../src/session_manager/upgrade_manager.cpp",
     "../src/single_kvstore_impl.cpp",
   ]
-  kv_sources = [
-    "../../service/kvdb/auth_delegate.cpp",
-    "../../service/kvdb/executor_factory.cpp",
-    "../../service/kvdb/user_delegate.cpp",
-  ]
 
-  sources += kv_sources
   configs = [ ":module_private_config" ]
 
   external_deps = [
+    "access_token:libaccesstoken_sdk",
     "dataclassification:data_transit_mgr",
-    "deviceauth_standard:deviceauth_sdk",
+    "device_auth:deviceauth_sdk",
     "hiviewdfx_hilog_native:libhilog",
     "huks:libhukssdk",
     "ipc:ipc_core",
@@ -444,10 +405,9 @@ ohos_unittest("KvStoreSyncManagerTest") {
   deps = [
     "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/distributeddata:distributeddata_inner",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter:distributeddata_adapter",
-    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/account:distributeddata_account_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/broadcaster:distributeddata_broadcaster_static",
-    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/permission:distributeddata_permission_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/utils:distributeddata_utils_static",
+    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/app/src/checker:distributeddata_checker_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/app/src/flowctrl_manager:distributeddata_flowctrl_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/app/src/uninstaller:distributeddata_uninstaller_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/framework:distributeddatasvcfwk",
@@ -467,19 +427,16 @@ ohos_unittest("KvStoreUninstallerTest") {
     "../src/device_kvstore_impl.cpp",
     "../src/device_kvstore_observer_impl.cpp",
     "../src/device_kvstore_resultset_impl.cpp",
+    "../src/dump_helper.cpp",
     "../src/kvstore_account_observer.cpp",
     "../src/kvstore_app_accessor.cpp",
     "../src/kvstore_app_manager.cpp",
     "../src/kvstore_data_service.cpp",
     "../src/kvstore_device_listener.cpp",
-    "../src/kvstore_impl.cpp",
     "../src/kvstore_meta_manager.cpp",
     "../src/kvstore_observer_impl.cpp",
     "../src/kvstore_resultset_impl.cpp",
-    "../src/kvstore_snapshot_impl.cpp",
-    "../src/kvstore_sync_manager.cpp",
     "../src/kvstore_user_manager.cpp",
-    "../src/query_helper.cpp",
     "../src/security/security.cpp",
     "../src/security/sensitive.cpp",
     "../src/session_manager/route_head_handler_impl.cpp",
@@ -488,22 +445,15 @@ ohos_unittest("KvStoreUninstallerTest") {
     "../src/single_kvstore_impl.cpp",
     "unittest/uninstaller_test.cpp",
   ]
-  kv_sources = [
-    "../../service/kvdb/auth_delegate.cpp",
-    "../../service/kvdb/executor_factory.cpp",
-    "../../service/kvdb/user_delegate.cpp",
-  ]
 
-  sources += kv_sources
   configs = [ ":module_private_config" ]
 
   deps = [
     "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/distributeddata:distributeddata_inner",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter:distributeddata_adapter",
-    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/account:distributeddata_account_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/broadcaster:distributeddata_broadcaster_static",
-    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/permission:distributeddata_permission_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/utils:distributeddata_utils_static",
+    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/app/src/checker:distributeddata_checker_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/app/src/flowctrl_manager:distributeddata_flowctrl_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/app/src/uninstaller:distributeddata_uninstaller_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/framework:distributeddatasvcfwk",
@@ -516,8 +466,10 @@ ohos_unittest("KvStoreUninstallerTest") {
   external_deps = [
     "ability_base:base",
     "ability_base:want",
+    "access_token:libaccesstoken_sdk",
     "dataclassification:data_transit_mgr",
-    "deviceauth_standard:deviceauth_sdk",
+    "device_auth:deviceauth_sdk",
+    "hitrace_native:libhitrace",
     "hiviewdfx_hilog_native:libhilog",
     "huks:libhukssdk",
     "ipc:ipc_core",

@@ -16,19 +16,49 @@
 #define LOG_TAG "ITypesUtil"
 
 #include "itypes_util.h"
-
+#include "iremote_object.h"
 #include "autils/constant.h"
 #include "log_print.h"
 
 namespace OHOS::DistributedKv {
-bool ITypesUtil::Marshalling(MessageParcel &data)
+bool ITypesUtil::Marshal(MessageParcel &data)
 {
     return true;
 }
 
-bool ITypesUtil::Unmarshalling(MessageParcel &data)
+bool ITypesUtil::Unmarshal(MessageParcel &data)
 {
     return true;
+}
+
+bool ITypesUtil::Marshalling(uint32_t input, MessageParcel &data)
+{
+    return data.WriteUint32(input);
+}
+
+bool ITypesUtil::Unmarshalling(uint32_t &output, MessageParcel &data)
+{
+    return data.ReadUint32(output);
+}
+
+bool ITypesUtil::Marshalling(int32_t input, MessageParcel &data)
+{
+    return data.WriteInt32(input);
+}
+
+bool ITypesUtil::Unmarshalling(int32_t &output, MessageParcel &data)
+{
+    return data.ReadInt32(output);
+}
+
+bool ITypesUtil::Marshalling(uint64_t input, MessageParcel &data)
+{
+    return data.WriteUint64(input);
+}
+
+bool ITypesUtil::Unmarshalling(uint64_t &output, MessageParcel &data)
+{
+    return data.ReadUint64(output);
 }
 
 bool ITypesUtil::Marshalling(const std::string &input, MessageParcel &data)
@@ -36,9 +66,19 @@ bool ITypesUtil::Marshalling(const std::string &input, MessageParcel &data)
     return data.WriteString(input);
 }
 
-bool ITypesUtil::Unmarshalling(MessageParcel &data, std::string &output)
+bool ITypesUtil::Unmarshalling(std::string &output, MessageParcel &data)
 {
     return data.ReadString(output);
+}
+
+bool ITypesUtil::Marshalling(const std::vector<uint8_t> &input, MessageParcel &data)
+{
+    return data.WriteUInt8Vector(input);
+}
+
+bool ITypesUtil::Unmarshalling(std::vector<uint8_t> &output, MessageParcel &data)
+{
+    return data.ReadUInt8Vector(&output);
 }
 
 bool ITypesUtil::Marshalling(const Blob &blob, MessageParcel &data)
@@ -46,7 +86,7 @@ bool ITypesUtil::Marshalling(const Blob &blob, MessageParcel &data)
     return data.WriteUInt8Vector(blob.Data());
 }
 
-bool ITypesUtil::Unmarshalling(MessageParcel &data, Blob &output)
+bool ITypesUtil::Unmarshalling(Blob &output, MessageParcel &data)
 {
     std::vector<uint8_t> blob;
     bool result = data.ReadUInt8Vector(&blob);
@@ -62,12 +102,12 @@ bool ITypesUtil::Marshalling(const Entry &entry, MessageParcel &data)
     return Marshalling(entry.value, data);
 }
 
-bool ITypesUtil::Unmarshalling(MessageParcel &data, Entry &output)
+bool ITypesUtil::Unmarshalling(Entry &output, MessageParcel &data)
 {
-    if (!Unmarshalling(data, output.key)) {
+    if (!Unmarshalling(output.key, data)) {
         return false;
     }
-    return Unmarshalling(data, output.value);
+    return Unmarshalling(output.value, data);
 }
 
 bool ITypesUtil::Marshalling(const DeviceInfo &entry, MessageParcel &data)
@@ -81,7 +121,7 @@ bool ITypesUtil::Marshalling(const DeviceInfo &entry, MessageParcel &data)
     return data.WriteString(entry.deviceType);
 }
 
-bool ITypesUtil::Unmarshalling(MessageParcel &data, DeviceInfo &output)
+bool ITypesUtil::Unmarshalling(DeviceInfo &output, MessageParcel &data)
 {
     if (!data.ReadString(output.deviceId)) {
         return false;
@@ -113,18 +153,18 @@ bool ITypesUtil::Marshalling(const ChangeNotification &notification, MessageParc
     return parcel.WriteBool(notification.IsClear());
 }
 
-bool ITypesUtil::Unmarshalling(MessageParcel &parcel, ChangeNotification &output)
+bool ITypesUtil::Unmarshalling(ChangeNotification &output, MessageParcel &parcel)
 {
     std::vector<Entry> insertEntries;
-    if (!Unmarshalling(parcel, insertEntries)) {
+    if (!Unmarshalling(insertEntries, parcel)) {
         return false;
     }
     std::vector<Entry> updateEntries;
-    if (!Unmarshalling(parcel, updateEntries)) {
+    if (!Unmarshalling(updateEntries, parcel)) {
         return false;
     }
     std::vector<Entry> deleteEntries;
-    if (!Unmarshalling(parcel, deleteEntries)) {
+    if (!Unmarshalling(deleteEntries, parcel)) {
         return false;
     }
     std::string deviceId;
@@ -171,7 +211,7 @@ bool ITypesUtil::Marshalling(const DistributedRdb::RdbSyncerParam &param, Messag
     return true;
 }
 
-bool ITypesUtil::Unmarshalling(MessageParcel &parcel, DistributedRdb::RdbSyncerParam &param)
+bool ITypesUtil::Unmarshalling(DistributedRdb::RdbSyncerParam &param, MessageParcel &parcel)
 {
     if (!parcel.ReadString(param.bundleName_)) {
         ZLOGE("RdbStoreParam read bundle name failed");
@@ -200,54 +240,6 @@ bool ITypesUtil::Unmarshalling(MessageParcel &parcel, DistributedRdb::RdbSyncerP
     return true;
 }
 
-bool ITypesUtil::Marshalling(const DistributedRdb::SyncResult &result, MessageParcel &parcel)
-{
-    if (!parcel.WriteInt32(static_cast<int32_t>(result.size()))) {
-        ZLOGE("SyncResult write size failed");
-        return false;
-    }
-
-    for (const auto &entry : result) {
-        if (!parcel.WriteString(entry.first)) {
-            ZLOGE("SyncResult write device failed");
-            return false;
-        }
-        if (!parcel.WriteInt32(entry.second)) {
-            ZLOGE("SyncResult write int failed");
-            return false;
-        }
-    }
-    return true;
-}
-
-bool ITypesUtil::Unmarshalling(MessageParcel &parcel, DistributedRdb::SyncResult &result)
-{
-    int32_t size = 0;
-    if (!parcel.ReadInt32(size)) {
-        ZLOGE("SyncResult read size failed");
-        return false;
-    }
-    if (size <= 0) {
-        ZLOGE("SyncResult size invalid");
-        return false;
-    }
-
-    for (int32_t i = 0; i < size; i++) {
-        std::string device;
-        if (!parcel.ReadString(device)) {
-            ZLOGE("SyncResult read device failed");
-            return false;
-        }
-        int32_t error;
-        if (!parcel.ReadInt32(error)) {
-            ZLOGE("SyncResult read int failed");
-            return false;
-        }
-        result.insert({ device, error });
-    }
-    return true;
-}
-
 bool ITypesUtil::Marshalling(const DistributedRdb::SyncOption &option, MessageParcel &parcel)
 {
     if (!parcel.WriteInt32(option.mode)) {
@@ -261,7 +253,7 @@ bool ITypesUtil::Marshalling(const DistributedRdb::SyncOption &option, MessagePa
     return true;
 }
 
-bool ITypesUtil::Unmarshalling(MessageParcel &parcel, DistributedRdb::SyncOption &option)
+bool ITypesUtil::Unmarshalling(DistributedRdb::SyncOption &option, MessageParcel &parcel)
 {
     int32_t mode;
     if (!parcel.ReadInt32(mode)) {
@@ -307,7 +299,7 @@ bool ITypesUtil::Marshalling(const DistributedRdb::RdbPredicates &predicates, Me
     return true;
 }
 
-bool ITypesUtil::Unmarshalling(MessageParcel &parcel, DistributedRdb::RdbPredicates &predicates)
+bool ITypesUtil::Unmarshalling(DistributedRdb::RdbPredicates &predicates, MessageParcel &parcel)
 {
     if (!parcel.ReadString(predicates.table_)) {
         ZLOGE("predicate read table failed");
@@ -349,6 +341,12 @@ bool ITypesUtil::Marshalling(const Options &input, MessageParcel &data)
         ZLOGE("schema is failed");
         return false;
     }
+
+    if (!data.WriteString(input.hapName)) {
+        ZLOGE("hapName is failed");
+        return false;
+    }
+
     std::unique_ptr<uint8_t[]> buffer = std::make_unique<uint8_t[]>(sizeof(input));
     Options *target = reinterpret_cast<Options *>(buffer.get());
     target->createIfMissing = input.createIfMissing;
@@ -356,20 +354,26 @@ bool ITypesUtil::Marshalling(const Options &input, MessageParcel &data)
     target->persistent = input.persistent;
     target->backup = input.backup;
     target->autoSync = input.autoSync;
+    target->syncable = input.syncable;
     target->securityLevel = input.securityLevel;
+    target->area = input.area;
     target->syncPolicy = input.syncPolicy;
     target->kvStoreType = input.kvStoreType;
-    target->syncable = input.syncable;
-    target->dataOwnership = input.dataOwnership;
     return data.WriteRawData(buffer.get(), sizeof(input));
 }
 
-bool ITypesUtil::Unmarshalling(MessageParcel &data, Options &output)
+bool ITypesUtil::Unmarshalling(Options &output, MessageParcel &data)
 {
     if (!data.ReadString(output.schema)) {
         ZLOGE("read schema failed");
         return false;
     }
+
+    if (!data.ReadString(output.hapName)) {
+        ZLOGE("read hapName failed");
+        return false;
+    }
+
     const Options *source = reinterpret_cast<const Options *>(data.ReadRawData(sizeof(output)));
     if (source == nullptr) {
         return false;
@@ -380,10 +384,21 @@ bool ITypesUtil::Unmarshalling(MessageParcel &data, Options &output)
     output.backup = source->backup;
     output.autoSync = source->autoSync;
     output.securityLevel = source->securityLevel;
+    output.area = source->area;
     output.syncPolicy = source->syncPolicy;
     output.kvStoreType = source->kvStoreType;
     output.syncable = source->syncable;
-    output.dataOwnership = source->dataOwnership;
+    return true;
+}
+
+bool ITypesUtil::Marshalling(const sptr<IRemoteObject> &input, MessageParcel &data)
+{
+    return data.WriteRemoteObject(input);
+}
+
+bool ITypesUtil::Unmarshalling(sptr<IRemoteObject> &output, MessageParcel &data)
+{
+    output = data.ReadRemoteObject();
     return true;
 }
 

@@ -16,11 +16,22 @@
 #include "database_fault_impl.h"
 
 namespace OHOS {
-namespace DistributedKv {
-ReportStatus DatabaseFaultImpl::Report(const FaultMsg &msg)
+namespace DistributedDataDfx {
+ReportStatus DatabaseFaultImpl::Report(const DBFaultMsg &msg)
 {
-    HiViewAdapter::ReportFault(DfxCodeConstant::DATABASE_FAULT, msg);
+    int eventID;
+    if (msg.errorType == Fault::DF_DB_CORRUPTED) {
+        eventID = DfxCodeConstant::DATABASE_CORRUPTED_FAILED;
+    } else if (msg.errorType == Fault::DF_DB_REKEY_FAILED) {
+        eventID = DfxCodeConstant::DATABASE_REKEY_FAILED;
+    } else if (msg.errorType == Fault::DF_DB_DAMAGE) {
+        eventID = DfxCodeConstant::DATABASE_FAULT;
+    } else {
+        return ReportStatus::ERROR;
+    }
+
+    HiViewAdapter::ReportDBFault(eventID, msg);
     return ReportStatus::SUCCESS;
 }
-} // namespace DistributedKv
+} // namespace DistributedDataDfx
 } // namespace OHOS

@@ -21,7 +21,7 @@
 #include "db_meta_callback_delegate.h"
 
 namespace OHOS {
-namespace DistributedKv {
+namespace DistributedDataDfx {
 struct ModuleName {
     static const inline std::string DEVICE = "DEVICE";
     static const inline std::string USER = "USER";
@@ -63,6 +63,8 @@ enum class Fault {
 
     // Database Fault
     DF_DB_DAMAGE = 60,
+    DF_DB_REKEY_FAILED = 61,
+    DF_DB_CORRUPTED = 62,
 };
 
 enum class FaultType {
@@ -72,11 +74,61 @@ enum class FaultType {
     COMM_FAULT = 3,
 };
 
+enum class BehaviourType {
+    DATABASE_BACKUP = 0,
+    DATABASE_RECOVERY = 1,
+};
+
+enum class SecurityInfo {
+    PERMISSIONS_APPID_FAILE = 0,
+    PERMISSIONS_DEVICEID_FAILE = 1,
+    PERMISSIONS_TOKENID_FAILE = 2,
+    SENSITIVE_LEVEL_FAILE = 3,
+};
+
 struct FaultMsg {
     FaultType faultType;
     std::string moduleName;
     std::string interfaceName;
     Fault errorType;
+};
+
+struct DBFaultMsg {
+    std::string appId;
+    std::string storeId;
+    std::string moduleName;
+    Fault errorType;
+};
+
+struct CommFaultMsg {
+    std::string userId;
+    std::string appId;
+    std::string storeId;
+    std::vector<std::string> deviceId;
+    std::vector<int32_t> errorCode;
+};
+
+struct SecurityPermissionsMsg {
+    std::string userId;
+    std::string appId;
+    std::string storeId;
+    std::string deviceId;
+    SecurityInfo securityInfo;
+};
+
+struct SecuritySensitiveLevelMsg {
+    std::string deviceId;
+    int deviceSensitiveLevel;
+    int optionSensitiveLevel;
+    SecurityInfo securityInfo;
+};
+
+struct BehaviourMsg {
+    std::string userId;
+    std::string appId;
+    std::string storeId;
+    BehaviourType behaviourType;
+    std::string extensionInfo;
 };
 
 struct VisitStat {
@@ -104,7 +156,7 @@ struct DbStat {
     std::string appId;
     std::string storeId;
     int dbSize;
-    std::shared_ptr<DbMetaCallbackDelegate> delegate;
+    std::shared_ptr<DistributedKv::DbMetaCallbackDelegate> delegate;
 
     KVSTORE_API std::string GetKey() const
     {
@@ -137,6 +189,6 @@ enum class ReportStatus {
     SUCCESS = 0,
     ERROR = 1,
 };
-}  // namespace DistributedKv
+}  // namespace DistributedDataDfx
 }  // namespace OHOS
 #endif // DISTRIBUTEDDATAMGR_DFX_TYPES_H

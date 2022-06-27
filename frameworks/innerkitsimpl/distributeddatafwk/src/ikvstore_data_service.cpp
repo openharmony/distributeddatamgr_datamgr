@@ -34,56 +34,6 @@ KvStoreDataServiceProxy::KvStoreDataServiceProxy(const sptr<IRemoteObject> &impl
     ZLOGI("init data service proxy.");
 }
 
-Status KvStoreDataServiceProxy::GetKvStore(const Options &options, const AppId &appId, const StoreId &storeId,
-                                           std::function<void(sptr<IKvStoreImpl>)> callback)
-{
-    ZLOGI("%s %s", appId.appId.c_str(), storeId.storeId.c_str());
-    MessageParcel data;
-    MessageParcel reply;
-
-    if (!data.WriteInterfaceToken(KvStoreDataServiceProxy::GetDescriptor())) {
-        ZLOGE("write descriptor failed");
-        return Status::IPC_ERROR;
-    }
-
-    // Passing a struct with an std::string field is a potential security exploit.
-    OptionsIpc optionsIpc;
-    optionsIpc.createIfMissing = options.createIfMissing;
-    optionsIpc.encrypt = options.encrypt;
-    optionsIpc.persistent = options.persistent;
-    optionsIpc.backup = options.backup;
-    optionsIpc.autoSync = options.autoSync;
-    optionsIpc.securityLevel = options.securityLevel;
-    optionsIpc.syncPolicy = options.syncPolicy;
-    optionsIpc.kvStoreType = options.kvStoreType;
-    optionsIpc.syncable = options.syncable;
-    optionsIpc.dataOwnership = true; // set default value
-
-    if (!data.WriteBuffer(&optionsIpc, sizeof(optionsIpc)) ||
-        !data.WriteString(appId.appId) ||
-        !data.WriteString(storeId.storeId)) {
-        ZLOGW("failed to write parcel.");
-        return Status::IPC_ERROR;
-    }
-    MessageOption mo { MessageOption::TF_SYNC };
-    int32_t error = Remote()->SendRequest(GETKVSTORE, data, reply, mo);
-    if (error != 0) {
-        ZLOGW("failed to write parcel.");
-        return Status::IPC_ERROR;
-    }
-    Status ret = static_cast<Status>(reply.ReadInt32());
-    if (ret == Status::SUCCESS) {
-        sptr<IRemoteObject> remote = reply.ReadRemoteObject();
-        if (remote != nullptr) {
-            sptr<IKvStoreImpl> kvstoreImplProxy = iface_cast<IKvStoreImpl>(remote);
-            callback(std::move(kvstoreImplProxy));
-        }
-    } else {
-        callback(nullptr);
-    }
-    return ret;
-}
-
 Status KvStoreDataServiceProxy::GetSingleKvStore(const Options &options, const AppId &appId, const StoreId &storeId,
                                                  std::function<void(sptr<ISingleKvStore>)> callback)
 {
@@ -109,7 +59,6 @@ Status KvStoreDataServiceProxy::GetSingleKvStore(const Options &options, const A
     optionsIpc.syncPolicy = options.syncPolicy;
     optionsIpc.kvStoreType = options.kvStoreType;
     optionsIpc.syncable = options.syncable;
-    optionsIpc.dataOwnership = true; // set default value
     std::string schemaString = options.schema;
 
     if (!data.WriteBuffer(&optionsIpc, sizeof(OptionsIpc)) ||
@@ -417,46 +366,54 @@ sptr<IRemoteObject> KvStoreDataServiceProxy::GetRdbService()
     return remoteObject;
 }
 
-int32_t KvStoreDataServiceStub::GetKvStoreOnRemote(MessageParcel &data, MessageParcel &reply)
+sptr<IRemoteObject> KvStoreDataServiceProxy::GetObjectService()
 {
-    const OptionsIpc *optionIpcPtr = reinterpret_cast<const OptionsIpc *>(data.ReadBuffer(sizeof(OptionsIpc)));
-    if (optionIpcPtr == nullptr) {
-        ZLOGW("optionPtr is nullptr");
-        if (!reply.WriteInt32(static_cast<int>(Status::INVALID_ARGUMENT))) {
-            return -1;
-        }
-        return 0;
+    ZLOGI("enter");
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(KvStoreDataServiceProxy::GetDescriptor())) {
+        ZLOGE("write descriptor failed");
+        return nullptr;
     }
-    OptionsIpc optionsIpc = *optionIpcPtr;
-    Options options;
-    options.createIfMissing = optionsIpc.createIfMissing;
-    options.encrypt = optionsIpc.encrypt;
-    options.persistent = optionsIpc.persistent;
-    options.backup = optionsIpc.backup;
-    options.autoSync = optionsIpc.autoSync;
-    options.securityLevel = optionsIpc.securityLevel;
-    options.syncPolicy = optionsIpc.syncPolicy;
-    options.kvStoreType = optionsIpc.kvStoreType;
-    options.syncable = optionsIpc.syncable;
-    options.dataOwnership = optionsIpc.dataOwnership;
-    AppId appId = { Constant::TrimCopy<std::string>(data.ReadString())};
-    StoreId storeId = { Constant::TrimCopy<std::string>(data.ReadString())};
-    sptr<IKvStoreImpl> proxyTmp;
-    Status status = GetKvStore(options, appId, storeId,
-        [&proxyTmp](sptr<IKvStoreImpl> proxy) { proxyTmp = std::move(proxy); });
-    if (!reply.WriteInt32(static_cast<int>(status))) {
-        return -1;
+
+    MessageParcel reply;
+    MessageOption mo { MessageOption::TF_SYNC };
+    int32_t error = Remote()->SendRequest(GET_OBJECT_SERVICE, data, reply, mo);
+    if (error != 0) {
+        ZLOGE("SendRequest returned %{public}d", error);
+        return nullptr;
     }
-    if (proxyTmp == nullptr) {
-        ZLOGW("proxy is null.");
-        return 0;
+    auto remoteObject = reply.ReadRemoteObject();
+    if (remoteObject == nullptr) {
+        ZLOGE("remote object is nullptr");
+        return nullptr;
     }
-    if (status == Status::SUCCESS && !reply.WriteRemoteObject(proxyTmp->AsObject().GetRefPtr())) {
-        ZLOGW("write ipc failed.");
-        return -1;
-    }
-    return 0;
+    return remoteObject;
 }
+
+sptr<IRemoteObject> KvStoreDataServiceProxy::GetKVdbService()
+{
+    ZLOGI("enter");
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(KvStoreDataServiceProxy::GetDescriptor())) {
+        ZLOGE("write descriptor failed");
+        return nullptr;
+    }
+
+    MessageParcel reply;
+    MessageOption mo { MessageOption::TF_SYNC };
+    int32_t error = Remote()->SendRequest(GET_KVDB_SERVICE, data, reply, mo);
+    if (error != 0) {
+        ZLOGE("SendRequest returned %{public}d", error);
+        return nullptr;
+    }
+    auto remoteObject = reply.ReadRemoteObject();
+    if (remoteObject == nullptr) {
+        ZLOGE("remote object is nullptr");
+        return nullptr;
+    }
+    return remoteObject;
+}
+
 int32_t KvStoreDataServiceStub::GetAllKvStoreIdOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     AppId appId = { Constant::TrimCopy<std::string>(data.ReadString())};
@@ -557,7 +514,6 @@ int32_t KvStoreDataServiceStub::GetSingleKvStoreOnRemote(MessageParcel &data, Me
     options.syncPolicy = optionsIpc.syncPolicy;
     options.kvStoreType = optionsIpc.kvStoreType;
     options.syncable = optionsIpc.syncable;
-    options.dataOwnership = optionsIpc.dataOwnership;
     options.schema = data.ReadString();
     sptr<ISingleKvStore> proxyTmp;
     Status status = GetSingleKvStore(options, appId, storeId,
@@ -643,6 +599,18 @@ int32_t KvStoreDataServiceStub::GetLocalDeviceOnRemote(MessageParcel &data, Mess
 int32_t KvStoreDataServiceStub::GetRdbServiceOnRemote(MessageParcel &data, MessageParcel &reply)
 {
     reply.WriteRemoteObject(GetRdbService());
+    return 0;
+}
+
+int32_t KvStoreDataServiceStub::GetKVdbServiceOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    reply.WriteRemoteObject(GetKVdbService());
+    return 0;
+}
+
+int32_t KvStoreDataServiceStub::GetObjectServiceOnRemote(MessageParcel &data, MessageParcel &reply)
+{
+    reply.WriteRemoteObject(GetObjectService());
     return 0;
 }
 

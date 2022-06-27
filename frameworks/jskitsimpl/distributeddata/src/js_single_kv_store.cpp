@@ -16,13 +16,15 @@
 #include "js_single_kv_store.h"
 #include "js_util.h"
 #include "js_kv_store_resultset.h"
+#include "datashare_predicates.h"
 #include "js_query.h"
 #include "log_print.h"
 #include "napi_queue.h"
 #include "uv_queue.h"
+#include "kv_utils.h"
 
 using namespace OHOS::DistributedKv;
-
+using namespace OHOS::DataShare;
 namespace OHOS::DistributedData {
 JsSingleKVStore::JsSingleKVStore(const std::string& storeId)
     : JsKVStore(storeId)
@@ -111,6 +113,7 @@ struct VariantArgs {
     std::string keyPrefix;
     JsQuery* query;
     ArgsType type = ArgsType::UNKNOWN;
+    DataQuery dataQuery;
 };
 
 static napi_status GetVariantArgs(napi_env env, size_t argc, napi_value* argv, VariantArgs& va)
@@ -125,9 +128,16 @@ static napi_status GetVariantArgs(napi_env env, size_t argc, napi_value* argv, V
         CHECK_RETURN(!va.keyPrefix.empty(), "invalid arg[0], i.e. invalid keyPrefix!", napi_invalid_arg);
         va.type = ArgsType::KEYPREFIX;
     } else if (type == napi_object) {
-        status = JSUtil::Unwrap(env, argv[0], reinterpret_cast<void**>(&va.query), JsQuery::Constructor(env));
-        CHECK_RETURN(va.query != nullptr, "invalid arg[0], i.e. invalid query!", napi_invalid_arg);
-        va.type = ArgsType::QUERY;
+        bool result = false;
+        status = napi_instanceof(env, argv[0], JsQuery::Constructor(env), &result);
+        if ((status == napi_ok) && (result != false)) {
+            status = JSUtil::Unwrap(env, argv[0], reinterpret_cast<void**>(&va.query), JsQuery::Constructor(env));
+            CHECK_RETURN(va.query != nullptr, "invalid arg[0], i.e. invalid query!", napi_invalid_arg);
+            va.type = ArgsType::QUERY;
+        } else {
+            status = JSUtil::GetValue(env, argv[0], va.dataQuery);
+            ZLOGD("kvStoreDataShare->GetResultSet return %{public}d", status);
+        }
     }
     return status;
 };
@@ -165,8 +175,8 @@ napi_value JsSingleKVStore::GetEntries(napi_env env, napi_callback_info info)
             ZLOGD("kvStore->GetEntries() return %{public}d", status);
         } else if (ctxt->va.type == ArgsType::QUERY) {
             auto query = ctxt->va.query->GetNative();
-            status = kvStore->GetEntriesWithQuery(query.ToString(), ctxt->entries);
-            ZLOGD("kvStore->GetEntriesWithQuery() return %{public}d", status);
+            status = kvStore->GetEntries(query, ctxt->entries);
+            ZLOGD("kvStore->GetEntries() return %{public}d", status);
         }
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
         CHECK_STATUS_RETURN_VOID(ctxt, "kvStore->GetEntries() failed");
@@ -217,9 +227,13 @@ napi_value JsSingleKVStore::GetResultSet(napi_env env, napi_callback_info info)
             ZLOGD("kvStore->GetEntries() return %{public}d", status);
         } else if (ctxt->va.type == ArgsType::QUERY) {
             auto query = ctxt->va.query->GetNative();
-            status = kvStore->GetResultSetWithQuery(query.ToString(), kvResultSet);
-            ZLOGD("kvStore->GetEntriesWithQuery() return %{public}d", status);
-        }
+            status = kvStore->GetResultSet(query, kvResultSet);
+            ZLOGD("kvStore->GetEntries() return %{public}d", status);
+        } else {
+            status = kvStore->GetResultSet(ctxt->va.dataQuery, kvResultSet);
+            ZLOGD("ArgsType::PREDICATES GetResultSetWithQuery return %{public}d", status);
+        };
+
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
         CHECK_STATUS_RETURN_VOID(ctxt, "kvStore->GetResultSet() failed!");
         ctxt->resultSet->SetNative(kvResultSet);
@@ -292,10 +306,10 @@ napi_value JsSingleKVStore::GetResultSize(napi_env env, napi_callback_info info)
     auto execute = [ctxt]() {
         auto& kvStore = reinterpret_cast<JsSingleKVStore*>(ctxt->native)->GetNative();
         auto query = ctxt->query->GetNative();
-        Status status = kvStore->GetCountWithQuery(query.ToString(), ctxt->resultSize);
-        ZLOGD("kvStore->GetCountWithQuery() return %{public}d", status);
+        Status status = kvStore->GetCount(query, ctxt->resultSize);
+        ZLOGD("kvStore->GetCount() return %{public}d", status);
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
-        CHECK_STATUS_RETURN_VOID(ctxt, "kvStore->GetCountWithQuery() failed!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "kvStore->GetCount() failed!");
     };
     auto output = [env, ctxt](napi_value& result) {
         ctxt->status = JSUtil::SetValue(env, static_cast<int32_t>(ctxt->resultSize), result);
@@ -344,21 +358,30 @@ napi_value JsSingleKVStore::Sync(napi_env env, napi_callback_info info)
         std::vector<std::string> deviceIdList;
         uint32_t mode = 0;
         uint32_t allowedDelayMs = 0;
+        JsQuery* query = nullptr;
+        napi_valuetype type = napi_undefined;
     };
     auto ctxt = std::make_shared<SyncContext>();
     auto input = [env, ctxt](size_t argc, napi_value* argv) {
         // required 3 arguments :: <deviceIdList> <mode> [allowedDelayMs]
-        CHECK_ARGS_RETURN_VOID(ctxt, (argc == 2) || (argc == 3), "invalid arguments!");
+        CHECK_ARGS_RETURN_VOID(ctxt, (argc == 2) || (argc == 3) || (argc == 4), "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], ctxt->deviceIdList);
         CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[0], i.e. invalid deviceIdList!");
-        ctxt->status = JSUtil::GetValue(env, argv[1], ctxt->mode);
-        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[1], i.e. invalid mode!");
-        CHECK_ARGS_RETURN_VOID(ctxt, ctxt->mode <= uint32_t(SyncMode::PUSH_PULL), "invalid arg[1], i.e. invalid mode!");
-        // have 3 arguments :: have the allowedDelayMs
-        if (argc == 3) {
-            ctxt->status = JSUtil::GetValue(env, argv[2], ctxt->allowedDelayMs);
-            CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[1], i.e. invalid allowedDelayMs!");
+        napi_typeof(env, argv[1], &ctxt->type);
+        if (ctxt->type == napi_object) {
+            ctxt->status = JSUtil::Unwrap(env,
+                argv[1], reinterpret_cast<void**>(&ctxt->query), JsQuery::Constructor(env));
+            CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[1], i.e. invalid mode!");
+            ctxt->status = JSUtil::GetValue(env, argv[2], ctxt->mode);
         }
+        if (ctxt->type == napi_number) {
+            ctxt->status = JSUtil::GetValue(env, argv[1], ctxt->mode);
+            if (argc == 3) {
+                ctxt->status = JSUtil::GetValue(env, argv[2], ctxt->allowedDelayMs);
+            }
+        }
+        CHECK_ARGS_RETURN_VOID(ctxt, ctxt->mode <= uint32_t(SyncMode::PUSH_PULL), "invalid arg[1], i.e. invalid mode!");
+        CHECK_STATUS_RETURN_VOID(ctxt, "invalid arg[2], i.e. invalid arguement[2]!");
     };
     ctxt->GetCbInfoSync(env, info, input);
     NAPI_ASSERT(env, ctxt->status == napi_ok, "invalid arguments!");
@@ -366,7 +389,14 @@ napi_value JsSingleKVStore::Sync(napi_env env, napi_callback_info info)
         (int)ctxt->deviceIdList.size(), ctxt->mode, ctxt->allowedDelayMs);
 
     auto& kvStore = reinterpret_cast<JsSingleKVStore*>(ctxt->native)->GetNative();
-    Status status = kvStore->Sync(ctxt->deviceIdList, static_cast<SyncMode>(ctxt->mode), ctxt->allowedDelayMs);
+    Status status = Status::INVALID_ARGUMENT;
+    if (ctxt->type == napi_object) {
+        auto query = ctxt->query->GetNative();
+        status = kvStore->Sync(ctxt->deviceIdList, static_cast<SyncMode>(ctxt->mode), query, nullptr);
+    }
+    if (ctxt->type == napi_number) {
+        status = kvStore->Sync(ctxt->deviceIdList, static_cast<SyncMode>(ctxt->mode), ctxt->allowedDelayMs);
+    }
     ZLOGD("kvStore->Sync return %{public}d!", status);
     NAPI_ASSERT(env, status == Status::SUCCESS, "kvStore->Sync() failed!");
     return nullptr;

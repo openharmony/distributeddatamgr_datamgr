@@ -25,6 +25,7 @@
 #include <chrono>
 #include <thread>
 
+#include "accesstoken_kit.h"
 #include "auth_delegate.h"
 #include "auto_launch_export.h"
 #include "bootstrap.h"
@@ -35,8 +36,10 @@
 #include "dds_trace.h"
 #include "device_kvstore_impl.h"
 #include "executor_factory.h"
+#include "hap_token_info.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
+#include "kvdb_service_impl.h"
 #include "kvstore_account_observer.h"
 #include "kvstore_app_accessor.h"
 #include "kvstore_device_listener.h"
@@ -44,24 +47,32 @@
 #include "kvstore_utils.h"
 #include "log_print.h"
 #include "metadata/meta_data_manager.h"
+#include "metadata/secret_key_meta_data.h"
+#include "metadata/strategy_meta_data.h"
+#include "object_common.h"
+#include "object_manager.h"
+#include "object_service_impl.h"
 #include "permission_validator.h"
 #include "process_communicator_impl.h"
 #include "rdb_service_impl.h"
-#include "reporter.h"
 #include "route_head_handler_impl.h"
 #include "system_ability_definition.h"
 #include "uninstaller/uninstaller.h"
 #include "upgrade_manager.h"
 #include "user_delegate.h"
 #include "utils/block_integer.h"
-#include "utils/crypto.h"
 #include "utils/converter.h"
+#include "string_ex.h"
+#include "utils/crypto.h"
 
 namespace OHOS::DistributedKv {
-using json = nlohmann::json;
 using namespace std::chrono;
 using namespace OHOS::DistributedData;
+using namespace OHOS::DistributedDataDfx;
+using namespace OHOS::Security::AccessToken;
 using KvStoreDelegateManager = DistributedDB::KvStoreDelegateManager;
+using SecretKeyMeta = DistributedData::SecretKeyMetaData;
+using StrategyMetaData = DistributedData::StrategyMeta;
 
 REGISTER_SYSTEM_ABILITY_BY_ID(KvStoreDataService, DISTRIBUTED_KV_DATA_SERVICE_ABILITY_ID, true);
 
@@ -137,18 +148,31 @@ void KvStoreDataService::Initialize()
         deviceInnerListener_.get(), { "innerListener" });
 }
 
-Status KvStoreDataService::GetKvStore(const Options &options, const AppId &appId, const StoreId &storeId,
-                                      std::function<void(sptr<IKvStoreImpl>)> callback)
+sptr<IRemoteObject> KvStoreDataService::GetObjectService()
 {
-    ZLOGI("begin.");
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
-    if (!appId.IsValid() || !storeId.IsValid() || options.kvStoreType != KvStoreType::MULTI_VERSION) {
-        ZLOGE("invalid argument type.");
-        return Status::INVALID_ARGUMENT;
+    ZLOGD("enter");
+    if (objectService_ == nullptr) {
+        std::lock_guard<decltype(mutex_)> lockGuard(mutex_);
+        if (objectService_ == nullptr) {
+            objectService_ = new (std::nothrow) DistributedObject::ObjectServiceImpl();
+        }
+        return objectService_ == nullptr ? nullptr : objectService_->AsObject().GetRefPtr();
     }
-    return Status::NOT_SUPPORT;
+    return objectService_->AsObject().GetRefPtr();
 }
 
+void KvStoreDataService::InitObjectStore()
+{
+    ZLOGI("begin.");
+    if (objectService_ == nullptr) {
+        std::lock_guard<decltype(mutex_)> lockGuard(mutex_);
+        if (objectService_ == nullptr) {
+            objectService_ = new (std::nothrow) DistributedObject::ObjectServiceImpl();
+        }
+    }
+    objectService_->Initialize();
+    return;
+}
 Status KvStoreDataService::GetSingleKvStore(const Options &options, const AppId &appId, const StoreId &storeId,
                                             std::function<void(sptr<ISingleKvStore>)> callback)
 {
@@ -169,6 +193,7 @@ Status KvStoreDataService::GetSingleKvStore(const Options &options, const AppId 
         return status;
     }
 
+    std::lock_guard<std::mutex> lg(accountMutex_);
     auto it = deviceAccountMap_.find(metaData.user);
     if (it == deviceAccountMap_.end()) {
         auto result = deviceAccountMap_.emplace(std::piecewise_construct,
@@ -183,7 +208,7 @@ Status KvStoreDataService::GetSingleKvStore(const Options &options, const AppId 
     sptr<SingleKvStoreImpl> store;
     status = (it->second).GetKvStore(options, metaData, keyPara.secretKey, store);
     if (keyPara.outdated) {
-        KvStoreMetaManager::GetInstance().ReKey(metaData.account, metaData.bundleName, metaData.storeId,
+        KvStoreMetaManager::GetInstance().ReKey(metaData.user, metaData.bundleName, metaData.storeId,
             KvStoreAppManager::ConvertPathType(metaData), store);
     }
     if (status == Status::SUCCESS) {
@@ -205,8 +230,7 @@ Status KvStoreDataService::GetSingleKvStore(const Options &options, const AppId 
 Status KvStoreDataService::FillStoreParam(
     const Options &options, const AppId &appId, const StoreId &storeId, StoreMetaData &metaData)
 {
-    if (!appId.IsValid() || !storeId.IsValid() || !options.IsValidType()
-        || options.kvStoreType == KvStoreType::MULTI_VERSION) {
+    if (!appId.IsValid() || !storeId.IsValid() || !options.IsValidType()) {
         ZLOGE("invalid argument type.");
         return Status::INVALID_ARGUMENT;
     }
@@ -248,15 +272,9 @@ Status KvStoreDataService::GetSecretKey(const Options &options, const StoreMetaD
 
     std::vector<uint8_t> metaSecretKey;
     std::string secretKeyFile;
-    if (options.kvStoreType == KvStoreType::MULTI_VERSION) {
-        metaSecretKey = KvStoreMetaManager::GetMetaKey(metaData.user, "default", bundleName, storeIdTmp, "KEY");
-        secretKeyFile = KvStoreMetaManager::GetSecretKeyFile(
-            metaData.user, bundleName, storeIdTmp, KvStoreAppManager::ConvertPathType(metaData));
-    } else {
-        metaSecretKey = KvStoreMetaManager::GetMetaKey(metaData.user, "default", bundleName, storeIdTmp, "SINGLE_KEY");
-        secretKeyFile = KvStoreMetaManager::GetSecretSingleKeyFile(
-            metaData.user, bundleName, storeIdTmp, KvStoreAppManager::ConvertPathType(metaData));
-    }
+    metaSecretKey = KvStoreMetaManager::GetMetaKey(metaData.user, "default", bundleName, storeIdTmp, "SINGLE_KEY");
+    secretKeyFile = KvStoreMetaManager::GetSecretSingleKeyFile(
+        metaData.user, bundleName, storeIdTmp, KvStoreAppManager::ConvertPathType(metaData));
 
     bool outdated = false;
     Status alreadyCreated = KvStoreMetaManager::GetInstance().CheckUpdateServiceMeta(metaSecretKey, CHECK_EXIST_LOCAL);
@@ -517,9 +535,7 @@ Status KvStoreDataService::CloseKvStore(const AppId &appId, const StoreId &store
             return status;
         }
     }
-    FaultMsg msg = {FaultType::RUNTIME_FAULT, "user", __FUNCTION__, Fault::RF_CLOSE_DB};
-    Reporter::GetInstance()->ServiceFault()->Report(msg);
-    ZLOGE("return STORE_NOT_OPEN.");
+    ZLOGE("store not open.");
     return Status::STORE_NOT_OPEN;
 }
 
@@ -571,24 +587,70 @@ Status KvStoreDataService::DeleteKvStore(const AppId &appId, const StoreId &stor
         return Status::PERMISSION_DENIED;
     }
 
-    // delete the backup file
-    std::initializer_list<std::string> backFileList = {
-        AccountDelegate::GetInstance()->GetCurrentAccountId(), "_", appId.appId, "_", storeId.storeId};
-    auto backupFileName = Constant::Concatenate(backFileList);
-    const std::string userId = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(info.uid);
-    std::initializer_list<std::string> backPathListDE = {BackupHandler::GetBackupPath(userId,
-        KvStoreAppManager::PATH_DE), "/", BackupHandler::GetHashedBackupName(backupFileName)};
-    auto backFilePath = Constant::Concatenate(backPathListDE);
-    if (!BackupHandler::RemoveFile(backFilePath)) {
+    HapTokenInfo tokenInfo;
+    tokenInfo.instIndex = 0;
+    if (AccessTokenKit::GetTokenTypeFlag(info.tokenId) == TOKEN_HAP) {
+        AccessTokenKit::GetHapTokenInfo(info.tokenId, tokenInfo);
+    }
+
+    StoreMetaData storeMetaData;
+    storeMetaData.deviceId = DeviceKvStoreImpl::GetLocalDeviceId();
+    storeMetaData.user = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(info.uid);
+    storeMetaData.bundleName = appId.appId;
+    storeMetaData.storeId = storeId.storeId;
+    storeMetaData.instanceId = tokenInfo.instIndex;
+    auto metaKey = storeMetaData.GetKey();
+    if (!MetaDataManager::GetInstance().LoadMeta(metaKey, storeMetaData)) {
+        ZLOGE("load key failed, appId:%s, storeId:%s, instanceId:%u",
+            appId.appId.c_str(), storeId.storeId.c_str(), storeMetaData.instanceId);
+        return Status::STORE_NOT_FOUND;
+    }
+    return DeleteKvStore(storeMetaData);
+}
+
+Status KvStoreDataService::DeleteKvStore(StoreMetaData &metaData)
+{
+     // delete the backup file
+    auto backFilePath = BackupHandler::GetBackupPath(metaData.user, KvStoreAppManager::ConvertPathType(metaData));
+    auto backupFileName = Constant::Concatenate({ metaData.account, "_", metaData.bundleName, "_", metaData.storeId });
+    auto backFile = Constant::Concatenate({ backFilePath, "/", BackupHandler::GetHashedBackupName(backupFileName) });
+    if (!BackupHandler::RemoveFile(backFile)) {
         ZLOGE("DeleteKvStore RemoveFile backFilePath failed.");
     }
-    std::initializer_list<std::string> backPathListCE = {BackupHandler::GetBackupPath(userId,
-        KvStoreAppManager::PATH_CE), "/", BackupHandler::GetHashedBackupName(backupFileName)};
-    backFilePath = Constant::Concatenate(backPathListCE);
-    if (!BackupHandler::RemoveFile(backFilePath)) {
-        ZLOGE("DeleteKvStore RemoveFile backFilePath failed.");
+
+    std::lock_guard<std::mutex> lg(accountMutex_);
+    Status status;
+    auto it = deviceAccountMap_.find(metaData.user);
+    if (it != deviceAccountMap_.end()) {
+        status = (it->second).DeleteKvStore(metaData.bundleName, metaData.uid, metaData.tokenId, metaData.storeId);
+    } else {
+        KvStoreUserManager kvStoreUserManager(metaData.user);
+        status = kvStoreUserManager.DeleteKvStore(
+            metaData.bundleName, metaData.uid, metaData.tokenId, metaData.storeId);
     }
-    return DeleteKvStore(appId.appId, storeId);
+
+    if (status == Status::SUCCESS) {
+        auto metaKey = metaData.GetKey();
+        if (!MetaDataManager::GetInstance().DelMeta(metaKey)) {
+            ZLOGW("Remove Kvstore MetaData failed.");
+        }
+        if (metaData.instanceId == 0) {
+            metaKey = SecretKeyMeta::GetKey({metaData.user, "default", metaData.bundleName, metaData.storeId});
+        } else {
+            metaKey = SecretKeyMeta::GetKey({
+                metaData.user, "default", metaData.bundleName, metaData.storeId, std::to_string(metaData.instanceId)});
+        }
+        MetaDataManager::GetInstance().DelMeta(metaKey, true);
+        auto secretKeyFile = KvStoreMetaManager::GetSecretSingleKeyFile(
+            metaData.user, metaData.bundleName, metaData.storeId, KvStoreAppManager::ConvertPathType(metaData));
+        if (!RemoveFile(secretKeyFile)) {
+            ZLOGE("remove secretkey file single fail.");
+        }
+        metaKey = StrategyMetaData::GetPrefix({
+            metaData.deviceId, metaData.user, "default", metaData.bundleName, metaData.storeId });
+        MetaDataManager::GetInstance().DelMeta(metaKey);
+    }
+    return status;
 }
 
 /* delete all kv store */
@@ -644,38 +706,48 @@ Status KvStoreDataService::RegisterClientDeathObserver(const AppId &appId, sptr<
         return Status::INVALID_ARGUMENT;
     }
 
-    pid_t uid = IPCSkeleton::GetCallingUid();
-    uint32_t tokenId = IPCSkeleton::GetCallingTokenID();
-    std::lock_guard<std::mutex> lg(clientDeathObserverMutex_);
-    auto it = clientDeathObserverMap_.emplace(std::piecewise_construct, std::forward_as_tuple(appId.appId),
-        std::forward_as_tuple(appId, uid, tokenId, *this, std::move(observer)));
-    ZLOGI("map size: %{public}zu.", clientDeathObserverMap_.size());
-    if (!it.second) {
-        ZLOGI("insert failed");
-        return Status::ERROR;
+    CheckerManager::StoreInfo info;
+    info.uid = IPCSkeleton::GetCallingUid();
+    info.tokenId = IPCSkeleton::GetCallingTokenID();
+    info.bundleName = appId.appId;
+    info.storeId = "";
+    if (!CheckerManager::GetInstance().IsValid(info)) {
+        ZLOGW("check bundleName:%{public}s uid:%{public}d failed.", appId.appId.c_str(), info.uid);
+        return Status::PERMISSION_DENIED;
     }
-    ZLOGI("insert success");
-    return Status::SUCCESS;
+
+    std::lock_guard<decltype(clientDeathObserverMutex_)> lg(clientDeathObserverMutex_);
+    clientDeathObserverMap_.erase(info.tokenId);
+    auto it = clientDeathObserverMap_.emplace(std::piecewise_construct, std::forward_as_tuple(info.tokenId),
+        std::forward_as_tuple(appId, *this, std::move(observer)));
+    ZLOGI("bundleName:%{public}s, uid:%{public}d, pid:%{public}d inserted:%{public}s.",
+        appId.appId.c_str(), info.uid, IPCSkeleton::GetCallingPid(), it.second ? "success" : "failed");
+    return it.second ? Status::SUCCESS : Status::ERROR;
 }
 
-Status KvStoreDataService::AppExit(const AppId &appId, pid_t uid, uint32_t token)
+Status KvStoreDataService::AppExit(pid_t uid, pid_t pid, uint32_t token, const AppId &appId)
 {
     ZLOGI("AppExit");
     // memory of parameter appId locates in a member of clientDeathObserverMap_ and will be freed after
     // clientDeathObserverMap_ erase, so we have to take a copy if we want to use this parameter after erase operation.
     AppId appIdTmp = appId;
-    {
-        std::lock_guard<std::mutex> lg(clientDeathObserverMutex_);
-        clientDeathObserverMap_.erase(appIdTmp.appId);
-        ZLOGI("map size: %zu.", clientDeathObserverMap_.size());
+    if (appId.appId == "com.ohos.medialibrary.medialibrarydata") {
+        HapTokenInfo tokenInfo;
+        AccessTokenKit::GetHapTokenInfo(token, tokenInfo);
+        ZLOGI("not close bundle:%{public}s, tokenInfo.bundle:%{public}s, uid:%{public}d, token:%{public}u",
+            appId.appId.c_str(), tokenInfo.bundleName.c_str(), uid, token);
+        return Status::SUCCESS;
     }
+    std::lock_guard<decltype(clientDeathObserverMutex_)> lg(clientDeathObserverMutex_);
+    clientDeathObserverMap_.erase(token);
 
     const std::string userId = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(uid);
-    std::lock_guard<std::mutex> lg(accountMutex_);
+    std::lock_guard<std::mutex> lock(accountMutex_);
     auto it = deviceAccountMap_.find(userId);
     if (it != deviceAccountMap_.end()) {
         auto status = (it->second).CloseAllKvStore(appIdTmp.appId);
-        ZLOGI("Close all kv store %{public}s, status:%{public}d.", appIdTmp.appId.c_str(), status);
+        ZLOGI("Close all kv store %{public}s uid:%{public}d, status:%{public}d.",
+            appIdTmp.appId.c_str(), uid, status);
     }
     return Status::SUCCESS;
 }
@@ -692,13 +764,54 @@ int KvStoreDataService::Dump(int fd, const std::vector<std::u16string> &args)
     if (uid > maxUid) {
         return 0;
     }
+
+    std::vector<std::string> argsStr;
+    for (auto item : args) {
+        argsStr.emplace_back(Str16ToStr8(item));
+    }
+
+    if (DumpHelper::GetInstance().Dump(fd, argsStr)) {
+        return 0;
+    }
+
+    ZLOGE("DumpHelper failed");
+    return ERROR;
+}
+
+void KvStoreDataService::DumpAll(int fd)
+{
     dprintf(fd, "------------------------------------------------------------------\n");
-    dprintf(fd, "DeviceAccount count : %u\n", static_cast<uint32_t>(deviceAccountMap_.size()));
+    dprintf(fd, "User count : %u\n", static_cast<uint32_t>(deviceAccountMap_.size()));
     for (const auto &pair : deviceAccountMap_) {
-        dprintf(fd, "DeviceAccountID    : %s\n", pair.first.c_str());
         pair.second.Dump(fd);
     }
-    return 0;
+}
+
+void KvStoreDataService::DumpUserInfo(int fd)
+{
+    dprintf(fd, "------------------------------------------------------------------\n");
+    dprintf(fd, "User count : %u\n", static_cast<uint32_t>(deviceAccountMap_.size()));
+    for (const auto &pair : deviceAccountMap_) {
+        pair.second.DumpUserInfo(fd);
+    }
+}
+
+void KvStoreDataService::DumpAppInfo(int fd, const std::string &appId)
+{
+    dprintf(fd, "------------------------------------------------------------------\n");
+    dprintf(fd, "User count : %u\n", static_cast<uint32_t>(deviceAccountMap_.size()));
+    for (const auto &pair : deviceAccountMap_) {
+        pair.second.DumpAppInfo(fd, appId);
+    }
+}
+
+void KvStoreDataService::DumpStoreInfo(int fd, const std::string &storeId)
+{
+    dprintf(fd, "------------------------------------------------------------------\n");
+    dprintf(fd, "User count : %u\n", static_cast<uint32_t>(deviceAccountMap_.size()));
+    for (const auto &pair : deviceAccountMap_) {
+        pair.second.DumpStoreInfo(fd, storeId);
+    }
 }
 
 void KvStoreDataService::OnStart()
@@ -712,11 +825,12 @@ void KvStoreDataService::OnStart()
         }
         ZLOGE("GetLocalDeviceId failed, retry count:%{public}d", static_cast<int>(retry));
     }
-    Initialize();
+    ZLOGI("Bootstrap configs and plugins.");
     Bootstrap::GetInstance().LoadComponents();
     Bootstrap::GetInstance().LoadDirectory();
     Bootstrap::GetInstance().LoadCheckers();
     Bootstrap::GetInstance().LoadNetworks();
+    Initialize();
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (samgr != nullptr) {
         ZLOGI("samgr exist.");
@@ -727,7 +841,6 @@ void KvStoreDataService::OnStart()
             return;
         }
     }
-    CreateRdbService();
     StartService();
 }
 
@@ -735,10 +848,10 @@ void KvStoreDataService::StartService()
 {
     // register this to ServiceManager.
     KvStoreMetaManager::GetInstance().InitMetaListener();
+    InitObjectStore();
     bool ret = SystemAbility::Publish(this);
     if (!ret) {
-        FaultMsg msg = {FaultType::SERVICE_FAULT, "service", __FUNCTION__, Fault::SF_SERVICE_PUBLISH};
-        Reporter::GetInstance()->ServiceFault()->Report(msg);
+        DumpHelper::GetInstance().AddErrorInfo("StartService: Service publish failed.");
     }
     Uninstaller::GetInstance().Init(this);
 
@@ -768,10 +881,13 @@ void KvStoreDataService::StartService()
     if (dbStatus != DistributedDB::DBStatus::OK) {
         ZLOGE("SetPermissionCheck callback failed.");
     }
-    ZLOGI("autoLaunchRequestCallback start");
     auto autoLaunchRequestCallback =
         [this](const std::string &identifier, DistributedDB::AutoLaunchParam &param) -> bool {
-            return ResolveAutoLaunchParamByIdentifier(identifier, param);
+            auto status = ResolveAutoLaunchParamByIdentifier(identifier, param);
+            if (kvdbService_) {
+                kvdbService_->ResolveAutoLaunch(identifier, param);
+            }
+            return status;
         };
     KvStoreDelegateManager::SetAutoLaunchRequestCallback(autoLaunchRequestCallback);
 
@@ -783,6 +899,12 @@ void KvStoreDataService::StartService()
         KvStoreAppAccessor::GetInstance().EnableKvStoreAutoLaunch();
     });
     th.detach();
+    DumpHelper::GetInstance().AddDumpOperation(
+        std::bind(&KvStoreDataService::DumpAll, this, std::placeholders::_1),
+        std::bind(&KvStoreDataService::DumpUserInfo, this, std::placeholders::_1),
+        std::bind(&KvStoreDataService::DumpAppInfo, this, std::placeholders::_1, std::placeholders::_2),
+        std::bind(&KvStoreDataService::DumpStoreInfo, this, std::placeholders::_1, std::placeholders::_2)
+    );
     ZLOGI("Publish ret: %{public}d", static_cast<int>(ret));
 }
 
@@ -830,7 +952,7 @@ bool KvStoreDataService::ResolveAutoLaunchParamByIdentifier(
             storeMeta.userId, storeMeta.appId, storeMeta.storeId, false);
         const std::string &itemDualIdentifier =
             DistributedDB::KvStoreDelegateManager::GetKvStoreIdentifier("", storeMeta.appId, storeMeta.storeId, true);
-        if (identifier == itemTripleIdentifier) {
+        if (identifier == itemTripleIdentifier && storeMeta.bundleName != Bootstrap::GetInstance().GetProcessLabel()) {
             // old triple tuple identifier, should SetEqualIdentifier
             ResolveAutoLaunchCompatible(entry.second, identifier);
         }
@@ -843,6 +965,9 @@ bool KvStoreDataService::ResolveAutoLaunchParamByIdentifier(
             const std::vector<uint8_t> &secretKey = entry.second.secretKeyMetaData.secretKey;
             if (password.SetValue(secretKey.data(), secretKey.size()) != DistributedDB::CipherPassword::OK) {
                 ZLOGE("Get secret key failed.");
+            }
+            if (storeMeta.bundleName == Bootstrap::GetInstance().GetProcessLabel()) {
+                param.userId = storeMeta.userId;
             }
             option.passwd = password;
             option.schema = storeMeta.schema;
@@ -864,7 +989,7 @@ bool KvStoreDataService::ResolveAutoLaunchParamByIdentifier(
 void KvStoreDataService::ResolveAutoLaunchCompatible(const MetaData &meta, const std::string &identifier)
 {
     ZLOGI("AutoLaunch:peer device is old tuple, begin to open store");
-    if (meta.kvStoreType >= KvStoreType::MULTI_VERSION) {
+    if (meta.kvStoreType > KvStoreType::SINGLE_VERSION) {
         ZLOGW("no longer support multi or higher version store type");
         return;
     }
@@ -883,7 +1008,6 @@ void KvStoreDataService::ResolveAutoLaunchCompatible(const MetaData &meta, const
         .autoSync = storeMeta.isAutoSync,
         .securityLevel = storeMeta.securityLevel,
         .kvStoreType = static_cast<KvStoreType>(storeMeta.kvStoreType),
-        .dataOwnership = true,
     };
     DistributedDB::KvStoreNbDelegate::Option dbOptions;
     KvStoreAppManager::InitNbDbOption(options, meta.secretKeyMetaData.secretKey, dbOptions);
@@ -938,10 +1062,7 @@ bool KvStoreDataService::CheckPermissions(const std::string &userId, const std::
         ZLOGD("it's A app, don't check sync permission.");
         return true;
     }
-
-    bool ret = PermissionValidator::GetInstance().CheckSyncPermission(metaData.tokenId);
-    ZLOGD("checking sync permission ret:%{public}d.", ret);
-    return ret;
+    return PermissionValidator::GetInstance().CheckSyncPermission(metaData.tokenId);
 }
 
 void KvStoreDataService::OnStop()
@@ -954,12 +1075,14 @@ void KvStoreDataService::OnStop()
 }
 
 KvStoreDataService::KvStoreClientDeathObserverImpl::KvStoreClientDeathObserverImpl(
-    const AppId &appId, pid_t uid, uint32_t token, KvStoreDataService &service, sptr<IRemoteObject> observer)
-    : appId_(appId), uid_(uid), token_(token), dataService_(service), observerProxy_(std::move(observer)),
-    deathRecipient_(new KvStoreDeathRecipient(*this))
+    const AppId &appId, KvStoreDataService &service, sptr<IRemoteObject> observer)
+    : appId_(appId), dataService_(service), observerProxy_(std::move(observer)),
+      deathRecipient_(new KvStoreDeathRecipient(*this))
 {
     ZLOGI("KvStoreClientDeathObserverImpl");
-
+    uid_ = IPCSkeleton::GetCallingUid();
+    pid_ = IPCSkeleton::GetCallingPid();
+    token_ = IPCSkeleton::GetCallingTokenID();
     if (observerProxy_ != nullptr) {
         ZLOGI("add death recipient");
         observerProxy_->AddDeathRecipient(deathRecipient_);
@@ -975,12 +1098,20 @@ KvStoreDataService::KvStoreClientDeathObserverImpl::~KvStoreClientDeathObserverI
         ZLOGI("remove death recipient");
         observerProxy_->RemoveDeathRecipient(deathRecipient_);
     }
+    sptr<KVDBServiceImpl> kvdbService;
+    {
+        std::lock_guard<decltype(dataService_.mutex_)> lockGuard(dataService_.mutex_);
+        kvdbService = dataService_.kvdbService_;
+    }
+    if (kvdbService) {
+        kvdbService->AppExit(uid_, pid_, token_, appId_);
+    }
 }
 
 void KvStoreDataService::KvStoreClientDeathObserverImpl::NotifyClientDie()
 {
     ZLOGI("appId: %{public}s uid:%{public}d tokenId:%{public}u", appId_.appId.c_str(), uid_, token_);
-    dataService_.AppExit(appId_, uid_, token_);
+    dataService_.AppExit(uid_, pid_, token_, appId_);
 }
 
 KvStoreDataService::KvStoreClientDeathObserverImpl::KvStoreDeathRecipient::KvStoreDeathRecipient(
@@ -1003,39 +1134,6 @@ void KvStoreDataService::KvStoreClientDeathObserverImpl::KvStoreDeathRecipient::
     kvStoreClientDeathObserverImpl_.NotifyClientDie();
 }
 
-Status KvStoreDataService::DeleteKvStore(const std::string &bundleName, const StoreId &storeId)
-{
-    ZLOGI("begin.");
-    if (!storeId.IsValid()) {
-        ZLOGE("invalid storeId.");
-        return Status::INVALID_ARGUMENT;
-    }
-
-    const pid_t uid = IPCSkeleton::GetCallingUid();
-    uint32_t tokenId = IPCSkeleton::GetCallingTokenID();
-    const std::string userId = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(uid);
-    std::lock_guard<std::mutex> lg(accountMutex_);
-    Status status;
-    auto it = deviceAccountMap_.find(userId);
-    if (it != deviceAccountMap_.end()) {
-        status = (it->second).DeleteKvStore(bundleName, uid, tokenId, storeId.storeId);
-    } else {
-        KvStoreUserManager kvStoreUserManager(userId);
-        status = kvStoreUserManager.DeleteKvStore(bundleName, uid, tokenId, storeId.storeId);
-    }
-
-    if (status == Status::SUCCESS) {
-        auto metaKey = KvStoreMetaManager::GetMetaKey(userId, "default", bundleName, storeId.storeId);
-        status = KvStoreMetaManager::GetInstance().CheckUpdateServiceMeta(metaKey, DELETE);
-        if (status != Status::SUCCESS) {
-            ZLOGW("Remove Kvstore Metakey failed.");
-        }
-        KvStoreMetaManager::GetInstance().RemoveSecretKey(uid, bundleName, storeId.storeId);
-        KvStoreMetaManager::GetInstance().DeleteStrategyMeta(bundleName, storeId.storeId, userId);
-    }
-    return status;
-}
-
 Status KvStoreDataService::DeleteKvStoreOnly(const StoreMetaData &metaData)
 {
     ZLOGI("DeleteKvStoreOnly begin.");
@@ -1055,26 +1153,28 @@ void KvStoreDataService::AccountEventChanged(const AccountEventInfo &eventInfo)
         case AccountStatus::DEVICE_ACCOUNT_DELETE: {
             g_kvStoreAccountEventStatus = 1;
             // delete all kvstore belong to this device account
-            for (auto &it : deviceAccountMap_) {
-                (it.second).DeleteAllKvStore();
-            }
             auto it = deviceAccountMap_.find(eventInfo.deviceAccountId);
             if (it != deviceAccountMap_.end()) {
+                (it->second).DeleteAllKvStore();
                 deviceAccountMap_.erase(eventInfo.deviceAccountId);
+            } else {
+                KvStoreUserManager kvStoreUserManager(eventInfo.deviceAccountId);
+                kvStoreUserManager.DeleteAllKvStore();
             }
             std::initializer_list<std::string> dirList = {Constant::ROOT_PATH_DE, "/",
                 Constant::SERVICE_NAME, "/", eventInfo.deviceAccountId};
-            std::string deviceAccountKvStoreDataDir = Constant::Concatenate(dirList);
-            ForceRemoveDirectory(deviceAccountKvStoreDataDir);
+            std::string userDir = Constant::Concatenate(dirList);
+            ForceRemoveDirectory(userDir);
             dirList = {Constant::ROOT_PATH_CE, "/", Constant::SERVICE_NAME, "/", eventInfo.deviceAccountId};
-            deviceAccountKvStoreDataDir = Constant::Concatenate(dirList);
-            ForceRemoveDirectory(deviceAccountKvStoreDataDir);
+            userDir = Constant::Concatenate(dirList);
+            ForceRemoveDirectory(userDir);
             g_kvStoreAccountEventStatus = 0;
             break;
         }
         case AccountStatus::DEVICE_ACCOUNT_SWITCHED: {
             auto ret = DistributedDB::KvStoreDelegateManager::NotifyUserChanged();
             ZLOGI("notify delegate manager result:%{public}d", ret);
+            objectService_->Clear();
             break;
         }
         default: {
@@ -1158,10 +1258,15 @@ Status KvStoreDataService::StopWatchDeviceChange(sptr<IDeviceStatusChangeListene
     return Status::SUCCESS;
 }
 
-bool KvStoreDataService::IsStoreOpened(const std::string &userId, const std::string &appId, const std::string &storeId)
+std::set<std::string> KvStoreDataService::GetUsersByStore(const std::string &appId, const std::string &storeId)
 {
-    auto it = deviceAccountMap_.find(userId);
-    return it != deviceAccountMap_.end() && it->second.IsStoreOpened(appId, storeId);
+    std::set<std::string> users;
+    for (auto &[user, value] : deviceAccountMap_) {
+        if (value.IsStoreOpened(appId, storeId)) {
+            users.emplace(user);
+        }
+    }
+    return users;
 }
 
 void KvStoreDataService::SetCompatibleIdentify(const AppDistributedKv::DeviceInfo &info) const
@@ -1175,37 +1280,55 @@ bool KvStoreDataService::CheckSyncActivation(
     const std::string &userId, const std::string &appId, const std::string &storeId)
 {
     ZLOGD("user:%{public}s, app:%{public}s, store:%{public}s", userId.c_str(), appId.c_str(), storeId.c_str());
-    std::vector<UserStatus> users = UserDelegate::GetInstance().GetLocalUserStatus();
-    // active sync feature with single active user
-    for (const auto &user : users) {
-        if (userId == std::to_string(user.id)) {
-            if (!user.isActive) {
-                ZLOGD("the store is not in active user");
-                return false;
-            }
-            // check store in other active user
-            continue;
-        }
-        if (IsStoreOpened(std::to_string(user.id), appId, storeId)) {
-            ZLOGD("the store already opened in user %{public}d", user.id);
-            return false;
-        }
-    }
-    ZLOGD("sync permitted");
-    return true;
+    std::set<std::string> activeUsers = UserDelegate::GetInstance().GetLocalUsers();
+    auto storeUsers = GetUsersByStore(appId, storeId);
+    storeUsers.emplace(userId);
+    auto users = Intersect(activeUsers, storeUsers);
+    return users.size() == storeUsers.size();
 }
 
-void KvStoreDataService::CreateRdbService()
+std::vector<std::string> KvStoreDataService::Intersect(
+    const std::set<std::string> &left, const std::set<std::string> &right)
 {
-    rdbService_ = new(std::nothrow) DistributedRdb::RdbServiceImpl();
-    if (rdbService_ != nullptr) {
-        ZLOGI("create rdb service success");
+    std::vector<std::string> users;
+    for (auto lIt = left.begin(), rIt = right.begin(); lIt != left.end() && rIt != right.end();) {
+        if (*lIt == *rIt) {
+            users.emplace_back(*rIt);
+            ++lIt;
+            ++rIt;
+            continue;
+        }
+        if (*lIt < *rIt) {
+            lIt++;
+            continue;
+        }
+        rIt++;
     }
+    return users;
 }
 
 sptr<IRemoteObject> KvStoreDataService::GetRdbService()
 {
+    if (rdbService_ == nullptr) {
+        std::lock_guard<decltype(mutex_)> lockGuard(mutex_);
+        if (rdbService_ == nullptr) {
+            rdbService_ = new (std::nothrow) DistributedRdb::RdbServiceImpl();
+        }
+        return rdbService_ == nullptr ? nullptr : rdbService_->AsObject().GetRefPtr();
+    }
     return rdbService_->AsObject().GetRefPtr();
+}
+
+sptr<IRemoteObject> KvStoreDataService::GetKVdbService()
+{
+    if (kvdbService_ == nullptr) {
+        std::lock_guard<decltype(mutex_)> lockGuard(mutex_);
+        if (kvdbService_ == nullptr) {
+            kvdbService_ = new (std::nothrow) KVDBServiceImpl();
+        }
+        return kvdbService_ == nullptr ? nullptr : kvdbService_->AsObject().GetRefPtr();
+    }
+    return kvdbService_->AsObject().GetRefPtr();
 }
 
 bool DbMetaCallbackDelegateMgr::GetKvStoreDiskSize(const std::string &storeId, uint64_t &size)
@@ -1253,5 +1376,10 @@ void DbMetaCallbackDelegateMgr::GetKvStoreKeys(std::vector<StoreInfo> &dbStats)
         }
     }
     delegate_->CloseKvStore(kvStoreNbDelegatePtr);
+}
+
+int32_t KvStoreDataService::DeleteObjectsByAppId(const std::string &appId)
+{
+    return objectService_->DeleteByAppId(appId);
 }
 } // namespace OHOS::DistributedKv

@@ -18,7 +18,7 @@
 #include "reporter.h"
 
 using namespace testing::ext;
-using namespace OHOS::DistributedKv;
+using namespace OHOS::DistributedDataDfx;
 
 class DistributedataDfxMSTTest : public testing::Test {
 public:
@@ -54,8 +54,12 @@ HWTEST_F(DistributedataDfxMSTTest, Dfx001, TestSize.Level0)
      */
     auto comFault = Reporter::GetInstance()->CommunicationFault();
     EXPECT_NE(nullptr, comFault);
-    struct FaultMsg msg{.faultType = FaultType::SERVICE_FAULT, .moduleName = "comm", .interfaceName = "sendData",
-            .errorType = Fault::CF_CREATE_SESSION};
+    struct CommFaultMsg msg{.userId = "user001", .appId = "myApp", .storeId = "storeTest"};
+    msg.deviceId.push_back("device001");
+    msg.errorCode.push_back(001);
+    msg.deviceId.push_back("device002");
+    msg.errorCode.push_back(002);
+
     auto repStatus = comFault->Report(msg);
     EXPECT_TRUE(repStatus == ReportStatus::SUCCESS);
 

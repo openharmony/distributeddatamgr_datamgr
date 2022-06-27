@@ -39,7 +39,7 @@ enum IdType {
 template <typename T>
 class BlockData {
 public:
-    explicit BlockData() {}
+    explicit BlockData(uint32_t interval, const T &invalid = T()) : INTERVAL(interval), data_(invalid) {}
     ~BlockData() {}
 
 public:
@@ -54,21 +54,23 @@ public:
     T GetValue()
     {
         std::unique_lock<std::mutex> lock(mutex_);
-        cv_.wait(lock, [this]() { return isSet_; });
+        cv_.wait_for(lock, std::chrono::seconds(INTERVAL), [this]() { return isSet_; });
         T data = data_;
         cv_.notify_one();
         return data;
     }
 
-    void Clear()
+    void Clear(const T &invalid = T())
     {
         std::lock_guard<std::mutex> lock(mutex_);
         isSet_ = false;
+        data_ = invalid;
         cv_.notify_one();
     }
 
 private:
     bool isSet_ = false;
+    const uint32_t INTERVAL;
     T data_;
     std::mutex mutex_;
     std::condition_variable cv_;

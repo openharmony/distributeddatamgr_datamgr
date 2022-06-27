@@ -18,8 +18,7 @@
 #define LOG_TAG "UserDelegate"
 
 #include <thread>
-#include "account_delegate.h"
-#include "communication_provider.h"
+#include "communicator/communication_provider.h"
 #include "executor_factory.h"
 #include "log_print.h"
 #include "metadata/meta_data_manager.h"
@@ -46,6 +45,26 @@ std::vector<UserStatus> UserDelegate::GetLocalUserStatus()
         return {};
     }
     return GetUsers(deviceId);
+}
+
+std::set<std::string> UserDelegate::GetLocalUsers()
+{
+    auto deviceId = GetLocalDeviceId();
+    if (deviceId.empty()) {
+        ZLOGE("failed to get local device id");
+        return {};
+    }
+    if (!deviceUserMap_.Contains(deviceId)) {
+        LoadFromMeta(deviceId);
+    }
+    std::set<std::string> users;
+    deviceUserMap_.ComputeIfPresent(deviceId, [&users](auto&, std::map<int, bool> &value) {
+        for (auto [user, active] : value) {
+            users.emplace(std::to_string(user));
+        }
+        return !value.empty();
+    });
+    return users;
 }
 
 std::vector<DistributedData::UserStatus> UserDelegate::GetRemoteUserStatus(const std::string &deviceId)

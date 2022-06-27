@@ -23,12 +23,14 @@ class Bootstrap {
 public:
     API_EXPORT static Bootstrap &GetInstance();
     API_EXPORT std::string GetProcessLabel();
+    API_EXPORT std::string GetMetaDBName();
     API_EXPORT void LoadComponents();
     API_EXPORT void LoadCheckers();
     API_EXPORT void LoadNetworks();
     API_EXPORT void LoadDirectory();
 private:
     static constexpr const char *DEFAULT_LABEL = "distributeddata";
+    static constexpr const char *DEFAULT_META = "service_meta";
     using Constructor = void(*)(const char *);
 };
 } // namespace DistributedData

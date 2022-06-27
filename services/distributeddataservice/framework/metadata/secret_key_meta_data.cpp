@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "metadata/secret_key_meta_data.h"
+
 #include "utils/constant.h"
 namespace OHOS {
 namespace DistributedData {
@@ -27,29 +28,32 @@ bool SecretKeyMetaData::Marshal(json &node) const
 {
     SetValue(node[GET_NAME(time)], time);
     SetValue(node[GET_NAME(sKey)], sKey);
-    SetValue(node[GET_NAME(kvStoreType)], kvStoreType);
+    SetValue(node[GET_NAME(storeType)], storeType);
     return true;
 }
 bool SecretKeyMetaData::Unmarshal(const json &node)
 {
     GetValue(node, GET_NAME(time), time);
     GetValue(node, GET_NAME(sKey), sKey);
-    GetValue(node, GET_NAME(kvStoreType), kvStoreType);
+    GetValue(node, GET_NAME(storeType), storeType);
     return true;
 }
 
 std::string SecretKeyMetaData::GetKey(const std::initializer_list<std::string> &fields)
 {
-    std::string prefix = KEY_PREFIX;
-    for (const auto &field : fields) {
-        prefix.append(Constant::KEY_SEPARATOR).append(field);
-    }
+    std::string prefix = GetPrefix(fields);
+    prefix.append("SINGLE_KEY");
     return prefix;
 }
 
 std::string SecretKeyMetaData::GetPrefix(const std::initializer_list<std::string> &fields)
 {
-    return GetKey(fields).append(Constant::KEY_SEPARATOR);
+    std::string prefix = KEY_PREFIX;
+    for (const auto &field : fields) {
+        prefix.append(Constant::KEY_SEPARATOR).append(field);
+    }
+    prefix.append(Constant::KEY_SEPARATOR);
+    return prefix;
 }
 } // namespace DistributedData
 } // namespace OHOS

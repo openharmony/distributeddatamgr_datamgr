@@ -28,5 +28,9 @@ public:
     static inline const int DATABASE_PERFORMANCE_STATISTIC = 950001107;
     static inline const int API_PERFORMANCE_STATISTIC = 950001110;
     static inline const int API_PERFORMANCE_INTERFACE = 950001111;
+    static inline const int DATABASE_SYNC_FAILED = 950001112;
+    static inline const int DATABASE_CORRUPTED_FAILED = 950001113;
+    static inline const int DATABASE_REKEY_FAILED = 950001114;
+    static inline const int DATABASE_BEHAVIOUR = 950001115;
 };
 #endif // DISTRIBUTEDDATAMGR_DFX_CODE_CONSTANT_H

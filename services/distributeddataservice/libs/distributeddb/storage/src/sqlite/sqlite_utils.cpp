@@ -26,8 +26,8 @@
 #include "sqlite_import.h"
 #include "securec.h"
 #include "db_constant.h"
-#include "db_errno.h"
 #include "db_common.h"
+#include "db_errno.h"
 #include "log_print.h"
 #include "value_object.h"
 #include "schema_utils.h"
@@ -36,6 +36,8 @@
 #include "platform_specific.h"
 
 namespace DistributedDB {
+    std::mutex SQLiteUtils::logMutex_;
+    std::string SQLiteUtils::lastErrorMsg_;
 namespace {
     const int BUSY_TIMEOUT_MS = 3000; // 3000ms for sqlite busy timeout.
     const int BUSY_SLEEP_TIME = 50; // sleep for 50us
@@ -67,25 +69,6 @@ namespace {
     const std::string UPDATE_META_SQL = "INSERT OR REPLACE INTO meta_data VALUES (?, ?);";
 
     bool g_configLog = false;
-    std::mutex g_logMutex;
-
-    void SqliteLogCallback(void *data, int err, const char *msg)
-    {
-        bool verboseLog = (data != nullptr);
-        auto errType = static_cast<unsigned int>(err);
-        errType &= 0xFF;
-        if (errType == 0 || errType == SQLITE_CONSTRAINT || errType == SQLITE_SCHEMA ||
-            errType == SQLITE_NOTICE || err == SQLITE_WARNING_AUTOINDEX) {
-            if (verboseLog) {
-                LOGD("[SQLite] Error[%d] sys[%d] %s ", err, errno, sqlite3_errstr(err));
-            }
-        } else if (errType == SQLITE_WARNING || errType == SQLITE_IOERR ||
-            errType == SQLITE_CORRUPT || errType == SQLITE_CANTOPEN) {
-            LOGI("[SQLite] Error[%d], sys[%d], %s", err, errno, sqlite3_errstr(err));
-        } else {
-            LOGE("[SQLite] Error[%d], sys[%d]", err, errno);
-        }
-    }
 
     // statement must not be null
     std::string GetColString(sqlite3_stmt *statement, int nCol)
@@ -115,6 +98,31 @@ std::string GetTriggerModeString(TriggerModeEnum mode)
     auto it = TRIGGER_MODE_MAP.find(mode);
     return (it == TRIGGER_MODE_MAP.end()) ? "" : it->second;
 }
+}
+
+void SQLiteUtils::SqliteLogCallback(void *data, int err, const char *msg)
+{
+    bool verboseLog = (data != nullptr);
+    auto errType = static_cast<unsigned int>(err);
+    errType &= 0xFF;
+    if (errType == 0 || errType == SQLITE_CONSTRAINT || errType == SQLITE_SCHEMA ||
+        errType == SQLITE_NOTICE || err == SQLITE_WARNING_AUTOINDEX) {
+        if (verboseLog) {
+            LOGD("[SQLite] Error[%d] sys[%d] %s ", err, errno, sqlite3_errstr(err));
+        }
+    } else if (errType == SQLITE_WARNING || errType == SQLITE_IOERR ||
+        errType == SQLITE_CORRUPT || errType == SQLITE_CANTOPEN) {
+        LOGI("[SQLite] Error[%d], sys[%d], %s", err, errno, sqlite3_errstr(err));
+    } else {
+        LOGE("[SQLite] Error[%d], sys[%d]", err, errno);
+        return;
+    }
+
+    const char *errMsg = sqlite3_errstr(err);
+    std::lock_guard<std::mutex> autoLock(logMutex_);
+    if (errMsg != nullptr) {
+        lastErrorMsg_ = std::string(errMsg);
+    }
 }
 
 int SQLiteUtils::CreateDataBase(const OpenDbProperties &properties, sqlite3 *&dbTemp, bool setWal)
@@ -161,7 +169,7 @@ int SQLiteUtils::OpenDatabase(const OpenDbProperties &properties, sqlite3 *&db, 
 {
     {
         // Only for register the sqlite3 log callback
-        std::lock_guard<std::mutex> lock(g_logMutex);
+        std::lock_guard<std::mutex> lock(logMutex_);
         if (!g_configLog) {
             sqlite3_config(SQLITE_CONFIG_LOG, &SqliteLogCallback, &properties.createIfNecessary);
             g_configLog = true;
@@ -180,7 +188,16 @@ int SQLiteUtils::OpenDatabase(const OpenDbProperties &properties, sqlite3 *&db, 
     errCode = ExecuteRawSQL(dbTemp, SYNC_MODE_FULL_SQL);
     if (errCode != E_OK) {
         LOGE("SQLite sync mode failed: %d", errCode);
+        goto END;
     }
+
+    if (!properties.isMemDb) {
+        errCode = SQLiteUtils::SetPersistWalMode(dbTemp);
+        if (errCode != E_OK) {
+            LOGE("SQLite set persist wall mode failed: %d", errCode);
+        }
+    }
+
 END:
     if (errCode != E_OK && dbTemp != nullptr) {
         (void)sqlite3_close_v2(dbTemp);
@@ -189,7 +206,6 @@ END:
     if (errCode != E_OK && errno == EKEYREVOKED) {
         errCode = -E_EKEYREVOKED;
     }
-
     db = dbTemp;
     return errCode;
 }
@@ -291,20 +307,17 @@ void SQLiteUtils::ResetStatement(sqlite3_stmt *&statement, bool isNeedFinalize, 
 
     int innerCode = SQLITE_OK;
     // if need finalize the statement, just goto finalize.
-    if (isNeedFinalize) {
-        goto FINAL;
+    if (!isNeedFinalize) {
+        // reset the statement firstly.
+        innerCode = sqlite3_reset(statement);
+        if (innerCode != SQLITE_OK) {
+            LOGE("[SQLiteUtils] reset statement error:%d, sys:%d", innerCode, errno);
+            isNeedFinalize = true;
+        } else {
+            sqlite3_clear_bindings(statement);
+        }
     }
 
-    // reset the statement firstly.
-    innerCode = sqlite3_reset(statement);
-    if (innerCode != SQLITE_OK) {
-        LOGE("[SQLiteUtils] reset statement error:%d, sys:%d", innerCode, errno);
-        isNeedFinalize = true;
-    } else {
-        sqlite3_clear_bindings(statement);
-    }
-
-FINAL:
     if (isNeedFinalize) {
         int finalizeResult = sqlite3_finalize(statement);
         if (finalizeResult != SQLITE_OK) {
@@ -1760,7 +1773,7 @@ void SQLiteUtils::FlatBufferExtractByPath(sqlite3_context *ctx, int argc, sqlite
         LOGE("[FlatBufferExtract] Path null or offset=%d(skipsize=%u) invalid.", offset, schema->GetSkipSize());
         return;
     }
-    FlatBufferExtractInnerFunc(ctx, *schema, RawValue{valueBlob, valueBlobLen}, path);
+    FlatBufferExtractInnerFunc(ctx, *schema, RawValue { valueBlob, valueBlobLen }, path);
 }
 
 namespace {
@@ -2128,5 +2141,11 @@ int64_t SQLiteUtils::GetLastRowId(sqlite3 *db)
         return -1;
     }
     return sqlite3_last_insert_rowid(db);
+}
+
+std::string SQLiteUtils::GetLastErrorMsg()
+{
+    std::lock_guard<std::mutex> autoLock(logMutex_);
+    return lastErrorMsg_;
 }
 } // namespace DistributedDB

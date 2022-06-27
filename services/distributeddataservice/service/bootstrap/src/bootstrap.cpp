@@ -37,6 +37,15 @@ std::string Bootstrap::GetProcessLabel()
     return global->processLabel;
 }
 
+std::string Bootstrap::GetMetaDBName()
+{
+    auto *global = ConfigFactory::GetInstance().GetGlobalConfig();
+    if (global == nullptr || global->metaData.empty()) {
+        return DEFAULT_META;
+    }
+    return global->metaData;
+}
+
 void Bootstrap::LoadComponents()
 {
     auto *comps = ConfigFactory::GetInstance().GetComponentConfig();
@@ -74,14 +83,15 @@ void Bootstrap::LoadNetworks()
 }
 void Bootstrap::LoadDirectory()
 {
-    auto *global = ConfigFactory::GetInstance().GetGlobalConfig();
-    if (global == nullptr || global->directory == nullptr) {
+    auto *config = ConfigFactory::GetInstance().GetDirectoryConfig();
+    if (config == nullptr) {
         return;
     }
-    for (const auto &strategy : global->directory->strategy) {
-        DirectoryManager::GetInstance().AddParams(strategy);
+    std::vector<DirectoryManager::Strategy> strategies(config->strategy.size());
+    for (size_t i = 0; i < config->strategy.size(); ++i) {
+        strategies[i] = config->strategy[i];
     }
-    DirectoryManager::GetInstance().SetCurrentVersion(global->directory->currentStrategyVersion);
+    DirectoryManager::GetInstance().Initialize(strategies);
 }
 } // namespace DistributedData
 } // namespace OHOS

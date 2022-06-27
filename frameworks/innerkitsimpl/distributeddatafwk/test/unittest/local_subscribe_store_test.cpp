@@ -14,12 +14,11 @@
  */
 
 #define LOG_TAG "LocalSubscribeStoreTest"
-
-#include <cstddef>
 #include <cstdint>
 #include <gtest/gtest.h>
 #include <unistd.h>
 #include <vector>
+
 #include "distributed_kv_data_manager.h"
 #include "log_print.h"
 #include "types.h"
@@ -51,13 +50,16 @@ StoreId LocalSubscribeStoreTest::storeId;
 
 void LocalSubscribeStoreTest::SetUpTestCase(void)
 {
+    mkdir("/data/service/el1/public/database/odmf", (S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH));
 }
 
 void LocalSubscribeStoreTest::TearDownTestCase(void)
 {
     manager.CloseKvStore(appId, kvStore);
     kvStore = nullptr;
-    manager.DeleteKvStore(appId, storeId);
+    manager.DeleteKvStore(appId, storeId, "/data/service/el1/public/database/odmf");
+    remove("/data/service/el1/public/database/odmf/kvdb");
+    remove("/data/service/el1/public/database/odmf");
 }
 
 void LocalSubscribeStoreTest::SetUp(void)
@@ -67,10 +69,11 @@ void LocalSubscribeStoreTest::SetUp(void)
     options.encrypt = false;  // not supported yet.
     options.autoSync = true;  // not supported yet.
     options.kvStoreType = KvStoreType::SINGLE_VERSION;
-
+    options.area = EL1;
+    options.baseDir = std::string("/data/service/el1/public/database/odmf");
     appId.appId = "odmf";         // define app name.
     storeId.storeId = "student";  // define kvstore(database) name
-    manager.DeleteKvStore(appId, storeId);
+    manager.DeleteKvStore(appId, storeId, options.baseDir);
     // [create and] open and initialize kvstore instance.
     statusGetKvStore = manager.GetSingleKvStore(options, appId, storeId, kvStore);
     EXPECT_EQ(Status::SUCCESS, statusGetKvStore) << "statusGetKvStore return wrong status";
@@ -99,9 +102,6 @@ public:
     KvStoreObserverUnitTest(KvStoreObserverUnitTest &&) = delete;
     KvStoreObserverUnitTest &operator=(KvStoreObserverUnitTest &&) = delete;
 
-    // callback function will be called when the db data is changed.
-    void OnChange(const ChangeNotification &changeNotification, std::shared_ptr<KvStoreSnapshot> snapshot);
-
     void OnChange(const ChangeNotification &changeNotification);
 
     // reset the callCount_ to zero.
@@ -122,8 +122,7 @@ KvStoreObserverUnitTest::KvStoreObserverUnitTest()
     isClear_ = false;
 }
 
-void KvStoreObserverUnitTest::OnChange(const ChangeNotification &changeNotification,
-                                       std::shared_ptr<KvStoreSnapshot> snapshot)
+void KvStoreObserverUnitTest::OnChange(const ChangeNotification &changeNotification)
 {
     ZLOGD("begin.");
     callCount_++;
@@ -132,11 +131,6 @@ void KvStoreObserverUnitTest::OnChange(const ChangeNotification &changeNotificat
     deleteEntries_ = changeNotification.GetDeleteEntries();
     changeNotification.GetDeviceId();
     isClear_ = changeNotification.IsClear();
-}
-
-void KvStoreObserverUnitTest::OnChange(const ChangeNotification &changeNotification)
-{
-    OnChange(changeNotification, nullptr);
 }
 
 void KvStoreObserverUnitTest::ResetToZero()

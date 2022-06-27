@@ -13,12 +13,7 @@
 import("//build/ohos.gni")
 
 ohos_static_library("distributeddata_permission_static") {
-  sources = [
-    "src/bundle_checker.cpp",
-    "src/media_lib_checker.cpp",
-    "src/permission_validator.cpp",
-    "src/system_checker.cpp",
-  ]
+  sources = [ "src/permission_validator.cpp" ]
 
   cflags_cc = [ "-fvisibility=hidden" ]
 
@@ -37,17 +32,11 @@ ohos_static_library("distributeddata_permission_static") {
   ldflags = [ "-Wl,--exclude-libs,ALL" ]
   deps = [
     "../utils:distributeddata_utils_static",
-    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter:distributeddata_adapter",
-    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/framework:distributeddatasvcfwk",
     "//utils/native/base:utils",
   ]
 
   external_deps = [
-    "ability_base:base",
-    "ability_base:want",
     "access_token:libaccesstoken_sdk",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "samgr_standard:samgr_proxy",

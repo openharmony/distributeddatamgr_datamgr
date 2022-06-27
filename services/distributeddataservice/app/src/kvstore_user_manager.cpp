@@ -21,7 +21,8 @@
 #include "constant.h"
 #include "kvstore_utils.h"
 #include "log_print.h"
-#include "permission_validator.h"
+
+#define DEFAUL_RETRACT "    "
 
 namespace OHOS {
 namespace DistributedKv {
@@ -103,45 +104,49 @@ void KvStoreUserManager::DeleteAllKvStore()
     appMap_.clear();
 }
 
-// Migrate all KvStore DB delegate object when harmony account changed.
-Status KvStoreUserManager::MigrateAllKvStore(const std::string &harmonyAccountId)
-{
-    ZLOGI("begin.");
-    std::lock_guard<decltype(appMutex_)> lg(appMutex_);
-    Status status = Status::SUCCESS;
-    for (auto &it : appMap_) {
-        status = (it.second).MigrateAllKvStore(harmonyAccountId);
-        if (status != Status::SUCCESS) {
-            ZLOGE("migrate all kvstore for app-%s failed, status:%d.",
-                it.first.c_str(), static_cast<int>(status));
-            status = Status::MIGRATION_KVSTORE_FAILED;
-        }
-    }
-    return status;
-}
-
-std::string KvStoreUserManager::GetDbDir(const StoreMetaData &metaData)
-{
-    ZLOGI("begin.");
-    if (metaData.storeType == KvStoreType::MULTI_VERSION) {
-        return "default";
-    }
-    std::lock_guard<decltype(appMutex_)> lg(appMutex_);
-    auto it = appMap_.find(metaData.bundleName);
-    if (it != appMap_.end()) {
-        return (it->second).GetDbDir(metaData);
-    }
-    return "";
-}
-
 void KvStoreUserManager::Dump(int fd) const
 {
-    const std::string prefix(4, ' ');
-    dprintf(fd, "%s--------------------------------------------------------------\n", prefix.c_str());
-    dprintf(fd, "%sUserID        : %s\n", prefix.c_str(), userId_.c_str());
-    dprintf(fd, "%sApp count     : %u\n", prefix.c_str(), static_cast<uint32_t>(appMap_.size()));
+    dprintf(fd, DEFAUL_RETRACT"--------------------------------------------------------------\n");
+    dprintf(fd, DEFAUL_RETRACT"UserID        : %s\n", userId_.c_str());
+    dprintf(fd, DEFAUL_RETRACT"App count     : %u\n", static_cast<uint32_t>(appMap_.size()));
     for (const auto &pair : appMap_) {
         pair.second.Dump(fd);
+    }
+}
+
+void KvStoreUserManager::DumpUserInfo(int fd) const
+{
+    dprintf(fd, DEFAUL_RETRACT"--------------------------------------------------------------\n");
+    dprintf(fd, DEFAUL_RETRACT"UserID        : %s\n", userId_.c_str());
+    dprintf(fd, DEFAUL_RETRACT"App count     : %u\n", static_cast<uint32_t>(appMap_.size()));
+    for (const auto &pair : appMap_) {
+        pair.second.DumpUserInfo(fd);
+    }
+}
+
+void KvStoreUserManager::DumpAppInfo(int fd, const std::string &appId) const
+{
+    dprintf(fd, DEFAUL_RETRACT"--------------------------------------------------------------\n");
+    dprintf(fd, DEFAUL_RETRACT"UserID        : %s\n", userId_.c_str());
+    if (appId != "") {
+        auto it = appMap_.find(appId);
+        if (it != appMap_.end()) {
+            it->second.DumpAppInfo(fd);
+            return;
+        }
+    }
+
+    for (const auto &pair : appMap_) {
+        pair.second.DumpAppInfo(fd);
+    }
+}
+
+void KvStoreUserManager::DumpStoreInfo(int fd, const std::string &storeId) const
+{
+    dprintf(fd, DEFAUL_RETRACT"--------------------------------------------------------------\n");
+    dprintf(fd, DEFAUL_RETRACT"UserID        : %s\n", userId_.c_str());
+    for (const auto &pair : appMap_) {
+        pair.second.DumpStoreInfo(fd, storeId);
     }
 }
 

@@ -26,20 +26,27 @@
 #include "device_change_listener_impl.h"
 #include "ikvstore_data_service.h"
 #include "kvstore_device_listener.h"
-#include "kvstore_impl.h"
 #include "kvstore_user_manager.h"
+#include "metadata/store_meta_data.h"
 #include "reporter.h"
 #include "security/security.h"
 #include "single_kvstore_impl.h"
 #include "system_ability.h"
 #include "types.h"
+#include "dump_helper.h"
 
 namespace OHOS::DistributedRdb {
 class IRdbService;
 class RdbServiceImpl;
 }
 
+namespace OHOS::DistributedObject {
+class IObjectService;
+class ObjectServiceImpl;
+}
+
 namespace OHOS::DistributedKv {
+class KVDBServiceImpl;
 class KvStoreAccountObserver;
 class KvStoreDataService : public SystemAbility, public KvStoreDataServiceStub {
     DECLARE_SYSTEM_ABILITY(KvStoreDataService);
@@ -52,9 +59,6 @@ public:
     explicit KvStoreDataService(bool runOnCreate = false);
     explicit KvStoreDataService(int32_t systemAbilityId, bool runOnCreate = false);
     virtual ~KvStoreDataService();
-
-    Status GetKvStore(const Options &options, const AppId &appId, const StoreId &storeId,
-                      std::function<void(sptr<IKvStoreImpl>)> callback) override;
 
     Status GetSingleKvStore(const Options &options, const AppId &appId, const StoreId &storeId,
                       std::function<void(sptr<ISingleKvStore>)> callback) override;
@@ -76,6 +80,8 @@ public:
     Status StartWatchDeviceChange(sptr<IDeviceStatusChangeListener> observer, DeviceFilterStrategy strategy) override;
     Status StopWatchDeviceChange(sptr<IDeviceStatusChangeListener> observer) override;
     sptr<IRemoteObject> GetRdbService() override;
+    sptr<IRemoteObject> GetKVdbService() override;
+    sptr<IRemoteObject> GetObjectService() override;
 
     void OnDump() override;
 
@@ -93,6 +99,9 @@ public:
 
     bool CheckBackupFileExist(const std::string &userId, const std::string &bundleName,
                               const std::string &storeId, int pathType);
+    int32_t DeleteObjectsByAppId(const std::string &appId);
+
+    Status DeleteKvStore(StoreMetaData &metaData);
 
     struct SecretKeyPara {
         std::vector<uint8_t> metaKey;
@@ -106,8 +115,7 @@ public:
 private:
     class KvStoreClientDeathObserverImpl {
     public:
-        KvStoreClientDeathObserverImpl(const AppId &appId, pid_t uid, uint32_t token,
-                                       KvStoreDataService &service, sptr<IRemoteObject> observer);
+        KvStoreClientDeathObserverImpl(const AppId &appId, KvStoreDataService &service, sptr<IRemoteObject> observer);
 
         virtual ~KvStoreClientDeathObserverImpl();
 
@@ -122,9 +130,10 @@ private:
             KvStoreClientDeathObserverImpl &kvStoreClientDeathObserverImpl_;
         };
         void NotifyClientDie();
-        AppId appId_;
         pid_t uid_;
+        pid_t pid_;
         uint32_t token_;
+        AppId appId_;
         KvStoreDataService &dataService_;
         sptr<IRemoteObject> observerProxy_;
         sptr<KvStoreDeathRecipient> deathRecipient_;
@@ -132,11 +141,11 @@ private:
 
     void Initialize();
 
+    void InitObjectStore();
+
     void StartService();
 
     void InitSecurityAdapter();
-
-    Status DeleteKvStore(const std::string &bundleName, const StoreId &storeId);
 
     template<class T>
     Status RecoverKvStore(const Options &options, const StoreMetaData &metaData,
@@ -154,7 +163,7 @@ private:
     Status GetSingleKvStoreFailDo(Status status, const Options &options, const StoreMetaData &metaData,
         SecretKeyPara &secKeyParas, KvStoreUserManager &kvUserManager, sptr<SingleKvStoreImpl> &kvStore);
 
-    Status AppExit(const AppId &appId, pid_t uid, uint32_t token);
+    Status AppExit(pid_t uid, pid_t pid, uint32_t token, const AppId &appId);
 
     bool CheckPermissions(const std::string &userId, const std::string &appId, const std::string &storeId,
                           const std::string &deviceId, uint8_t flag) const;
@@ -163,17 +172,23 @@ private:
     bool CheckSyncActivation(const std::string &userId, const std::string &appId, const std::string &storeId);
 
     bool CheckOptions(const Options &options, const std::vector<uint8_t> &metaKey) const;
-    void CreateRdbService();
-    bool IsStoreOpened(const std::string &userId, const std::string &appId, const std::string &storeId);
+    std::set<std::string> GetUsersByStore(const std::string &appId, const std::string &storeId);
+    std::vector<std::string> Intersect(const std::set<std::string> &left,
+                                       const std::set<std::string> &right);
     static Status FillStoreParam(
         const Options &options, const AppId &appId, const StoreId &storeId, StoreMetaData &metaData);
+
+    void DumpAll(int fd);
+    void DumpUserInfo(int fd);
+    void DumpAppInfo(int fd, const std::string &appId);
+    void DumpStoreInfo(int fd, const std::string &storeId);
 
     static constexpr int TEN_SEC = 10;
 
     std::mutex accountMutex_;
     std::map<std::string, KvStoreUserManager> deviceAccountMap_;
     std::mutex clientDeathObserverMutex_;
-    std::map<std::string, KvStoreClientDeathObserverImpl> clientDeathObserverMap_;
+    std::map<uint32_t, KvStoreClientDeathObserverImpl> clientDeathObserverMap_;
     std::shared_ptr<KvStoreAccountObserver> accountEventObserver_;
     std::unique_ptr<BackupHandler> backup_;
     std::map<IRemoteObject *, sptr<IDeviceStatusChangeListener>> deviceListeners_;
@@ -181,7 +196,10 @@ private:
     std::shared_ptr<DeviceChangeListenerImpl> deviceListener_;
 
     std::shared_ptr<Security> security_;
+    std::mutex mutex_;
     sptr<DistributedRdb::RdbServiceImpl> rdbService_;
+    sptr<KVDBServiceImpl> kvdbService_;
+    sptr<DistributedObject::ObjectServiceImpl> objectService_;
     std::shared_ptr<KvStoreDeviceListener> deviceInnerListener_;
 };
 

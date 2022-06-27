@@ -21,9 +21,17 @@ config("module_public_config") {
   include_dirs = [
     "bootstrap/include",
     "config/include",
+    "crypto/include",
     "directory/include",
+    "kvdb",
+    "rdb",
+    "object",
     "//third_party/json/single_include",
     "//foundation/distributeddatamgr/distributeddatamgr/frameworks/common",
+    "//foundation/distributeddatamgr/distributeddatamgr/frameworks/innerkitsimpl/distributeddatafwk/include",
+    "//foundation/distributeddatamgr/distributeddatamgr/frameworks/innerkitsimpl/kvdb/include",
+    "//foundation/distributeddatamgr/distributeddatamgr/frameworks/innerkitsimpl/object/include",
+    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/app/src",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/framework/include",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/include",
   ]
@@ -39,7 +47,23 @@ ohos_shared_library("distributeddatasvc") {
     "config/src/model/global_config.cpp",
     "config/src/model/network_config.cpp",
     "config/src/model/protocol_config.cpp",
+    "crypto/src/crypto_manager.cpp",
     "directory/src/directory_manager.cpp",
+    "kvdb/auth_delegate.cpp",
+    "kvdb/executor_factory.cpp",
+    "kvdb/kvdb_service_impl.cpp",
+    "kvdb/kvdb_service_stub.cpp",
+    "kvdb/kvstore_sync_manager.cpp",
+    "kvdb/query_helper.cpp",
+    "kvdb/store_cache.cpp",
+    "kvdb/user_delegate.cpp",
+    "object/object_manager.cpp",
+    "object/object_service_impl.cpp",
+    "object/object_service_stub.cpp",
+    "rdb/rdb_service_impl.cpp",
+    "rdb/rdb_service_stub.cpp",
+    "rdb/rdb_store_observer_impl.cpp",
+    "rdb/rdb_syncer.cpp",
   ]
   cflags = [ "-Wno-multichar" ]
 
@@ -49,12 +73,17 @@ ohos_shared_library("distributeddatasvc") {
 
   deps = [
     "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/distributeddata:distributeddata_inner",
+    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter:distributeddata_adapter",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/framework:distributeddatasvcfwk",
+    "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/libs/distributeddb:distributeddb",
     "//utils/native/base:utils",
   ]
 
   external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "device_auth:deviceauth_sdk",
     "hiviewdfx_hilog_native:libhilog",
+    "huks:libhukssdk",
     "ipc:ipc_core",
   ]
   subsystem_name = "distributeddatamgr"

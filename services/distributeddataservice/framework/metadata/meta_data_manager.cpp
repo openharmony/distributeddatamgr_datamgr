@@ -17,7 +17,7 @@
 #define LOG_TAG "MetaDataManager"
 
 #include "kv_store_nb_delegate.h"
-#include "log/log_print.h"
+#include "log_print.h"
 
 namespace OHOS::DistributedData {
 class MetaObserver : public DistributedDB::KvStoreObserver {
@@ -133,6 +133,9 @@ bool MetaDataManager::SaveMeta(const std::string &key, const Serializable &value
     }
     if (!isLocal && syncer_) {
         syncer_(metaStore_, status);
+    }
+    if (status != DistributedDB::DBStatus::OK) {
+        ZLOGE("failed! status:%{public}d isLocal:%{public}d, key:%{public}s", status, isLocal, key.c_str());
     }
     return status == DistributedDB::DBStatus::OK;
 }

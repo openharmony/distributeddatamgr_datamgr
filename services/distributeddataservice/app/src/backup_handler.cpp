@@ -12,14 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #define LOG_TAG "BackupHandler"
-
 #include "backup_handler.h"
+
 #include <directory_ex.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <nlohmann/json.hpp>
+
 #include "account_delegate.h"
 #ifdef SUPPORT_POWER
 #include "battery_info.h"
@@ -28,19 +27,20 @@
 #endif
 #include "communication_provider.h"
 #include "constant.h"
-#include "kv_store_delegate_manager.h"
+#include "crypto_manager.h"
 #include "kv_scheduler.h"
+#include "kv_store_delegate_manager.h"
 #include "kvstore_data_service.h"
 #include "log_print.h"
 #include "metadata/meta_data_manager.h"
-#include "metadata/secret_key_meta_data.h"
-#include "metadata/store_meta_data.h"
 #include "time_utils.h"
 #include "utils/crypto.h"
 
 namespace OHOS::DistributedKv {
 using namespace DistributedData;
+using namespace DistributedDataDfx;
 using namespace AppDistributedKv;
+constexpr const int64_t NANOSEC_TO_MICROSEC = 1000;
 BackupHandler::BackupHandler(IKvStoreDataService *kvStoreDataService)
 {
 }
@@ -129,6 +129,12 @@ void BackupHandler::SingleKvStoreBackup(const StoreMetaData &metaData)
                     ZLOGE("SingleKvStoreBackup export failed, status is %d.", status);
                     RenameFile(backupBackFullName, backupFullName);
                 }
+                std::string message;
+                message.append(" backup name [").append(backupFullName)
+                    .append("], isEncryptedDb [").append(std::to_string(dbOption.isEncryptedDb)).append("]")
+                    .append("], backup result status [").append(std::to_string(status)).append("]");
+                Reporter::GetInstance()->BehaviourReporter()->Report(
+                    {metaData.account, metaData.appId, metaData.storeId, BehaviourType::DATABASE_BACKUP, message});
             }
             delegateMgr.CloseKvStore(delegate);
         };
@@ -178,12 +184,11 @@ bool BackupHandler::GetPassword(const StoreMetaData &metaData, DistributedDB::Ci
         return true;
     }
 
-    std::string key = SecretKeyMetaData::GetKey({ metaData.user, "default", metaData.bundleName, metaData.storeId,
-        metaData.storeType == SINGLE_VERSION ? "SINGLE_KEY" : "KEY" });
+    std::string key = SecretKeyMetaData::GetKey({ metaData.user, "default", metaData.bundleName, metaData.storeId });
     SecretKeyMetaData secretKey;
     MetaDataManager::GetInstance().LoadMeta(key, secretKey, true);
     std::vector<uint8_t> decryptKey;
-    KvStoreMetaManager::GetInstance().DecryptWorkKey(secretKey.sKey, decryptKey);
+    CryptoManager::GetInstance().Decrypt(secretKey.sKey, decryptKey);
     if (password.SetValue(decryptKey.data(), decryptKey.size()) != DistributedDB::CipherPassword::OK) {
         std::fill(decryptKey.begin(), decryptKey.end(), 0);
         ZLOGE("Set secret key value failed. len is (%d)", int32_t(decryptKey.size()));
@@ -216,6 +221,16 @@ bool BackupHandler::SingleKvStoreRecover(StoreMetaData &metaData, DistributedDB:
     auto backupFullName = Constant::Concatenate(
         { BackupHandler::GetBackupPath(metaData.user, pathType), "/", GetHashedBackupName(backupName) });
     DistributedDB::DBStatus dbStatus = delegate->Import(backupFullName, password);
+
+    int64_t currentTime = TimeUtils::CurrentTimeMicros();
+    int64_t backupTime = GetBackupTime(backupFullName);
+    std::string message;
+    message.append(" backup name [").append(backupFullName)
+        .append("], backup time [").append(std::to_string(backupTime))
+        .append("], recovery time [").append(std::to_string(currentTime))
+        .append("], recovery result status [").append(std::to_string(dbStatus)).append("]");
+    Reporter::GetInstance()->BehaviourReporter()->Report(
+        {metaData.account, metaData.appId, metaData.storeId, BehaviourType::DATABASE_RECOVERY, message});
     if (dbStatus == DistributedDB::DBStatus::OK) {
         ZLOGI("SingleKvStoreRecover success.");
         return true;
@@ -224,36 +239,11 @@ bool BackupHandler::SingleKvStoreRecover(StoreMetaData &metaData, DistributedDB:
     return false;
 }
 
-bool BackupHandler::MultiKvStoreRecover(StoreMetaData &metaData, DistributedDB::KvStoreDelegate *delegate)
+int64_t BackupHandler::GetBackupTime(std::string &fullName)
 {
-    ZLOGI("start.");
-    if (delegate == nullptr) {
-        ZLOGE("MultiKvStoreRecover failed, delegate is null.");
-        return false;
-    }
-    auto pathType = KvStoreAppManager::ConvertPathType(metaData);
-    if (!BackupHandler::FileExists(BackupHandler::GetBackupPath(metaData.user, pathType))) {
-        ZLOGE("MultiKvStoreRecover failed, backupDir_ file is not exist.");
-        return false;
-    }
-
-    ZLOGI("MultiKvStoreRecover start.");
-    DistributedDB::CipherPassword password;
-    if (!GetPassword(metaData, password)) {
-        ZLOGE("Set secret key failed.");
-        return false;
-    }
-
-    std::string backupName = Constant::Concatenate({ metaData.account, "_", metaData.appId, "_", metaData.storeId });
-    auto backupFullName = Constant::Concatenate(
-        { BackupHandler::GetBackupPath(metaData.user, pathType), "/", GetHashedBackupName(backupName) });
-    DistributedDB::DBStatus dbStatus = delegate->Import(backupFullName, password);
-    if (dbStatus == DistributedDB::DBStatus::OK) {
-        ZLOGI("MultiKvStoreRecover success.");
-        return true;
-    }
-    ZLOGI("MultiKvStoreRecover failed.");
-    return false;
+    struct stat curStat;
+    stat(fullName.c_str(), &curStat);
+    return curStat.st_mtim.tv_sec * SEC_TO_MICROSEC + curStat.st_mtim.tv_nsec / NANOSEC_TO_MICROSEC;
 }
 
 std::string BackupHandler::backupDirCe_;

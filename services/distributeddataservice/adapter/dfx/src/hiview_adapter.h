@@ -21,12 +21,13 @@
 #include "dfx_types.h"
 #include "dfx_code_constant.h"
 #include "hisysevent.h"
+#include "kv_scheduler.h"
 #include "kv_store_thread_pool.h"
 #include "kv_store_task.h"
 #include "value_hash.h"
 
 namespace OHOS {
-namespace DistributedKv {
+namespace DistributedDataDfx {
 template<typename T>
 struct StatisticWrap {
     T val;
@@ -38,15 +39,18 @@ class HiViewAdapter {
 public:
     ~HiViewAdapter();
     static void ReportFault(int dfxCode, const FaultMsg &msg);
+    static void ReportDBFault(int dfxCode, const DBFaultMsg &msg);
+    static void ReportCommFault(int dfxCode, const CommFaultMsg &msg);
     static void ReportVisitStatistic(int dfxCode, const VisitStat &stat);
     static void ReportTrafficStatistic(int dfxCode, const TrafficStat &stat);
     static void ReportDatabaseStatistic(int dfxCode, const DbStat &stat);
     static void ReportApiPerformanceStatistic(int dfxCode, const ApiPerformanceStat &stat);
+    static void ReportBehaviour(int dfxCode, const BehaviourMsg &msg);
     static void StartTimerThread();
 
 private:
     static constexpr int POOL_SIZE = 3;
-    static std::shared_ptr<KvStoreThreadPool> pool_;
+    static std::shared_ptr<DistributedKv::KvStoreThreadPool> pool_;
 
     static std::mutex visitMutex_;
     static std::map<std::string, StatisticWrap<VisitStat>> visitStat_;
@@ -65,41 +69,14 @@ private:
     static std::map<std::string, StatisticWrap<ApiPerformanceStat>> apiPerformanceStat_;
     static void InvokeApiPerformance();
 
-private:
-    // fault key
-    static const inline std::string FAULT_TYPE = "FAULT_TYPE";
-    static const inline std::string MODULE_NAME = "MODULE_NAME";
-    static const inline std::string INTERFACE_NAME = "INTERFACE_NAME";
-    static const inline std::string ERROR_TYPE = "ERROR_TYPE";
-
-    // Database statistic
-    static const inline std::string USER_ID = "ANONYMOUS_UID";
-    static const inline std::string APP_ID = "APP_ID";
-    static const inline std::string STORE_ID = "STORE_ID";
-    static const inline std::string DB_SIZE = "DB_SIZE";
-
-    // interface visit statistic
-    static const inline std::string TIMES = "TIMES";
-    static const inline std::string DEVICE_ID = "ANONYMOUS_DID";
-    static const inline std::string SEND_SIZE = "SEND_SIZE";
-    static const inline std::string RECEIVED_SIZE = "RECEIVED_SIZE";
-    static const inline std::string COMPLETE_TIME = "COMPLETE_TIME";
-    static const inline std::string SIZE = "SIZE";
-    static const inline std::string SRC_DEVICE_ID = "ANONYMOUS_SRC_DID";
-    static const inline std::string DST_DEVICE_ID = "ANONYMOUS_DST_DID";
-    static const inline std::string AVERAGE_TIMES = "AVERAGE_TIME";
-    static const inline std::string WORST_TIMES = "WORST_TIME";
-    static const inline std::string INTERFACES = "INTERFACES";
-
+    static std::string CoverEventID(int dfxCode);
 private:
     static std::mutex runMutex_;
     static bool running_;
-    static const inline int EXEC_TIME = 23;
-    static const inline int SIXTY_SEC = 60;
-
-    static const inline int WAIT_TIME = 2 * 60 * 60; // 2 hours
-    static const inline int PERIOD_TIME_US = 1 * 1000 * 1000; // 1 s
+    static DistributedKv::KvScheduler scheduler_;
+    static const inline int DAILY_REPORT_TIME = 23;
+    static const inline int WAIT_TIME = 1 * 60 * 60; // 1 hours
 };
-}  // namespace DistributedKv
+}  // namespace DistributedDataDfx
 }  // namespace OHOS
 #endif // DISTRIBUTEDDATAMGR_HI_VIEW_ADAPTER_H

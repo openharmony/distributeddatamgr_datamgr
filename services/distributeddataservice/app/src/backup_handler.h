@@ -37,7 +37,6 @@ public:
     void BackSchedule();
     void SingleKvStoreBackup(const StoreMetaData &metaData);
     bool SingleKvStoreRecover(StoreMetaData &metaData, DistributedDB::KvStoreNbDelegate *delegate);
-    bool MultiKvStoreRecover(StoreMetaData &metaData, DistributedDB::KvStoreDelegate *delegate);
 
     static const std::string &GetBackupPath(const std::string &deviceAccountId, int pathType);
     static bool RenameFile(const std::string &oldPath, const std::string &newPath);
@@ -56,6 +55,7 @@ private:
     bool CheckNeedBackup();
     bool InitBackupPara(const StoreMetaData &metaData, BackupPara &backupPara);
     bool GetPassword(const StoreMetaData &metaData, DistributedDB::CipherPassword &password);
+    int64_t GetBackupTime(std::string &fullName);
     static std::string backupDirCe_;
     static std::string backupDirDe_;
 

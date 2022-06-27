@@ -88,6 +88,11 @@ struct API_EXPORT StoreId {
         return storeId;
     }
 
+    bool operator<(const StoreId &id) const noexcept
+    {
+        return this->storeId < id.storeId;
+    }
+
     inline bool IsValid() const
     {
         if (storeId.empty() || storeId.size() > MAX_STORE_ID_LEN) {
@@ -112,7 +117,7 @@ struct AppThreadInfo {
     std::int32_t uid;
 };
 
-enum class SubscribeType {
+enum SubscribeType : uint32_t {
     DEFAULT = 0, // default let bms delete
     SUBSCRIBE_TYPE_LOCAL = 1, // local changes of syncable kv store
     SUBSCRIBE_TYPE_REMOTE = 2, // synced data changes from remote devices
@@ -171,14 +176,14 @@ struct Entry : public virtual Parcelable {
     API_EXPORT virtual ~Entry() {}
 };
 
-enum class SyncPolicy {
+enum SyncPolicy : int32_t {
     LOW,
     MEDIUM,
     HIGH,
     HIGHTEST,
 };
 
-enum class SyncMode {
+enum SyncMode : int32_t {
     PULL,
     PUSH,
     PUSH_PULL,
@@ -191,7 +196,7 @@ enum KvStoreType : int32_t {
     INVALID_TYPE,
 };
 
-enum SecurityLevel : int {
+enum SecurityLevel : int32_t {
     NO_LABEL,
     S0,
     S1,
@@ -201,7 +206,15 @@ enum SecurityLevel : int {
     S4,
 };
 
-enum class KvControlCmd {
+enum Area : int32_t {
+    EL0,
+    EL1,
+    EL2,
+    EL3,
+    EL4
+};
+
+enum KvControlCmd : int32_t {
     SET_SYNC_PARAM = 1,
     GET_SYNC_PARAM,
 };
@@ -234,17 +247,18 @@ struct Options {
     bool persistent = true;
     bool backup = true;
     bool autoSync = true;
-    int securityLevel = SecurityLevel::NO_LABEL;
-    SyncPolicy syncPolicy = SyncPolicy::HIGH;
-    KvStoreType kvStoreType = KvStoreType::DEVICE_COLLABORATION;
     bool syncable = true; // let bms delete first
+    int32_t securityLevel = NO_LABEL;
+    int32_t area = EL1;
+    SyncPolicy syncPolicy = SyncPolicy::HIGH;
+    KvStoreType kvStoreType = DEVICE_COLLABORATION;
     std::string schema = "";
-    bool dataOwnership = true; // true indicates the ownership of distributed data is DEVICE, otherwise, ACCOUNT
+    std::string hapName = "";
+    std::string baseDir = "";
 
     inline bool IsValidType() const
     {
-        return kvStoreType == KvStoreType::DEVICE_COLLABORATION || kvStoreType == KvStoreType::SINGLE_VERSION
-               || kvStoreType == KvStoreType::MULTI_VERSION;
+        return kvStoreType == KvStoreType::DEVICE_COLLABORATION || kvStoreType == KvStoreType::SINGLE_VERSION;
     }
 };
 

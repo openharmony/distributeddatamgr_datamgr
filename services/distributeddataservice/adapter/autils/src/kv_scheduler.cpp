@@ -16,8 +16,9 @@
 #include "kv_scheduler.h"
 
 namespace OHOS::DistributedKv {
-KvScheduler::KvScheduler()
+KvScheduler::KvScheduler(size_t capacity)
 {
+    capacity_ = capacity;
     isRunning_ = true;
     thread_ = std::make_unique<std::thread>([this]() { this->Loop(); });
 }
@@ -32,11 +33,42 @@ KvScheduler::~KvScheduler()
 SchedulerTask KvScheduler::At(const std::chrono::system_clock::time_point &time, std::function<void()> task)
 {
     std::unique_lock<std::mutex> lock(mutex_);
+    if (kvTasks_.size() >= capacity_) {
+        return kvTasks_.end();
+    }
+
     auto it = kvTasks_.insert({time, task});
     if (it == kvTasks_.begin()) {
         condition_.notify_one();
     }
     return it;
+}
+
+SchedulerTask KvScheduler::Reset(SchedulerTask task, const std::chrono::system_clock::time_point &time,
+    const std::chrono::system_clock::duration &interval)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (kvTasks_.begin()->first > time) {
+        return {};
+    }
+
+    auto current = std::chrono::system_clock::now();
+    if (current >= time) {
+        return {};
+    }
+
+    auto it = kvTasks_.insert({ current + interval, std::move(task->second) });
+    if (it == kvTasks_.begin()) {
+        condition_.notify_one();
+    }
+    kvTasks_.erase(task);
+    return it;
+}
+
+void KvScheduler::Clean()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    kvTasks_.clear();
 }
 
 void KvScheduler::Every(const std::chrono::system_clock::duration interval, std::function<void()> task)

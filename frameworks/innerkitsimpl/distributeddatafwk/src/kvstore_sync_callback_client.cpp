@@ -23,6 +23,7 @@
 
 namespace OHOS {
 namespace DistributedKv {
+using namespace OHOS::DistributedDataDfx;
 KvStoreSyncCallbackClient::~KvStoreSyncCallbackClient()
 {
     syncCallbackInfo_.Clear();
@@ -30,7 +31,7 @@ KvStoreSyncCallbackClient::~KvStoreSyncCallbackClient()
 
 void KvStoreSyncCallbackClient::SyncCompleted(const std::map<std::string, Status> &results, uint64_t sequenceId)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), TraceSwitch::BYTRACE_ON);
     auto finded = syncCallbackInfo_.Find(sequenceId);
     if (finded.first) {
         finded.second->SyncCompleted(results);
@@ -38,8 +39,8 @@ void KvStoreSyncCallbackClient::SyncCompleted(const std::map<std::string, Status
     }
 }
 
-void KvStoreSyncCallbackClient::AddSyncCallback(const std::shared_ptr<KvStoreSyncCallback> callback,
-                                                uint64_t sequenceId)
+void KvStoreSyncCallbackClient::AddSyncCallback(
+    const std::shared_ptr<KvStoreSyncCallback> callback, uint64_t sequenceId)
 {
     if (callback == nullptr) {
         ZLOGE("callback is nullptr");

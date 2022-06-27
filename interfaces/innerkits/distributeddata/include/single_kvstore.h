@@ -34,6 +34,14 @@ public:
 
     API_EXPORT virtual ~SingleKvStore() {}
 
+    // Get value from AppKvStore by its key.
+    // Parameters:
+    //     key: key of this entry.
+    //     value: value will be returned in this parameter.
+    // Return:
+    //     Status of this get operation.
+    virtual Status Get(const Key &key, Value &value) = 0;
+
     // Get all entries in this store which key start with prefixKey.
     // Parameters:
     //     perfixkey: the prefix to be searched.
@@ -44,19 +52,11 @@ public:
 
     // Get all entries in this store by query.
     // Parameters:
-    //     query: the query string.
-    //     entries: entries will be returned in this parameter.
-    // Return:
-    //     Status of this GetEntries operation.
-    virtual Status GetEntriesWithQuery(const std::string &query, std::vector<Entry> &entries) const = 0;
-
-    // Get all entries in this store by query.
-    // Parameters:
     //     query: the query object.
     //     entries: entries will be returned in this parameter.
     // Return:
     //     Status of this GetEntries operation.
-    virtual Status GetEntriesWithQuery(const DataQuery &query, std::vector<Entry> &entries) const = 0;
+    virtual Status GetEntries(const DataQuery &query, std::vector<Entry> &entries) const = 0;
 
     // Get ResultSet in this store which key start with prefixKey.
     // Parameters:
@@ -68,21 +68,11 @@ public:
 
     // Get ResultSet in this store by Query.
     // Parameters:
-    //     query: the query string.
-    //     resultSet: resultSet will be returned in this parameter.
-    // Return:
-    //     Status of this GetResultSet operation.
-    virtual Status GetResultSetWithQuery(const std::string &query,
-                                         std::shared_ptr<KvStoreResultSet> &resultSet) const = 0;
-
-    // Get ResultSet in this store by Query.
-    // Parameters:
     //     query: the query object.
     //     resultSet: resultSet will be returned in this parameter.
     // Return:
     //     Status of this GetResultSet operation.
-    virtual Status GetResultSetWithQuery(const DataQuery &query,
-                                         std::shared_ptr<KvStoreResultSet> &resultSet) const = 0;
+    virtual Status GetResultSet(const DataQuery &query, std::shared_ptr<KvStoreResultSet> &resultSet) const = 0;
 
     // Close the ResultSet returned by GetResultSet.
     // Parameters:
@@ -93,19 +83,20 @@ public:
 
     // Get the number of result by query.
     // Parameters:
-    //     query: the query string.
-    //     result: result will be returned in this parameter.
-    // Return:
-    //     Status of this CloseResultSet operation.
-    virtual Status GetCountWithQuery(const std::string &query, int &count) const = 0;
-
-    // Get the number of result by query.
-    // Parameters:
     //     query: the query object.
     //     result: result will be returned in this parameter.
     // Return:
     //     Status of this CloseResultSet operation.
-    virtual Status GetCountWithQuery(const DataQuery &query, int &count) const = 0;
+    virtual Status GetCount(const DataQuery &query, int &count) const = 0;
+
+    // Remove the device data synced from remote.
+    // Parameters:
+    //     device: device id.
+    // Return:
+    //     Status of this remove operation.
+    virtual Status RemoveDeviceData(const std::string &device) = 0;
+
+    virtual Status GetSecurityLevel(SecurityLevel &secLevel) const = 0;
 
     // Sync store with other devices. This is an asynchronous method,
     // sync will fail if there is a syncing operation in progress.
@@ -116,27 +107,31 @@ public:
     //     allowedDelayMs: allowed delay milli-second to sync.
     // Return:
     //     Status of this Sync operation.
-    virtual Status Sync(const std::vector<std::string> &devices, SyncMode mode, uint32_t allowedDelayMs) = 0;
+    virtual Status Sync(const std::vector<std::string> &devices, SyncMode mode, uint32_t delay) = 0;
+
+    /*
+     *  Sync store with other devices only syncing the data which is satisfied with the condition.
+     *  This is an asynchronous method, sync will fail if there is a syncing operation in progress.
+     * Parameters:
+     *     deviceIds: device list to sync, this is network id from soft bus.
+     *     query: the query condition.
+     *     mode: mode can be set to SyncMode::PUSH, SyncMode::PULL and SyncMode::PUSH_PULL. PUSH_PULL will firstly
+     *           push all not-local store to listed devices, then pull these stores back.
+     * Return:
+     *     Status of this Sync operation.
+     */
+    virtual Status Sync(const std::vector<std::string> &devices, SyncMode mode, const DataQuery &query,
+        std::shared_ptr<KvStoreSyncCallback> syncCallback) = 0;
 
     API_EXPORT inline Status Sync(const std::vector<std::string> &devices, SyncMode mode)
     {
         return Sync(devices, mode, 0);
     }
 
-    // Remove the device data synced from remote.
-    // Parameters:
-    //     device: device id.
-    // Return:
-    //     Status of this remove operation.
-    virtual Status RemoveDeviceData(const std::string &device) = 0;
-
-    // Get value from AppKvStore by its key.
-    // Parameters:
-    //     key: key of this entry.
-    //     value: value will be returned in this parameter.
-    // Return:
-    //     Status of this get operation.
-    virtual Status Get(const Key &key, Value &value) = 0;
+    API_EXPORT inline Status Sync(const std::vector<std::string> &devices, SyncMode mode, const DataQuery &query)
+    {
+        return Sync(devices, mode, query, nullptr);
+    }
 
     // register message for sync operation.
     // Parameters:
@@ -171,28 +166,6 @@ public:
     virtual Status SetCapabilityRange(const std::vector<std::string> &localLabels,
                                       const std::vector<std::string> &remoteLabels) const = 0;
 
-    virtual Status GetSecurityLevel(SecurityLevel &securityLevel) const = 0;
-
-    /*
-     * Sync store with other devices only syncing the data which is satisfied with the condition.
-     * This is an asynchronous method, sync will fail if there is a syncing operation in progress.
-     * Parameters:
-     *     deviceIds: device list to sync, this is network id from soft bus.
-     *     query: the query condition.
-     *     mode: mode can be set to SyncMode::PUSH, SyncMode::PULL and SyncMode::PUSH_PULL. PUSH_PULL will firstly
-     *           push all not-local store to listed devices, then pull these stores back.
-     * Return:
-     *     Status of this Sync operation.
-     */
-    virtual Status SyncWithCondition(const std::vector<std::string> &devices, SyncMode mode, const DataQuery &query,
-                                     std::shared_ptr<KvStoreSyncCallback> syncCallback) = 0;
-
-    API_EXPORT inline Status SyncWithCondition(const std::vector<std::string> &devices, SyncMode mode,
-                                               const DataQuery &query)
-    {
-        return SyncWithCondition(devices, mode, query, nullptr);
-    }
-
     /*
      * Subscribe store with other devices consistently Synchronize the data which is satisfied with the condition.
      * Parameters:
@@ -212,15 +185,6 @@ public:
      *     Status of this UnSubscribe operation.
      */
     virtual Status UnsubscribeWithQuery(const std::vector<std::string> &devices, const DataQuery &query) = 0;
-
-protected:
-    // control this store.
-    // Parameters:
-    //     inputParam: input parameter.
-    //     output: output data, nullptr if no data is returned.
-    // Return:
-    //     Status of this control operation.
-    virtual Status Control(KvControlCmd cmd, const KvParam &inputParam, KvParam &output) = 0;
 };
 }  // namespace DistributedKv
 }  // namespace OHOS

@@ -39,7 +39,7 @@ protected:
     {
         bucket_.ResetCapacity(0);
         bucket_.ResetCapacity(TEST_CAPACITY);
-        for (int i = 0; i < TEST_CAPACITY; ++i) {
+        for (size_t i = 0; i < TEST_CAPACITY; ++i) {
             std::string key = std::string("test_") + std::to_string(i);
             TestValue value = {key, key, "case"};
             bucket_.Set(key, value);
@@ -80,7 +80,7 @@ HWTEST_F(LRUBucketTest, insert, TestSize.Level0)
 HWTEST_F(LRUBucketTest, cap_one_insert, TestSize.Level0)
 {
     bucket_.ResetCapacity(1);
-    for (int i = 0; i <= TEST_CAPACITY; ++i) {
+    for (size_t i = 0; i <= TEST_CAPACITY; ++i) {
         std::string key = std::string("test_") + std::to_string(i);
         TestValue value = {key, key, "find"};
         bucket_.Set(key, value);
@@ -100,7 +100,7 @@ HWTEST_F(LRUBucketTest, cap_one_insert, TestSize.Level0)
 HWTEST_F(LRUBucketTest, cap_zero_insert, TestSize.Level0)
 {
     bucket_.ResetCapacity(0);
-    for (int i = 0; i <= TEST_CAPACITY; ++i) {
+    for (size_t i = 0; i <= TEST_CAPACITY; ++i) {
         std::string key = std::string("test_") + std::to_string(i);
         TestValue value = {key, key, "find"};
         bucket_.Set(key, value);

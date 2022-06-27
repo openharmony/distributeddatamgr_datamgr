@@ -20,13 +20,21 @@
 #include "hiview_adapter.h"
 
 namespace OHOS {
-namespace DistributedKv {
+namespace DistributedDataDfx {
 class DatabaseFaultImpl : public FaultReporter {
 public:
     virtual ~DatabaseFaultImpl() {}
-    ReportStatus Report(const FaultMsg &msg) override;
+    ReportStatus Report(const FaultMsg &msg) override
+    {
+        return ReportStatus::SUCCESS;
+    };
+    ReportStatus Report(const CommFaultMsg &msg) override
+    {
+        return ReportStatus::SUCCESS;
+    };
+    ReportStatus Report(const DBFaultMsg &msg) override;
 };
-}  // namespace DistributedKv
+}  // namespace DistributedDataDfx
 }  // namespace OHOS
 
 #endif // DISTRIBUTEDDATAMGR_DATABASE_FAULT_IMPL_H

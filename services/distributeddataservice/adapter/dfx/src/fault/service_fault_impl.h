@@ -20,12 +20,20 @@
 #include "fault_reporter.h"
 
 namespace OHOS {
-namespace DistributedKv {
+namespace DistributedDataDfx {
 class ServiceFaultImpl : public FaultReporter {
 public:
     virtual ~ServiceFaultImpl() {}
+    ReportStatus Report(const CommFaultMsg &msg) override
+    {
+        return ReportStatus::SUCCESS;
+    };
+    ReportStatus Report(const DBFaultMsg &ms) override
+    {
+        return ReportStatus::SUCCESS;
+    };
     ReportStatus Report(const FaultMsg &msg) override;
 };
-}  // namespace DistributedKv
+}  // namespace DistributedDataDfx
 }  // namespace OHOS
 #endif // DISTRIBUTEDDATAMGR_SERVICE_FAULT_IMPL_H

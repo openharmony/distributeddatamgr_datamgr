@@ -19,7 +19,6 @@
 #include <memory>
 #include "change_notification.h"
 #include "ikvstore_observer.h"
-#include "ikvstore_snapshot.h"
 #include "kvstore_observer.h"
 #include "refbase.h"
 
@@ -27,29 +26,17 @@ namespace OHOS {
 namespace DistributedKv {
 class KvStoreObserverClient : public KvStoreObserverStub {
 public:
-    KvStoreObserverClient(const StoreId &storeId, SubscribeType subscribeType,
-            std::shared_ptr<KvStoreObserver> kvStoreObserver, KvStoreType type);
+    explicit KvStoreObserverClient(std::shared_ptr<KvStoreObserver> kvStoreObserver);
 
     ~KvStoreObserverClient();
 
-    void OnChange(const ChangeNotification &changeNotification, sptr<IKvStoreSnapshotImpl> snapshot) override;
-
-    const StoreId &GetStoreId() const;
-
-    const SubscribeType &GetSubscribeType() const;
-
-    const std::shared_ptr<KvStoreObserver> GetKvStoreObserver() const;
+    void OnChange(const ChangeNotification &changeNotification) override;
 
 private:
     static const int MAX_TRY_COUNT = 10;
 
-    StoreId storeId_;
-
-    SubscribeType subscribeType_;
-
     // client is responsible for free it when call UnSubscribeKvStore.
     std::shared_ptr<KvStoreObserver> kvStoreObserver_;
-    KvStoreType type_;
 };
 }  // namespace DistributedKv
 }  // namespace OHOS

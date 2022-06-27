@@ -30,11 +30,15 @@ bool StoreMetaData::Marshal(json &node) const
     SetValue(node[GET_NAME(isDirty)], isDirty);
     SetValue(node[GET_NAME(storeType)], storeType);
     SetValue(node[GET_NAME(securityLevel)], securityLevel);
+    SetValue(node[GET_NAME(area)], area);
     SetValue(node[GET_NAME(uid)], uid);
     SetValue(node[GET_NAME(tokenId)], tokenId);
+    SetValue(node[GET_NAME(instanceId)], instanceId);
+    SetValue(node[GET_NAME(isCorrupted)], isCorrupted);
     SetValue(node[GET_NAME(appId)], appId);
     SetValue(node[GET_NAME(appType)], appType);
     SetValue(node[GET_NAME(bundleName)], bundleName);
+    SetValue(node[GET_NAME(hapName)], hapName);
     SetValue(node[GET_NAME(dataDir)], dataDir);
     SetValue(node[GET_NAME(deviceId)], deviceId);
     SetValue(node[GET_NAME(schema)], schema);
@@ -58,11 +62,15 @@ bool StoreMetaData::Unmarshal(const json &node)
     GetValue(node, GET_NAME(isEncrypt), isEncrypt);
     GetValue(node, GET_NAME(storeType), storeType);
     GetValue(node, GET_NAME(securityLevel), securityLevel);
+    GetValue(node, GET_NAME(area), area);
     GetValue(node, GET_NAME(uid), uid);
     GetValue(node, GET_NAME(tokenId), tokenId);
+    GetValue(node, GET_NAME(instanceId), instanceId);
+    GetValue(node, GET_NAME(isCorrupted), isCorrupted);
     GetValue(node, GET_NAME(appId), appId);
     GetValue(node, GET_NAME(appType), appType);
     GetValue(node, GET_NAME(bundleName), bundleName);
+    GetValue(node, GET_NAME(hapName), hapName);
     GetValue(node, GET_NAME(dataDir), dataDir);
     GetValue(node, GET_NAME(deviceId), deviceId);
     GetValue(node, GET_NAME(schema), schema);
@@ -106,9 +114,15 @@ bool StoreMetaData::operator==(const StoreMetaData &metaData) const
     if (!((isEncrypt && metaData.isEncrypt) || (!isEncrypt && !metaData.isEncrypt))) {
         return false;
     }
-    return (version == metaData.version && storeType == metaData.storeType && securityLevel == metaData.securityLevel
-            && uid == metaData.uid && tokenId != metaData.tokenId && appId == metaData.appId
-            && appType == metaData.appId && bundleName == metaData.bundleName && dataDir == metaData.dataDir);
+    return (version == metaData.version && storeType == metaData.storeType &&
+            securityLevel == metaData.securityLevel && area == metaData.area && uid == metaData.uid &&
+            tokenId != metaData.tokenId && instanceId == metaData.instanceId && appId == metaData.appId &&
+            appType == metaData.appId && bundleName == metaData.bundleName && dataDir == metaData.dataDir);
+}
+
+bool StoreMetaData::operator!=(const StoreMetaData &metaData) const
+{
+    return !(*this == metaData);
 }
 
 std::string StoreMetaData::GetKey(const std::initializer_list<std::string> &fields)
@@ -122,7 +136,10 @@ std::string StoreMetaData::GetKey(const std::initializer_list<std::string> &fiel
 
 std::string StoreMetaData::GetKey()
 {
-    return GetKey({ deviceId, user, "default", bundleName, storeId });
+    if (instanceId == 0) {
+        return GetKey({ deviceId, user, "default", bundleName, storeId });
+    }
+    return GetKey({ deviceId, user, "default", bundleName, storeId, std::to_string(instanceId) });
 }
 
 std::string StoreMetaData::GetPrefix(const std::initializer_list<std::string> &fields)

@@ -12,30 +12,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #define LOG_TAG "SingleKvStoreImpl"
-
 #include "single_kvstore_impl.h"
 #include <fstream>
-#include "account_delegate.h"
 #include "auth_delegate.h"
 #include "backup_handler.h"
 #include "checker/checker_manager.h"
 #include "constant.h"
 #include "dds_trace.h"
 #include "device_kvstore_impl.h"
-#include "kvstore_data_service.h"
-#include "kvstore_utils.h"
 #include "ipc_skeleton.h"
+#include "kvstore_utils.h"
 #include "log_print.h"
-#include "permission_validator.h"
+#include "metadata/meta_data_manager.h"
 #include "query_helper.h"
+#include "dump_helper.h"
 #include "reporter.h"
 #include "upgrade_manager.h"
-#include "metadata/meta_data_manager.h"
+#define DEFAUL_RETRACT "            "
 
 namespace OHOS::DistributedKv {
 using namespace OHOS::DistributedData;
+using namespace OHOS::DistributedDataDfx;
 static bool TaskIsBackground(pid_t pid)
 {
     std::ifstream ifs("/proc/" + std::to_string(pid) + "/cgroup", std::ios::in);
@@ -82,7 +80,8 @@ Status SingleKvStoreImpl::Put(const Key &key, const Value &value)
         ZLOGE("flow control denied");
         return Status::EXCEED_MAX_ACCESS_RATE;
     }
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
 
     auto trimmedKey = Constant::TrimCopy<std::vector<uint8_t>>(key.Data());
     // Restrict key and value size to interface specification.
@@ -108,13 +107,29 @@ Status SingleKvStoreImpl::Put(const Key &key, const Value &value)
         return Status::SUCCESS;
     }
     ZLOGW("failed status: %d.", static_cast<int>(status));
+    Status statusTmp = CheckDbIsCorrupted(status, __FUNCTION__);
+    if (statusTmp != Status::SUCCESS) {
+        return statusTmp;
+    }
+    return ConvertDbStatus(status);
+}
 
+Status SingleKvStoreImpl::CheckDbIsCorrupted(DistributedDB::DBStatus status, const char* funName)
+{
     if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
-        ZLOGI("Put failed, distributeddb need recover.");
+        ZLOGW("option %{public}s failed, recovery database.", funName);
+        StoreMetaData metaData = StoreMetaData(deviceAccountId_, bundleName_, storeId_);
+        metaData.deviceId = DeviceKvStoreImpl::GetLocalDeviceId();
+        MetaDataManager::GetInstance().LoadMeta(metaData.GetKey(), metaData);
+        if (!metaData.isCorrupted) {
+            metaData.isCorrupted = true;
+            MetaDataManager::GetInstance().SaveMeta(metaData.GetKey(), metaData);
+            Reporter::GetInstance()->DatabaseFault()->Report(
+                {bundleName_, storeId_, "KVDB", Fault::DF_DB_CORRUPTED});
+        }
         return (Import(bundleName_) ? Status::RECOVER_SUCCESS : Status::RECOVER_FAILED);
     }
-
-    return ConvertDbStatus(status);
+    return Status::SUCCESS;
 }
 
 Status SingleKvStoreImpl::ConvertDbStatus(DistributedDB::DBStatus status)
@@ -158,7 +173,8 @@ Status SingleKvStoreImpl::ConvertDbStatus(DistributedDB::DBStatus status)
 
 Status SingleKvStoreImpl::Delete(const Key &key)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
         return Status::EXCEED_MAX_ACCESS_RATE;
@@ -184,16 +200,17 @@ Status SingleKvStoreImpl::Delete(const Key &key)
         return Status::SUCCESS;
     }
     ZLOGW("failed status: %d.", static_cast<int>(status));
-    if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
-        ZLOGI("Delete failed, distributeddb need recover.");
-        return (Import(bundleName_) ? Status::RECOVER_SUCCESS : Status::RECOVER_FAILED);
+    Status statusTmp = CheckDbIsCorrupted(status, __FUNCTION__);
+    if (statusTmp != Status::SUCCESS) {
+        return statusTmp;
     }
     return ConvertDbStatus(status);
 }
 
 Status SingleKvStoreImpl::Get(const Key &key, Value &value)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
         return Status::EXCEED_MAX_ACCESS_RATE;
@@ -222,16 +239,22 @@ Status SingleKvStoreImpl::Get(const Key &key, Value &value)
         value = tmpValueForCopy;
         return Status::SUCCESS;
     }
-    if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
-        ZLOGI("Get failed, distributeddb need recover.");
-        return (Import(bundleName_) ? Status::RECOVER_SUCCESS : Status::RECOVER_FAILED);
+    std::string errorInfo;
+    errorInfo.append(__FUNCTION__).append(": Get failed. ")
+    .append("key is ").append(key.ToString())
+    .append(". bundleName is ").append(bundleName_);
+    DumpHelper::GetInstance().AddErrorInfo(errorInfo);
+    Status statusTmp = CheckDbIsCorrupted(status, __FUNCTION__);
+    if (statusTmp != Status::SUCCESS) {
+        return statusTmp;
     }
     return ConvertDbStatus(status);
 }
 
 Status SingleKvStoreImpl::SubscribeKvStore(const SubscribeType subscribeType, sptr<IKvStoreObserver> observer)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     ZLOGD("start.");
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
@@ -316,7 +339,8 @@ DistributedDB::SyncMode SingleKvStoreImpl::ConvertToDbSyncMode(SyncMode syncMode
 
 Status SingleKvStoreImpl::UnSubscribeKvStore(const SubscribeType subscribeType, sptr<IKvStoreObserver> observer)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
         return Status::EXCEED_MAX_ACCESS_RATE;
@@ -363,7 +387,8 @@ Status SingleKvStoreImpl::UnSubscribeKvStore(const SubscribeType subscribeType, 
 
 Status SingleKvStoreImpl::GetEntries(const Key &prefixKey, std::vector<Entry> &entries)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
         return Status::EXCEED_MAX_ACCESS_RATE;
@@ -398,9 +423,9 @@ Status SingleKvStoreImpl::GetEntries(const Key &prefixKey, std::vector<Entry> &e
         }
         return Status::SUCCESS;
     }
-    if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
-        ZLOGE("GetEntries failed, distributeddb need recover.");
-        return (Import(bundleName_) ? Status::RECOVER_SUCCESS : Status::RECOVER_FAILED);
+    Status statusTmp = CheckDbIsCorrupted(status, __FUNCTION__);
+    if (statusTmp != Status::SUCCESS) {
+        return statusTmp;
     }
     if (status == DistributedDB::DBStatus::BUSY || status == DistributedDB::DBStatus::DB_ERROR) {
         return Status::DB_ERROR;
@@ -421,7 +446,8 @@ Status SingleKvStoreImpl::GetEntries(const Key &prefixKey, std::vector<Entry> &e
 
 Status SingleKvStoreImpl::GetEntriesWithQuery(const std::string &query, std::vector<Entry> &entries)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
         return Status::EXCEED_MAX_ACCESS_RATE;
@@ -470,7 +496,8 @@ Status SingleKvStoreImpl::GetEntriesWithQuery(const std::string &query, std::vec
 void SingleKvStoreImpl::GetResultSet(const Key &prefixKey,
                                      std::function<void(Status, sptr<IKvStoreResultSet>)> callback)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
         callback(Status::EXCEED_MAX_ACCESS_RATE, nullptr);
@@ -503,9 +530,9 @@ void SingleKvStoreImpl::GetResultSet(const Key &prefixKey,
         storeResultSetMap_.emplace(storeResultSet->AsObject().GetRefPtr(), storeResultSet);
         return;
     }
-    if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
-        bool success = Import(bundleName_);
-        callback(success ? Status::RECOVER_SUCCESS : Status::RECOVER_FAILED, nullptr);
+    Status statusTmp = CheckDbIsCorrupted(status, __FUNCTION__);
+    if (statusTmp != Status::SUCCESS) {
+        callback(statusTmp, nullptr);
         return;
     }
     callback(ConvertDbStatus(status), nullptr);
@@ -514,7 +541,8 @@ void SingleKvStoreImpl::GetResultSet(const Key &prefixKey,
 void SingleKvStoreImpl::GetResultSetWithQuery(const std::string &query,
                                               std::function<void(Status, sptr<IKvStoreResultSet>)> callback)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
         callback(Status::EXCEED_MAX_ACCESS_RATE, nullptr);
@@ -589,7 +617,8 @@ KvStoreResultSetImpl *SingleKvStoreImpl::CreateResultSet(
 
 Status SingleKvStoreImpl::GetCountWithQuery(const std::string &query, int &result)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
         return Status::EXCEED_MAX_ACCESS_RATE;
@@ -650,7 +679,8 @@ Status SingleKvStoreImpl::GetCountWithQuery(const std::string &query, int &resul
 
 Status SingleKvStoreImpl::CloseResultSet(sptr<IKvStoreResultSet> resultSet)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (resultSet == nullptr) {
         return Status::INVALID_ARGUMENT;
     }
@@ -680,7 +710,8 @@ Status SingleKvStoreImpl::CloseResultSet(sptr<IKvStoreResultSet> resultSet)
 
 Status SingleKvStoreImpl::RemoveDeviceData(const std::string &device)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
         return Status::EXCEED_MAX_ACCESS_RATE;
@@ -701,9 +732,9 @@ Status SingleKvStoreImpl::RemoveDeviceData(const std::string &device)
         DdsTrace trace(std::string(LOG_TAG "Delegate::") + std::string(__FUNCTION__));
         status = kvStoreNbDelegate_->RemoveDeviceData(deviceUDID);
     }
-    if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
-        ZLOGE("RemoveDeviceData failed, distributeddb need recover.");
-        return (Import(bundleName_) ? Status::RECOVER_SUCCESS : Status::RECOVER_FAILED);
+    Status statusTmp = CheckDbIsCorrupted(status, __FUNCTION__);
+    if (statusTmp != Status::SUCCESS) {
+        return statusTmp;
     }
     if (status == DistributedDB::DBStatus::OK) {
         return Status::SUCCESS;
@@ -718,7 +749,8 @@ Status SingleKvStoreImpl::RemoveDeviceData(const std::string &device)
 Status SingleKvStoreImpl::Sync(const std::vector<std::string> &deviceIds, SyncMode mode,
                                uint32_t allowedDelayMs, uint64_t sequenceId)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     ZLOGD("start.");
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
@@ -741,7 +773,8 @@ Status SingleKvStoreImpl::Sync(const std::vector<std::string> &deviceIds, SyncMo
 Status SingleKvStoreImpl::Sync(const std::vector<std::string> &deviceIds, SyncMode mode,
                                const std::string &query, uint64_t sequenceId)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     ZLOGD("start.");
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
@@ -801,8 +834,16 @@ void SingleKvStoreImpl::DoSyncComplete(const std::map<std::string, DistributedDB
 {
     DdsTrace trace(std::string("DdsTrace " LOG_TAG "::") + std::string(__FUNCTION__));
     std::map<std::string, Status> resultMap;
+    CommFaultMsg msg = {deviceAccountId_, bundleName_, storeId_};
     for (auto device : devicesSyncResult) {
         resultMap[device.first] = ConvertDbStatus(device.second);
+        if (resultMap[device.first] != SUCCESS) {
+            msg.deviceId.push_back(KvStoreUtils::ToBeAnonymous(device.first));
+            msg.errorCode.push_back(resultMap[device.first]);
+        }
+    }
+    if (msg.deviceId.size() != 0) {
+        Reporter::GetInstance()->CommunicationFault()->Report(msg);
     }
     syncRetries_ = 0;
     ZLOGD("callback.");
@@ -928,6 +969,10 @@ Status SingleKvStoreImpl::DoSubscribe(const std::vector<std::string> &deviceIds,
         std::shared_lock<std::shared_mutex> lock(storeNbDelegateMutex_);
         if (kvStoreNbDelegate_ == nullptr) {
             ZLOGE("kvstore is not open");
+            std::string errorInfo;
+            errorInfo.append(__FUNCTION__).append(": Subscribe failed because kvstore is not open. ")
+                .append("bundleName is ").append(bundleName_);
+            DumpHelper::GetInstance().AddErrorInfo(errorInfo);
             return Status::ILLEGAL_STATE;
         }
         DdsTrace trace(std::string(LOG_TAG "Delegate::") + std::string(__FUNCTION__));
@@ -989,7 +1034,8 @@ Status SingleKvStoreImpl::AddUnSubscribe(const std::vector<std::string> &deviceI
 Status SingleKvStoreImpl::Subscribe(const std::vector<std::string> &deviceIds,
                                     const std::string &query, uint64_t sequenceId)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     ZLOGD("start.");
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
@@ -1002,7 +1048,8 @@ Status SingleKvStoreImpl::Subscribe(const std::vector<std::string> &deviceIds,
 Status SingleKvStoreImpl::UnSubscribe(const std::vector<std::string> &deviceIds,
                                       const std::string &query, uint64_t sequenceId)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     ZLOGD("start.");
     if (!flowCtrl_.IsTokenEnough()) {
         ZLOGE("flow control denied");
@@ -1014,7 +1061,8 @@ Status SingleKvStoreImpl::UnSubscribe(const std::vector<std::string> &deviceIds,
 
 InnerStatus SingleKvStoreImpl::Close(DistributedDB::KvStoreDelegateManager *kvStoreDelegateManager)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
 
     ZLOGW("start Close");
     if (openCount_ > 1) {
@@ -1071,153 +1119,10 @@ Status SingleKvStoreImpl::ForceClose(DistributedDB::KvStoreDelegateManager *kvSt
     return Status::ERROR;
 }
 
-Status SingleKvStoreImpl::MigrateKvStore(const std::string &harmonyAccountId,
-                                         const std::string &kvStoreDataDir,
-                                         DistributedDB::KvStoreDelegateManager *oldDelegateMgr,
-                                         DistributedDB::KvStoreDelegateManager *&newDelegateMgr)
-{
-    ZLOGI("begin.");
-    std::unique_lock<std::shared_mutex> lock(storeNbDelegateMutex_);
-    if (oldDelegateMgr == nullptr) {
-        ZLOGW("kvStore delegate manager is nullptr.");
-        return Status::INVALID_ARGUMENT;
-    }
-
-    ZLOGI("create new KvStore.");
-    std::vector<uint8_t> secretKey; // expected get secret key from meta kvstore successful when encrypt flag is true.
-    std::unique_ptr<std::vector<uint8_t>, void(*)(std::vector<uint8_t>*)> cleanGuard(
-            &secretKey, [](std::vector<uint8_t> *ptr) { ptr->assign(ptr->size(), 0); });
-    bool outdated = false; // ignore outdated flag during rebuild kvstore.
-    auto metaSecretKey = KvStoreMetaManager::GetMetaKey(deviceAccountId_, "default", bundleName_, storeId_,
-                                                        "SINGLE_KEY");
-    if (options_.encrypt) {
-        KvStoreMetaManager::GetInstance().GetSecretKeyFromMeta(metaSecretKey, secretKey, outdated);
-        if (secretKey.empty()) {
-            ZLOGE("Get secret key from meta kvstore failed.");
-            return Status::CRYPT_ERROR;
-        }
-    }
-
-    DistributedDB::DBStatus dbStatus;
-    DistributedDB::KvStoreNbDelegate::Option dbOption;
-    Status status = KvStoreAppManager::InitNbDbOption(options_, secretKey, dbOption);
-    if (status != Status::SUCCESS) {
-        ZLOGE("InitNbDbOption failed.");
-        return status;
-    }
-
-    if (newDelegateMgr == nullptr) {
-        if (appId_.empty()) {
-            ZLOGE("Get appId by bundle name failed.");
-            return Status::MIGRATION_KVSTORE_FAILED;
-        }
-        newDelegateMgr = new (std::nothrow) DistributedDB::KvStoreDelegateManager(appId_, harmonyAccountId);
-        if (newDelegateMgr == nullptr) {
-            ZLOGE("new KvStoreDelegateManager failed.");
-            return Status::MIGRATION_KVSTORE_FAILED;
-        }
-        DistributedDB::KvStoreConfig kvStoreConfig;
-        kvStoreConfig.dataDir = kvStoreDataDir;
-        newDelegateMgr->SetKvStoreConfig(kvStoreConfig);
-    }
-    DistributedDB::KvStoreNbDelegate *kvStoreNbDelegate = nullptr; // new KvStoreNbDelegate get from distributed DB.
-    newDelegateMgr->GetKvStore(
-        storeId_, dbOption,
-        [&](DistributedDB::DBStatus status, DistributedDB::KvStoreNbDelegate *delegate) {
-            kvStoreNbDelegate = delegate;
-            dbStatus = status;
-        });
-    if (kvStoreNbDelegate == nullptr) {
-        ZLOGE("storeDelegate is nullptr, dbStatusTmp: %d", static_cast<int>(dbStatus));
-        return Status::DB_ERROR;
-    }
-
-    if (options_.autoSync) {
-        bool autoSync = true;
-        auto data = static_cast<DistributedDB::PragmaData>(&autoSync);
-        auto pragmaStatus = kvStoreNbDelegate->Pragma(DistributedDB::PragmaCmd::AUTO_SYNC, data);
-        if (pragmaStatus != DistributedDB::DBStatus::OK) {
-            ZLOGE("pragmaStatus: %d", static_cast<int>(pragmaStatus));
-        }
-    }
-
-    status = RebuildKvStoreObserver(kvStoreNbDelegate);
-    if (status != Status::SUCCESS) {
-        ZLOGI("rebuild KvStore observer failed, errCode %d.", static_cast<int>(status));
-        // skip this failed, continue to do other rebuild process.
-    }
-
-    status = RebuildKvStoreResultSet();
-    if (status != Status::SUCCESS) {
-        ZLOGI("rebuild KvStore resultset failed, errCode %d.", static_cast<int>(status));
-        // skip this failed, continue to do close kvstore process.
-    }
-
-    ZLOGI("close old KvStore.");
-    dbStatus = oldDelegateMgr->CloseKvStore(kvStoreNbDelegate_);
-    if (dbStatus != DistributedDB::DBStatus::OK) {
-        ZLOGI("rebuild KvStore failed during close KvStore, errCode %d.", static_cast<int>(status));
-        newDelegateMgr->CloseKvStore(kvStoreNbDelegate);
-        return Status::DB_ERROR;
-    }
-
-    ZLOGI("update kvstore delegate.");
-    kvStoreNbDelegate_ = kvStoreNbDelegate;
-    return Status::SUCCESS;
-}
-
-Status SingleKvStoreImpl::RebuildKvStoreObserver(DistributedDB::KvStoreNbDelegate *kvStoreNbDelegate)
-{
-    ZLOGI("rebuild observer.");
-    if (kvStoreNbDelegate_ == nullptr || kvStoreNbDelegate == nullptr) {
-        ZLOGI("RebuildKvStoreObserver illlegal.");
-        return Status::ILLEGAL_STATE;
-    }
-    std::lock_guard<std::mutex> observerMapLockGuard(observerMapMutex_);
-    Status status = Status::SUCCESS;
-    DistributedDB::DBStatus dbStatus;
-    DistributedDB::Key emptyKey;
-    for (const auto &observerPair : observerMap_) {
-        dbStatus = kvStoreNbDelegate_->UnRegisterObserver(observerPair.second);
-        if (dbStatus != DistributedDB::OK) {
-            status = Status::DB_ERROR;
-            ZLOGW("rebuild observer failed during UnRegisterObserver, status %d.", static_cast<int>(dbStatus));
-            continue;
-        }
-        dbStatus = kvStoreNbDelegate->RegisterObserver(emptyKey,
-            static_cast<unsigned int>(ConvertToDbObserverMode(observerPair.second->GetSubscribeType())),
-            observerPair.second);
-        if (dbStatus != DistributedDB::OK) {
-            status = Status::DB_ERROR;
-            ZLOGW("rebuild observer failed during RegisterObserver, status %d.", static_cast<int>(dbStatus));
-            continue;
-        }
-    }
-    return status;
-}
-
-Status SingleKvStoreImpl::RebuildKvStoreResultSet()
-{
-    if (kvStoreNbDelegate_ == nullptr) {
-        return Status::INVALID_ARGUMENT;
-    }
-    ZLOGI("rebuild resultset");
-    std::lock_guard<std::mutex> lg(storeResultSetMutex_);
-    Status retStatus = Status::SUCCESS;
-    for (const auto &resultSetPair : storeResultSetMap_) {
-        Status status = (resultSetPair.second)->MigrateKvStore(kvStoreNbDelegate_);
-        if (status != Status::SUCCESS) {
-            retStatus = status;
-            ZLOGW("rebuild resultset failed, errCode %d", static_cast<int>(status));
-            continue;
-        }
-    }
-    return retStatus;
-}
-
 Status SingleKvStoreImpl::ReKey(const std::vector<uint8_t> &key)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
 
     std::shared_lock<std::shared_mutex> lock(storeNbDelegateMutex_);
     if (kvStoreNbDelegate_ == nullptr) {
@@ -1255,7 +1160,8 @@ Status SingleKvStoreImpl::UnRegisterSyncCallback()
 
 Status SingleKvStoreImpl::PutBatch(const std::vector<Entry> &entries)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
 
     std::shared_lock<std::shared_mutex> lock(storeNbDelegateMutex_);
     if (kvStoreNbDelegate_ == nullptr) {
@@ -1287,11 +1193,15 @@ Status SingleKvStoreImpl::PutBatch(const std::vector<Entry> &entries)
         DdsTrace trace(std::string(LOG_TAG "Delegate::") + std::string(__FUNCTION__));
         status = kvStoreNbDelegate_->PutBatch(dbEntries);
     }
-    if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
-        ZLOGE("PutBatch failed, distributeddb need recover.");
-        return (Import(bundleName_) ? Status::RECOVER_SUCCESS : Status::RECOVER_FAILED);
+    Status statusTmp = CheckDbIsCorrupted(status, __FUNCTION__);
+    if (statusTmp != Status::SUCCESS) {
+        return statusTmp;
     }
-
+    std::string errorInfo;
+    errorInfo.append(__FUNCTION__).append(": PutBatch failed. ")
+    .append("bundleName is ").append(bundleName_);
+    DumpHelper::GetInstance().AddErrorInfo(errorInfo);
+    ZLOGE("PutBatch failed, distributeddb need recover.");
     if (status == DistributedDB::DBStatus::EKEYREVOKED_ERROR ||
         status == DistributedDB::DBStatus::SECURITY_OPTION_CHECK_ERROR) {
         ZLOGE("delegate PutBatch failed.");
@@ -1309,7 +1219,8 @@ Status SingleKvStoreImpl::PutBatch(const std::vector<Entry> &entries)
 
 Status SingleKvStoreImpl::DeleteBatch(const std::vector<Key> &keys)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
 
     std::shared_lock<std::shared_mutex> lock(storeNbDelegateMutex_);
     if (kvStoreNbDelegate_ == nullptr) {
@@ -1338,9 +1249,14 @@ Status SingleKvStoreImpl::DeleteBatch(const std::vector<Key> &keys)
         DdsTrace trace(std::string(LOG_TAG "Delegate::") + std::string(__FUNCTION__));
         status = kvStoreNbDelegate_->DeleteBatch(dbKeys);
     }
-    if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
-        ZLOGE("DeleteBatch failed, distributeddb need recover.");
-        return (Import(bundleName_) ? Status::RECOVER_SUCCESS : Status::RECOVER_FAILED);
+    std::string errorInfo;
+    errorInfo.append(__FUNCTION__).append(": DeleteBatch failed. ")
+    .append("bundleName is ").append(bundleName_);
+    DumpHelper::GetInstance().AddErrorInfo(errorInfo);
+    ZLOGE("DeleteBatch failed, distributeddb need recover.");
+    Status statusTmp = CheckDbIsCorrupted(status, __FUNCTION__);
+    if (statusTmp != Status::SUCCESS) {
+        return statusTmp;
     }
 
     if (status == DistributedDB::DBStatus::EKEYREVOKED_ERROR ||
@@ -1360,8 +1276,8 @@ Status SingleKvStoreImpl::DeleteBatch(const std::vector<Key> &keys)
 
 Status SingleKvStoreImpl::StartTransaction()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
-
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
     std::shared_lock<std::shared_mutex> lock(storeNbDelegateMutex_);
     if (kvStoreNbDelegate_ == nullptr) {
         ZLOGE("delegate is null.");
@@ -1376,9 +1292,14 @@ Status SingleKvStoreImpl::StartTransaction()
         DdsTrace trace(std::string(LOG_TAG "Delegate::") + std::string(__FUNCTION__));
         status = kvStoreNbDelegate_->StartTransaction();
     }
-    if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
-        ZLOGE("StartTransaction failed, distributeddb need recover.");
-        return (Import(bundleName_) ? Status::RECOVER_SUCCESS : Status::RECOVER_FAILED);
+    std::string errorInfo;
+    errorInfo.append(__FUNCTION__).append(": StartTransaction failed. ")
+    .append("bundleName is ").append(bundleName_);
+    DumpHelper::GetInstance().AddErrorInfo(errorInfo);
+    ZLOGE("StartTransaction failed, distributeddb need recover.");
+    Status statusTmp = CheckDbIsCorrupted(status, __FUNCTION__);
+    if (statusTmp != Status::SUCCESS) {
+        return statusTmp;
     }
     if (status != DistributedDB::DBStatus::OK) {
         ZLOGE("delegate return error.");
@@ -1390,7 +1311,8 @@ Status SingleKvStoreImpl::StartTransaction()
 
 Status SingleKvStoreImpl::Commit()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
 
     std::shared_lock<std::shared_mutex> lock(storeNbDelegateMutex_);
     if (kvStoreNbDelegate_ == nullptr) {
@@ -1406,9 +1328,14 @@ Status SingleKvStoreImpl::Commit()
         DdsTrace trace(std::string(LOG_TAG "Delegate::") + std::string(__FUNCTION__));
         status = kvStoreNbDelegate_->Commit();
     }
-    if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
-        ZLOGE("Commit failed, distributeddb need recover.");
-        return (Import(bundleName_) ? Status::RECOVER_SUCCESS : Status::RECOVER_FAILED);
+    std::string errorInfo;
+    errorInfo.append(__FUNCTION__).append(": Commit failed. ")
+    .append("bundleName is ").append(bundleName_);
+    DumpHelper::GetInstance().AddErrorInfo(errorInfo);
+    ZLOGE("Commit failed, distributeddb need recover.");
+    Status statusTmp = CheckDbIsCorrupted(status, __FUNCTION__);
+    if (statusTmp != Status::SUCCESS) {
+        return statusTmp;
     }
     if (status != DistributedDB::DBStatus::OK) {
         ZLOGE("delegate return error.");
@@ -1421,7 +1348,8 @@ Status SingleKvStoreImpl::Commit()
 
 Status SingleKvStoreImpl::Rollback()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__),
+        TraceSwitch::BYTRACE_ON | TraceSwitch::API_PERFORMANCE_TRACE_ON);
 
     std::shared_lock<std::shared_mutex> lock(storeNbDelegateMutex_);
     if (kvStoreNbDelegate_ == nullptr) {
@@ -1437,9 +1365,14 @@ Status SingleKvStoreImpl::Rollback()
         DdsTrace trace(std::string(LOG_TAG "Delegate::") + std::string(__FUNCTION__));
         status = kvStoreNbDelegate_->Rollback();
     }
-    if (status == DistributedDB::DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB) {
-        ZLOGE("Rollback failed, distributeddb need recover.");
-        return (Import(bundleName_) ? Status::RECOVER_SUCCESS : Status::RECOVER_FAILED);
+    std::string errorInfo;
+    errorInfo.append(__FUNCTION__).append(": Rollback failed. ")
+    .append("bundleName is ").append(bundleName_);
+    DumpHelper::GetInstance().AddErrorInfo(errorInfo);
+    ZLOGE("Rollback failed, distributeddb need recover.");
+    Status statusTmp = CheckDbIsCorrupted(status, __FUNCTION__);
+    if (statusTmp != Status::SUCCESS) {
+        return statusTmp;
     }
     if (status != DistributedDB::DBStatus::OK) {
         ZLOGE("delegate return error.");
@@ -1497,7 +1430,12 @@ bool SingleKvStoreImpl::Import(const std::string &bundleName) const
     metaData.deviceId = DeviceKvStoreImpl::GetLocalDeviceId();
     MetaDataManager::GetInstance().LoadMeta(metaData.GetKey(), metaData);
     std::shared_lock<std::shared_mutex> lock(storeNbDelegateMutex_);
-    return std::make_unique<BackupHandler>()->SingleKvStoreRecover(metaData, kvStoreNbDelegate_);
+    auto recoverResult = std::make_unique<BackupHandler>()->SingleKvStoreRecover(metaData, kvStoreNbDelegate_);
+    if (recoverResult) {
+        metaData.isCorrupted = false;
+        MetaDataManager::GetInstance().SaveMeta(metaData.GetKey(), metaData);
+    }
+    return recoverResult;
 }
 
 Status SingleKvStoreImpl::SetCapabilityEnabled(bool enabled)
@@ -1588,19 +1526,29 @@ Status SingleKvStoreImpl::GetSecurityLevel(SecurityLevel &securityLevel)
 
 void SingleKvStoreImpl::OnDump(int fd) const
 {
-    const std::string prefix(12, ' ');
-    dprintf(fd, "%s------------------------------------------------------\n", prefix.c_str());
-    dprintf(fd, "%sStoreID    : %s\n", prefix.c_str(), storeId_.c_str());
-    dprintf(fd, "%sStorePath  : %s\n", prefix.c_str(), storePath_.c_str());
+    auto query = DistributedDB::Query::Select();
+    query.PrefixKey({ });
+    int count = 0;
+    kvStoreNbDelegate_->GetCount(query, count);
+    dprintf(fd, DEFAUL_RETRACT"------------------------------------------------------\n");
+    dprintf(fd, DEFAUL_RETRACT"StoreID    : %s\n", storeId_.c_str());
+    dprintf(fd, DEFAUL_RETRACT"StorePath  : %s\n", storePath_.c_str());
 
-    dprintf(fd, "%sOptions :\n", prefix.c_str());
-    dprintf(fd, "%s    backup          : %d\n", prefix.c_str(), static_cast<int>(options_.backup));
-    dprintf(fd, "%s    encrypt         : %d\n", prefix.c_str(), static_cast<int>(options_.encrypt));
-    dprintf(fd, "%s    autoSync        : %d\n", prefix.c_str(), static_cast<int>(options_.autoSync));
-    dprintf(fd, "%s    persistent      : %d\n", prefix.c_str(), static_cast<int>(options_.persistent));
-    dprintf(fd, "%s    kvStoreType     : %d\n", prefix.c_str(), static_cast<int>(options_.kvStoreType));
-    dprintf(fd, "%s    createIfMissing : %d\n", prefix.c_str(), static_cast<int>(options_.createIfMissing));
-    dprintf(fd, "%s    schema          : %s\n", prefix.c_str(), options_.schema.c_str());
+    dprintf(fd, DEFAUL_RETRACT"Options :\n");
+    dprintf(fd, DEFAUL_RETRACT"    backup          : %d\n", static_cast<int>(options_.backup));
+    dprintf(fd, DEFAUL_RETRACT"    encrypt         : %d\n", static_cast<int>(options_.encrypt));
+    dprintf(fd, DEFAUL_RETRACT"    autoSync        : %d\n", static_cast<int>(options_.autoSync));
+    dprintf(fd, DEFAUL_RETRACT"    persistent      : %d\n", static_cast<int>(options_.persistent));
+    dprintf(fd, DEFAUL_RETRACT"    kvStoreType     : %d\n", static_cast<int>(options_.kvStoreType));
+    dprintf(fd, DEFAUL_RETRACT"    createIfMissing : %d\n", static_cast<int>(options_.createIfMissing));
+    dprintf(fd, DEFAUL_RETRACT"    schema          : %s\n", options_.schema.c_str());
+    dprintf(fd, DEFAUL_RETRACT"    entriesCount    : %d\n", count);
+}
+
+void SingleKvStoreImpl::DumpStoreName(int fd) const
+{
+    dprintf(fd, DEFAUL_RETRACT"------------------------------------------------------\n");
+    dprintf(fd, DEFAUL_RETRACT"StoreID    : %s\n", storeId_.c_str());
 }
 
 std::string SingleKvStoreImpl::GetStoreId()

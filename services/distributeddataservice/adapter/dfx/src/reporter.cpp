@@ -24,8 +24,10 @@
 #include "statistic/database_statistic_impl.h"
 #include "statistic/api_performance_statistic_impl.h"
 
+#include "behaviour/behaviour_reporter_impl.h"
+
 namespace OHOS {
-namespace DistributedKv {
+namespace DistributedDataDfx {
 Reporter* Reporter::GetInstance()
 {
     static Reporter reporter;
@@ -79,5 +81,11 @@ StatisticReporter<ApiPerformanceStat>* Reporter::ApiPerformanceStatistic()
     static ApiPerformanceStatisticImpl apiPerformanceStat;
     return &apiPerformanceStat;
 }
-} // namespace DistributedKv
+
+BehaviourReporter* Reporter::BehaviourReporter()
+{
+    static BehaviourReporterImpl behaviourReporterImpl;
+    return &behaviourReporterImpl;
+}
+} // namespace DistributedDataDfx
 } // namespace OHOS
