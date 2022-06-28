@@ -433,10 +433,10 @@ bool KvStoreDataService::CheckBackupFileExist(const std::string &userId, const s
     std::initializer_list<std::string> backupFileNameList = {Constant::DEFAULT_GROUP_ID, "_",
         bundleName, "_", storeId};
     auto backupFileName = Constant::Concatenate(backupFileNameList);
-    std::initializer_list<std::string> backFileList = {BackupHandler::GetInstance().GetBackupPath(userId, pathType),
-        "/", BackupHandler::GetInstance().GetHashedBackupName(backupFileName)};
+    std::initializer_list<std::string> backFileList = {BackupHandler::GetBackupPath(userId, pathType),
+        "/", BackupHandler::GetHashedBackupName(backupFileName)};
     auto backFilePath = Constant::Concatenate(backFileList);
-    if (!BackupHandler::GetInstance().FileExists(backFilePath)) {
+    if (!BackupHandler::FileExists(backFilePath)) {
         ZLOGE("BackupHandler file is not exist.");
         return false;
     }
@@ -610,14 +610,11 @@ Status KvStoreDataService::DeleteKvStore(const AppId &appId, const StoreId &stor
 
 Status KvStoreDataService::DeleteKvStore(StoreMetaData &metaData)
 {
-    // delete the backup file
-    auto backFilePath = BackupHandler::GetInstance().GetBackupPath(
-        metaData.user, KvStoreAppManager::ConvertPathType(metaData));
-    auto backupFileName = Constant::Concatenate(
-        { metaData.account, "_", metaData.bundleName, "_", metaData.storeId });
-    auto backFile = Constant::Concatenate(
-        { backFilePath, "/", BackupHandler::GetInstance().GetHashedBackupName(backupFileName)});
-    if (!BackupHandler::GetInstance().RemoveFile(backFile)) {
+     // delete the backup file
+    auto backFilePath = BackupHandler::GetBackupPath(metaData.user, KvStoreAppManager::ConvertPathType(metaData));
+    auto backupFileName = Constant::Concatenate({ metaData.account, "_", metaData.bundleName, "_", metaData.storeId });
+    auto backFile = Constant::Concatenate({ backFilePath, "/", BackupHandler::GetHashedBackupName(backupFileName) });
+    if (!BackupHandler::RemoveFile(backFile)) {
         ZLOGE("DeleteKvStore RemoveFile backFilePath failed.");
     }
 
@@ -858,7 +855,7 @@ void KvStoreDataService::StartService()
     }
     Uninstaller::GetInstance().Init(this);
 
-    std::string backupPath = BackupHandler::GetInstance().GetBackupPath(
+    std::string backupPath = BackupHandler::GetBackupPath(
         AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(getuid()), KvStoreAppManager::PATH_DE);
     ZLOGI("backupPath is : %s ", backupPath.c_str());
     if (!ForceCreateDirectory(backupPath)) {
@@ -893,7 +890,10 @@ void KvStoreDataService::StartService()
             return status;
         };
     KvStoreDelegateManager::SetAutoLaunchRequestCallback(autoLaunchRequestCallback);
-    BackupHandler::GetInstance().BackSchedule();
+
+    backup_ = std::make_unique<BackupHandler>(this);
+    backup_->BackSchedule();
+
     std::thread th = std::thread([]() {
         sleep(TEN_SEC);
         KvStoreAppAccessor::GetInstance().EnableKvStoreAutoLaunch();
@@ -1068,6 +1068,10 @@ bool KvStoreDataService::CheckPermissions(const std::string &userId, const std::
 void KvStoreDataService::OnStop()
 {
     ZLOGI("begin.");
+    if (backup_ != nullptr) {
+        backup_.reset();
+        backup_ = nullptr;
+    }
 }
 
 KvStoreDataService::KvStoreClientDeathObserverImpl::KvStoreClientDeathObserverImpl(

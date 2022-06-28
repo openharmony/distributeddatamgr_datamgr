@@ -31,16 +31,18 @@ class BackupHandler {
 public:
     using StoreMetaData = DistributedData::StoreMetaData;
     using SecretKeyMetaData = DistributedData::SecretKeyMetaData;
-    static BackupHandler &GetInstance();
+    explicit BackupHandler(IKvStoreDataService *kvStoreDataService);
+    BackupHandler();
+    ~BackupHandler();
     void BackSchedule();
     void SingleKvStoreBackup(const StoreMetaData &metaData);
-    bool SingleKvStoreRecover(StoreMetaData &metaData, DistributedDB::KvStoreNbDelegate *delegate);
+    static bool SingleKvStoreRecover(StoreMetaData &metaData, DistributedDB::KvStoreNbDelegate *delegate);
 
-    const std::string &GetBackupPath(const std::string &deviceAccountId, int pathType);
-    bool RenameFile(const std::string &oldPath, const std::string &newPath);
-    bool RemoveFile(const std::string &path);
-    bool FileExists(const std::string &path);
-    std::string GetHashedBackupName(const std::string &bundleName);
+    static const std::string &GetBackupPath(const std::string &deviceAccountId, int pathType);
+    static bool RenameFile(const std::string &oldPath, const std::string &newPath);
+    static bool RemoveFile(const std::string &path);
+    static bool FileExists(const std::string &path);
+    static std::string GetHashedBackupName(const std::string &bundleName);
 
     struct BackupPara {
         KvStoreAppManager::PathType pathType;
@@ -50,12 +52,10 @@ public:
     };
 
 private:
-    BackupHandler();
-    ~BackupHandler();
     bool CheckNeedBackup();
     bool InitBackupPara(const StoreMetaData &metaData, BackupPara &backupPara);
-    bool GetPassword(const StoreMetaData &metaData, DistributedDB::CipherPassword &password);
-    int64_t GetBackupTime(std::string &fullName);
+    static bool GetPassword(const StoreMetaData &metaData, DistributedDB::CipherPassword &password);
+    static int64_t GetBackupTime(std::string &fullName);
     static std::string backupDirCe_;
     static std::string backupDirDe_;
 

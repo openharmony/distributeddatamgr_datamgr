@@ -1429,7 +1429,7 @@ bool SingleKvStoreImpl::Import(const std::string &bundleName) const
     metaData.deviceId = DeviceKvStoreImpl::GetLocalDeviceId();
     MetaDataManager::GetInstance().LoadMeta(metaData.GetKey(), metaData);
     std::shared_lock<std::shared_mutex> lock(storeNbDelegateMutex_);
-    auto recoverResult = BackupHandler::GetInstance().SingleKvStoreRecover(metaData, kvStoreNbDelegate_);
+    auto recoverResult = BackupHandler::SingleKvStoreRecover(metaData, kvStoreNbDelegate_);
     if (recoverResult) {
         CorruptedMetaData metaData = CorruptedMetaData(deviceAccountId_, bundleName_, storeId_);
         MetaDataManager::GetInstance().LoadMeta(metaData.GetKey(), metaData, true);

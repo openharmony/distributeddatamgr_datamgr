@@ -41,11 +41,10 @@ using namespace DistributedData;
 using namespace DistributedDataDfx;
 using namespace AppDistributedKv;
 constexpr const int64_t NANOSEC_TO_MICROSEC = 1000;
-BackupHandler &BackupHandler::GetInstance()
+BackupHandler::BackupHandler(IKvStoreDataService *kvStoreDataService)
 {
-    static BackupHandler instance;
-    return instance;
 }
+
 BackupHandler::BackupHandler()
 {
 }
