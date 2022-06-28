@@ -24,6 +24,7 @@
 #include "log_print.h"
 #include "utils/anonymous.h"
 #include "accesstoken_kit.h"
+#include "permission/permission_validator.h"
 
 using OHOS::DistributedKv::AccountDelegate;
 using OHOS::AppDistributedKv::CommunicationProvider;
@@ -275,6 +276,13 @@ int32_t RdbServiceImpl::SetDistributedTables(const RdbSyncerParam &param, const 
 int32_t RdbServiceImpl::DoSync(const RdbSyncerParam &param, const SyncOption &option,
                                const RdbPredicates &predicates, SyncResult &result)
 {
+    DistributedData::CheckerManager::StoreInfo storeInfo;
+    storeInfo.tokenId = GetCallingTokenID();
+    if (!DistributedKv::PermissionValidator::GetInstance().CheckSyncPermission(storeInfo.tokenId)) {
+        ZLOGE("Rdb sync permission denied");
+        return RDB_ERROR;
+    }
+
     if (!CheckAccess(param)) {
         ZLOGE("permission error");
         return RDB_ERROR;
