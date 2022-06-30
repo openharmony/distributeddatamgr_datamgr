@@ -970,7 +970,7 @@ bool KvStoreDataService::ResolveAutoLaunchParamByIdentifier(
                 ZLOGE("Get secret key failed.");
             }
             if (storeMeta.bundleName == Bootstrap::GetInstance().GetProcessLabel()) {
-                param.userId = storeMeta.userId;
+                param.userId = storeMeta.deviceAccountId;
             }
             option.passwd = password;
             option.schema = storeMeta.schema;
