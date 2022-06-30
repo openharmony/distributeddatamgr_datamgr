@@ -20,6 +20,7 @@
 namespace OHOS::DistributedKv {
 constexpr int32_t SOFTBUS_OK = 0;
 constexpr int32_t ID_BUF_LEN = 65;
+constexpr size_t DevManager::MAX_ID_LEN;
 DevManager &DevManager::GetInstance()
 {
     static DevManager instance;
@@ -40,7 +41,25 @@ std::string DevManager::ToUUID(const std::string &networkId) const
     }
     deviceInfo = { uuid, std::move(udid), networkId, "", "" };
     deviceInfos_.Set(networkId, deviceInfo);
+    deviceInfos_.Set(uuid, deviceInfo);
     return uuid;
+}
+
+std::string DevManager::ToNetworkId(const std::string &uuid) const
+{
+    DetailInfo deviceInfo;
+    if (deviceInfos_.Get(uuid, deviceInfo)) {
+        return deviceInfo.uuid;
+    }
+    auto infos = GetRemoteDevices();
+    for (auto &info : infos) {
+        if (info.uuid == uuid) {
+            deviceInfos_.Set(info.uuid, info);
+            deviceInfos_.Set(info.networkId, info);
+            return info.networkId;
+        }
+    }
+    return "";
 }
 
 const DevManager::DetailInfo &DevManager::GetLocalDevice()
@@ -62,7 +81,7 @@ const DevManager::DetailInfo &DevManager::GetLocalDevice()
     if (uuid.empty() || udid.empty() || networkId.empty()) {
         return invalidDetail_;
     }
-    ZLOGD("[LocalDevice] id:%{public}s, name:%{public}s, type:%{public}d",
+    ZLOGI("[LocalDevice] id:%{public}s, name:%{public}s, type:%{public}d",
           StoreUtil::Anonymous(uuid).c_str(), info.deviceName, info.deviceTypeId);
     localInfo_ = { std::move(uuid), std::move(udid), std::move(networkId),
                    std::string(info.deviceName), std::string(info.deviceName) };

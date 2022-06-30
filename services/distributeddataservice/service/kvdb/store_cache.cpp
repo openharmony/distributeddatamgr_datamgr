@@ -12,11 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#define LOG_TAG "StoreCache"
 #include "store_cache.h"
 
 #include "crypto_manager.h"
 #include "directory_manager.h"
+#include "log_print.h"
 #include "metadata/meta_data_manager.h"
 #include "metadata/secret_key_meta_data.h"
 #include "types.h"
@@ -29,7 +30,7 @@ StoreCache::DBStore *StoreCache::GetStore(const StoreMetaData &data, std::shared
 {
     DBStore *store = nullptr;
     status = DBStatus::NOT_FOUND;
-    stores_.Compute(data.tokenId, [this, &store, &data, &status, &observers](auto &key, auto &stores) {
+    stores_.Compute(data.tokenId, [&](const auto &key, std::map<std::string, DBStoreDelegate> &stores) {
         auto it = stores.find(data.storeId);
         if (it != stores.end()) {
             it->second.SetObservers(observers);
@@ -39,10 +40,20 @@ StoreCache::DBStore *StoreCache::GetStore(const StoreMetaData &data, std::shared
 
         DBManager manager(data.appId, data.user);
         manager.SetKvStoreConfig({ DirectoryManager::GetInstance().GetStorePath(data) });
-        manager.GetKvStore(data.storeId, GetDBOption(data), [&status, &store](auto dbStatus, auto *tmpStore) {
-            status = dbStatus;
-            store = tmpStore;
-        });
+        manager.GetKvStore(data.storeId, GetDBOption(data, GetDBPassword(data)),
+            [&status, &store](auto dbStatus, auto *tmpStore) {
+                status = dbStatus;
+                store = tmpStore;
+            });
+
+        if (data.isAutoSync) {
+            bool autoSync = true;
+            DistributedDB::PragmaData data = static_cast<DistributedDB::PragmaData>(&autoSync);
+            auto syncStatus = store->Pragma(DistributedDB::PragmaCmd::AUTO_SYNC, data);
+            if (syncStatus != DistributedDB::DBStatus::OK) {
+                ZLOGE("pragmaStatus: %d", static_cast<int>(syncStatus));
+            }
+        }
 
         if (store != nullptr) {
             stores.emplace(std::piecewise_construct, std::forward_as_tuple(data.storeId),
@@ -70,6 +81,19 @@ void StoreCache::CloseStore(uint32_t tokenId, const std::string &storeId)
     });
 }
 
+void StoreCache::SetObserver(uint32_t tokenId, const std::string &storeId, std::shared_ptr<Observers> observers)
+{
+    stores_.ComputeIfPresent(tokenId, [&storeId, &observers](auto &key, auto &stores) {
+        ZLOGD("tokenId:0x%{public}x storeId:%{public}s observers:%{public}zu", key, storeId.c_str(),
+            observers ? observers->size() : size_t(0));
+        auto it = stores.find(storeId);
+        if (it != stores.end()) {
+            it->second.SetObservers(observers);
+        }
+        return true;
+    });
+}
+
 void StoreCache::CollectGarbage()
 {
     DBManager manager("", "");
@@ -91,7 +115,7 @@ void StoreCache::CollectGarbage()
     }
 }
 
-StoreCache::DBOption StoreCache::GetDBOption(const StoreMetaData &data) const
+StoreCache::DBOption StoreCache::GetDBOption(const StoreMetaData &data, const DBPassword &password)
 {
     DBOption dbOption;
     dbOption.syncDualTupleMode = true; // tuple of (appid+storeid)
@@ -100,14 +124,7 @@ StoreCache::DBOption StoreCache::GetDBOption(const StoreMetaData &data) const
     dbOption.isEncryptedDb = data.isEncrypt;
     if (data.isEncrypt) {
         dbOption.cipher = DistributedDB::CipherType::AES_256_GCM;
-        SecretKeyMetaData secretKey;
-        secretKey.storeType = data.storeType;
-        auto storeKey = SecretKeyMetaData::GetKey({ data.user, "default", data.bundleName, data.storeId });
-        MetaDataManager::GetInstance().SaveMeta(storeKey, secretKey, true);
-        std::vector<uint8_t> password;
-        CryptoManager::GetInstance().Decrypt(secretKey.sKey, password);
-        dbOption.passwd.SetValue(password.data(), password.size());
-        password.assign(password.size(), 0);
+        dbOption.passwd = password;
     }
 
     if (data.storeType == KvStoreType::SINGLE_VERSION) {
@@ -122,7 +139,7 @@ StoreCache::DBOption StoreCache::GetDBOption(const StoreMetaData &data) const
     return dbOption;
 }
 
-StoreCache::DBSecurity StoreCache::GetDBSecurity(int32_t secLevel) const
+StoreCache::DBSecurity StoreCache::GetDBSecurity(int32_t secLevel)
 {
     if (secLevel < SecurityLevel::NO_LABEL || secLevel > SecurityLevel::S4) {
         return { DistributedDB::NOT_SET, DistributedDB::ECE };
@@ -136,26 +153,40 @@ StoreCache::DBSecurity StoreCache::GetDBSecurity(int32_t secLevel) const
     return { secLevel, DistributedDB::ECE };
 }
 
+StoreCache::DBPassword StoreCache::GetDBPassword(const StoreMetaData &data)
+{
+    DBPassword dbPassword;
+    SecretKeyMetaData secretKey;
+    secretKey.storeType = data.storeType;
+    auto storeKey = data.GetSecretKey();
+    MetaDataManager::GetInstance().LoadMeta(storeKey, secretKey, true);
+    std::vector<uint8_t> password;
+    CryptoManager::GetInstance().Decrypt(secretKey.sKey, password);
+    dbPassword.SetValue(password.data(), password.size());
+    password.assign(password.size(), 0);
+    return dbPassword;
+}
+
 StoreCache::DBStoreDelegate::DBStoreDelegate(DBStore *delegate, std::shared_ptr<Observers> observers)
-    : delegate_(delegate), observers_(std::move(observers))
+    : delegate_(delegate)
 {
     time_ = std::chrono::system_clock::now() + std::chrono::minutes(INTERVAL);
-    if (observers_ != nullptr && !observers_->empty()) {
-        delegate_->RegisterObserver({}, DistributedDB::OBSERVER_CHANGES_FOREIGN, this);
-    }
+    SetObservers(std::move(observers));
 }
 
 StoreCache::DBStoreDelegate::~DBStoreDelegate()
 {
+    if (delegate_ != nullptr) {
+        delegate_->UnRegisterObserver(this);
+    }
+    DBManager manager("", "");
+    manager.CloseKvStore(delegate_);
     delegate_ = nullptr;
 }
 
 StoreCache::DBStoreDelegate::operator DBStore *()
 {
     time_ = std::chrono::system_clock::now() + std::chrono::minutes(INTERVAL);
-    if (observers_ != nullptr && !observers_->empty()) {
-        delegate_->RegisterObserver({}, DistributedDB::OBSERVER_CHANGES_FOREIGN, this);
-    }
     return delegate_;
 }
 
@@ -180,25 +211,39 @@ bool StoreCache::DBStoreDelegate::Close(DBManager &manager)
 
 void StoreCache::DBStoreDelegate::OnChange(const DistributedDB::KvStoreChangedData &data)
 {
-    if (observers_ == nullptr) {
+    if (observers_ == nullptr || delegate_ == nullptr) {
+        ZLOGE("already closed");
         return;
     }
 
-    const auto &dbInserts = data.GetEntriesInserted();
-    const auto &dbUpdates = data.GetEntriesUpdated();
-    const auto &dbDeletes = data.GetEntriesDeleted();
-    ChangeNotification change(Convert(dbInserts), Convert(dbUpdates), Convert(dbDeletes), std::string(), false);
-    for (auto &observer : *observers_) {
+    time_ = std::chrono::system_clock::now() + std::chrono::minutes(INTERVAL);
+    auto observers = observers_;
+    std::vector<uint8_t> key;
+    auto inserts = Convert(data.GetEntriesInserted());
+    auto updates = Convert(data.GetEntriesUpdated());
+    auto deletes = Convert(data.GetEntriesDeleted());
+    ZLOGD("C:%{public}zu U:%{public}zu D:%{public}zu storeId:%{public}s", inserts.size(), updates.size(),
+        deletes.size(), delegate_->GetStoreId().c_str());
+    ChangeNotification change(std::move(inserts), std::move(updates), std::move(deletes), {}, false);
+    for (auto &observer : *observers) {
         observer->OnChange(change);
     }
 }
 
 void StoreCache::DBStoreDelegate::SetObservers(std::shared_ptr<Observers> observers)
 {
-    if (observers_ != observers && observers != nullptr) {
-        observers_ = observers;
+    if (observers_ == observers || delegate_ == nullptr) {
+        return;
+    }
+
+    observers_ = observers;
+
+    if (observers_ != nullptr && !observers_->empty()) {
+        ZLOGD("storeId:%{public}s observers:%{public}zu", delegate_->GetStoreId().c_str(), observers->size());
+        delegate_->RegisterObserver({}, DistributedDB::OBSERVER_CHANGES_FOREIGN, this);
     }
 }
+
 std::vector<Entry> StoreCache::DBStoreDelegate::Convert(const std::list<DBEntry> &dbEntries)
 {
     std::vector<Entry> entries;

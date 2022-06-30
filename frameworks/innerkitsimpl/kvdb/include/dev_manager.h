@@ -22,6 +22,7 @@
 namespace OHOS::DistributedKv {
 class API_EXPORT DevManager {
 public:
+    static constexpr size_t MAX_ID_LEN = 64;
     struct DetailInfo {
         std::string uuid;
         std::string udid;
@@ -31,6 +32,7 @@ public:
     };
     static DevManager &GetInstance();
     std::string ToUUID(const std::string &networkId) const;
+    std::string ToNetworkId(const std::string &uuid) const;
     const DetailInfo &GetLocalDevice();
     std::vector<DetailInfo> GetRemoteDevices() const;
 private:
@@ -39,7 +41,7 @@ private:
     const DetailInfo invalidDetail_ {};
     std::mutex mutex_ {};
     DetailInfo localInfo_ {};
-    mutable LRUBucket<std::string, DetailInfo> deviceInfos_ {16};
+    mutable LRUBucket<std::string, DetailInfo> deviceInfos_ {64};
     std::string GetUuidByNetworkId(const std::string &networkId) const;
     std::string GetUdidByNetworkId(const std::string &networkId) const;
 };

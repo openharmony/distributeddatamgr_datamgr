@@ -287,12 +287,12 @@ bool BackupHandler::RenameFile(const std::string &oldPath, const std::string &ne
 bool BackupHandler::RemoveFile(const std::string &path)
 {
     if (path.empty()) {
-        ZLOGI("RemoveFile: path is empty");
+        ZLOGI("path is empty");
         return true;
     }
 
     if (unlink(path.c_str()) != 0 && (errno != ENOENT)) {
-        ZLOGE("RemoveFile: failed to RemoveFile, errno[%d].", errno);
+        ZLOGE("failed errno[%{public}d] path:%{public}s ", errno, path.c_str());
         return false;
     }
     return true;
