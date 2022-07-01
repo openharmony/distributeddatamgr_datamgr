@@ -155,16 +155,13 @@ Status KvStoreResultSetProxy::GetEntry(Entry &entry)
 
     int32_t status = 0;
     int32_t bufferSize = 0;
-    if(!ITypesUtil::Unmarshal(reply, status, bufferSize))
-    {
+    if (!ITypesUtil::Unmarshal(reply, status, bufferSize)) {
         ZLOGW("read status or bufferSize failed");
         return Status::ERROR;
     }
 
-    if(bufferSize < Constant::SWITCH_RAW_DATA_SIZE)
-    {
-        if(!ITypesUtil::Unmarshal(reply, entry))
-        {
+    if (bufferSize < Constant::SWITCH_RAW_DATA_SIZE) {
+        if (!ITypesUtil::Unmarshal(reply, entry)) {
             ZLOGW("read entry failed");
             return Status::ERROR;
         }
@@ -176,8 +173,7 @@ Status KvStoreResultSetProxy::GetEntry(Entry &entry)
         return Status::ERROR;
     }
     status = ITypesUtil::UnmarshalFromBuffer(reply, bufferSize, entry);
-    if(status != Status::SUCCESS)
-    {
+    if (status != Status::SUCCESS) {
         ZLOGW("read entry failed (%d).", status);
         return Status::ERROR;
     }
@@ -225,8 +221,7 @@ int KvStoreResultSetStub::GetEntryOnRemote(MessageParcel &reply)
     Entry entry;
     int32_t status = GetEntry(entry);
     int32_t bufferSize = entry.RawEntrySize();
-    if(!ITypesUtil::Marshal(reply, status, bufferSize))
-    {
+    if (!ITypesUtil::Marshal(reply, status, bufferSize)) {
         ZLOGW("write status or bufferSize failed.");
         return -1;
     }
