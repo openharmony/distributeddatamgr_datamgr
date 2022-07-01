@@ -21,6 +21,7 @@
 #include "metadata/meta_data_manager.h"
 #include "metadata/secret_key_meta_data.h"
 #include "types.h"
+#include "account_delegate.h"
 namespace OHOS::DistributedKv {
 using namespace OHOS::DistributedData;
 constexpr int64_t StoreCache::INTERVAL;
@@ -63,7 +64,7 @@ StoreCache::DBStore *StoreCache::GetStore(const StoreMetaData &data, std::shared
     });
 
     scheduler_.At(std::chrono::system_clock::now() + std::chrono::minutes(INTERVAL),
-        std::bind(&StoreCache::CollectGarbage, this));
+        std::bind(&StoreCache::GarbageCollect, this));
 
     return store;
 }
@@ -81,6 +82,26 @@ void StoreCache::CloseStore(uint32_t tokenId, const std::string &storeId)
     });
 }
 
+void StoreCache::CloseExcept(const std::set<int32_t> &users)
+{
+    DBManager manager("", "");
+    stores_.EraseIf([&manager, &users](const auto &tokenId, std::map<std::string, DBStoreDelegate> &delegates) {
+        auto userId = AccountDelegate::GetInstance()->GetUserByToken(tokenId);
+        if (users.count(userId) != 0) {
+            return delegates.empty();
+        }
+        for (auto it = delegates.begin(); it != delegates.end();) {
+            // if the kv store is BUSY we wait more INTERVAL minutes again
+            if (!it->second.Close(manager)) {
+                ++it;
+            } else {
+                it = delegates.erase(it);
+            }
+        }
+        return delegates.empty();
+    });
+}
+
 void StoreCache::SetObserver(uint32_t tokenId, const std::string &storeId, std::shared_ptr<Observers> observers)
 {
     stores_.ComputeIfPresent(tokenId, [&storeId, &observers](auto &key, auto &stores) {
@@ -94,7 +115,7 @@ void StoreCache::SetObserver(uint32_t tokenId, const std::string &storeId, std::
     });
 }
 
-void StoreCache::CollectGarbage()
+void StoreCache::GarbageCollect()
 {
     DBManager manager("", "");
     auto current = std::chrono::system_clock::now();
@@ -111,7 +132,7 @@ void StoreCache::CollectGarbage()
     });
 
     if (!stores_.Empty()) {
-        scheduler_.At(current + std::chrono::minutes(INTERVAL), std::bind(&StoreCache::CollectGarbage, this));
+        scheduler_.At(current + std::chrono::minutes(INTERVAL), std::bind(&StoreCache::GarbageCollect, this));
     }
 }
 

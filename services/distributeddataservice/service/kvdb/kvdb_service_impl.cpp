@@ -583,6 +583,14 @@ std::shared_ptr<StoreCache::Observers> KVDBServiceImpl::GetObservers(uint32_t to
     return observers;
 }
 
+void KVDBServiceImpl::OnUserChanged()
+{
+    std::vector<int32_t> users;
+    AccountDelegate::GetInstance()->QueryUsers(users);
+    std::set<int32_t> userIds(users.begin(), users.end());
+    storeCache_.CloseExcept(userIds);
+}
+
 void KVDBServiceImpl::SyncAgent::ReInit(pid_t pid, const AppId &appId)
 {
     ZLOGW("now pid:%{public}d, pid:%{public}d, appId:%{public}s, callback:%{public}d, observer:%{public}zu", pid, pid_,

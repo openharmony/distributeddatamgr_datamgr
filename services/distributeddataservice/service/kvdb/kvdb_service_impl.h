@@ -51,6 +51,7 @@ public:
     Status Unsubscribe(const AppId &appId, const StoreId &storeId, sptr<IKvStoreObserver> observer) override;
     Status AppExit(pid_t uid, pid_t pid, uint32_t tokenId, const AppId &appId);
     Status ResolveAutoLaunch(const std::string &identifier, DBLaunchParam &param);
+    void OnUserChanged();
 
 private:
     using StoreMetaData = OHOS::DistributedData::StoreMetaData;

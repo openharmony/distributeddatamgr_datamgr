@@ -66,13 +66,13 @@ public:
 
     DBStore *GetStore(const StoreMetaData &data, std::shared_ptr<Observers> observers, DBStatus &status);
     void CloseStore(uint32_t tokenId, const std::string &storeId);
+    void CloseExcept(const std::set<int32_t> &users);
     void SetObserver(uint32_t tokenId, const std::string &storeId, std::shared_ptr<Observers> observers);
-
     static DBOption GetDBOption(const StoreMetaData &data, const DBPassword &password);
     static DBSecurity GetDBSecurity(int32_t secLevel);
     static DBPassword GetDBPassword(const StoreMetaData &data);
 private:
-    void CollectGarbage();
+    void GarbageCollect();
     static constexpr int64_t INTERVAL = 1;
     static constexpr size_t TIME_TASK_NUM = 1;
     ConcurrentMap<uint32_t, std::map<std::string, DBStoreDelegate>> stores_;
