@@ -174,7 +174,7 @@ Status KvStoreResultSetProxy::GetEntry(Entry &entry)
     }
     status = ITypesUtil::UnmarshalFromBuffer(reply, bufferSize, entry);
     if (status != Status::SUCCESS) {
-        ZLOGW("read entry failed (%d).", status);
+        ZLOGW("read entry failed (%{public}d).", status);
         return Status::ERROR;
     }
     return Status::SUCCESS;

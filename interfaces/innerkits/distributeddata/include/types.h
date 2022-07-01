@@ -153,7 +153,7 @@ struct Entry : public virtual Parcelable {
         return true;
     }
 
-    size_t RawEntrySize()
+    size_t RawSize()
     {
         return key.RawSize() + value.RawSize();
     }
