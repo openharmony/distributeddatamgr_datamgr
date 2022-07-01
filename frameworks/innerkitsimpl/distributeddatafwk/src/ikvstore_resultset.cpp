@@ -237,7 +237,6 @@ int KvStoreResultSetStub::GetEntryOnRemote(MessageParcel &reply)
         ZLOGW("bufferSize %d larger than message parcel limit", bufferSize);
         return 0;
     }
-    //return status const T &input, int size, MessageParcel &data
     status = ITypesUtil::MarshalToBuffer(entry, bufferSize, reply);
     if (status != Status::SUCCESS) {
         ZLOGW("write entry failed (%{public}d).", status);
