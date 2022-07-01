@@ -220,7 +220,7 @@ int KvStoreResultSetStub::GetEntryOnRemote(MessageParcel &reply)
 
     Entry entry;
     int32_t status = GetEntry(entry);
-    int32_t bufferSize = entry.RawEntrySize();
+    int32_t bufferSize = entry.RawSize();
     if (!ITypesUtil::Marshal(reply, status, bufferSize)) {
         ZLOGE("write status or bufferSize failed.");
         return -1;
