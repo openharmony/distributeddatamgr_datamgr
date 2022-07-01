@@ -141,7 +141,7 @@ Status KvStoreResultSetProxy::GetEntry(Entry &entry)
     }
     bool ret = reply.SetMaxCapacity(Constant::MAX_IPC_CAPACITY);  // 800K
     if (!ret) {
-        ZLOGW("set max capacity failed.");
+        ZLOGE("set max capacity failed.");
         return Status::ERROR;
     }
 
@@ -149,20 +149,20 @@ Status KvStoreResultSetProxy::GetEntry(Entry &entry)
     ZLOGI("start");
     int32_t error = Remote()->SendRequest(GETENTRY, data, reply, mo);
     if (error != 0) {
-        ZLOGW("SendRequest failed, error is %d", error);
+        ZLOGE("SendRequest failed, error is %d", error);
         return Status::IPC_ERROR;
     }
 
     int32_t status = 0;
     int32_t bufferSize = 0;
     if (!ITypesUtil::Unmarshal(reply, status, bufferSize)) {
-        ZLOGW("read status or bufferSize failed");
+        ZLOGE("read status or bufferSize failed");
         return Status::ERROR;
     }
 
     if (bufferSize < Constant::SWITCH_RAW_DATA_SIZE) {
         if (!ITypesUtil::Unmarshal(reply, entry)) {
-            ZLOGW("read entry failed");
+            ZLOGE("read entry failed");
             return Status::ERROR;
         }
         return Status::SUCCESS;
@@ -174,7 +174,7 @@ Status KvStoreResultSetProxy::GetEntry(Entry &entry)
     }
     status = ITypesUtil::UnmarshalFromBuffer(reply, bufferSize, entry);
     if (status != Status::SUCCESS) {
-        ZLOGW("read entry failed (%{public}d).", status);
+        ZLOGE("read entry failed (%{public}d).", status);
         return Status::ERROR;
     }
     return Status::SUCCESS;
@@ -214,7 +214,7 @@ bool KvStoreResultSetProxy::SendRequestRetBool(uint32_t code)
 int KvStoreResultSetStub::GetEntryOnRemote(MessageParcel &reply)
 {
     if (!reply.SetMaxCapacity(Constant::MAX_IPC_CAPACITY)) {
-        ZLOGW("set reply MessageParcel capacity failed");
+        ZLOGE("set reply MessageParcel capacity failed");
         return -1;
     }
 
@@ -222,12 +222,12 @@ int KvStoreResultSetStub::GetEntryOnRemote(MessageParcel &reply)
     int32_t status = GetEntry(entry);
     int32_t bufferSize = entry.RawEntrySize();
     if (!ITypesUtil::Marshal(reply, status, bufferSize)) {
-        ZLOGW("write status or bufferSize failed.");
+        ZLOGE("write status or bufferSize failed.");
         return -1;
     }
     if (bufferSize < Constant::SWITCH_RAW_DATA_SIZE) {
         if (!ITypesUtil::Marshal(reply, entry)) {
-            ZLOGW("write entry failed.");
+            ZLOGE("write entry failed.");
             return -1;
         }
         return 0;
@@ -239,7 +239,7 @@ int KvStoreResultSetStub::GetEntryOnRemote(MessageParcel &reply)
     }
     status = ITypesUtil::MarshalToBuffer(entry, bufferSize, reply);
     if (status != Status::SUCCESS) {
-        ZLOGW("write entry failed (%{public}d).", status);
+        ZLOGE("write entry failed (%{public}d).", status);
         return -1;
     }
     return 0;
