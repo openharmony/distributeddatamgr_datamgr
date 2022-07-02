@@ -14,14 +14,13 @@
  */
 #define LOG_TAG "StoreCache"
 #include "store_cache.h"
-
+#include "account/account_delegate.h"
 #include "crypto_manager.h"
 #include "directory_manager.h"
 #include "log_print.h"
 #include "metadata/meta_data_manager.h"
 #include "metadata/secret_key_meta_data.h"
 #include "types.h"
-#include "account_delegate.h"
 namespace OHOS::DistributedKv {
 using namespace OHOS::DistributedData;
 constexpr int64_t StoreCache::INTERVAL;
@@ -47,19 +46,21 @@ StoreCache::DBStore *StoreCache::GetStore(const StoreMetaData &data, std::shared
                 store = tmpStore;
             });
 
+        if (store == nullptr) {
+            return !stores.empty();
+        }
+
         if (data.isAutoSync) {
             bool autoSync = true;
             DistributedDB::PragmaData data = static_cast<DistributedDB::PragmaData>(&autoSync);
             auto syncStatus = store->Pragma(DistributedDB::PragmaCmd::AUTO_SYNC, data);
             if (syncStatus != DistributedDB::DBStatus::OK) {
-                ZLOGE("pragmaStatus: %d", static_cast<int>(syncStatus));
+                ZLOGE("status: %d", static_cast<int>(syncStatus));
             }
         }
 
-        if (store != nullptr) {
-            stores.emplace(std::piecewise_construct, std::forward_as_tuple(data.storeId),
-                std::forward_as_tuple(store, observers));
-        }
+        stores.emplace(std::piecewise_construct, std::forward_as_tuple(data.storeId),
+            std::forward_as_tuple(store, observers));
         return !stores.empty();
     });
 
@@ -260,7 +261,7 @@ void StoreCache::DBStoreDelegate::SetObservers(std::shared_ptr<Observers> observ
     observers_ = observers;
 
     if (observers_ != nullptr && !observers_->empty()) {
-        ZLOGD("storeId:%{public}s observers:%{public}zu", delegate_->GetStoreId().c_str(), observers->size());
+        ZLOGD("storeId:%{public}s observers:%{public}zu", delegate_->GetStoreId().c_str(), observers_->size());
         delegate_->RegisterObserver({}, DistributedDB::OBSERVER_CHANGES_FOREIGN, this);
     }
 }
