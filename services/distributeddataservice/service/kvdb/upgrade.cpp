@@ -48,7 +48,12 @@ Upgrade::DBStatus Upgrade::UpdateStore(const StoreMeta &old, const StoreMeta &me
         return DBStatus::NOT_FOUND;
     }
 
-    auto status = GetDBStore(meta, pwd)->Import(backupFile, password);
+    auto kvStore = GetDBStore(meta, pwd);
+    if (kvStore == nullptr) {
+        return DBStatus::DB_ERROR;
+    }
+
+    auto status = kvStore->Import(backupFile, password);
     if (status == DBStatus::OK) {
         cleaner_(old);
     }
@@ -101,7 +106,6 @@ bool Upgrade::RegisterCleaner(uint32_t version, Cleaner cleaner)
 
 Upgrade::AutoStore Upgrade::GetDBStore(const StoreMeta &meta, const std::vector<uint8_t> &pwd)
 {
-    DBStatus status = DBStatus::OK;
     DBManager manager(meta.appId, meta.user);
     manager.SetKvStoreConfig({ DirectoryManager::GetInstance().GetStorePath(meta) });
     auto release = [&manager](DBStore *store) { manager.CloseKvStore(store); };
@@ -109,8 +113,7 @@ Upgrade::AutoStore Upgrade::GetDBStore(const StoreMeta &meta, const std::vector<
     password.SetValue(pwd.data(), pwd.size());
     AutoStore dbStore(nullptr, release);
     manager.GetKvStore(meta.storeId, StoreCache::GetDBOption(meta, password),
-        [&status, &dbStore](auto dbStatus, auto *tmpStore) {
-            status = dbStatus;
+        [&dbStore](auto dbStatus, auto *tmpStore) {
             dbStore.reset(tmpStore);
         });
     return dbStore;

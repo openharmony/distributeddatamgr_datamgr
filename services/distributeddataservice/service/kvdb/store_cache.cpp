@@ -178,6 +178,10 @@ StoreCache::DBSecurity StoreCache::GetDBSecurity(int32_t secLevel)
 StoreCache::DBPassword StoreCache::GetDBPassword(const StoreMetaData &data)
 {
     DBPassword dbPassword;
+    if (!data.isEncrypt) {
+        return dbPassword;
+    }
+
     SecretKeyMetaData secretKey;
     secretKey.storeType = data.storeType;
     auto storeKey = data.GetSecretKey();

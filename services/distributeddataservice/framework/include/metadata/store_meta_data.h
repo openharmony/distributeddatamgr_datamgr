@@ -48,9 +48,9 @@ struct API_EXPORT StoreMetaData final : public Serializable {
     std::string user = "";
     std::string account = "";
 
-    API_EXPORT ~StoreMetaData();
     API_EXPORT StoreMetaData();
     API_EXPORT StoreMetaData(const std::string &userId, const std::string &appId, const std::string &storeId);
+    API_EXPORT ~StoreMetaData();
     API_EXPORT bool operator==(const StoreMetaData &metaData) const;
     API_EXPORT bool operator!=(const StoreMetaData &metaData) const;
     API_EXPORT bool Marshal(json &node) const override;

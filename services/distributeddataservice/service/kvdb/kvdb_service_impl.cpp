@@ -27,7 +27,6 @@
 #include "ipc_skeleton.h"
 #include "log_print.h"
 #include "metadata/meta_data_manager.h"
-#include "metadata/secret_key_meta_data.h"
 #include "query_helper.h"
 #include "upgrade.h"
 #include "utils/anonymous.h"
@@ -297,14 +296,14 @@ Status KVDBServiceImpl::AfterCreate(const AppId &appId, const StoreId &storeId, 
 
     StoreMetaData oldMeta;
     auto isCreated = MetaDataManager::GetInstance().LoadMeta(metaData.GetKey(), oldMeta);
+    Status status = SUCCESS;
     if (isCreated && oldMeta != metaData) {
-        // implement update
         auto dbStatus = Upgrade::GetInstance().UpdateStore(oldMeta, metaData, password);
         ZLOGI("update status:%{public}d appId:%{public}s storeId:%{public}s inst:%{public}d "
             "type:%{public}d->%{public}d dir:%{public}s", dbStatus, appId.appId.c_str(), storeId.storeId.c_str(),
             metaData.instanceId, oldMeta.storeType, metaData.storeType, metaData.dataDir.c_str());
         if (dbStatus != DBStatus::OK) {
-            return STORE_UPGRADE_FAILED;
+            status = STORE_UPGRADE_FAILED;
         }
     }
 
@@ -313,7 +312,7 @@ Status KVDBServiceImpl::AfterCreate(const AppId &appId, const StoreId &storeId, 
     ZLOGD("appId:%{public}s, storeId:%{public}s instanceId:%{public}d type:%{public}d dir:%{public}s",
         appId.appId.c_str(), storeId.storeId.c_str(), metaData.instanceId, metaData.storeType,
         metaData.dataDir.c_str());
-    return SUCCESS;
+    return status;
 }
 
 Status KVDBServiceImpl::AppExit(pid_t uid, pid_t pid, uint32_t tokenId, const AppId &appId)
