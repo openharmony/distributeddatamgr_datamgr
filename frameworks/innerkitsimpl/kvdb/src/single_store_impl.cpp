@@ -211,25 +211,7 @@ Status SingleStoreImpl::SubscribeKvStore(SubscribeType type, std::shared_ptr<Obs
     }
 
     uint32_t realType = type;
-    std::shared_ptr<ObserverBridge> bridge = nullptr;
-    observers_.Compute(uintptr_t(observer.get()),
-        [this, &realType, observer, &bridge](const auto &, std::pair<uint32_t, std::shared_ptr<ObserverBridge>> &pair) {
-            if ((pair.first & realType) == realType) {
-                return (pair.first != 0);
-            }
-            if (pair.first == 0) {
-                auto release = BridgeReleaser();
-                StoreId storeId{ storeId_ };
-                AppId appId{ appId_ };
-                pair.second = std::shared_ptr<ObserverBridge>(
-                    new ObserverBridge(appId, storeId, observer, GetConvert()), release);
-            }
-            bridge = pair.second;
-            realType = (realType & (~pair.first));
-            pair.first = pair.first | realType;
-            return (pair.first != 0);
-        });
-
+    std::shared_ptr<ObserverBridge> bridge = PutIn(realType, observer);
     if (bridge == nullptr) {
         return STORE_ALREADY_SUBSCRIBE;
     }
@@ -246,6 +228,7 @@ Status SingleStoreImpl::SubscribeKvStore(SubscribeType type, std::shared_ptr<Obs
 
     if (status != SUCCESS) {
         ZLOGE("status:0x%{public}x type:%{public}d, observer:0x%x", status, type, StoreUtil::Anonymous(bridge.get()));
+        TakeOut(realType, observer);
     }
     return status;
 }
@@ -265,18 +248,7 @@ Status SingleStoreImpl::UnSubscribeKvStore(SubscribeType type, std::shared_ptr<O
     }
 
     uint32_t realType = type;
-    std::shared_ptr<ObserverBridge> bridge = nullptr;
-    observers_.ComputeIfPresent(uintptr_t(observer.get()),
-        [&realType, observer, &bridge](const auto &, std::pair<uint32_t, std::shared_ptr<ObserverBridge>> &pair) {
-            if ((pair.first & realType) == 0) {
-                return (pair.first != 0);
-            }
-            realType = (realType & pair.first);
-            pair.first = (pair.first & (~realType));
-            bridge = pair.second;
-            return (pair.first != 0);
-        });
-
+    std::shared_ptr<ObserverBridge> bridge = TakeOut(realType, observer);
     if (bridge == nullptr) {
         return STORE_NOT_SUBSCRIBE;
     }
@@ -644,6 +616,45 @@ std::function<void(ObserverBridge *)> SingleStoreImpl::BridgeReleaser()
 
         delete obj;
     };
+}
+
+std::shared_ptr<ObserverBridge> SingleStoreImpl::PutIn(uint32_t &realType, std::shared_ptr<Observer> observer)
+{
+    std::shared_ptr<ObserverBridge> bridge = nullptr;
+    observers_.Compute(uintptr_t(observer.get()),
+        [this, &realType, observer, &bridge](const auto &, std::pair<uint32_t, std::shared_ptr<ObserverBridge>> &pair) {
+            if ((pair.first & realType) == realType) {
+                return (pair.first != 0);
+            }
+            if (pair.first == 0) {
+                auto release = BridgeReleaser();
+                StoreId storeId{ storeId_ };
+                AppId appId{ appId_ };
+                pair.second = std::shared_ptr<ObserverBridge>(
+                    new ObserverBridge(appId, storeId, observer, GetConvert()), release);
+            }
+            bridge = pair.second;
+            realType = (realType & (~pair.first));
+            pair.first = pair.first | realType;
+            return (pair.first != 0);
+        });
+    return bridge;
+}
+
+std::shared_ptr<ObserverBridge> SingleStoreImpl::TakeOut(uint32_t &realType, std::shared_ptr<Observer> observer)
+{
+    std::shared_ptr<ObserverBridge> bridge = nullptr;
+    observers_.ComputeIfPresent(uintptr_t(observer.get()),
+        [&realType, observer, &bridge](const auto &, std::pair<uint32_t, std::shared_ptr<ObserverBridge>> &pair) {
+            if ((pair.first & realType) == 0) {
+                return (pair.first != 0);
+            }
+            realType = (realType & pair.first);
+            pair.first = (pair.first & (~realType));
+            bridge = pair.second;
+            return (pair.first != 0);
+        });
+    return bridge;
 }
 
 Status SingleStoreImpl::GetResultSet(const DistributedDB::Query &query, std::shared_ptr<ResultSet> &resultSet) const
