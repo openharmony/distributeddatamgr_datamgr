@@ -58,7 +58,7 @@ void DumpHelper::AddErrorInfo(const std::string &error)
 
 void DumpHelper::ShowError(int fd)
 {
-    dprintf(fd, "The number of recent errors recorded is %d\n", static_cast<uint32_t>(g_errorInfo.size()));
+    dprintf(fd, "The number of recent errors recorded is %u\n", static_cast<uint32_t>(g_errorInfo.size()));
     int i = 0;
     for (const auto &it : g_errorInfo) {
         dprintf(fd, "Error ID: %d        ErrorInfo: %s\n", ++i, it.c_str());
