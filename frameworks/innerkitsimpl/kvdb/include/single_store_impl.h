@@ -86,6 +86,8 @@ protected:
 private:
     static constexpr size_t MAX_KEY_LENGTH = 1024;
     static constexpr size_t MAX_VALUE_LENGTH = 4 * 1024 * 1024;
+    std::shared_ptr<ObserverBridge> PutIn(uint32_t &realType, std::shared_ptr<Observer> observer);
+    std::shared_ptr<ObserverBridge> TakeOut(uint32_t &realType, std::shared_ptr<Observer> observer);
     Status GetResultSet(const DistributedDB::Query &query, std::shared_ptr<ResultSet> &resultSet) const;
     Status GetEntries(const DistributedDB::Query &query, std::vector<Entry> &entries) const;
     Status DoSync(const SyncInfo &syncInfo, std::shared_ptr<SyncCallback> observer);
