@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 #include "subscribe_manager.h"
+
+#include <mutex>
+
 #include "db_common.h"
 #include "sync_types.h"
 
