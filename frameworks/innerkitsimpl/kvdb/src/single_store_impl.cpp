@@ -213,7 +213,7 @@ Status SingleStoreImpl::SubscribeKvStore(SubscribeType type, std::shared_ptr<Obs
     uint32_t realType = type;
     std::shared_ptr<ObserverBridge> bridge = PutIn(realType, observer);
     if (bridge == nullptr) {
-        return STORE_ALREADY_SUBSCRIBE;
+        return (realType == type) ? OVER_MAX_SUBSCRIBE_LIMITS : STORE_ALREADY_SUBSCRIBE;
     }
 
     Status status = SUCCESS;
@@ -628,6 +628,7 @@ std::shared_ptr<ObserverBridge> SingleStoreImpl::PutIn(uint32_t &realType, std::
     observers_.Compute(uintptr_t(observer.get()),
         [this, &realType, observer, &bridge](const auto &, std::pair<uint32_t, std::shared_ptr<ObserverBridge>> &pair) {
             if ((pair.first & realType) == realType) {
+                realType = (realType & (~pair.first));
                 return (pair.first != 0);
             }
 
