@@ -222,12 +222,13 @@ Status SingleStoreImpl::SubscribeKvStore(SubscribeType type, std::shared_ptr<Obs
         status = StoreUtil::ConvertStatus(dbStatus);
     }
 
-    if ((realType & SUBSCRIBE_TYPE_REMOTE) == SUBSCRIBE_TYPE_REMOTE) {
-        bridge->RegisterRemoteObserver();
+    if (((realType & SUBSCRIBE_TYPE_REMOTE) == SUBSCRIBE_TYPE_REMOTE) && status == SUCCESS) {
+        realType &= ~SUBSCRIBE_TYPE_LOCAL;
+        status = bridge->RegisterRemoteObserver();
     }
 
     if (status != SUCCESS) {
-        ZLOGE("status:0x%{public}x type:%{public}d realType:%{public}d observer:0x%{public}x", status, type, realType,
+        ZLOGE("status:0x%{public}x type:%{public}d->%{public}d observer:0x%{public}x", status, type, realType,
             StoreUtil::Anonymous(bridge.get()));
         TakeOut(realType, observer);
     }
@@ -260,12 +261,13 @@ Status SingleStoreImpl::UnSubscribeKvStore(SubscribeType type, std::shared_ptr<O
         status = StoreUtil::ConvertStatus(dbStatus);
     }
 
-    if ((realType & SUBSCRIBE_TYPE_REMOTE) == SUBSCRIBE_TYPE_REMOTE) {
-        bridge->UnregisterRemoteObserver();
+    if (((realType & SUBSCRIBE_TYPE_REMOTE) == SUBSCRIBE_TYPE_REMOTE) && status == SUCCESS) {
+        realType &= ~SUBSCRIBE_TYPE_LOCAL;
+        status = bridge->UnregisterRemoteObserver();
     }
 
     if (status != SUCCESS) {
-        ZLOGE("status:0x%{public}x type:%{public}d realType:%{public}d observer:0x%{public}x", status, type, realType,
+        ZLOGE("status:0x%{public}x type:%{public}d->%{public}d observer:0x%{public}x", status, type, realType,
             StoreUtil::Anonymous(bridge.get()));
     }
     return status;
@@ -628,6 +630,11 @@ std::shared_ptr<ObserverBridge> SingleStoreImpl::PutIn(uint32_t &realType, std::
             if ((pair.first & realType) == realType) {
                 return (pair.first != 0);
             }
+
+            if (observers_.Size() > MAX_OBSERVER_SIZE) {
+                return false;
+            }
+
             if (pair.first == 0) {
                 auto release = BridgeReleaser();
                 StoreId storeId{ storeId_ };
