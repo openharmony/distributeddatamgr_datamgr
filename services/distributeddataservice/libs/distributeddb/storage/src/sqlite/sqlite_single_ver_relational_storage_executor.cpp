@@ -14,7 +14,10 @@
  */
 #ifdef RELATIONAL_STORE
 #include "sqlite_single_ver_relational_storage_executor.h"
+
 #include <algorithm>
+#include <optional>
+
 #include "data_transformer.h"
 #include "db_common.h"
 
