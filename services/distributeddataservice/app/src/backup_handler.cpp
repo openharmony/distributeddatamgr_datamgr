@@ -167,12 +167,14 @@ void BackupHandler::SingleKvStoreBackup(const StoreMetaData &metaData, const Bac
     DistributedDB::KvStoreDelegateManager manager(metaData.appId, metaData.user);
     DistributedDB::KvStoreConfig kvStoreConfig = { metaData.dataDir };
     manager.SetKvStoreConfig(kvStoreConfig);
-    auto fun = [&metaData, &manager, &backupPara, &dbOption]
-                   (DistributedDB::DBStatus status, DistributedDB::KvStoreNbDelegate *delegate) {
-        if (delegate == nullptr) {
+    auto fun =
+        [&metaData, &manager, &backupPara,
+         &dbOption](DistributedDB::DBStatus status,
+                    DistributedDB::KvStoreNbDelegate *delegate) {
+          if (delegate == nullptr) {
             ZLOGE("SingleKvStoreBackup delegate is null");
             return;
-        }
+          }
         if (metaData.isAutoSync) {
             bool autoSync = true;
             DistributedDB::PragmaData data = static_cast<DistributedDB::PragmaData>(&autoSync);
