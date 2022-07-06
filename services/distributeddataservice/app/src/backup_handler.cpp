@@ -167,51 +167,55 @@ void BackupHandler::SingleKvStoreBackup(const StoreMetaData &metaData, const Bac
     DistributedDB::KvStoreDelegateManager manager(metaData.appId, metaData.user);
     DistributedDB::KvStoreConfig kvStoreConfig = { metaData.dataDir };
     manager.SetKvStoreConfig(kvStoreConfig);
-    auto fun =
-        [&metaData, &manager, &backupPara,
-         &dbOption](DistributedDB::DBStatus status,
-                    DistributedDB::KvStoreNbDelegate *delegate) {
-          if (delegate == nullptr) {
-            ZLOGE("SingleKvStoreBackup delegate is null");
-            return;
-          }
-        if (metaData.isAutoSync) {
-            bool autoSync = true;
-            DistributedDB::PragmaData data = static_cast<DistributedDB::PragmaData>(&autoSync);
-            auto pragmaStatus = delegate->Pragma(DistributedDB::PragmaCmd::AUTO_SYNC, data);
-            if (pragmaStatus != DistributedDB::DBStatus::OK) {
-                ZLOGE("pragmaStatus: %d", static_cast<int>(pragmaStatus));
-            }
+    auto fun = [&metaData, &manager, &backupPara,
+                &dbOption](DistributedDB::DBStatus status,
+                           DistributedDB::KvStoreNbDelegate *delegate) {
+      if (delegate == nullptr) {
+        ZLOGE("SingleKvStoreBackup delegate is null");
+        return;
+      }
+      if (metaData.isAutoSync) {
+        bool autoSync = true;
+        DistributedDB::PragmaData data =
+            static_cast<DistributedDB::PragmaData>(&autoSync);
+        auto pragmaStatus =
+            delegate->Pragma(DistributedDB::PragmaCmd::AUTO_SYNC, data);
+        if (pragmaStatus != DistributedDB::DBStatus::OK) {
+          ZLOGE("pragmaStatus: %d", static_cast<int>(pragmaStatus));
         }
-        ZLOGW("SingleKvStoreBackup export");
+      }
+      ZLOGW("SingleKvStoreBackup export");
+      if (status == DistributedDB::DBStatus::OK) {
+        auto backupFullName = backupPara.backupFullName;
+        auto backupBackFullName = backupPara.backupBackFullName;
+        RenameFile(backupFullName, backupBackFullName);
+        status = delegate->Export(backupFullName, dbOption.passwd);
         if (status == DistributedDB::DBStatus::OK) {
-            auto backupFullName = backupPara.backupFullName;
-            auto backupBackFullName = backupPara.backupBackFullName;
-            RenameFile(backupFullName, backupBackFullName);
-            status = delegate->Export(backupFullName, dbOption.passwd);
-            if (status == DistributedDB::DBStatus::OK) {
-                ZLOGD("SingleKvStoreBackup export success.");
-                RemoveFile(backupBackFullName);
-            } else {
-                ZLOGE("SingleKvStoreBackup export failed, status is %d.", status);
-                RenameFile(backupBackFullName, backupFullName);
-            }
-            std::string message;
-            message.append(" backup name [")
-                .append(backupFullName)
-                .append("], isEncryptedDb [")
-                .append(std::to_string(dbOption.isEncryptedDb))
-                .append("]")
-                .append("], backup result status [")
-                .append(std::to_string(status))
-                .append("]");
-            Reporter::GetInstance()->BehaviourReporter()->Report(
-                { metaData.account, metaData.appId, metaData.storeId, BehaviourType::DATABASE_BACKUP, message });
+          ZLOGD("SingleKvStoreBackup export success.");
+          RemoveFile(backupBackFullName);
+        } else {
+          ZLOGE("SingleKvStoreBackup export failed, status is %d.", status);
+          RenameFile(backupBackFullName, backupFullName);
         }
-        manager.CloseKvStore(delegate);
+        std::string message;
+        message.append(" backup name [")
+            .append(backupFullName)
+            .append("], isEncryptedDb [")
+            .append(std::to_string(dbOption.isEncryptedDb))
+            .append("]")
+            .append("], backup result status [")
+            .append(std::to_string(status))
+            .append("]");
+        Reporter::GetInstance()->BehaviourReporter()->Report(
+            {metaData.account, metaData.appId, metaData.storeId,
+             BehaviourType::DATABASE_BACKUP, message});
+      }
+      manager.CloseKvStore(delegate);
     };
     manager.GetKvStore(metaData.storeId, dbOption, fun);
 }
+
+
 
 void BackupHandler::SetDBOptions(DBOption &dbOption, const BackupPara &backupPara, const StoreMetaData &meta)
 {

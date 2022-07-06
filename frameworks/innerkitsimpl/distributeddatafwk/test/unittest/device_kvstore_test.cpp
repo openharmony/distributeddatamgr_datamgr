@@ -39,7 +39,7 @@ public:
     static Status status_;
     static std::string deviceId_;
     static Options options_;
-    static int MAX_VALUE_SIZE;
+    static const int MAX_VALUE_SIZE = 4 * 1024 * 1024; // max value size is 4M.;
 };
 
 const std::string VALID_SCHEMA = "{\"SCHEMA_VERSION\":\"1.0\","
@@ -54,7 +54,6 @@ std::shared_ptr<SingleKvStore> DeviceKvStoreTest::kvStore_ = nullptr;
 Status DeviceKvStoreTest::status_ = Status::ERROR;
 std::string DeviceKvStoreTest::deviceId_;
 Options DeviceKvStoreTest::options_;
-int DeviceKvStoreTest::MAX_VALUE_SIZE = 4 * 1024 * 1024; // max value size is 4M.
 
 void DeviceKvStoreTest::SetUpTestCase(void)
 {
