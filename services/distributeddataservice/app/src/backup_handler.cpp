@@ -168,7 +168,7 @@ void BackupHandler::SingleKvStoreBackup(const StoreMetaData &metaData, const Bac
     DistributedDB::KvStoreConfig kvStoreConfig = { metaData.dataDir };
     manager.SetKvStoreConfig(kvStoreConfig);
     auto fun = [&metaData, &manager, &backupPara, &dbOption]
-               (DistributedDB::DBStatus status, DistributedDB::KvStoreNbDelegate *delegate) {
+                   (DistributedDB::DBStatus status, DistributedDB::KvStoreNbDelegate *delegate) {
         if (delegate == nullptr) {
             ZLOGE("SingleKvStoreBackup delegate is null");
             return;
