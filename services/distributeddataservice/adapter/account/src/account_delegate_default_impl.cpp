@@ -50,6 +50,7 @@ std::string AccountDelegateDefaultImpl::GetDeviceAccountIdByUID(int32_t uid) con
 
 int32_t AccountDelegateDefaultImpl::GetUserByToken(uint32_t tokenId) const
 {
+    (void)tokenId;
     return 0;
 }
 
