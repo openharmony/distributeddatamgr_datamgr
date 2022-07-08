@@ -117,8 +117,7 @@ SingleStoreImpl::Convert DeviceStoreImpl::GetConvert() const
             deviceId = DevManager::GetInstance().ToNetworkId({ key.begin(), key.begin() + length });
         }
 
-        Key result(std::vector<uint8_t>(key.begin() + length, key.end() - sizeof(uint32_t)));
-        return result;
+        return Key(std::vector<uint8_t>(key.begin() + length, key.end() - sizeof(uint32_t)));
     };
 }
 
