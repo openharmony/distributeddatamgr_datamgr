@@ -78,7 +78,7 @@ int32_t CryptoManager::GenerateRootKey()
     ZLOGI("GenerateRootKey.");
     struct HksParamSet *params = nullptr;
     int32_t ret = GenerateKeyPre(params);
-    if (ret != HKS_SUCCESS) { 
+    if (ret != HKS_SUCCESS) {
         ZLOGE("GenerateKeyPre failed with error %{public}d", ret);
         return ret;
     }
@@ -97,7 +97,7 @@ bool CryptoManager::IsExistRootKey()
     ZLOGI("IsExistRootKey.");
     struct HksParamSet *params = nullptr;
     int32_t ret = GenerateKeyPre(params);
-    if (ret != HKS_SUCCESS) { 
+    if (ret != HKS_SUCCESS) {
         ZLOGE("IsExistRootKey failed with error %{public}d", ret);
         return ret;
     }
