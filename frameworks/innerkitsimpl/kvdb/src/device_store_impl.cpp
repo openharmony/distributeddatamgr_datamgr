@@ -102,7 +102,7 @@ std::vector<uint8_t> DeviceStoreImpl::GetPrefix(const DataQuery &query) const
 
 SingleStoreImpl::Convert DeviceStoreImpl::GetConvert() const
 {
-    return [](const DBKey &key, std::string &deviceId) {
+    return [](const DBKey &key, std::string &deviceId) -> Key {
         if (key.size() < sizeof(uint32_t)) {
             return std::move(key);
         }
@@ -118,7 +118,7 @@ SingleStoreImpl::Convert DeviceStoreImpl::GetConvert() const
         }
 
         Key result(std::vector<uint8_t>(key.begin() + length, key.end() - sizeof(uint32_t)));
-        return std::move(key);
+        return std::move(result);
     };
 }
 
