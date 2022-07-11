@@ -275,7 +275,7 @@ HWTEST_F(SingleKvStoreClientTest, GetEntriesByDataQuery, TestSize.Level1)
     }
 
     std::vector<Entry> results;
-    singleKvStorePtr->GetEntries({prefix}, results);
+    singleKvStorePtr->GetEntries({ prefix }, results);
     EXPECT_EQ(results.size(), sum) << "entries size is not equal 10.";
     DataQuery dataQuery;
     dataQuery.KeyPrefix(prefix);
