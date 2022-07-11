@@ -1238,4 +1238,195 @@ HWTEST_F(DistributedDBRelationalVerP2PSyncTest, observer002, TestSize.Level3)
     std::this_thread::sleep_for(std::chrono::minutes(1));
     delete observer;
 }
+
+/**
+* @tc.name: RelationalPemissionTest001
+* @tc.desc: deviceB PermissionCheck not pass test, SYNC_MODE_PUSH_ONLY
+* @tc.type: FUNC
+* @tc.require: AR000GK58N
+* @tc.author: zhangshijie
+*/
+HWTEST_F(DistributedDBRelationalVerP2PSyncTest, RelationalPemissionTest001, TestSize.Level0)
+{
+    /**
+     * @tc.steps: step1. SetPermissionCheckCallback
+     * @tc.expected: step1. return OK.
+     */
+    auto permissionCheckCallback = [] (const std::string &userId, const std::string &appId,
+        const std::string &storeId, const std::string &deviceId, uint8_t flag) -> bool {
+            LOGE("u: %s, a: %s, s: %s", userId.c_str(), appId.c_str(), storeId.c_str());
+            bool empty = userId.empty() || appId.empty() || storeId.empty();
+            EXPECT_TRUE(empty == false);
+            if (flag & (CHECK_FLAG_SEND)) {
+                LOGD("in RunPermissionCheck callback, check not pass, flag:%d", flag);
+                return false;
+            } else {
+                LOGD("in RunPermissionCheck callback, check pass, flag:%d", flag);
+                return true;
+            }
+        };
+    EXPECT_EQ(RuntimeConfig::SetPermissionCheckCallback(permissionCheckCallback), OK);
+
+    /**
+     * @tc.steps: step2. sync with deviceB
+     */
+    std::map<std::string, DataValue> dataMap;
+    PrepareEnvironment(dataMap, { g_deviceB });
+    BlockSync(SyncMode::SYNC_MODE_PUSH_ONLY, PERMISSION_CHECK_FORBID_SYNC, { DEVICE_B });
+
+    /**
+     * @tc.steps: step3. check data in deviceB
+     * @tc.expected: step3. deviceB has no data
+     */
+    std::vector<VirtualRowData> targetData;
+    g_deviceB->GetAllSyncData(g_tableName, targetData);
+
+    ASSERT_EQ(targetData.size(), 0u);
+}
+
+/**
+* @tc.name: RelationalPemissionTest002
+* @tc.desc: deviceB PermissionCheck not pass test, SYNC_MODE_PULL_ONLY
+* @tc.type: FUNC
+* @tc.require: AR000GK58N
+* @tc.author: zhangshijie
+*/
+HWTEST_F(DistributedDBRelationalVerP2PSyncTest, RelationalPemissionTest002, TestSize.Level0)
+{
+    /**
+     * @tc.steps: step1. SetPermissionCheckCallback
+     * @tc.expected: step1. return OK.
+     */
+    auto permissionCheckCallback = [] (const std::string &userId, const std::string &appId,
+        const std::string &storeId, const std::string &deviceId, uint8_t flag) -> bool {
+            LOGE("u: %s, a: %s, s: %s", userId.c_str(), appId.c_str(), storeId.c_str());
+            bool empty = userId.empty() || appId.empty() || storeId.empty();
+            EXPECT_TRUE(empty == false);
+            if (flag & (CHECK_FLAG_RECEIVE)) {
+                LOGD("in RunPermissionCheck callback, check not pass, flag:%d", flag);
+                return false;
+            } else {
+                LOGD("in RunPermissionCheck callback, check pass, flag:%d", flag);
+                return true;
+            }
+        };
+    EXPECT_EQ(RuntimeConfig::SetPermissionCheckCallback(permissionCheckCallback), OK);
+
+    /**
+     * @tc.steps: step2. sync with deviceB
+     */
+    std::map<std::string, DataValue> dataMap;
+    PrepareEnvironment(dataMap, { g_deviceB });
+    BlockSync(SyncMode::SYNC_MODE_PULL_ONLY, PERMISSION_CHECK_FORBID_SYNC, { DEVICE_B });
+
+    /**
+     * @tc.steps: step3. check data in deviceB
+     * @tc.expected: step3. deviceB has no data
+     */
+    std::vector<VirtualRowData> targetData;
+    g_deviceB->GetAllSyncData(g_tableName, targetData);
+
+    ASSERT_EQ(targetData.size(), 0u);
+}
+
+/**
+* @tc.name: RelationalPemissionTest003
+* @tc.desc: deviceB PermissionCheck not pass test, flag CHECK_FLAG_SPONSOR
+* @tc.type: FUNC
+* @tc.require: AR000GK58N
+* @tc.author: zhangshijie
+*/
+HWTEST_F(DistributedDBRelationalVerP2PSyncTest, RelationalPemissionTest003, TestSize.Level0)
+{
+    /**
+     * @tc.steps: step1. SetPermissionCheckCallback
+     * @tc.expected: step1. return OK.
+     */
+    auto permissionCheckCallback = [] (const std::string &userId, const std::string &appId,
+        const std::string &storeId, const std::string &deviceId, uint8_t flag) -> bool {
+            LOGE("u: %s, a: %s, s: %s", userId.c_str(), appId.c_str(), storeId.c_str());
+            bool empty = userId.empty() || appId.empty() || storeId.empty();
+            EXPECT_TRUE(empty == false);
+            if (flag &  CHECK_FLAG_SPONSOR) {
+                LOGD("in RunPermissionCheck callback, check not pass, flag:%d", flag);
+                return false;
+            } else {
+                LOGD("in RunPermissionCheck callback, check pass, flag:%d", flag);
+                return true;
+            }
+        };
+    EXPECT_EQ(RuntimeConfig::SetPermissionCheckCallback(permissionCheckCallback), OK);
+
+    /**
+     * @tc.steps: step2. sync with deviceB
+     */
+    std::map<std::string, DataValue> dataMap;
+    PrepareEnvironment(dataMap, { g_deviceB });
+    BlockSync(SyncMode::SYNC_MODE_PULL_ONLY, PERMISSION_CHECK_FORBID_SYNC, { DEVICE_B });
+
+    /**
+     * @tc.steps: step3. check data in deviceB
+     * @tc.expected: step3. deviceB has no data
+     */
+    std::vector<VirtualRowData> targetData;
+    g_deviceB->GetAllSyncData(g_tableName, targetData);
+
+    ASSERT_EQ(targetData.size(), 0u);
+}
+
+/**
+* @tc.name: RelationalPemissionTest004
+* @tc.desc: deviceB PermissionCheck pass test. deviceC not pass, SYNC_MODE_PUSH_ONLY
+* @tc.type: FUNC
+* @tc.require: AR000GK58N
+* @tc.author: zhangshijie
+*/
+HWTEST_F(DistributedDBRelationalVerP2PSyncTest, RelationalPemissionTest004, TestSize.Level0)
+{
+    /**
+     * @tc.steps: step1. SetPermissionCheckCallback
+     * @tc.expected: step1. return OK.
+     */
+    auto permissionCheckCallback = [] (const std::string &userId, const std::string &appId,
+        const std::string &storeId, const std::string &deviceId, uint8_t flag) -> bool {
+            LOGE("u: %s, a: %s, s: %s", userId.c_str(), appId.c_str(), storeId.c_str());
+            if (deviceId == g_deviceC->GetDeviceId()) {
+                LOGE("in RunPermissionCheck callback, check pass, device:%s", deviceId.c_str());
+                return false;
+            } else {
+                LOGE("in RunPermissionCheck callback, check not pass, device:%s", deviceId.c_str());
+                return true;
+            }
+        };
+    EXPECT_EQ(RuntimeConfig::SetPermissionCheckCallback(permissionCheckCallback), OK);
+
+    std::map<std::string, DataValue> dataMap;
+    PrepareEnvironment(dataMap, { g_deviceB, g_deviceC });
+
+    /**
+     * @tc.steps: step2. sync with deviceB
+     */
+    BlockSync(SyncMode::SYNC_MODE_PUSH_ONLY, OK, { DEVICE_B });
+
+    /**
+     * @tc.steps: step3. check data in deviceB
+     * @tc.expected: step3. deviceB has data
+     */
+    std::vector<VirtualRowData> targetData;
+    g_deviceB->GetAllSyncData(g_tableName, targetData);
+    ASSERT_EQ(targetData.size(), 1u);
+
+    /**
+     * @tc.steps: step4. sync with deviceC
+     */
+    BlockSync(SyncMode::SYNC_MODE_PUSH_ONLY, PERMISSION_CHECK_FORBID_SYNC, { DEVICE_C });
+
+    /**
+     * @tc.steps: step5. check data in deviceC
+     * @tc.expected: step5. deviceC has no data
+     */
+    targetData.clear();
+    g_deviceC->GetAllSyncData(g_tableName, targetData);
+    ASSERT_EQ(targetData.size(), 0u);
+}
 #endif
