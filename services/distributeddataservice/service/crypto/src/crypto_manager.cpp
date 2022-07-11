@@ -39,9 +39,9 @@ CryptoManager &CryptoManager::GetInstance()
     return instance;
 }
 
-int32_t GenerateKeyPre(HksParamSet *params)
+int32_t GetRootKeyParams(HksParamSet *params)
 {
-    ZLOGI("GenerateKey.");
+    ZLOGI("GetRootKeyParams.");
     int32_t ret = HksInitParamSet(&params);
     if (ret != HKS_SUCCESS) {
         ZLOGE("HksInitParamSet() failed with error %{public}d", ret);
@@ -77,9 +77,9 @@ int32_t CryptoManager::GenerateRootKey()
 {
     ZLOGI("GenerateRootKey.");
     struct HksParamSet *params = nullptr;
-    int32_t ret = GenerateKeyPre(params);
+    int32_t ret = GetRootKeyParams(params);
     if (ret != HKS_SUCCESS) {
-        ZLOGE("GenerateKeyPre failed with error %{public}d", ret);
+        ZLOGE("GetRootKeyParams failed with error %{public}d", ret);
         return ret;
     }
     struct HksBlob rootKeyName = { uint32_t(vecRootKeyAlias_.size()), vecRootKeyAlias_.data() };
@@ -96,9 +96,9 @@ bool CryptoManager::IsExistRootKey()
 {
     ZLOGI("IsExistRootKey.");
     struct HksParamSet *params = nullptr;
-    int32_t ret = GenerateKeyPre(params);
+    int32_t ret = GetRootKeyParams(params);
     if (ret != HKS_SUCCESS) {
-        ZLOGE("IsExistRootKey failed with error %{public}d", ret);
+        ZLOGE("GetRootKeyParams failed with error %{public}d", ret);
         return ret;
     }
 
