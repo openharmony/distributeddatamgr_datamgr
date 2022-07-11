@@ -204,8 +204,8 @@ group("unittest") {
     ":DeviceKvStoreTest",
     ":DistributedKvDataManagerEncryptTest",
     ":DistributedKvDataManagerTest",
-    ":LocalSubscribeStoreTest",
     ":LocalSubscribeDeviceStoreTest",
+    ":LocalSubscribeStoreTest",
     ":SingleKvStoreClientQueryTest",
     ":SingleKvStoreClientTest",
   ]
