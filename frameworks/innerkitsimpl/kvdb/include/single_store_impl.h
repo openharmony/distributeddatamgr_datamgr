@@ -75,8 +75,6 @@ public:
     Status UnsubscribeWithQuery(const std::vector<std::string> &devices, const DataQuery &query) override;
 
 protected:
-    virtual Status DoSync(const SyncInfo &syncInfo, std::shared_ptr<SyncCallback> observer);
-    virtual void DoAutoSync();
     std::shared_ptr<ObserverBridge> PutIn(uint32_t &realType, std::shared_ptr<Observer> observer);
     std::shared_ptr<ObserverBridge> TakeOut(uint32_t &realType, std::shared_ptr<Observer> observer);
 
@@ -86,6 +84,8 @@ private:
     Status GetResultSet(const DBQuery &query, std::shared_ptr<ResultSet> &resultSet) const;
     Status GetEntries(const DBQuery &query, std::vector<Entry> &entries) const;
     std::function<void(ObserverBridge *)> BridgeReleaser();
+    Status DoSync(const SyncInfo &syncInfo, std::shared_ptr<SyncCallback> observer);
+    void DoAutoSync();
 
     const Convertor &convertor_;
     std::string appId_;

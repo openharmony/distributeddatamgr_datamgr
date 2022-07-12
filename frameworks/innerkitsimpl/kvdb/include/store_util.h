@@ -18,13 +18,17 @@
 #include "kv_store_delegate_manager.h"
 #include "store_errno.h"
 #include "store_types.h"
+#include "types.h"
 namespace OHOS::DistributedKv {
 class StoreUtil final {
 public:
     using DBSecurity = DistributedDB::SecurityOption;
     using DBStatus = DistributedDB::DBStatus;
+    using DBMode = DistributedDB::SyncMode;
     static DBSecurity GetDBSecurity(int32_t secLevel);
     static int32_t GetSecLevel(DBSecurity dbSec);
+    static DBMode GetDBMode(SyncMode syncMode);
+    static uint32_t GetObserverMode(SubscribeType subType);
     static std::string Anonymous(const std::string &name);
     static uint32_t Anonymous(const void *ptr);
     static Status ConvertStatus(DBStatus status);

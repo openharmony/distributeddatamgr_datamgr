@@ -25,7 +25,7 @@
 namespace OHOS::DistributedKv {
 using namespace OHOS::DistributedDataDfx;
 SingleStoreImpl::SingleStoreImpl(std::shared_ptr<DBStore> dbStore, const AppId &appId, const Options &options,
-    const Convertor &cvt) : dbStore_(std::move(dbStore)), convertor_(cvt)
+    const Convertor &cvt) : convertor_(cvt), dbStore_(std::move(dbStore))
 {
     appId_ = appId.appId;
     storeId_ = dbStore_->GetStoreId();
