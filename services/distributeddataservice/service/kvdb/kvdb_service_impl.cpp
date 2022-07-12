@@ -270,7 +270,7 @@ Status KVDBServiceImpl::BeforeCreate(const AppId &appId, const StoreId &storeId,
 
     StoreMetaData old;
     auto isCreated = MetaDataManager::GetInstance().LoadMeta(meta.GetKey(), old);
-    if (!isCreated || old == meta) {
+    if (!isCreated) {
         return SUCCESS;
     }
     if (old.storeType != meta.storeType || Constant::NotEqual(old.isEncrypt, meta.isEncrypt) ||
@@ -280,7 +280,11 @@ Status KVDBServiceImpl::BeforeCreate(const AppId &appId, const StoreId &storeId,
             old.storeType, meta.storeType, old.isEncrypt, meta.isEncrypt, old.area, meta.area, options.persistent);
         return Status::STORE_META_CHANGED;
     }
-    auto dbStatus = Upgrade::GetInstance().ExportStore(old, meta);
+
+    auto dbStatus = DBStatus::OK;
+    if (old != meta) {
+        dbStatus = Upgrade::GetInstance().ExportStore(old, meta);
+    }
     return dbStatus == DBStatus::OK ? SUCCESS : DB_ERROR;
 }
 
