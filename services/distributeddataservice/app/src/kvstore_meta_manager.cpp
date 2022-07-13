@@ -144,16 +144,6 @@ void KvStoreMetaManager::InitMetaData()
 void KvStoreMetaManager::InitMetaParameter()
 {
     ZLOGI("start.");
-    bool ret = ForceCreateDirectory(metaDBDirectory_);
-    if (!ret) {
-        DumpHelper::GetInstance().AddErrorInfo("InitMetaParameter: user create directories failed.");
-        ZLOGE("create directories failed");
-        return;
-    }
-    ForceCreateDirectory(metaDBDirectory_ + "/backup");
-    DistributedDB::KvStoreConfig kvStoreConfig {metaDBDirectory_};
-    kvStoreDelegateManager_.SetKvStoreConfig(kvStoreConfig);
-
     std::thread th = std::thread([]() {
         constexpr int RETRY_MAX_TIMES = 100;
         int retryCount = 0;
@@ -175,6 +165,16 @@ void KvStoreMetaManager::InitMetaParameter()
         }
     });
     th.detach();
+
+    bool ret = ForceCreateDirectory(metaDBDirectory_);
+    if (!ret) {
+        DumpHelper::GetInstance().AddErrorInfo("InitMetaParameter: user create directories failed.");
+        ZLOGE("create directories failed");
+        return;
+    }
+    ForceCreateDirectory(metaDBDirectory_ + "/backup");
+    DistributedDB::KvStoreConfig kvStoreConfig {metaDBDirectory_};
+    kvStoreDelegateManager_.SetKvStoreConfig(kvStoreConfig);
 }
 
 KvStoreMetaManager::NbDelegate KvStoreMetaManager::GetMetaKvStore()
