@@ -43,6 +43,22 @@ std::vector<uint8_t> Convertor::GetPrefix(const DataQuery &query) const
     return Convertor::GetPrefix(Key(query.prefix_));
 }
 
+Convertor::DBQuery Convertor::GetDBQuery(const DataQuery &query) const
+{
+    DBQuery dbQuery = *(query.query_);
+    dbQuery.PrefixKey(GetPrefix(query));
+    if (!query.inkeysFlag_) {
+        return dbQuery;
+    }
+
+    std::set<DBKey> keys;
+    for (auto &key : query.keys_) {
+        keys.insert(ToWholeDBKey(key));
+    }
+    dbQuery.InKeys(keys);
+    return dbQuery;
+}
+
 std::vector<uint8_t> Convertor::TrimKey(const Key &prefix) const
 {
     auto begin = std::find_if(prefix.Data().begin(), prefix.Data().end(), [](int ch) { return !std::isspace(ch); });

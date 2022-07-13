@@ -321,8 +321,7 @@ Status SingleStoreImpl::GetEntries(const Key &prefix, std::vector<Entry> &entrie
 Status SingleStoreImpl::GetEntries(const DataQuery &query, std::vector<Entry> &entries) const
 {
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
-    DBQuery dbQuery = *(query.query_);
-    dbQuery.PrefixKey(convertor_.GetPrefix(query));
+    DBQuery dbQuery = convertor_.GetDBQuery(query);
     auto status = GetEntries(dbQuery, entries);
     if (status != SUCCESS) {
         ZLOGE("status:0x%{public}x query:%{public}s", status, StoreUtil::Anonymous(query.ToString()).c_str());
@@ -352,8 +351,7 @@ Status SingleStoreImpl::GetResultSet(const Key &prefix, std::shared_ptr<ResultSe
 Status SingleStoreImpl::GetResultSet(const DataQuery &query, std::shared_ptr<ResultSet> &resultSet) const
 {
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
-    DBQuery dbQuery = *(query.query_);
-    dbQuery.PrefixKey(convertor_.GetPrefix(query));
+    DBQuery dbQuery = convertor_.GetDBQuery(query);
     auto status = GetResultSet(dbQuery, resultSet);
     if (status != SUCCESS) {
         ZLOGE("status:0x%{public}x query:%{public}s", status, StoreUtil::Anonymous(query.ToString()).c_str());
@@ -386,8 +384,7 @@ Status SingleStoreImpl::GetCount(const DataQuery &query, int &result) const
         return ALREADY_CLOSED;
     }
 
-    DBQuery dbQuery = *(query.query_);
-    dbQuery.PrefixKey(convertor_.GetPrefix(query));
+    DBQuery dbQuery = convertor_.GetDBQuery(query);
     auto dbStatus = dbStore_->GetCount(dbQuery, result);
     auto status = StoreUtil::ConvertStatus(dbStatus);
     if (status != SUCCESS) {

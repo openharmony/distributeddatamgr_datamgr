@@ -624,11 +624,7 @@ DataQuery& DataQuery::InKeys(const std::vector<std::string> &keys)
         }
     }
     str_.append(END_IN);
-    std::set<DistributedDB::Key> dbKeys;
-    for (const auto &key : keys) {
-        dbKeys.insert({ key.begin(), key.end() });
-    }
-    query_->InKeys(dbKeys);
+    keys_ = keys;
     return *this;
 }
 

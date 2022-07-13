@@ -417,7 +417,6 @@ public:
 private:
 
     friend class QueryHelper;
-    friend class SingleStoreImpl;
     friend class DeviceConvertor;
     friend class Convertor;
     // equal to
@@ -540,6 +539,8 @@ private:
     std::string deviceId_;
 
     std::string prefix_;
+
+    std::vector<std::string> keys_;
 
     template<typename T>
     void AppendCommon(const std::string &keyword, const std::string &fieldType, std::string &field, const T &value);
