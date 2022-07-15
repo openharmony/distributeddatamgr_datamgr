@@ -16,6 +16,7 @@
 #include "metadata/store_meta_data.h"
 
 #include "metadata/secret_key_meta_data.h"
+#include "metadata/strategy_meta_data.h"
 #include "utils/constant.h"
 namespace OHOS {
 namespace DistributedData {
@@ -132,13 +133,17 @@ std::string StoreMetaData::GetSecretKey() const
     return SecretKeyMetaData::GetKey({ user, "default", bundleName, storeId, std::to_string(instanceId) });
 }
 
+std::string StoreMetaData::GetstrategyKey() const
+{
+    if (instanceId == 0) {
+        return StrategyMeta::GetPrefix({ deviceId, user, "default", bundleName, storeId });
+    }
+    return StrategyMeta::GetPrefix({ deviceId, user, "default", bundleName, storeId, std::to_string(instanceId) });
+}
+
 std::string StoreMetaData::GetKey(const std::initializer_list<std::string> &fields)
 {
-    std::string prefix = KEY_PREFIX;
-    for (const auto &field : fields) {
-        prefix.append(Constant::KEY_SEPARATOR).append(field);
-    }
-    return prefix;
+    return Constant::Join(KEY_PREFIX, Constant::KEY_SEPARATOR, fields);
 }
 
 std::string StoreMetaData::GetPrefix(const std::initializer_list<std::string> &fields)

@@ -594,6 +594,7 @@ Status KvStoreDataService::DeleteKvStore(const AppId &appId, const StoreId &stor
 
 Status KvStoreDataService::DeleteKvStore(StoreMetaData &metaData)
 {
+    kvdbService_->Delete({ metaData.bundleName }, { metaData.storeId });
      // delete the backup file
     auto backFilePath = BackupHandler::GetBackupPath(metaData.user, KvStoreAppManager::ConvertPathType(metaData));
     auto backupFileName = Constant::Concatenate({ metaData.account, "_", metaData.bundleName, "_", metaData.storeId });
@@ -614,18 +615,14 @@ Status KvStoreDataService::DeleteKvStore(StoreMetaData &metaData)
     }
 
     if (status == Status::SUCCESS) {
-        if (!MetaDataManager::GetInstance().DelMeta(metaData.GetKey())) {
-            ZLOGW("Remove Kvstore MetaData failed.");
-        }
+        MetaDataManager::GetInstance().DelMeta(metaData.GetKey());
         MetaDataManager::GetInstance().DelMeta(metaData.GetSecretKey(), true);
+        MetaDataManager::GetInstance().DelMeta(metaData.GetstrategyKey());
         auto secretKeyFile = KvStoreMetaManager::GetSecretSingleKeyFile(
             metaData.user, metaData.bundleName, metaData.storeId, KvStoreAppManager::ConvertPathType(metaData));
         if (!RemoveFile(secretKeyFile)) {
             ZLOGE("remove secretkey file single fail.");
         }
-        auto metaKey = StrategyMetaData::GetPrefix(
-            { metaData.deviceId, metaData.user, "default", metaData.bundleName, metaData.storeId });
-        MetaDataManager::GetInstance().DelMeta(metaKey);
     }
     return status;
 }
