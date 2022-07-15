@@ -35,9 +35,9 @@ void SetUpTestCase(void)
     options.area = EL1;
     options.baseDir = std::string("/data/service/el1/public/database/odmf");
     AppId appId = { "odmf" };
-    StoreId storeId = { "student_single" }; // define kvstore(database) name.
+    StoreId storeId = { "student_single" }; /* define kvstore(database) name. */
     mkdir(options.baseDir.c_str(), (S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH));
-    // [create and] open and initialize kvstore instance.
+    /* [create and] open and initialize kvstore instance. */
     status_ = manager.GetSingleKvStore(options, appId, storeId, singleKvStore_);
 }
 
@@ -48,7 +48,7 @@ void TearDown(void)
     remove("/data/service/el1/public/database/odmf");
 }
 
-void PutDeleteFuzz(const uint8_t *data, size_t size)
+void PutFuzz(const uint8_t *data, size_t size)
 {
     std::string rawString(reinterpret_cast<const char *>(data), size);
     Key skey = {rawString};
@@ -57,7 +57,7 @@ void PutDeleteFuzz(const uint8_t *data, size_t size)
     singleKvStore_->Delete(skey);
 }
 
-void PutDeleteBatchFUzz(const uint8_t *data, size_t size)
+void PutBatchFuzz(const uint8_t *data, size_t size)
 {
     std::string rawString(reinterpret_cast<const char *>(data), size);
     std::string rawString1 = rawString + "test_1";
@@ -82,7 +82,7 @@ void PutDeleteBatchFUzz(const uint8_t *data, size_t size)
     singleKvStore_->DeleteBatch(keys);
 }
 
-void GetFUzz(const uint8_t *data, size_t size)
+void GetFuzz(const uint8_t *data, size_t size)
 {
     std::string rawString(reinterpret_cast<const char *>(data), size);
     Key skey = {rawString};
@@ -93,7 +93,7 @@ void GetFUzz(const uint8_t *data, size_t size)
     singleKvStore_->Delete(skey);
 }
 
-void GetEntries1FUzz(const uint8_t *data, size_t size)
+void GetEntriesFuzz1(const uint8_t *data, size_t size)
 {
     std::string rawString(reinterpret_cast<const char *>(data), size);
     std::string keys = "test_";
@@ -108,7 +108,7 @@ void GetEntries1FUzz(const uint8_t *data, size_t size)
     }
 }
 
-void GetEntries2FUzz(const uint8_t *data, size_t size)
+void GetEntriesFuzz2(const uint8_t *data, size_t size)
 {
     std::string rawString(reinterpret_cast<const char *>(data), size);
     DataQuery dataQuery;
@@ -125,7 +125,7 @@ void GetEntries2FUzz(const uint8_t *data, size_t size)
     }
 }
 
-void GetResultSet1FUzz(const uint8_t *data, size_t size)
+void GetResultSetFuzz1(const uint8_t *data, size_t size)
 {
     std::string rawString(reinterpret_cast<const char *>(data), size);
     std::string keys = "test_";
@@ -145,7 +145,7 @@ void GetResultSet1FUzz(const uint8_t *data, size_t size)
     }
 }
 
-void GetResultSet2FUzz(const uint8_t *data, size_t size)
+void GetResultSetFuzz2(const uint8_t *data, size_t size)
 {
     std::string rawString(reinterpret_cast<const char *>(data), size);
     DataQuery dataQuery;
@@ -162,7 +162,7 @@ void GetResultSet2FUzz(const uint8_t *data, size_t size)
     }
 }
 
-void GetCountFUzz(const uint8_t *data, size_t size)
+void GetCountFuzz(const uint8_t *data, size_t size)
 {
     int count;
     std::string rawString(reinterpret_cast<const char *>(data), size);
@@ -184,14 +184,14 @@ void GetCountFUzz(const uint8_t *data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     OHOS::SetUpTestCase();
-    OHOS::PutDeleteFuzz(data, size);
-    OHOS::PutDeleteBatchFUzz(data, size);
-    OHOS::GetFUzz(data, size);
-    OHOS::GetEntries1FUzz(data, size);
-    OHOS::GetEntries2FUzz(data, size);
-    OHOS::GetResultSet1FUzz(data, size);
-    OHOS::GetResultSet2FUzz(data, size);
-    OHOS::GetCountFUzz(data, size);
+    OHOS::PutFuzz(data, size);
+    OHOS::PutBatchFuzz(data, size);
+    OHOS::GetFuzz(data, size);
+    OHOS::GetEntriesFuzz1(data, size);
+    OHOS::GetEntriesFuzz2(data, size);
+    OHOS::GetResultSetFuzz1(data, size);
+    OHOS::GetResultSetFuzz2(data, size);
+    OHOS::GetCountFuzz(data, size);
     OHOS::TearDown();
     /* Run your code on data */
     return 0;
