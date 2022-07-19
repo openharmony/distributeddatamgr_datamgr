@@ -1114,21 +1114,34 @@ void KvStoreDataService::AccountEventChanged(const AccountEventInfo &eventInfo)
         case AccountStatus::DEVICE_ACCOUNT_DELETE: {
             g_kvStoreAccountEventStatus = 1;
             // delete all kvstore belong to this device account
-            auto it = deviceAccountMap_.find(eventInfo.deviceAccountId);
+            auto it = deviceAccountMap_.find(eventInfo.useId);
             if (it != deviceAccountMap_.end()) {
                 (it->second).DeleteAllKvStore();
-                deviceAccountMap_.erase(eventInfo.deviceAccountId);
+                deviceAccountMap_.erase(eventInfo.useId);
             } else {
-                KvStoreUserManager kvStoreUserManager(eventInfo.deviceAccountId);
+                KvStoreUserManager kvStoreUserManager(eventInfo.useId);
                 kvStoreUserManager.DeleteAllKvStore();
             }
             std::initializer_list<std::string> dirList = { Constant::ROOT_PATH_DE, "/", Constant::SERVICE_NAME, "/",
-                eventInfo.deviceAccountId };
+                eventInfo.useId };
             std::string userDir = Constant::Concatenate(dirList);
             ForceRemoveDirectory(userDir);
-            dirList = { Constant::ROOT_PATH_CE, "/", Constant::SERVICE_NAME, "/", eventInfo.deviceAccountId };
+            dirList = { Constant::ROOT_PATH_CE, "/", Constant::SERVICE_NAME, "/", eventInfo.useId };
             userDir = Constant::Concatenate(dirList);
             ForceRemoveDirectory(userDir);
+
+            //delete metadata
+            std::vector<StoreMetaData> metaData;
+            MetaDataManager::GetInstance().LoadMeta(StoreMetaData::GetPrefix({""}), metaData);
+            for (const auto &meta : metaData) {
+                if (meta.user != eventInfo.userId) {
+                    continue;
+                }
+                ZLOGI("metadata bundlname:%s, user:%s", meta.bundleName.c_str(), meta.user.c_str());
+                MetaDataManager::GetInstance().DelMeta(meta.GetKey());
+                MetaDataManager::GetInstance().DelMeta(meta.GetstrategyKey());
+                MetaDataManager::GetInstance().DelMeta(meta.GetSecretKey(), true);
+            }
             g_kvStoreAccountEventStatus = 0;
             break;
         }
