@@ -13,14 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_DISTRIBUTED_DATA_FRAMEWORKS_KVDB_STORE_UTIL_H
-#define OHOS_DISTRIBUTED_DATA_FRAMEWORKS_KVDB_STORE_UTIL_H
-#include "kv_store_delegate_manager.h"
-#include "store_errno.h"
-#include "store_types.h"
-#include "types.h"
-namespace OHOS::DistributedKv {
-class StoreUtil final {
+#ifndef OHOS_DISTRIBUTED_DATA_FRAMEWORKS_KVDB_STORE_UTIL_
+
 public:
     using DBSecurity = DistributedDB::SecurityOption;
     using DBStatus = DistributedDB::DBStatus;
@@ -34,7 +28,6 @@ public:
     static Status ConvertStatus(DBStatus status);
     static bool InitPath(const std::string &path);
     static bool Remove(const std::string &path);
-
 };
 } // namespace OHOS::DistributedKv
 #endif // OHOS_DISTRIBUTED_DATA_FRAMEWORKS_KVDB_STORE_UTIL_H
