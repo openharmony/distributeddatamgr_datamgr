@@ -20,7 +20,7 @@
 #include "store_types.h"
 #include "types.h"
 namespace OHOS::DistributedKv {
-    class StoreUtil final {
+class StoreUtil final {
 public:
     using DBSecurity = DistributedDB::SecurityOption;
     using DBStatus = DistributedDB::DBStatus;
