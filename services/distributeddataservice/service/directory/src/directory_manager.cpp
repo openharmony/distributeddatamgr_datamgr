@@ -120,7 +120,7 @@ std::string DirectoryManager::GetStore(const StoreMetaData &metaData) const
         return "kvdb";
     }
     // rdb use empty session
-    return "";
+    return "rdb";
 }
 
 std::string DirectoryManager::GetSecurity(const StoreMetaData &metaData) const

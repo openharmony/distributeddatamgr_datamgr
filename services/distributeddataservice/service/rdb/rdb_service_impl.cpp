@@ -125,24 +125,6 @@ bool RdbServiceImpl::CheckAccess(const RdbSyncerParam &param)
     return !CheckerManager::GetInstance().GetAppId(storeInfo).empty();
 }
 
-RdbSyncerParam RdbServiceImpl::ToServiceParam(const RdbSyncerParam &param)
-{
-    ZLOGI("%{public}s", param.relativePath_.c_str());
-    auto serviceParam = param;
-    Security::AccessToken::AccessTokenID callerToken = GetCallingTokenID();
-    auto accessToken = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callerToken);
-    if (accessToken == Security::AccessToken::TOKEN_NATIVE) {
-        ZLOGD("native access");
-        serviceParam.realPath_ = "/data/service/el1/public/database/" + param.bundleName_ + '/' + param.relativePath_;
-    } else if (accessToken == Security::AccessToken::TOKEN_HAP) {
-        ZLOGD("hap access %{public}s", param.encryptLevel_.c_str());
-        auto userId = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(GetCallingUid());
-        serviceParam.realPath_ = "/data/app/" + param.encryptLevel_ + '/' + userId + "/database/" +
-            param.bundleName_ + '/' + param.relativePath_;
-    }
-    return serviceParam;
-}
-
 std::string RdbServiceImpl::ObtainDistributedTableName(const std::string &device, const std::string &table)
 {
     ZLOGI("device=%{public}s table=%{public}s", Anonymous::Change(device).c_str(), table.c_str());
@@ -238,8 +220,7 @@ std::shared_ptr<RdbSyncer> RdbServiceImpl::GetRdbSyncer(const RdbSyncerParam &pa
             ZLOGE("no available syncer");
             return !syncers.empty();
         }
-        auto syncer_ = std::make_shared<RdbSyncer>(ToServiceParam(param),
-                                                   new (std::nothrow) RdbStoreObserverImpl(this, pid));
+        auto syncer_ = std::make_shared<RdbSyncer>(param, new (std::nothrow) RdbStoreObserverImpl(this, pid));
         if (syncer_->Init(pid, uid, tokenId) != 0) {
             return !syncers.empty();
         }
