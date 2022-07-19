@@ -594,7 +594,6 @@ Status KvStoreDataService::DeleteKvStore(const AppId &appId, const StoreId &stor
 
 Status KvStoreDataService::DeleteKvStore(StoreMetaData &metaData)
 {
-    kvdbService_->Delete({ metaData.bundleName }, { metaData.storeId });
      // delete the backup file
     auto backFilePath = BackupHandler::GetBackupPath(metaData.user, KvStoreAppManager::ConvertPathType(metaData));
     auto backupFileName = Constant::Concatenate({ metaData.account, "_", metaData.bundleName, "_", metaData.storeId });
