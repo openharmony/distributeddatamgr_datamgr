@@ -20,12 +20,14 @@
 #include <unistd.h>
 #include "common_event_manager.h"
 #include "common_event_support.h"
+#include "communication_provider.h"
 #include "device_kvstore_impl.h"
 #include "metadata/meta_data_manager.h"
 #include "metadata/store_meta_data.h"
 #include "log_print.h"
 
 namespace OHOS::DistributedKv {
+using namespace OHOS::AppDistributedKv;
 using namespace OHOS::AAFwk;
 using namespace OHOS::AppExecFwk;
 using namespace OHOS::DistributedData;
@@ -73,8 +75,8 @@ Status UninstallerImpl::Init(KvStoreDataService *kvStoreDataService)
     CommonEventSubscribeInfo info(matchingSkills);
     auto callback = [kvStoreDataService](const std::string &bundleName, int32_t userId, int32_t appIndex) {
         kvStoreDataService->DeleteObjectsByAppId(bundleName);
-        std::string prefix = StoreMetaData::GetPrefix(
-            { DeviceKvStoreImpl::GetLocalDeviceId(), std::to_string(userId), "default", bundleName });
+        std::string prefix = StoreMetaData::GetPrefix({ CommunicationProvider::GetInstance().GetLocalDevice().uuid,
+            std::to_string(userId), "default", bundleName });
         std::vector<StoreMetaData> storeMetaData;
         if (!MetaDataManager::GetInstance().LoadMeta(prefix, storeMetaData)) {
             ZLOGE("load meta failed!");

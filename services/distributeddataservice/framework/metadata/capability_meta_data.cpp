@@ -36,7 +36,7 @@ bool CapMetaData::Unmarshal(const json &node)
 
 std::vector<uint8_t> CapMetaRow::GetKeyFor(const std::string &key)
 {
-    auto prefix = Constant::Join(KEY_PREFIX, Constant::KEY_SEPARATOR, { key } );
-    return { prefix.begin(), prefix.end() };
+    std::string str = Constant::Concatenate({ KEY_PREFIX, Constant::KEY_SEPARATOR, key });
+    return { str.begin(), str.end() };
 }
 } // namespace OHOS::DistributedData

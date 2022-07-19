@@ -51,7 +51,10 @@ std::string SecretKeyMetaData::GetKey(const std::initializer_list<std::string> &
 
 std::string SecretKeyMetaData::GetPrefix(const std::initializer_list<std::string> &fields)
 {
-    auto prefix = Constant::Join(KEY_PREFIX, Constant::KEY_SEPARATOR, fields);
+    std::string prefix = KEY_PREFIX;
+    for (const auto &field : fields) {
+        prefix.append(Constant::KEY_SEPARATOR).append(field);
+    }
     prefix.append(Constant::KEY_SEPARATOR);
     return prefix;
 }

@@ -136,14 +136,18 @@ std::string StoreMetaData::GetSecretKey() const
 std::string StoreMetaData::GetstrategyKey() const
 {
     if (instanceId == 0) {
-        return StrategyMeta::GetPrefix({ deviceId, user, "default", bundleName, storeId });
+        return StrategyMeta::GetKey({ deviceId, user, "default", bundleName, storeId });
     }
-    return StrategyMeta::GetPrefix({ deviceId, user, "default", bundleName, storeId, std::to_string(instanceId) });
+    return StrategyMeta::GetKey({ deviceId, user, "default", bundleName, storeId, std::to_string(instanceId) });
 }
 
 std::string StoreMetaData::GetKey(const std::initializer_list<std::string> &fields)
 {
-    return Constant::Join(KEY_PREFIX, Constant::KEY_SEPARATOR, fields);
+    std::string prefix = KEY_PREFIX;
+    for (const auto &field : fields) {
+        prefix.append(Constant::KEY_SEPARATOR).append(field);
+    }
+    return prefix;
 }
 
 std::string StoreMetaData::GetPrefix(const std::initializer_list<std::string> &fields)
