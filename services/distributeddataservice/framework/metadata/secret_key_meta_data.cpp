@@ -44,9 +44,9 @@ bool SecretKeyMetaData::Unmarshal(const json &node)
 
 std::string SecretKeyMetaData::GetKey(const std::initializer_list<std::string> &fields)
 {
-    auto key = Constant::Join(KEY_PREFIX, Constant::KEY_SEPARATOR, fields);
-    key.append(Constant::KEY_SEPARATOR).append("SINGLE_KEY");
-    return key;
+    std::string prefix = GetPrefix(fields);
+    prefix.append("SINGLE_KEY");
+    return prefix;
 }
 
 std::string SecretKeyMetaData::GetPrefix(const std::initializer_list<std::string> &fields)
