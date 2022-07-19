@@ -1130,7 +1130,6 @@ void KvStoreDataService::AccountEventChanged(const AccountEventInfo &eventInfo)
             userDir = Constant::Concatenate(dirList);
             ForceRemoveDirectory(userDir);
 
-            //delete metadata
             std::vector<StoreMetaData> metaData;
             MetaDataManager::GetInstance().LoadMeta(StoreMetaData::GetPrefix({""}), metaData);
             for (const auto &meta : metaData) {
