@@ -29,6 +29,7 @@
 #endif
 
 namespace DistributedDB {
+constexpr uint32_t DEFAULT_ITER_TIMES = 5000;
 enum class TransactType {
     DEFERRED,
     IMMEDIATE,
@@ -64,6 +65,7 @@ struct OpenDbProperties {
     SecurityOption securityOpt {};
     int conflictReslovePolicy = DEFAULT_LAST_WIN;
     bool createDirByStoreIdOnly = false;
+    uint32_t iterTimes = DEFAULT_ITER_TIMES;
 };
 
 class SQLiteUtils {
@@ -100,7 +102,8 @@ public:
 
     static int ExecuteRawSQL(sqlite3 *db, const std::string &sql);
 
-    static int SetKey(sqlite3 *db, CipherType type, const CipherPassword &passwd, const bool &isMemDb);
+    static int SetKey(sqlite3 *db, CipherType type, const CipherPassword &passwd, const bool &isMemDb,
+        uint32_t iterTimes = DEFAULT_ITER_TIMES);
 
     static int GetColumnBlobValue(sqlite3_stmt *statement, int index, std::vector<uint8_t> &value);
 
@@ -225,7 +228,7 @@ private:
     static int RegisterFunction(sqlite3 *db, const std::string &funcName, int nArg, void *uData, TransactFunc &func);
 
 #ifndef OMIT_ENCRYPT
-    static int SetCipherSettings(sqlite3 *db, CipherType type);
+    static int SetCipherSettings(sqlite3 *db, CipherType type, uint32_t iterTimes);
 
     static std::string GetCipherName(CipherType type);
 #endif
