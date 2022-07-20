@@ -100,7 +100,7 @@ ohos_unittest("KvStoreImplLogicalIsolationTest") {
 
   if (distributeddatamgr_power) {
     external_deps += [
-      "battery_manager_native:batterysrv_client",
+      "battery_manager:batterysrv_client",
       "power_manager:powermgr_client",
     ]
   }
@@ -164,7 +164,7 @@ ohos_unittest("KvStoreImplPhysicalIsolationTest") {
 
   if (distributeddatamgr_power) {
     external_deps += [
-      "battery_manager_native:batterysrv_client",
+      "battery_manager:batterysrv_client",
       "power_manager:powermgr_client",
     ]
   }
@@ -228,7 +228,7 @@ ohos_unittest("KvStoreDataServiceTest") {
 
   if (distributeddatamgr_power) {
     external_deps += [
-      "battery_manager_native:batterysrv_client",
+      "battery_manager:batterysrv_client",
       "power_manager:powermgr_client",
     ]
   }
@@ -293,7 +293,7 @@ ohos_unittest("KvStoreBackupTest") {
 
   if (distributeddatamgr_power) {
     external_deps += [
-      "battery_manager_native:batterysrv_client",
+      "battery_manager:batterysrv_client",
       "power_manager:powermgr_client",
     ]
   }
@@ -334,7 +334,7 @@ ohos_unittest("KvStoreFlowCtrlManagerTest") {
 
   if (distributeddatamgr_power) {
     external_deps += [
-      "battery_manager_native:batterysrv_client",
+      "battery_manager:batterysrv_client",
       "power_manager:powermgr_client",
     ]
   }
@@ -391,7 +391,7 @@ ohos_unittest("KvStoreSyncManagerTest") {
 
   if (distributeddatamgr_power) {
     external_deps += [
-      "battery_manager_native:batterysrv_client",
+      "battery_manager:batterysrv_client",
       "power_manager:powermgr_client",
     ]
   }
@@ -472,7 +472,7 @@ ohos_unittest("KvStoreUninstallerTest") {
 
   if (distributeddatamgr_power) {
     external_deps += [
-      "battery_manager_native:batterysrv_client",
+      "battery_manager:batterysrv_client",
       "power_manager:powermgr_client",
     ]
   }
