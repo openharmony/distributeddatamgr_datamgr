@@ -33,7 +33,7 @@ enum class AccountStatus {
 
 struct AccountEventInfo {
     std::string harmonyAccountId;
-    std::string useId;
+    std::string userId;
     AccountStatus status;
 };
 
