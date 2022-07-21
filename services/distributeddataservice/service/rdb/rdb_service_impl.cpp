@@ -121,7 +121,7 @@ bool RdbServiceImpl::CheckAccess(const RdbSyncerParam &param)
     storeInfo.uid = GetCallingUid();
     storeInfo.tokenId = GetCallingTokenID();
     storeInfo.bundleName = param.bundleName_;
-    storeInfo.storeId = param.storeName_;
+    storeInfo.storeId = RdbSyncer::RemoveSuffix(param.storeName_);
     return !CheckerManager::GetInstance().GetAppId(storeInfo).empty();
 }
 
@@ -202,9 +202,9 @@ std::shared_ptr<RdbSyncer> RdbServiceImpl::GetRdbSyncer(const RdbSyncerParam &pa
     pid_t uid = GetCallingUid();
     uint32_t tokenId = GetCallingTokenID();
     std::shared_ptr<RdbSyncer> syncer;
-
     syncers_.Compute(pid, [this, &param, pid, uid, tokenId, &syncer] (const auto& key, StoreSyncersType& syncers) {
-        auto it = syncers.find(param.storeName_);
+        auto storeId = RdbSyncer::RemoveSuffix(param.storeName_);
+        auto it = syncers.find(storeId);
         if (it != syncers.end()) {
             syncer = it->second;
             timer_.Unregister(syncer->GetTimerId());
@@ -224,7 +224,7 @@ std::shared_ptr<RdbSyncer> RdbServiceImpl::GetRdbSyncer(const RdbSyncerParam &pa
         if (syncer_->Init(pid, uid, tokenId) != 0) {
             return !syncers.empty();
         }
-        syncers[param.storeName_] = syncer_;
+        syncers[storeId] = syncer_;
         syncer = syncer_;
         syncerNum_++;
         uint32_t timerId = timer_.Register([this, syncer]() { SyncerTimeout(syncer); }, SYNCER_TIMEOUT, true);
@@ -321,10 +321,11 @@ std::string RdbServiceImpl::GenIdentifier(const RdbSyncerParam &param)
 {
     pid_t uid = GetCallingUid();
     uint32_t token = GetCallingTokenID();
-    CheckerManager::StoreInfo storeInfo{ uid, token, param.bundleName_, param.storeName_ };
+    auto storeId = RdbSyncer::RemoveSuffix(param.storeName_);
+    CheckerManager::StoreInfo storeInfo{ uid, token, param.bundleName_,  storeId};
     std::string userId = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(uid);
     std::string appId = CheckerManager::GetInstance().GetAppId(storeInfo);
-    std::string identifier = RelationalStoreManager::GetRelationalStoreIdentifier(userId, appId, param.storeName_);
+    std::string identifier = RelationalStoreManager::GetRelationalStoreIdentifier(userId, appId, storeId);
     return TransferStringToHex(identifier);
 }
 

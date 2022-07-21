@@ -50,6 +50,7 @@ public:
 
     int32_t DoAsync(const SyncOption& option, const RdbPredicates& predicates, const SyncCallback& callback);
 
+    static std::string RemoveSuffix(const std::string& name);
 private:
     std::string GetUserId() const;
 

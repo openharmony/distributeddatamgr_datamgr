@@ -88,7 +88,7 @@ std::string RdbSyncer::GetAppId() const
 
 std::string RdbSyncer::GetStoreId() const
 {
-    return param_.storeName_;
+    return RemoveSuffix(param_.storeName_);
 }
 
 int32_t RdbSyncer::Init(pid_t pid, pid_t uid, uint32_t token)
@@ -117,7 +117,7 @@ int32_t RdbSyncer::CreateMetaData(StoreMetaData &meta)
     meta.instanceId = GetInstIndex(token_, param_.bundleName_);
     meta.bundleName = param_.bundleName_;
     meta.deviceId = CommunicationProvider::GetInstance().GetLocalDevice().uuid;
-    meta.storeId = param_.storeName_;
+    meta.storeId = RemoveSuffix(param_.storeName_);
     meta.user = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(uid_);
     meta.storeType = param_.type_;
     meta.securityLevel = param_.level_;
@@ -125,7 +125,7 @@ int32_t RdbSyncer::CreateMetaData(StoreMetaData &meta)
     meta.appId = CheckerManager::GetInstance().GetAppId(Converter::ConvertToStoreInfo(meta));
     meta.appType = "harmony";
     meta.hapName = param_.hapName_;
-    meta.dataDir = DirectoryManager::GetInstance().GetStorePath(meta);
+    meta.dataDir = DirectoryManager::GetInstance().GetStorePath(meta) + "/" + param_.storeName_;
     meta.account = AccountDelegate::GetInstance()->GetCurrentAccountId();
 
     StoreMetaData old;
@@ -143,6 +143,16 @@ int32_t RdbSyncer::CreateMetaData(StoreMetaData &meta)
     return saved ? RDB_OK : RDB_ERROR;
 }
 
+std::string RdbSyncer::RemoveSuffix(const std::string& name)
+{
+    std::string suffix(".db");
+    auto pos = name.rfind(suffix);
+    if (pos == std::string::npos || pos < name.length() - suffix.length()) {
+        return name;
+    }
+    return std::string(name, 0, pos);
+}
+
 int32_t RdbSyncer::InitDBDelegate(const StoreMetaData &meta)
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -157,7 +167,7 @@ int32_t RdbSyncer::InitDBDelegate(const StoreMetaData &meta)
     if (delegate_ == nullptr) {
         DistributedDB::RelationalStoreDelegate::Option option;
         option.observer = observer_;
-        std::string fileName = meta.dataDir + "/" + meta.storeId + ".db";
+        std::string fileName = meta.dataDir;
         ZLOGI("path=%{public}s storeId=%{public}s", fileName.c_str(), meta.storeId.c_str());
         auto status = manager_->OpenStore(fileName, meta.storeId, option, delegate_);
         if (status != DistributedDB::DBStatus::OK) {
