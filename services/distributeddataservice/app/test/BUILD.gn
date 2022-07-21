@@ -39,7 +39,7 @@ config("module_private_config") {
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/service/kvdb",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/service/object",
     "//foundation/distributeddatamgr/distributedfile/interfaces/kits/js/src/mod_securitylabel",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
     "../include",
     "../src",
@@ -89,6 +89,7 @@ ohos_unittest("KvStoreImplLogicalIsolationTest") {
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "c_utils:utils",
     "dataclassification:data_transit_mgr",
     "device_auth:deviceauth_sdk",
     "hitrace_native:libhitrace",
@@ -117,7 +118,6 @@ ohos_unittest("KvStoreImplLogicalIsolationTest") {
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/libs/distributeddb:distributeddb",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/service:distributeddatasvc",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utils",
   ]
   part_name = "distributeddatamgr"
 }
@@ -153,6 +153,7 @@ ohos_unittest("KvStoreImplPhysicalIsolationTest") {
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "c_utils:utils",
     "dataclassification:data_transit_mgr",
     "device_auth:deviceauth_sdk",
     "hitrace_native:libhitrace",
@@ -181,7 +182,6 @@ ohos_unittest("KvStoreImplPhysicalIsolationTest") {
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/libs/distributeddb:distributeddb",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/service:distributeddatasvc",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utils",
   ]
   part_name = "distributeddatamgr"
 }
@@ -217,6 +217,7 @@ ohos_unittest("KvStoreDataServiceTest") {
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "c_utils:utils",
     "dataclassification:data_transit_mgr",
     "device_auth:deviceauth_sdk",
     "hitrace_native:libhitrace",
@@ -245,7 +246,6 @@ ohos_unittest("KvStoreDataServiceTest") {
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/libs/distributeddb:distributeddb",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/service:distributeddatasvc",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utils",
   ]
   part_name = "distributeddatamgr"
 }
@@ -283,6 +283,7 @@ ohos_unittest("KvStoreBackupTest") {
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "c_utils:utils",
     "dataclassification:data_transit_mgr",
     "device_auth:deviceauth_sdk",
     "hiviewdfx_hilog_native:libhilog",
@@ -310,7 +311,6 @@ ohos_unittest("KvStoreBackupTest") {
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/libs/distributeddb:distributeddb",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/service:distributeddatasvc",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utils",
   ]
 
   part_name = "distributeddatamgr"
@@ -324,6 +324,7 @@ ohos_unittest("KvStoreFlowCtrlManagerTest") {
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "c_utils:utils",
     "dataclassification:data_transit_mgr",
     "device_auth:deviceauth_sdk",
     "hiviewdfx_hilog_native:libhilog",
@@ -346,7 +347,6 @@ ohos_unittest("KvStoreFlowCtrlManagerTest") {
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/framework:distributeddatasvcfwk",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/service:distributeddatasvc",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utils",
   ]
   part_name = "distributeddatamgr"
 }
@@ -381,6 +381,7 @@ ohos_unittest("KvStoreSyncManagerTest") {
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "c_utils:utils",
     "dataclassification:data_transit_mgr",
     "device_auth:deviceauth_sdk",
     "hiviewdfx_hilog_native:libhilog",
@@ -408,7 +409,6 @@ ohos_unittest("KvStoreSyncManagerTest") {
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/libs/distributeddb:distributeddb",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/service:distributeddatasvc",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utils",
   ]
   part_name = "distributeddatamgr"
 }
@@ -454,13 +454,13 @@ ohos_unittest("KvStoreUninstallerTest") {
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/libs/distributeddb:distributeddb",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/service:distributeddatasvc",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utils",
   ]
 
   external_deps = [
     "ability_base:base",
     "ability_base:want",
     "access_token:libaccesstoken_sdk",
+    "c_utils:utils",
     "dataclassification:data_transit_mgr",
     "device_auth:deviceauth_sdk",
     "hitrace_native:libhitrace",
@@ -501,7 +501,6 @@ group("moduletest") {
     "//third_party/googletest:gmock",
     "//third_party/googletest:gtest_main",
     "//third_party/sqlite:sqlite",
-    "//utils/native/base:utils",
   ]
 
   deps += [

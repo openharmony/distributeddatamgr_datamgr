@@ -270,7 +270,6 @@ ohos_source_set("src_file") {
     "//third_party/googletest:gtest_main",
     "//third_party/sqlite:sqlite",
     "//third_party/zlib:libz",
-    "//utils/native/base:utils",
   ]
 
   configs += [ "//third_party/jsoncpp:jsoncpp_config" ]
@@ -280,6 +279,7 @@ ohos_source_set("src_file") {
     "//third_party/openssl:libcrypto_shared",
   ]
   external_deps = [
+    "c_utils:utils",
     "hisysevent_native:libhisysevent",
     "hitrace_native:hitrace_meter",
     "hiviewdfx_hilog_native:libhilog",
@@ -304,7 +304,6 @@ template("distributeddb_unittest") {
       "//third_party/googletest:gtest_main",
       "//third_party/sqlite:sqlite",
       "//third_party/zlib:libz",
-      "//utils/native/base:utils",
     ]
     configs += [ "//third_party/jsoncpp:jsoncpp_config" ]
     ldflags = [ "-Wl,--exclude-libs,ALL" ]
@@ -313,6 +312,7 @@ template("distributeddb_unittest") {
       "//third_party/openssl:libcrypto_shared",
     ]
     external_deps = [
+      "c_utils:utils",
       "hisysevent_native:libhisysevent",
       "hitrace_native:hitrace_meter",
       "hiviewdfx_hilog_native:libhilog",

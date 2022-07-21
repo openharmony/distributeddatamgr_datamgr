@@ -22,20 +22,19 @@ ohos_static_library("distributeddata_broadcaster_static") {
     "../include/broadcaster",
     "../include/log",
     "./src",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/distributeddata/include",
     "//foundation/distributeddatamgr/distributeddatamgr/frameworks/common",
   ]
 
   cflags_cc = [ "-fvisibility=hidden" ]
 
-  deps = [ "//utils/native/base:utils" ]
-
   external_deps = [
     # "ces:libcommonevent",
     "ability_base:base",
     "ability_base:want",
     "bundle_framework:appexecfwk_base",
+    "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",

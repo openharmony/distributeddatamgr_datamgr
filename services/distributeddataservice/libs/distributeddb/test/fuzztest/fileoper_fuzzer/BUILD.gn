@@ -43,7 +43,7 @@ ohos_fuzztest("FileOperFuzzTest") {
     "//third_party/skia/third_party/externals/swiftshader/third_party/SPIRV-Headers/tools/buildHeaders/jsoncpp/dist/json",
     "//third_party/jsoncpp/include/json",
     "//third_party/grpc/src/core/lib/json",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//third_party/sqlite/include",
     "//third_party/googletest/googletest/include/gtest",
   ]
@@ -70,7 +70,6 @@ ohos_fuzztest("FileOperFuzzTest") {
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/libs/distributeddb:distributeddb",
     "//third_party/jsoncpp:jsoncpp",
     "//third_party/openssl:libcrypto_shared",
-    "//utils/native/base:utils",
   ]
 
   defines = [
@@ -89,7 +88,10 @@ ohos_fuzztest("FileOperFuzzTest") {
     "SQLITE_DISTRIBUTE_RELATIONAL",
   ]
 
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
 }
 
 ###############################################################################

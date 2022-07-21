@@ -22,12 +22,12 @@ ohos_static_library("distributeddata_flowctrl_static") {
     "//foundation/distributeddatamgr/distributeddatamgr/frameworks/innerkitsimpl/distributeddatafwk/include",
     "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/distributeddata/include",
     "//third_party/json/single_include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
   ]
 
   cflags_cc = [ "-fvisibility=hidden" ]
 
-  deps = [ "//utils/native/base:utils" ]
+  external_deps = [ "c_utils:utils" ]
 
   subsystem_name = "distributeddatamgr"
   part_name = "distributeddatamgr"

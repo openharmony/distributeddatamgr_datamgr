@@ -40,7 +40,7 @@ config("module_private_config") {
     "//developtools/liblog",
     "common/distributeddb/include",
     "moduletest/common/distributeddb/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//third_party/sqlite/include",
     "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/distributeddata/include",
     "//third_party/openssl/include/",
@@ -79,9 +79,11 @@ ohos_moduletest("DistributeddbKvTransactionTest") {
     "//third_party/googletest:gtest_main",
     "//third_party/openssl:libcrypto_shared",
     "//third_party/sqlite:sqlite",
-    "//utils/native/base:utils",
   ]
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
   part_name = "distributeddatamgr"
 }
 
@@ -102,9 +104,11 @@ ohos_moduletest("DistributeddbKvTransactionPerfTest") {
     "//third_party/googletest:gtest_main",
     "//third_party/openssl:libcrypto_shared",
     "//third_party/sqlite:sqlite",
-    "//utils/native/base:utils",
   ]
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
   part_name = "distributeddatamgr"
 }
 ohos_moduletest("DistributeddbKvConcurrencyCrudTest") {
@@ -123,9 +127,11 @@ ohos_moduletest("DistributeddbKvConcurrencyCrudTest") {
     "//third_party/googletest:gtest_main",
     "//third_party/openssl:libcrypto_shared",
     "//third_party/sqlite:sqlite",
-    "//utils/native/base:utils",
   ]
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
   part_name = "distributeddatamgr"
 }
 ohos_moduletest("DistributeddbKvBatchCrudTest") {
@@ -144,9 +150,11 @@ ohos_moduletest("DistributeddbKvBatchCrudTest") {
     "//third_party/googletest:gtest_main",
     "//third_party/openssl:libcrypto_shared",
     "//third_party/sqlite:sqlite",
-    "//utils/native/base:utils",
   ]
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
   part_name = "distributeddatamgr"
 }
 ohos_moduletest("DistributeddbKvCreateTest") {
@@ -165,9 +173,11 @@ ohos_moduletest("DistributeddbKvCreateTest") {
     "//third_party/googletest:gtest_main",
     "//third_party/openssl:libcrypto_shared",
     "//third_party/sqlite:sqlite",
-    "//utils/native/base:utils",
   ]
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
   part_name = "distributeddatamgr"
 }
 ohos_moduletest("DistributeddbKvCrudTest") {
@@ -186,9 +196,11 @@ ohos_moduletest("DistributeddbKvCrudTest") {
     "//third_party/googletest:gtest_main",
     "//third_party/openssl:libcrypto_shared",
     "//third_party/sqlite:sqlite",
-    "//utils/native/base:utils",
   ]
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
   part_name = "distributeddatamgr"
 }
 ohos_moduletest("DistributeddbKvObserverTest") {
@@ -207,9 +219,11 @@ ohos_moduletest("DistributeddbKvObserverTest") {
     "//third_party/googletest:gtest_main",
     "//third_party/openssl:libcrypto_shared",
     "//third_party/sqlite:sqlite",
-    "//utils/native/base:utils",
   ]
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
   part_name = "distributeddatamgr"
 }
 ohos_moduletest("DistributeddbKvObserverSnapTest") {
@@ -228,9 +242,11 @@ ohos_moduletest("DistributeddbKvObserverSnapTest") {
     "//third_party/googletest:gtest_main",
     "//third_party/openssl:libcrypto_shared",
     "//third_party/sqlite:sqlite",
-    "//utils/native/base:utils",
   ]
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
   part_name = "distributeddatamgr"
 }
 
@@ -248,9 +264,11 @@ ohos_moduletest("DistributeddbKvBackupTest") {
     "//third_party/googletest:gtest_main",
     "//third_party/openssl:libcrypto_shared",
     "//third_party/sqlite:sqlite",
-    "//utils/native/base:utils",
   ]
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
   part_name = "distributeddatamgr"
 }
 
@@ -269,9 +287,11 @@ ohos_moduletest("DistributeddbKvRealdelTest") {
     "//third_party/googletest:gtest_main",
     "//third_party/openssl:libcrypto_shared",
     "//third_party/sqlite:sqlite",
-    "//utils/native/base:utils",
   ]
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
   part_name = "distributeddatamgr"
 }
 
@@ -292,9 +312,11 @@ ohos_moduletest("DistributeddbNbCreateTest") {
     "//third_party/googletest:gtest_main",
     "//third_party/openssl:libcrypto_shared",
     "//third_party/sqlite:sqlite",
-    "//utils/native/base:utils",
   ]
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
   part_name = "distributeddatamgr"
 }
 ohos_moduletest("DistributeddbNbCrudTest") {
@@ -314,9 +336,11 @@ ohos_moduletest("DistributeddbNbCrudTest") {
     "//third_party/googletest:gtest_main",
     "//third_party/openssl:libcrypto_shared",
     "//third_party/sqlite:sqlite",
-    "//utils/native/base:utils",
   ]
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
   part_name = "distributeddatamgr"
 }
 ohos_moduletest("DistributeddbNbObserverTest") {
@@ -336,9 +360,11 @@ ohos_moduletest("DistributeddbNbObserverTest") {
     "//third_party/googletest:gtest_main",
     "//third_party/openssl:libcrypto_shared",
     "//third_party/sqlite:sqlite",
-    "//utils/native/base:utils",
   ]
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
   part_name = "distributeddatamgr"
 }
 
@@ -360,9 +386,11 @@ ohos_moduletest("DistributeddbNbCursorTest") {
     "//third_party/googletest:gtest_main",
     "//third_party/openssl:libcrypto_shared",
     "//third_party/sqlite:sqlite",
-    "//utils/native/base:utils",
   ]
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
   part_name = "distributeddatamgr"
 }
 
@@ -383,10 +411,12 @@ ohos_moduletest("DistributeddbNbBackupTest") {
     "//third_party/googletest:gtest_main",
     "//third_party/openssl:libcrypto_shared",
     "//third_party/sqlite:sqlite",
-    "//utils/native/base:utils",
   ]
 
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
   part_name = "distributeddatamgr"
 }
 
@@ -407,9 +437,11 @@ ohos_moduletest("DistributeddbNbBatchCrudTest") {
     "//third_party/googletest:gtest_main",
     "//third_party/openssl:libcrypto_shared",
     "//third_party/sqlite:sqlite",
-    "//utils/native/base:utils",
   ]
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
   part_name = "distributeddatamgr"
 }
 
@@ -430,9 +462,11 @@ ohos_moduletest("DistributeddbNbLocalBatchCrudTest") {
     "//third_party/googletest:gtest_main",
     "//third_party/openssl:libcrypto_shared",
     "//third_party/sqlite:sqlite",
-    "//utils/native/base:utils",
   ]
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
   part_name = "distributeddatamgr"
 }
 
@@ -452,9 +486,11 @@ ohos_moduletest("DistributeddbNbSchemaDbTest") {
     "//third_party/googletest:gtest_main",
     "//third_party/openssl:libcrypto_shared",
     "//third_party/sqlite:sqlite",
-    "//utils/native/base:utils",
   ]
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
   part_name = "distributeddatamgr"
 }
 
@@ -475,9 +511,11 @@ ohos_moduletest("DistributeddbNbPredicateQueryTest") {
     "//third_party/googletest:gtest_main",
     "//third_party/openssl:libcrypto_shared",
     "//third_party/sqlite:sqlite",
-    "//utils/native/base:utils",
   ]
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
   part_name = "distributeddatamgr"
 }
 
@@ -498,9 +536,11 @@ ohos_moduletest("DistributeddbNbPredicateQueryExpandTest") {
     "//third_party/googletest:gtest_main",
     "//third_party/openssl:libcrypto_shared",
     "//third_party/sqlite:sqlite",
-    "//utils/native/base:utils",
   ]
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
   part_name = "distributeddatamgr"
 }
 
@@ -521,9 +561,11 @@ ohos_moduletest("DistributeddbNbAutolaunchTest") {
     "//third_party/googletest:gtest_main",
     "//third_party/openssl:libcrypto_shared",
     "//third_party/sqlite:sqlite",
-    "//utils/native/base:utils",
   ]
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
   part_name = "distributeddatamgr"
 }
 
@@ -544,9 +586,11 @@ ohos_moduletest("DistributedbNbDbDamageTest") {
     "//third_party/googletest:gtest_main",
     "//third_party/openssl:libcrypto_shared",
     "//third_party/sqlite:sqlite",
-    "//utils/native/base:utils",
   ]
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
   part_name = "distributeddatamgr"
 }
 
@@ -567,9 +611,11 @@ ohos_moduletest("DistributeddbNbCrudPowerTest") {
     "//third_party/googletest:gtest_main",
     "//third_party/openssl:libcrypto_shared",
     "//third_party/sqlite:sqlite",
-    "//utils/native/base:utils",
   ]
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
   part_name = "distributeddatamgr"
 }
 
@@ -590,9 +636,11 @@ ohos_moduletest("DistributeddbNbSchemaTest") {
     "//third_party/googletest:gtest_main",
     "//third_party/openssl:libcrypto_shared",
     "//third_party/sqlite:sqlite",
-    "//utils/native/base:utils",
   ]
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
   part_name = "distributeddatamgr"
 }
 
@@ -613,9 +661,11 @@ ohos_moduletest("DistributeddbNbSchemaUpgradeTest") {
     "//third_party/googletest:gtest_main",
     "//third_party/openssl:libcrypto_shared",
     "//third_party/sqlite:sqlite",
-    "//utils/native/base:utils",
   ]
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
   part_name = "distributeddatamgr"
 }
 
@@ -626,7 +676,6 @@ group("moduletest") {
     "//third_party/googletest:gmock",
     "//third_party/googletest:gtest_main",
     "//third_party/sqlite:sqlite",
-    "//utils/native/base:utils",
   ]
 
   deps += [

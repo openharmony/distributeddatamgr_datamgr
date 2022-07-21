@@ -37,7 +37,7 @@ ohos_fuzztest("KvStoreDiskSizeFuzzTest") {
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/libs/distributeddb/communicator/src",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/libs/distributeddb/syncer/include",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/libs/distributeddb/syncer/src",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//third_party/sqlite/include",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/libs/distributeddb/common/include/relational",
     "//third_party/jsoncpp/include/json",
@@ -85,10 +85,12 @@ ohos_fuzztest("KvStoreDiskSizeFuzzTest") {
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/libs/distributeddb:distributeddb",
     "//third_party/jsoncpp:jsoncpp",
     "//third_party/openssl:libcrypto_shared",
-    "//utils/native/base:utils",
   ]
 
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
 }
 
 ###############################################################################
