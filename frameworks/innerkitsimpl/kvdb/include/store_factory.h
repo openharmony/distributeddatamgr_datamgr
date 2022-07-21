@@ -33,14 +33,14 @@ private:
     using DBManager = DistributedDB::KvStoreDelegateManager;
     using DBOption = DistributedDB::KvStoreNbDelegate::Option;
     using DBStore = DistributedDB::KvStoreNbDelegate;
-    using DBPassword = DistributedDB::CipherPassword;
+    using DBPassword = DistributedDB::CipherPassword;s
 
     StoreFactory();
     std::shared_ptr<DBManager> GetDBManager(const std::string &path, const AppId &appId);
     DBOption GetDBOption(const Options &options, const DBPassword &password) const;
     ConcurrentMap<std::string, std::shared_ptr<DBManager>> dbManagers_;
     ConcurrentMap<std::string, std::map<std::string, std::shared_ptr<SingleStoreImpl>>> stores_;
-    Convertor *convertors_[INVALID_TYPE];
+    Convertor *convertors_[INVALID_TYPE] {nullptr, nullptr, nullptr};
 };
 } // namespace OHOS::DistributedKv
 #endif // OHOS_DISTRIBUTED_DATA_FRAMEWORKS_KVDB_STORE_FACTORY_H
