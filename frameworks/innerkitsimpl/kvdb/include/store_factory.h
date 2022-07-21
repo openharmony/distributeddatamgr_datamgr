@@ -33,7 +33,7 @@ private:
     using DBManager = DistributedDB::KvStoreDelegateManager;
     using DBOption = DistributedDB::KvStoreNbDelegate::Option;
     using DBStore = DistributedDB::KvStoreNbDelegate;
-    using DBPassword = DistributedDB::CipherPassword;s
+    using DBPassword = DistributedDB::CipherPassword;
 
     StoreFactory();
     std::shared_ptr<DBManager> GetDBManager(const std::string &path, const AppId &appId);
