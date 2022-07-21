@@ -369,6 +369,14 @@ int RuntimeContextImpl::SetPermissionCheckCallback(const PermissionCheckCallback
     return E_OK;
 }
 
+int RuntimeContextImpl::SetPermissionCheckCallback(const PermissionCheckCallbackV3 &callback)
+{
+    std::unique_lock<std::shared_mutex> writeLock(permissionCheckCallbackMutex_);
+    permissionCheckCallbackV3_ = callback;
+    LOGI("SetPermissionCheckCallback V3 ok");
+    return E_OK;
+}
+
 int RuntimeContextImpl::RunPermissionCheck(const std::string &userId, const std::string &appId,
     const std::string &storeId, const std::string &deviceId, uint8_t flag) const
 {

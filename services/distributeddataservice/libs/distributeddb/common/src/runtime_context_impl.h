@@ -67,6 +67,8 @@ public:
 
     int SetPermissionCheckCallback(const PermissionCheckCallbackV2 &callback) override;
 
+    int SetPermissionCheckCallback(const PermissionCheckCallbackV3 &callback) override;
+
     int RunPermissionCheck(const std::string &userId, const std::string &appId, const std::string &storeId,
         const std::string &deviceId, uint8_t flag) const override;
 
@@ -154,6 +156,7 @@ private:
     mutable std::shared_mutex permissionCheckCallbackMutex_{};
     PermissionCheckCallback permissionCheckCallback_;
     PermissionCheckCallbackV2 permissionCheckCallbackV2_;
+    PermissionCheckCallbackV3 permissionCheckCallbackV3_;
 
     AutoLaunch autoLaunch_;
 
