@@ -33,7 +33,7 @@
 namespace DistributedDB {
 class KvStoreDelegateManager final {
 public:
-    DB_API KvStoreDelegateManager(const std::string &appId, const std::string &userId);
+    DB_API KvStoreDelegateManager(const std::string &appId, const std::string &userId, int32_t instanceId = 0);
     DB_API ~KvStoreDelegateManager();
 
     KvStoreDelegateManager(const KvStoreDelegateManager &) = delete;
@@ -80,7 +80,7 @@ public:
 
     // Get database directory by storeId + appId + userId
     DB_API static DBStatus GetDatabaseDir(const std::string &storeId, const std::string &appId,
-        const std::string &userId, std::string &directory);
+        const std::string &userId, std::string &directory, int32_t instanceId = 0);
 
     // Get database directory by storeId
     DB_API static DBStatus GetDatabaseDir(const std::string &storeId, std::string &directory);
@@ -126,6 +126,7 @@ private:
     KvStoreConfig kvStoreConfig_;
     std::string appId_;
     std::string userId_;
+    int32_t instanceId_;
 
     mutable std::mutex mutex_;
 };
