@@ -40,7 +40,7 @@ private:
     DBOption GetDBOption(const Options &options, const DBPassword &password) const;
     ConcurrentMap<std::string, std::shared_ptr<DBManager>> dbManagers_;
     ConcurrentMap<std::string, std::map<std::string, std::shared_ptr<SingleStoreImpl>>> stores_;
-    Convertor *convertors_[INVALID_TYPE] {nullptr, nullptr, nullptr};
+    Convertor *convertors_[INVALID_TYPE];
 };
 } // namespace OHOS::DistributedKv
 #endif // OHOS_DISTRIBUTED_DATA_FRAMEWORKS_KVDB_STORE_FACTORY_H
