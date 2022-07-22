@@ -44,9 +44,9 @@ void SetUpTestCase(void)
 
 void TearDown(void)
 {
-    remove("/data/service/el1/public/database/odmf/key");
-    remove("/data/service/el1/public/database/odmf/kvdb");
-    remove("/data/service/el1/public/database/odmf");
+    (void)remove("/data/service/el1/public/database/odmf/key");
+    (void)remove("/data/service/el1/public/database/odmf/kvdb");
+    (void)remove("/data/service/el1/public/database/odmf");
 }
 
 void PutFuzz(const uint8_t *data, size_t size)
