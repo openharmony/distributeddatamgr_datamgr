@@ -51,8 +51,8 @@ void TearDown(void)
 
 void PutFuzz(const uint8_t *data, size_t size)
 {
-    std::string skey(reinterpret_cast<const char *>(data), size);
-    std::string svalue(reinterpret_cast<const char *>(data), size + 1);
+    std::string skey(data, data + size);
+    std::string svalue(data, data + size + 1);
     Key key = {skey};
     Value val = {svalue};
     singleKvStore_->Put(key, val);
@@ -61,8 +61,8 @@ void PutFuzz(const uint8_t *data, size_t size)
 
 void PutBatchFuzz(const uint8_t *data, size_t size)
 {
-    std::string skey(reinterpret_cast<const char *>(data), size);
-    std::string svalue(reinterpret_cast<const char *>(data), size);
+    std::string skey(data, data + size);
+    std::string svalue(data, data + size);
     std::vector<Entry> entries;
     std::vector<Key> keys;
     Entry entry1, entry2, entry3;
@@ -84,8 +84,8 @@ void PutBatchFuzz(const uint8_t *data, size_t size)
 
 void GetFuzz(const uint8_t *data, size_t size)
 {
-    std::string skey(reinterpret_cast<const char *>(data), size);
-    std::string svalue(reinterpret_cast<const char *>(data), size + 1);
+    std::string skey(data, data + size);
+    std::string svalue(data, data + size + 1);
     Key key = {skey};
     Value val = {svalue};
     Value val1;
@@ -96,7 +96,7 @@ void GetFuzz(const uint8_t *data, size_t size)
 
 void GetEntriesFuzz1(const uint8_t *data, size_t size)
 {
-    std::string prefix(reinterpret_cast<const char *>(data), size);
+    std::string prefix(data, data + size);
     std::string keys = "test_";
     size_t sum = 10;
     std::vector<Entry> results;
@@ -111,7 +111,7 @@ void GetEntriesFuzz1(const uint8_t *data, size_t size)
 
 void GetEntriesFuzz2(const uint8_t *data, size_t size)
 {
-    std::string prefix(reinterpret_cast<const char *>(data), size);
+    std::string prefix(data, data + size);
     DataQuery dataQuery;
     dataQuery.KeyPrefix(prefix);
     std::string keys = "test_";
@@ -128,7 +128,7 @@ void GetEntriesFuzz2(const uint8_t *data, size_t size)
 
 void GetResultSetFuzz1(const uint8_t *data, size_t size)
 {
-    std::string prefix(reinterpret_cast<const char *>(data), size);
+    std::string prefix(data, data + size);
     std::string keys = "test_";
     int position = static_cast<int>(size);
     std::shared_ptr<KvStoreResultSet> resultSet;
@@ -148,7 +148,7 @@ void GetResultSetFuzz1(const uint8_t *data, size_t size)
 
 void GetResultSetFuzz2(const uint8_t *data, size_t size)
 {
-    std::string prefix(reinterpret_cast<const char *>(data), size);
+    std::string prefix(data, data + size);
     DataQuery dataQuery;
     dataQuery.KeyPrefix(prefix);
     std::string keys = "test_";
@@ -166,7 +166,7 @@ void GetResultSetFuzz2(const uint8_t *data, size_t size)
 void GetCountFuzz1(const uint8_t *data, size_t size)
 {
     int count;
-    std::string prefix(reinterpret_cast<const char *>(data), size);
+    std::string prefix(data, data + size);
     DataQuery query;
     query.KeyPrefix(prefix);
     std::string keys = "test_";
@@ -185,7 +185,7 @@ void GetCountFuzz2(const uint8_t *data, size_t size)
     int count;
     size_t sum = 10;
     std::vector<std::string> keys;
-    std::string prefix(reinterpret_cast<const char *>(data), size);
+    std::string prefix(data, data + size);
     for (size_t i = 0; i < sum; i++) {
         keys.push_back(prefix);
     }
