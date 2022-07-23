@@ -19,15 +19,16 @@
 #include <mutex>
 #include <string>
 
-#include "rdb_types.h"
+#include "metadata/store_meta_data.h"
 #include "rdb_notifier.h"
 #include "rdb_store_observer_impl.h"
-#include "relational_store_manager.h"
+#include "rdb_types.h"
 #include "relational_store_delegate.h"
-
+#include "relational_store_manager.h"
 namespace OHOS::DistributedRdb {
 class RdbSyncer {
 public:
+    using StoreMetaData = OHOS::DistributedData::StoreMetaData;
     RdbSyncer(const RdbSyncerParam& param, RdbStoreObserverImpl* observer);
     ~RdbSyncer() noexcept;
 
@@ -49,6 +50,7 @@ public:
 
     int32_t DoAsync(const SyncOption& option, const RdbPredicates& predicates, const SyncCallback& callback);
 
+    static std::string RemoveSuffix(const std::string& name);
 private:
     std::string GetUserId() const;
 
@@ -56,9 +58,10 @@ private:
 
     std::string GetAppId() const;
 
-    std::string GetPath() const;
+    int32_t CreateMetaData(StoreMetaData &meta);
+    int32_t InitDBDelegate(const StoreMetaData &meta);
 
-    int32_t CreateMetaData();
+    int32_t GetInstIndex(uint32_t tokenId, const std::string &bundleName) const;
 
     DistributedDB::RelationalStoreDelegate* GetDelegate();
 

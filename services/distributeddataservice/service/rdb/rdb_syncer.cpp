@@ -12,24 +12,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #define LOG_TAG "RdbSyncer"
-
 #include "rdb_syncer.h"
 
+#include "accesstoken_kit.h"
 #include "account/account_delegate.h"
 #include "checker/checker_manager.h"
-#include "log_print.h"
-#include "metadata/store_meta_data.h"
-#include "metadata/meta_data_manager.h"
+#include "directory_manager.h"
 #include "kvstore_utils.h"
+#include "log_print.h"
+#include "metadata/meta_data_manager.h"
+#include "metadata/store_meta_data.h"
+#include "types.h"
+#include "utils/constant.h"
+#include "utils/converter.h"
 
 using OHOS::DistributedKv::KvStoreUtils;
 using OHOS::DistributedKv::AccountDelegate;
-using OHOS::DistributedData::StoreMetaData;
-using OHOS::DistributedData::MetaDataManager;
 using OHOS::AppDistributedKv::CommunicationProvider;
-
+using namespace OHOS::Security::AccessToken;
+using namespace OHOS::DistributedData;
 namespace OHOS::DistributedRdb {
 RdbSyncer::RdbSyncer(const RdbSyncerParam& param, RdbStoreObserverImpl* observer)
     : param_(param), observer_(observer)
@@ -84,14 +86,9 @@ std::string RdbSyncer::GetAppId() const
     return DistributedData::CheckerManager::GetInstance().GetAppId({ uid_, token_, param_.bundleName_ });
 }
 
-std::string RdbSyncer::GetPath() const
-{
-    return param_.realPath_;
-}
-
 std::string RdbSyncer::GetStoreId() const
 {
-    return param_.storeName_;
+    return RemoveSuffix(param_.storeName_);
 }
 
 int32_t RdbSyncer::Init(pid_t pid, pid_t uid, uint32_t token)
@@ -100,43 +97,63 @@ int32_t RdbSyncer::Init(pid_t pid, pid_t uid, uint32_t token)
     pid_ = pid;
     uid_ = uid;
     token_ = token;
-    if (CreateMetaData() != RDB_OK) {
+    StoreMetaData meta;
+    if (CreateMetaData(meta) != RDB_OK) {
         ZLOGE("create meta data failed");
+        return RDB_ERROR;
+    }
+    if (InitDBDelegate(meta) != RDB_OK) {
+        ZLOGE("delegate is nullptr");
         return RDB_ERROR;
     }
     ZLOGI("success");
     return RDB_OK;
 }
 
-int32_t RdbSyncer::CreateMetaData()
+int32_t RdbSyncer::CreateMetaData(StoreMetaData &meta)
 {
-    StoreMetaData newMeta;
-    newMeta.storeType = static_cast<int32_t>(RDB_DEVICE_COLLABORATION);
-    newMeta.appId = GetAppId();
-    newMeta.appType = "harmony";
-    newMeta.bundleName = GetBundleName();
-    newMeta.deviceId = CommunicationProvider::GetInstance().GetLocalDevice().uuid;
-    newMeta.storeId = GetStoreId();
-    newMeta.uid = uid_;
-    newMeta.tokenId = token_;
-    newMeta.user = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(uid_);
-    newMeta.account = AccountDelegate::GetInstance()->GetCurrentAccountId();
-    newMeta.dataDir = GetPath();
+    meta.uid = uid_;
+    meta.tokenId = token_;
+    meta.instanceId = GetInstIndex(token_, param_.bundleName_);
+    meta.bundleName = param_.bundleName_;
+    meta.deviceId = CommunicationProvider::GetInstance().GetLocalDevice().uuid;
+    meta.storeId = RemoveSuffix(param_.storeName_);
+    meta.user = AccountDelegate::GetInstance()->GetDeviceAccountIdByUID(uid_);
+    meta.storeType = param_.type_;
+    meta.securityLevel = param_.level_;
+    meta.area = param_.area_;
+    meta.appId = CheckerManager::GetInstance().GetAppId(Converter::ConvertToStoreInfo(meta));
+    meta.appType = "harmony";
+    meta.hapName = param_.hapName_;
+    meta.dataDir = DirectoryManager::GetInstance().GetStorePath(meta) + "/" + param_.storeName_;
+    meta.account = AccountDelegate::GetInstance()->GetCurrentAccountId();
 
-    auto metaKey = StoreMetaData::GetKey({ newMeta.user, "default", newMeta.bundleName, newMeta.storeId });
-    StoreMetaData oldMeta;
-    if (MetaDataManager::GetInstance().LoadMeta(metaKey, oldMeta)) {
-        if (newMeta == oldMeta) {
-            ZLOGI("ignore same meta");
-            return RDB_OK;
-        }
+    StoreMetaData old;
+    bool isCreated = MetaDataManager::GetInstance().LoadMeta(meta.GetKey(), old);
+    if (isCreated && (old.storeType != meta.storeType || Constant::NotEqual(old.isEncrypt, meta.isEncrypt) ||
+                         old.area != meta.area)) {
+        ZLOGE("meta bundle:%{public}s store:%{public}s type:%{public}d->%{public}d encrypt:%{public}d->%{public}d "
+              "area:%{public}d->%{public}d",
+            meta.bundleName.c_str(), meta.storeId.c_str(), old.storeType, meta.storeType, old.isEncrypt,
+            meta.isEncrypt, old.area, meta.area);
+        return RDB_ERROR;
     }
 
-    auto saved = MetaDataManager::GetInstance().SaveMeta(metaKey, newMeta);
+    auto saved = MetaDataManager::GetInstance().SaveMeta(meta.GetKey(), meta);
     return saved ? RDB_OK : RDB_ERROR;
 }
 
-DistributedDB::RelationalStoreDelegate* RdbSyncer::GetDelegate()
+std::string RdbSyncer::RemoveSuffix(const std::string& name)
+{
+    std::string suffix(".db");
+    auto pos = name.rfind(suffix);
+    if (pos == std::string::npos || pos < name.length() - suffix.length()) {
+        return name;
+    }
+    return std::string(name, 0, pos);
+}
+
+int32_t RdbSyncer::InitDBDelegate(const StoreMetaData &meta)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (manager_ == nullptr) {
@@ -144,21 +161,45 @@ DistributedDB::RelationalStoreDelegate* RdbSyncer::GetDelegate()
     }
     if (manager_ == nullptr) {
         ZLOGE("malloc manager failed");
-        return nullptr;
+        return RDB_ERROR;
     }
 
     if (delegate_ == nullptr) {
         DistributedDB::RelationalStoreDelegate::Option option;
         option.observer = observer_;
-        ZLOGI("path=%{public}s storeId=%{public}s", GetPath().c_str(), GetStoreId().c_str());
-        DistributedDB::DBStatus status = manager_->OpenStore(GetPath(), GetStoreId(), option, delegate_);
+        std::string fileName = meta.dataDir;
+        ZLOGI("path=%{public}s storeId=%{public}s", fileName.c_str(), meta.storeId.c_str());
+        auto status = manager_->OpenStore(fileName, meta.storeId, option, delegate_);
         if (status != DistributedDB::DBStatus::OK) {
             ZLOGE("open store failed status=%{public}d", status);
-            return nullptr;
+            return RDB_ERROR;
         }
         ZLOGI("open store success");
     }
 
+    return RDB_OK;
+}
+
+int32_t RdbSyncer::GetInstIndex(uint32_t tokenId, const std::string &bundleName) const
+{
+    if (AccessTokenKit::GetTokenTypeFlag(tokenId) != TOKEN_HAP) {
+        return 0;
+    }
+
+    HapTokenInfo tokenInfo;
+    tokenInfo.instIndex = -1;
+    int errCode = AccessTokenKit::GetHapTokenInfo(tokenId, tokenInfo);
+    if (errCode != RET_SUCCESS) {
+        ZLOGE("GetHapTokenInfo error:%{public}d, tokenId:0x%{public}x appId:%{public}s", errCode, tokenId,
+            bundleName.c_str());
+        return -1;
+    }
+    return tokenInfo.instIndex;
+}
+
+DistributedDB::RelationalStoreDelegate* RdbSyncer::GetDelegate()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
     return delegate_;
 }
 

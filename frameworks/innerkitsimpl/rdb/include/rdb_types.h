@@ -34,11 +34,11 @@ enum RdbDistributedType {
 
 struct RdbSyncerParam {
     std::string bundleName_;
-    std::string relativePath_;
+    std::string hapName_;
     std::string storeName_;
-    std::string encryptLevel_;
-    std::string realPath_;
-    int type_ = RDB_DEVICE_COLLABORATION;
+    int32_t area_ = 0;
+    int32_t level_ = 0;
+    int32_t type_ = RDB_DEVICE_COLLABORATION;
     bool isAutoSync_ = false;
 };
 
