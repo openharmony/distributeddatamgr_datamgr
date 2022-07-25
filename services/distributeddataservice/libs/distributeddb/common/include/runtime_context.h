@@ -131,13 +131,10 @@ public:
     virtual uint32_t GenerateSessionId() = 0;
 
     virtual void DumpCommonInfo(int fd) = 0;
-<<<<<<< HEAD
-=======
 
-    virtual void CloseAutoLaunchConnection(DBType type, const DBProperties &properties) = 0;
-    
     virtual int SetPermissionConditionCallback(const PermissionConditionCallback &callback) = 0;
->>>>>>> e5209216... SetPermissionConditionCallback
+
+    virtual std::map<std::string, std::string> GetPermissionCheckParam(const PermissionConditionParam &param) = 0;
 protected:
     RuntimeContext() = default;
     virtual ~RuntimeContext() {}

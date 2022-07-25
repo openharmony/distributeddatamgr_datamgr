@@ -693,8 +693,17 @@ void RuntimeContextImpl::DumpCommonInfo(int fd)
 
 int RuntimeContextImpl::SetPermissionConditionCallback(const PermissionConditionCallback &callback)
 {
-    std::lock_guard<std::mutex> autoLock(permissionConditionLock_);
+    std::unique_lock<std::shared_mutex> autoLock(permissionConditionLock_);
     permissionConditionCallback_ = callback;
     return E_OK;
+}
+
+std::map<std::string, std::string> RuntimeContextImpl::GetPermissionCheckParam(const PermissionConditionParam &param)
+{
+    std::shared_lock<std::shared_mutex> autoLock(permissionConditionLock_);
+    if (permissionConditionCallback_ == nullptr) {
+        return {};
+    }
+    return permissionConditionCallback_(param);
 }
 } // namespace DistributedDB
