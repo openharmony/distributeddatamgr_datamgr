@@ -80,7 +80,7 @@ public:
 
     virtual int SetPermissionCheckCallback(const PermissionCheckCallbackV3 &callback) = 0;
 
-    virtual int RunPermissionCheck(const CheckParam &param, uint8_t flag) const = 0;
+    virtual int RunPermissionCheck(const PermissionCheckParam &param, uint8_t flag) const = 0;
 
     virtual int EnableKvStoreAutoLaunch(const KvDBProperties &properties, AutoLaunchNotifier notifier,
         const AutoLaunchOption &option) = 0;
@@ -118,7 +118,9 @@ public:
 
     virtual int SetSyncActivationCheckCallback(const SyncActivationCheckCallback &callback) = 0;
 
-    virtual bool IsSyncerNeedActive(std::string &userId, std::string &appId, std::string &storeId) const = 0;
+    virtual int SetSyncActivationCheckCallback(const SyncActivationCheckCallbackV2 &callback) = 0;
+
+    virtual bool IsSyncerNeedActive(const DBProperties &properies) const = 0;
 
     virtual NotificationChain::Listener *RegisterUserChangedListerner(const UserChangedAction &action,
         EventType event) = 0;

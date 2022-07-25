@@ -377,7 +377,7 @@ int RuntimeContextImpl::SetPermissionCheckCallback(const PermissionCheckCallback
     return E_OK;
 }
 
-int RuntimeContextImpl::RunPermissionCheck(const CheckParam &param, uint8_t flag) const
+int RuntimeContextImpl::RunPermissionCheck(const PermissionCheckParam &param, uint8_t flag) const
 {
     bool checkResult = false;
     std::shared_lock<std::shared_mutex> autoLock(permissionCheckCallbackMutex_);
@@ -617,11 +617,27 @@ int RuntimeContextImpl::SetSyncActivationCheckCallback(const SyncActivationCheck
     return E_OK;
 }
 
-bool RuntimeContextImpl::IsSyncerNeedActive(std::string &userId, std::string &appId, std::string &storeId) const
+int RuntimeContextImpl::SetSyncActivationCheckCallback(const SyncActivationCheckCallbackV2 &callback)
 {
+    std::unique_lock<std::shared_mutex> writeLock(syncActivationCheckCallbackMutex_);
+    syncActivationCheckCallbackV2_ = callback;
+    LOGI("SetSyncActivationCheckCallback ok");
+    return E_OK;
+}
+
+bool RuntimeContextImpl::IsSyncerNeedActive(const DBProperties &properies) const
+{
+    ActivationCheckParam param = { 
+        properies.GetStringProp(DBProperties::USER_ID, ""),
+        properies.GetStringProp(DBProperties::APP_ID, ""),
+        properies.GetStringProp(DBProperties::STORE_ID, ""),
+        properies.GetIntProp(DBProperties::INSTANCE_ID, 0)
+    };
     std::shared_lock<std::shared_mutex> autoLock(syncActivationCheckCallbackMutex_);
-    if (syncActivationCheckCallback_) {
-        return syncActivationCheckCallback_(userId, appId, storeId);
+    if (syncActivationCheckCallbackV2_) {
+        return syncActivationCheckCallbackV2_(param);
+    } else if (syncActivationCheckCallback_) {
+        return syncActivationCheckCallback_(param.userId, param.appId, param.storeId);
     }
     return true;
 }

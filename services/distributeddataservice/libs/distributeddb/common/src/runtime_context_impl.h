@@ -69,7 +69,7 @@ public:
 
     int SetPermissionCheckCallback(const PermissionCheckCallbackV3 &callback) override;
 
-    int RunPermissionCheck(const CheckParam &param, uint8_t flag) const override;
+    int RunPermissionCheck(const PermissionCheckParam &param, uint8_t flag) const override;
 
     int EnableKvStoreAutoLaunch(const KvDBProperties &properties, AutoLaunchNotifier notifier,
         const AutoLaunchOption &option) override;
@@ -107,7 +107,9 @@ public:
 
     int SetSyncActivationCheckCallback(const SyncActivationCheckCallback &callback) override;
 
-    bool IsSyncerNeedActive(std::string &userId, std::string &appId, std::string &storeId) const override;
+    int SetSyncActivationCheckCallback(const SyncActivationCheckCallbackV2 &callback) override;
+
+    bool IsSyncerNeedActive(const DBProperties &properies) const override;
 
     // Register a user changed lister, it will be callback when user change.
     NotificationChain::Listener *RegisterUserChangedListerner(const UserChangedAction &action,

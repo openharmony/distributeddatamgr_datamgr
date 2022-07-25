@@ -130,6 +130,13 @@ struct ActivationCheckParam {
     int32_t instanceId = 0;
 };
 
+struct PermissionConditionParam {
+    std::string userId;
+    std::string appId;
+    std::string storeId;
+    int32_t instanceId = 0;
+};
+
 using PermissionCheckCallback = std::function<bool (const std::string &userId, const std::string &appId,
     const std::string &storeId, uint8_t flag)>;
 
@@ -145,6 +152,9 @@ using SyncActivationCheckCallback = std::function<bool (const std::string &userI
     const std::string &storeId)>;
 
 using SyncActivationCheckCallbackV2 = std::function<bool (const ActivationCheckParam &param)>;
+
+using PermissionConditionCallback =
+    std::function<std::map<std::string, std::string> (const PermissionConditionParam &param)>;
 
 enum AutoLaunchStatus {
     WRITE_OPENED = 1,

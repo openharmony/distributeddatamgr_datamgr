@@ -235,7 +235,9 @@ int RemoteExecutor::CheckPermissions(const std::string &device)
     std::string appId = storage->GetDbProperties().GetStringProp(DBProperties::APP_ID, "");
     std::string userId = storage->GetDbProperties().GetStringProp(DBProperties::USER_ID, "");
     std::string storeId = storage->GetDbProperties().GetStringProp(DBProperties::STORE_ID, "");
-    int errCode = RuntimeContext::GetInstance()->RunPermissionCheck(userId, appId, storeId, device, CHECK_FLAG_SEND);
+    int32_t instanceId = syncInterface_->GetDbProperties().GetIntProp(DBProperties::INSTANCE_ID, 0);
+    int errCode = RuntimeContext::GetInstance()->RunPermissionCheck(
+        { userId, appId, storeId, device, instanceId }, CHECK_FLAG_SEND);
     if (errCode != E_OK) {
         LOGE("[RemoteExecutor][CheckPermissions] check permission errCode = %d.", errCode);
     }
