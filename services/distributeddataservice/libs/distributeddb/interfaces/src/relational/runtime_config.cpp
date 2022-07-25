@@ -115,5 +115,12 @@ bool RuntimeConfig::IsProcessSystemApiAdapterValid()
 {
     return RuntimeContext::GetInstance()->IsProcessSystemApiAdapterValid();
 }
+
+DBStatus RuntimeConfig::SetSyncActivationCheckCallback(const SyncActivationCheckCallbackV2 &callback)
+{
+    std::lock_guard<std::mutex> lock(multiUserMutex_);
+    int errCode = RuntimeContext::GetInstance()->SetSyncActivationCheckCallback(callback);
+    return TransferDBErrno(errCode);
+}
 } // namespace DistributedDB
 #endif

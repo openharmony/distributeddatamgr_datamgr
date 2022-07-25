@@ -42,6 +42,8 @@ public:
 
     DB_API static DBStatus SetSyncActivationCheckCallback(const SyncActivationCheckCallback &callback);
 
+    DB_API static DBStatus SetSyncActivationCheckCallback(const SyncActivationCheckCallbackV2 &callback);
+
     DB_API static DBStatus NotifyUserChanged();
 
     DB_API static bool IsProcessSystemApiAdapterValid();
