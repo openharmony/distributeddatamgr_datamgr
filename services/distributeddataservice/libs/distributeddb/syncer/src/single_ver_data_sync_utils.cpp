@@ -177,11 +177,8 @@ int SingleVerDataSyncUtils::RunPermissionCheck(SingleVerSyncTaskContext *context
             flag = CHECK_FLAG_RECEIVE;
             break;
     }
-    int errCode = E_OK;
-    if (storage->GetInterfaceType() != ISyncInterface::SYNC_RELATION) {
-        errCode = RuntimeContext::GetInstance()->RunPermissionCheck(userId, appId, storeId, context->GetDeviceId(),
-            flag);
-    }
+    int errCode = RuntimeContext::GetInstance()->RunPermissionCheck(userId, appId, storeId, context->GetDeviceId(),
+        flag);
     if (errCode != E_OK) {
         LOGE("[DataSync][RunPermissionCheck] check failed flag=%" PRIu8 ",Label=%s,dev=%s", flag, label.c_str(),
             STR_MASK(context->GetDeviceId()));

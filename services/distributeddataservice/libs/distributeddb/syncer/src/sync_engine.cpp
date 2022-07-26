@@ -625,12 +625,8 @@ int SyncEngine::ExecSyncTask(ISyncTaskContext *context)
     context->SetTaskExecStatus(ISyncTaskContext::RUNNING);
     if (!context->IsTargetQueueEmpty()) {
         context->MoveToNextTarget();
-        int checkErrCode = E_OK;
-        // rdb don't support PermissionCheck
-        if (syncInterface_->GetInterfaceType() != ISyncInterface::SYNC_RELATION) {
-            checkErrCode = RunPermissionCheck(context->GetDeviceId(),
-                GetPermissionCheckFlag(context->IsAutoSync(), context->GetMode()));
-        }
+        int checkErrCode = RunPermissionCheck(context->GetDeviceId(),
+            GetPermissionCheckFlag(context->IsAutoSync(), context->GetMode()));
         if (checkErrCode != E_OK) {
             context->SetOperationStatus(SyncOperation::OP_PERMISSION_CHECK_FAILED);
             context->SetTaskExecStatus(ISyncTaskContext::FINISHED);

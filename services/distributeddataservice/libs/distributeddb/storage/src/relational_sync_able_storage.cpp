@@ -222,9 +222,9 @@ int RelationalSyncAbleStorage::GetAllMetaKeys(std::vector<Key> &keys) const
     return errCode;
 }
 
-const KvDBProperties &RelationalSyncAbleStorage::GetDbProperties() const
+const RelationalDBProperties &RelationalSyncAbleStorage::GetDbProperties() const
 {
-    return properties_;
+    return storageEngine_->GetProperties();
 }
 
 static int GetKvEntriesByDataItems(std::vector<SingleVerKvEntry *> &entries, std::vector<DataItem> &dataItems)

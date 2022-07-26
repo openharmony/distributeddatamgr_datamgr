@@ -66,7 +66,7 @@ public:
     // Get all meta data keys.
     virtual int GetAllMetaKeys(std::vector<Key> &keys) const = 0;
 
-    virtual const KvDBProperties &GetDbProperties() const = 0;
+    virtual const DBProperties &GetDbProperties() const = 0;
 };
 } // namespace DistributedDB
 

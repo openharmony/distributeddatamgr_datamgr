@@ -63,7 +63,7 @@ public:
     // Get all meta data keys.
     int GetAllMetaKeys(std::vector<Key> &keys) const override;
 
-    const KvDBProperties &GetDbProperties() const override;
+    const RelationalDBProperties &GetDbProperties() const override;
 
     // Get the data which would be synced with query condition
     int GetSyncData(QueryObject &query, const SyncTimeRange &timeRange,
