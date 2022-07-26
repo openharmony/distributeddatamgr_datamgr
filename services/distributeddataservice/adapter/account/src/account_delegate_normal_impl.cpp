@@ -127,14 +127,17 @@ void AccountDelegateNormalImpl::SubscribeAccountEvent()
 AccountDelegateNormalImpl::~AccountDelegateNormalImpl()
 {
     ZLOGD("destruct");
-    UnSubscribeAccountEvent();
+    auto res = CommonEventManager::UnSubscribeCommonEvent(eventSubscriber_);
+    if (!res) {
+        ZLOGW("unregister account event fail res:%d", res);
+    }
 }
 
 void AccountDelegateNormalImpl::UnSubscribeAccountEvent()
 {
     auto res = CommonEventManager::UnSubscribeCommonEvent(eventSubscriber_);
     if (!res) {
-        ZLOGE("unregister account event fail res:%d", res);
+        ZLOGW("unregister account event fail res:%d", res);
     }
 }
 
