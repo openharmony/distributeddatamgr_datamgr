@@ -834,7 +834,7 @@ void KvStoreDataService::OnAddSystemAbility(int32_t systemAbilityId, const std::
     Uninstaller::GetInstance().Init(this);
 }
 
-void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
+void KvStoreDataService::OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
 {
     ZLOGI("remove system abilityid:%{public}s", systemAbilityId);
     (void)deviceId;
