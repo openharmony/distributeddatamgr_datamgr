@@ -36,6 +36,7 @@ ohos_unittest("ConfigFactoryTest") {
   external_deps = [
     "ability_base:base",
     "ability_base:want",
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
@@ -47,7 +48,6 @@ ohos_unittest("ConfigFactoryTest") {
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/service:distributeddatasvc",
     "//third_party/googletest:gtest_main",
     "//third_party/openssl:libcrypto_shared",
-    "//utils/native/base:utils",
   ]
 }
 
@@ -62,6 +62,7 @@ ohos_unittest("DirectoryManagerTest") {
     "ability_base:want",
     "access_token:libaccesstoken_sdk",
     "access_token:libnativetoken",
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
@@ -72,7 +73,6 @@ ohos_unittest("DirectoryManagerTest") {
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/framework:distributeddatasvcfwk",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/service:distributeddatasvc",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utils",
   ]
 }
 

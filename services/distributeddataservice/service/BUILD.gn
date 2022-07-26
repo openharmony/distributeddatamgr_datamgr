@@ -77,11 +77,11 @@ ohos_shared_library("distributeddatasvc") {
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter:distributeddata_adapter",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/framework:distributeddatasvcfwk",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/libs/distributeddb:distributeddb",
-    "//utils/native/base:utils",
   ]
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "c_utils:utils",
     "device_auth:deviceauth_sdk",
     "hiviewdfx_hilog_native:libhilog",
     "huks:libhukssdk",

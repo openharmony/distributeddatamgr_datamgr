@@ -20,7 +20,7 @@ ohos_static_library("distributeddata_permission_static") {
   include_dirs = [
     "../include/permission",
     "../include/utils",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//foundation/distributeddatamgr/distributeddatamgr/frameworks/common",
     "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/distributeddata/include",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/framework/include",
@@ -30,13 +30,11 @@ ohos_static_library("distributeddata_permission_static") {
     cflags_cc += [ "-DCONFIG_PUBLIC_VERSION" ]
   }
   ldflags = [ "-Wl,--exclude-libs,ALL" ]
-  deps = [
-    "../utils:distributeddata_utils_static",
-    "//utils/native/base:utils",
-  ]
+  deps = [ "../utils:distributeddata_utils_static" ]
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "samgr_standard:samgr_proxy",

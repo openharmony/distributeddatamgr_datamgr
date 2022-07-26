@@ -31,7 +31,7 @@ ohos_static_library("distributeddata_communicator_static") {
   ]
 
   include_dirs = [
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "../include/communicator",
     "../include/dfx",
     "../include/log",
@@ -46,10 +46,10 @@ ohos_static_library("distributeddata_communicator_static") {
   deps = [
     "../dfx:distributeddata_dfx_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/libs/distributeddb:distributeddb",
-    "//utils/native/base:utils",
   ]
 
   external_deps = [
+    "c_utils:utils",
     "dsoftbus:softbus_client",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",

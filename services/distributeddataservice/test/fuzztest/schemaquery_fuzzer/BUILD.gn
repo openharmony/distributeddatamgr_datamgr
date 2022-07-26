@@ -21,7 +21,7 @@ ohos_fuzztest("SchemaQueryFuzzTest") {
 
   include_dirs = [
     "//foundation/distributeddatamgr/distributeddatamgr/interfaces/innerkits/distributeddata/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//third_party/jsoncpp/include/json",
     "//third_party/skia/third_party/externals/spirv-headers/tools/buildHeaders/jsoncpp/dist/json",
     "//third_party/skia/third_party/externals/swiftshader/third_party/SPIRV-Headers/tools/buildHeaders/jsoncpp/dist/json",
@@ -48,7 +48,6 @@ ohos_fuzztest("SchemaQueryFuzzTest") {
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/libs/distributeddb:distributeddb",
     "//third_party/jsoncpp:jsoncpp",
     "//third_party/openssl:libcrypto_shared",
-    "//utils/native/base:utils",
   ]
 
   defines = [
@@ -68,6 +67,7 @@ ohos_fuzztest("SchemaQueryFuzzTest") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]

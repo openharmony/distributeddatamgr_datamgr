@@ -27,7 +27,7 @@ ohos_static_library("distributeddata_uninstaller_static") {
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/framework/include",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/service/kvdb",
     "//third_party/json/single_include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//base/security/huks/interfaces/innerkits/huks_standard/main/include",
   ]
 
@@ -37,11 +37,11 @@ ohos_static_library("distributeddata_uninstaller_static") {
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter:distributeddata_adapter",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/framework:distributeddatasvcfwk",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/libs/distributeddb:distributeddb",
-    "//utils/native/base:utils",
   ]
 
   external_deps = [
     "bundle_framework:appexecfwk_base",
+    "c_utils:utils",
 
     # "ces:libcommonevent",
     "ability_base:want",

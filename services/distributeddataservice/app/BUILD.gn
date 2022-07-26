@@ -63,7 +63,7 @@ config("module_private_config") {
     "../adapter/include",
 
     # for ipc_core interfaces.
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "include",
     "src",
     "src/security",
@@ -112,7 +112,6 @@ ohos_shared_library("distributeddataservice") {
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/framework:distributeddatasvcfwk",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/libs/distributeddb:distributeddb",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/service:distributeddatasvc",
-    "//utils/native/base:utils",
   ]
 
   external_deps = [
@@ -121,6 +120,7 @@ ohos_shared_library("distributeddataservice") {
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
     "dataclassification:data_transit_mgr",
     "device_auth:deviceauth_sdk",
     "hitrace_native:libhitrace",

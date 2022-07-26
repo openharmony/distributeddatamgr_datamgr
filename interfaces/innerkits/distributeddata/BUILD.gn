@@ -33,7 +33,7 @@ config("distributeddatafwk_config") {
     "../../../frameworks/innerkitsimpl/kvdb/include",
     "../../../frameworks/innerkitsimpl/kvdb/src",
     "//utils/system/safwk/native/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "${datashare_innerapi_path}/common/include",
     "${datashare_innerapi_path}/provider/include",
     "//foundation/distributeddatamgr/distributedfile/interfaces/kits/js/src/mod_securitylabel",
@@ -48,7 +48,7 @@ config("distributeddatafwk_public_config") {
     "../../../frameworks/innerkitsimpl/rdb/include",
     "../../../frameworks/innerkitsimpl/object/include",
     "../../../frameworks/innerkitsimpl/distributeddatafwk/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
   ]
 }
 
@@ -114,9 +114,9 @@ ohos_shared_library("distributeddata_inner") {
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter:distributeddata_adapter",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/adapter/utils:distributeddata_utils_static",
     "//foundation/distributeddatamgr/distributeddatamgr/services/distributeddataservice/libs/distributeddb:distributeddb",
-    "//utils/native/base:utils",
   ]
   external_deps = [
+    "c_utils:utils",
     "dataclassification:data_transit_mgr",
     "dsoftbus:softbus_client",
     "hitrace_native:libhitrace",

@@ -35,7 +35,7 @@ ohos_static_library("distributeddata_dfx_static") {
     "../include/dfx",
     "../include/log",
     "../include/autils",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//foundation/distributeddatamgr/distributeddatamgr/frameworks/common",
     "//third_party/openssl/include/",
   ]
@@ -45,9 +45,9 @@ ohos_static_library("distributeddata_dfx_static") {
   deps = [
     "../autils:distributeddata_autils_static",
     "//third_party/openssl:libcrypto_shared",
-    "//utils/native/base:utils",
   ]
   external_deps = [
+    "c_utils:utils",
     "hisysevent_native:libhisysevent",
     "hitrace_native:hitrace_meter",
     "hitrace_native:libhitrace",
