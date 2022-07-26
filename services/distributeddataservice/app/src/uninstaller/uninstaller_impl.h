@@ -41,6 +41,8 @@ public:
 
     Status Init(KvStoreDataService *kvStoreDataService) override;
 
+    void UnSubscribeEvent() override;
+
 private:
     std::shared_ptr<UninstallEventSubscriber> subscriber_ {};
 };

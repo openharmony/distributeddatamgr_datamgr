@@ -93,6 +93,10 @@ public:
 
     void OnStop() override;
 
+    void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
+
+    void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
+
     Status DeleteKvStoreOnly(const StoreMetaData &metaData);
 
     void AccountEventChanged(const AccountEventInfo &eventInfo);
