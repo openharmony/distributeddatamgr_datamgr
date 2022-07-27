@@ -185,7 +185,7 @@ HWTEST_F(DirectoryManagerTest, GetRDBBackupPath, TestSize.Level0)
     AccessTokenKit::GetHapTokenInfo(metaData.tokenId, tokenInfo);
     metaData.appId = tokenInfo.appID;
     auto path = DirectoryManager::GetInstance().GetStoreBackupPath(metaData);
-    EXPECT_EQ(path, metaData.dataDir + "/backup");
+    EXPECT_EQ(path, metaData.dataDir + "/rdb/backup");
 }
 /**
 * @tc.name: GetKVDBBackupPath

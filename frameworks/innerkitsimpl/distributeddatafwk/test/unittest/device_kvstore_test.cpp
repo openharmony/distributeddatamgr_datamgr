@@ -293,7 +293,6 @@ HWTEST_F(DeviceKvStoreTest, GetPrefixQueryEntriesAndResultSet, TestSize.Level1)
 
     // prepare 10
     size_t sum = 10;
-    int sumGet = 10;
     std::string prefix = "prefix_";
     for (size_t i = 0; i < sum; i++) {
         kvStore_->Put({prefix + std::to_string(i)}, {std::to_string(i)});
@@ -301,10 +300,10 @@ HWTEST_F(DeviceKvStoreTest, GetPrefixQueryEntriesAndResultSet, TestSize.Level1)
 
     DataQuery dataQuery;
     dataQuery.KeyPrefix(GetKey(prefix));
-    dataQuery.Limit(10, 0);
+    int sumGet = 0;
     kvStore_->GetCount(dataQuery, sumGet);
     EXPECT_EQ(sumGet, sum) << "count is not equal 10.";
-
+    dataQuery.Limit(10, 0);
     std::vector<Entry> results;
     kvStore_->GetEntries(dataQuery, results);
     EXPECT_EQ(results.size(), sum) << "entries size is not equal 10.";
@@ -313,6 +312,59 @@ HWTEST_F(DeviceKvStoreTest, GetPrefixQueryEntriesAndResultSet, TestSize.Level1)
     Status status = kvStore_->GetResultSet(dataQuery, resultSet);
     EXPECT_EQ(status, Status::SUCCESS);
     EXPECT_EQ(resultSet->GetCount(), sumGet) << "resultSet size is not equal 10.";
+    resultSet->IsFirst();
+    resultSet->IsAfterLast();
+    resultSet->IsBeforeFirst();
+    resultSet->MoveToPosition(1);
+    resultSet->IsLast();
+    resultSet->MoveToPrevious();
+    resultSet->MoveToNext();
+    resultSet->MoveToLast();
+    resultSet->MoveToFirst();
+    resultSet->GetPosition();
+    Entry entry;
+    resultSet->GetEntry(entry);
+
+    for (size_t i = 0; i < sum; i++) {
+        kvStore_->Delete({GetKey(prefix + std::to_string(i))});
+    }
+
+    status = kvStore_->CloseResultSet(resultSet);
+    EXPECT_EQ(status, Status::SUCCESS) << "Close resultSet failed.";
+}
+
+/**
+* @tc.name: GetInKeysQueryResultSet
+* @tc.desc: get entries and result set by prefix query.
+* @tc.type: FUNC
+* @tc.require: I5DE2A
+* @tc.author: Sven Wang
+*/
+HWTEST_F(DeviceKvStoreTest, GetInKeysQueryResultSet, TestSize.Level1)
+{
+    EXPECT_NE(kvStore_, nullptr) << "kvStore is nullptr.";
+    if (options_.baseDir.empty()) {
+        return;
+    }
+
+    // prepare 10
+    size_t sum = 10;
+
+    std::string prefix = "prefix_";
+    for (size_t i = 0; i < sum; i++) {
+        kvStore_->Put({prefix + std::to_string(i)}, {std::to_string(i)});
+    }
+
+    DataQuery dataQuery;
+    dataQuery.InKeys({"prefix_0", "prefix_1", "prefix_3", "prefix_9"});
+    int sumGet = 0;
+    kvStore_->GetCount(dataQuery, sumGet);
+    EXPECT_EQ(sumGet, 4) << "count is not equal 4.";
+    dataQuery.Limit(10, 0);
+    std::shared_ptr<KvStoreResultSet> resultSet;
+    Status status = kvStore_->GetResultSet(dataQuery, resultSet);
+    EXPECT_EQ(status, Status::SUCCESS);
+    EXPECT_EQ(resultSet->GetCount(), sumGet) << "resultSet size is not equal 4.";
     resultSet->IsFirst();
     resultSet->IsAfterLast();
     resultSet->IsBeforeFirst();
