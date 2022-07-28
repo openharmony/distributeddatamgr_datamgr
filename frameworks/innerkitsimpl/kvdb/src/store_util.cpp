@@ -165,7 +165,7 @@ bool StoreUtil::InitPath(const std::string &path)
 
 bool StoreUtil::CreateFile(const std::string &name)
 {
-    auto fp = fopen(name.c_str(), "wb+");
+    auto fp = fopen(name.c_str(), "a+");
     if (fp == nullptr) {
         ZLOGE("fopen error:%{public}d, path:%{public}s", errno, name.c_str());
         return false;

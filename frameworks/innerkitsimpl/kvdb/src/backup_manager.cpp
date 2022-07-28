@@ -102,8 +102,7 @@ bool BackupManager::PrepareBackupFile(std::string &name, std::string &backupPath
 
     std::vector<StoreUtil::FileInfo> fileInfos;
     (void)StoreUtil::GetFiles(backupPath, fileInfos);
-    bool fileExist = MatchedInFiles(backupName, fileInfos);
-    if (!fileExist) {
+    if (!MatchedInFiles(backupName, fileInfos)) {
         if (fileInfos.size() >= MAX_BACKUP_NUM) {
             return false;
         }
