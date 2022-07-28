@@ -534,7 +534,8 @@ napi_value JsKVStore::DeleteBackup(napi_env env, napi_callback_info info)
 
     auto execute = [ctxt]() {
         auto jsKvStore = reinterpret_cast<JsKVStore*>(ctxt->native);
-        Status status = jsKvStore->kvStore_->DeleteBackup(ctxt->files, jsKvStore->GetContextParam()->baseDir, ctxt->results);
+        Status status = jsKvStore->kvStore_->DeleteBackup(ctxt->files,
+            jsKvStore->GetContextParam()->baseDir, ctxt->results);
         ZLOGD("kvStore->DeleteBackup return %{public}d", status);
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
         CHECK_STATUS_RETURN_VOID(ctxt, "kvStore->DeleteBackup() failed!");

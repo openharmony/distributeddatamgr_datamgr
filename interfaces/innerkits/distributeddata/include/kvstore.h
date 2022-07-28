@@ -16,9 +16,9 @@
 #ifndef KVSTORE_H
 #define KVSTORE_H
 
+#include <map>
 #include "kvstore_observer.h"
 #include "types.h"
-#include <map>
 
 namespace OHOS {
 namespace DistributedKv {

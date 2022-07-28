@@ -17,6 +17,7 @@
 #include <random>
 
 #include "file_ex.h"
+#include "securec.h"
 #include "store_util.h"
 namespace OHOS::DistributedKv {
 SecurityManager &SecurityManager::GetInstance()
@@ -25,7 +26,8 @@ SecurityManager &SecurityManager::GetInstance()
     return instance;
 }
 
-SecurityManager::DBPassword SecurityManager::GetKey(const std::string &name, const std::string &path, bool createIfNotExit)
+SecurityManager::DBPassword SecurityManager::GetKey(const std::string &name,
+    const std::string &path, bool createIfNotExit)
 {
     auto secKey = LoadKeyFormFile(name, path);
     if (secKey.empty()) {

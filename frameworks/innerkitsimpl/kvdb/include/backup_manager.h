@@ -26,8 +26,7 @@ namespace OHOS::DistributedKv {
 class BackupManager {
 public:
     using DBStore = DistributedDB::KvStoreNbDelegate;
-    struct ResidueInfo
-    {
+    struct ResidueInfo {
         size_t tmpBackupFileSize;
         size_t tmpKeyFileSize;
         bool haveRawBackupFile;
@@ -47,6 +46,7 @@ private:
     BackupManager();
     ~BackupManager();
     bool MatchedInFiles(std::string &file, std::vector<StoreUtil::FileInfo> &fileInfos);
+    bool PrepareBackupFile(std::string &name, std::string &backupPath, bool &isCreated);
     void GetLatestFile(std::string &name, std::vector<StoreUtil::FileInfo> &fileInfos);
     bool HaveResidueFile(std::vector<StoreUtil::FileInfo> fileList);
     bool HaveResidueKey(std::vector<StoreUtil::FileInfo> fileList, std::string &storeId);

@@ -1433,8 +1433,7 @@ int SQLiteSingleVerNaturalStore::Import(const std::string &filePath, const Ciphe
     }
 
     // stop the syncer
-    int errCode;
-    errCode = storageEngine_->TryToDisable(false, OperatePerm::IMPORT_MONOPOLIZE_PERM);
+    int errCode = storageEngine_->TryToDisable(false, OperatePerm::IMPORT_MONOPOLIZE_PERM);
     if (errCode != E_OK) {
         return errCode;
     }

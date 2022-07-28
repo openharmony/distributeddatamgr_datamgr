@@ -170,7 +170,7 @@ bool StoreUtil::CreateFile(const std::string &name)
         ZLOGE("fopen error:%{public}d, path:%{public}s", errno, name.c_str());
         return false;
     }
-    fclose(fp);
+    (void)fclose(fp);
     return true;
 }
 
@@ -187,7 +187,7 @@ bool StoreUtil::GetSubPath(const std::string &path, std::vector<std::string> &su
             subPaths.push_back(dp->d_name);
         }
     }
-    closedir(dirp);
+    (void)closedir(dirp);
     return true;
 }
 
@@ -201,13 +201,12 @@ bool StoreUtil::GetFiles(const std::string &path, std::vector<struct FileInfo> &
     struct dirent *dp;
     FileInfo fileInfo;
     while ((dp = readdir(dirp)) != nullptr) {
-        if (dp->d_type == DT_REG)
-        {
+        if (dp->d_type == DT_REG) {
             struct stat fileStat;
             auto fullName = path + "/" + dp->d_name;
             stat(fullName.c_str(), &fileStat);
 
-            memset_s(&fileInfo ,sizeof(FileInfo), 0 ,sizeof(FileInfo));
+            memset_s(&fileInfo, sizeof(FileInfo), 0, sizeof(FileInfo));
             fileInfo.name = dp->d_name;
             fileInfo.modifyTime = fileStat.st_mtim.tv_sec;
             fileInfo.size = fileStat.st_size;

@@ -21,7 +21,9 @@
 namespace OHOS::DistributedKv {
 namespace {
 constexpr const char *BACKUP_POSTFIX = ".backup";
+constexpr const int BACKUP_POSTFIX_SIZE = 7;
 constexpr const char *BACKUP_TMP_POSTFIX = ".bk";
+constexpr const int BACKUP_TMP_POSTFIX_SIZE = 3;
 constexpr const char *BACKUP_KEY_POSTFIX = ".key";
 constexpr const char *BACKUP_KEY_PREFIX = "Prefix_backup_";
 constexpr const char *AUTO_BACKUP_NAME = "autoBackup";
@@ -92,6 +94,28 @@ void BackupManager::Prepare(std::string path, std::string &storeId, bool isAutoB
     }
 }
 
+bool BackupManager::PrepareBackupFile(std::string &name, std::string &backupPath, bool &isCreated)
+{
+    std::string backupName = name + BACKUP_POSTFIX;
+    std::string backupFullName = backupPath + "/"+ backupName;
+    std::string backupTmpName = backupName + BACKUP_TMP_POSTFIX;
+
+    std::vector<StoreUtil::FileInfo> fileInfos;
+    (void)StoreUtil::GetFiles(backupPath, fileInfos);
+    bool fileExist = MatchedInFiles(backupName, fileInfos);
+    if (!fileExist) {
+        if (fileInfos.size() >= MAX_BACKUP_NUM) {
+            return false;
+        }
+        StoreUtil::CreateFile(backupTmpName);
+        isCreated = true;
+    } else {
+        StoreUtil::Rename(backupFullName, backupTmpName);
+        isCreated = false;
+    }
+    return true;
+}
+
 Status BackupManager::Backup(std::string &name, std::string &baseDir, std::string &storeId,
     std::shared_ptr<DBStore> &dbStore)
 {
@@ -99,35 +123,26 @@ Status BackupManager::Backup(std::string &name, std::string &baseDir, std::strin
         return INVALID_ARGUMENT;
     }
     std::string path = baseDir + BACKUP_TOP_PATH + "/" + storeId;
-    std::string backName = name + BACKUP_POSTFIX;
-    std::string backFullName = path + "/"+ backName;
-    std::string backupTmpName = backFullName + BACKUP_TMP_POSTFIX;
-    std::vector<StoreUtil::FileInfo> fileInfos;
-    (void)StoreUtil::GetFiles(path, fileInfos);
-    bool fileExist = MatchedInFiles(backName, fileInfos);
-    if (!fileExist) {
-        if (fileInfos.size() >= MAX_BACKUP_NUM) {
-            return ERROR;
-        }
-        StoreUtil::CreateFile(backupTmpName);
-    } else {
-        StoreUtil::Rename(backFullName, backupTmpName);
+    std::string backupFullName = path + "/" + name + BACKUP_POSTFIX;
+    std::string backupTmpName = backupFullName + BACKUP_TMP_POSTFIX;
+    bool isFirstBackup = false;
+    if (!PrepareBackupFile(name, path, isFirstBackup)) {
+        return ERROR;
     }
 
     auto password = SecurityManager::GetInstance().GetKey(storeId, baseDir);
-    ZLOGI("restore, password : size : %{public}zu, data : %{pubilc}s", password.GetSize(), password.GetData());
     std::string keyName = BACKUP_KEY_PREFIX + storeId + "_" + name;
     std::string keyFullName = baseDir + KEY_PATH + "/" + keyName + BACKUP_KEY_POSTFIX;
     std::string keyTmpName = keyFullName + BACKUP_TMP_POSTFIX;
     if (password.GetSize() != 0) {
-        if (fileExist) {
+        if (isFirstBackup) {
             StoreUtil::Rename(keyFullName, keyTmpName);
         } else {
             StoreUtil::CreateFile(keyTmpName);
         }
     }
 
-    auto dbStatus = dbStore->Export(backFullName, password);
+    auto dbStatus = dbStore->Export(backupFullName, password);
     auto status = StoreUtil::ConvertStatus(dbStatus);
     if (status == SUCCESS) {
         if (password.GetSize() != 0) {
@@ -138,14 +153,14 @@ Status BackupManager::Backup(std::string &name, std::string &baseDir, std::strin
         }
         StoreUtil::Remove(backupTmpName);
     } else {
-        if (fileExist) {
-            StoreUtil::Remove(backFullName);
-            StoreUtil::Rename(backupTmpName, backFullName);
+        if (isFirstBackup) {
+            StoreUtil::Remove(backupFullName);
+            StoreUtil::Rename(backupTmpName, backupFullName);
             if (password.GetSize() != 0) {
                 StoreUtil::Rename(keyTmpName, keyFullName);
             }
         } else {
-            StoreUtil::Remove(backFullName);
+            StoreUtil::Remove(backupFullName);
             StoreUtil::Remove(backupTmpName);
             if (password.GetSize() != 0) {
                 StoreUtil::Remove(keyTmpName);
@@ -243,9 +258,11 @@ void BackupManager::BuildResidueInfo(std::vector<StoreUtil::FileInfo> &fileList,
     for (auto &file : fileList) {
         std::string backupName;
         if (IsEndWith(file.name, BACKUP_TMP_POSTFIX)) {
-            backupName = file.name.substr(0, file.name.length() - 10);
+            backupName = file.name.substr(0,
+                file.name.length() - (BACKUP_POSTFIX_SIZE + BACKUP_TMP_POSTFIX_SIZE));
         } else {
-            backupName = file.name.substr(0, file.name.length() - 7);
+            backupName = file.name.substr(0,
+                file.name.length() - BACKUP_POSTFIX_SIZE);
         }
 
         auto it = backupResidueInfo_.find(backupName);
@@ -281,10 +298,10 @@ void BackupManager::BuildResidueInfo(std::vector<StoreUtil::FileInfo> &fileList,
 
 void BackupManager::ClearResidueFile(const std::string &baseDir, std::string &storeId)
 {
-   for (auto it : backupResidueInfo_) {
+    for (auto it : backupResidueInfo_) {
         auto backupFullName = baseDir + BACKUP_TOP_PATH + "/" + storeId + "/" + it.first + BACKUP_POSTFIX;
         auto keyFullName = baseDir + KEY_PATH + "/" + BACKUP_KEY_PREFIX + storeId + "_" + it.first + BACKUP_KEY_POSTFIX;
-       if (NeedRollBack(it.second)) {
+        if (NeedRollBack(it.second)) {
             if (it.second.haveTmpBackupFile) {
                 StoreUtil::Remove(backupFullName);
                 if (it.second.tmpBackupFileSize == 0) {
@@ -295,20 +312,20 @@ void BackupManager::ClearResidueFile(const std::string &baseDir, std::string &st
             }
             if (it.second.haveTmpKeyFile) {
                 StoreUtil::Remove(keyFullName);
-                if (it.second.tmpKeyFileSize == 0 ) {
+                if (it.second.tmpKeyFileSize == 0) {
                     StoreUtil::Remove(keyFullName + BACKUP_TMP_POSTFIX);
                 } else {
                     StoreUtil::Rename(keyFullName + BACKUP_TMP_POSTFIX, keyFullName);
                 }
             }
-       } else {
+        } else {
             if (it.second.haveTmpBackupFile) {
                 StoreUtil::Remove(backupFullName + BACKUP_TMP_POSTFIX);
             }
             if (it.second.haveTmpKeyFile) {
                 StoreUtil::Remove(keyFullName + BACKUP_TMP_POSTFIX);
             }
-       }
+        }
     }
 }
 
@@ -336,7 +353,7 @@ bool BackupManager::HaveResidueKey(std::vector<StoreUtil::FileInfo> fileList, st
 bool BackupManager::IsEndWith(const std::string &fullString, const std::string &end)
 {
     if (fullString.length() >= end.length()) {
-        return (0 == fullString.compare(fullString.length() - end.length(), end.length(), end));
+        return (fullString.compare(fullString.length() - end.length(), end.length(), end) == 0);
     } else {
         return false;
     }
@@ -345,7 +362,7 @@ bool BackupManager::IsEndWith(const std::string &fullString, const std::string &
 bool BackupManager::IsBeginWith(const std::string &fullString, const std::string &begin)
 {
     if (fullString.length() >= begin.length()) {
-        return (0 == fullString.compare(0, begin.length(), begin));
+        return (fullString.compare(0, begin.length(), begin) == 0);
     } else {
         return false;
     }
