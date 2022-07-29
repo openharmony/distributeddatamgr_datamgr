@@ -184,8 +184,7 @@ Status BackupManager::Restore(const std::string &name, const std::string &baseDi
         return INVALID_ARGUMENT;
     }
     auto backupFile = GetBackupFileInfo(name, baseDir, storeId);
-    if (backupFile.name.size() == 0)
-    {
+    if (backupFile.name.size() == 0) {
         return INVALID_ARGUMENT;
     }
     std::string keyName = BACKUP_KEY_PREFIX + storeId + "_" + name;
@@ -197,7 +196,7 @@ Status BackupManager::Restore(const std::string &name, const std::string &baseDi
 }
 
 Status BackupManager::DeleteBackup(std::map<std::string, Status> &deleteList, const std::string &baseDir,
-        const std::string &storeId)
+    const std::string &storeId)
 {
     if (deleteList.empty() || baseDir.size() == 0 || storeId.size() == 0) {
         return INVALID_ARGUMENT;
@@ -339,7 +338,8 @@ void BackupManager::ClearResidueFile(std::map<std::string, ResidueInfo> residueI
 {
     for (auto &info : residueInfo) {
         auto backupFullName = baseDir + BACKUP_TOP_PATH + "/" + storeId + "/" + info.first + BACKUP_POSTFIX;
-        auto keyFullName = baseDir + KEY_PATH + "/" + BACKUP_KEY_PREFIX + storeId + "_" + info.first + BACKUP_KEY_POSTFIX;
+        auto keyFullName =
+            baseDir + KEY_PATH + "/" + BACKUP_KEY_PREFIX + storeId + "_" + info.first + BACKUP_KEY_POSTFIX;
         if (NeedRollBack(info.second)) {
             ZLOGE("store : %{public}s, %{public}d, %{public}d, %{public}d, %{public}d, need rollback",
                 info.first.c_str(), info.second.hasRawBackup, info.second.hasTmpBackup,
