@@ -100,18 +100,18 @@ public:
     // backup the store to a specified backup file
     // file: target file of backup.
     // baseDir: root path of store manager.
-    virtual Status Backup(std::string &file, std::string &baseDir) = 0;
+    virtual Status Backup(const std::string &file, const std::string &baseDir) = 0;
 
     // restore the store from a specified backup file
     // file: the file of backup data.
     // baseDir: root path of store manager.
-    virtual Status Restore(std::string &file, std::string &baseDir) = 0;
+    virtual Status Restore(const std::string &file, const std::string &baseDir) = 0;
 
     // delete the backup files.
     // files the list of backup file to be delete.
     // baseDir: root path of store manager.
     // status: result of delete backup
-    virtual Status DeleteBackup(std::vector<std::string> &files, std::string &baseDir,
+    virtual Status DeleteBackup(const std::vector<std::string> &files, const std::string &baseDir,
         std::map<std::string, DistributedKv::Status> &status) = 0;
 };
 }  // namespace DistributedKv

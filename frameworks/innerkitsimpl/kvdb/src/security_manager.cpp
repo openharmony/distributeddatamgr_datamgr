@@ -27,11 +27,11 @@ SecurityManager &SecurityManager::GetInstance()
 }
 
 SecurityManager::DBPassword SecurityManager::GetKey(const std::string &name,
-    const std::string &path, bool createIfNotExit)
+    const std::string &path, bool needCreate)
 {
-    auto secKey = LoadKeyFormFile(name, path);
+    auto secKey = LoadKeyFromFile(name, path);
     if (secKey.empty()) {
-        if (!createIfNotExit) {
+        if (!needCreate) {
             return DBPassword();
         } else {
             secKey = Random(KEY_SIZE);
@@ -44,9 +44,12 @@ SecurityManager::DBPassword SecurityManager::GetKey(const std::string &name,
     return password;
 }
 
-bool SecurityManager::SaveKey(const std::string &name, const std::string &path, const std::vector<uint8_t> &key)
+bool SecurityManager::SaveKey(const std::string &name, const std::string &path, const SecurityManager::DBPassword &key)
 {
-    return SaveKeyToFile(name, path, key);
+    std::vector<uint8_t> pwd(key.GetData(), key.GetData() + key.GetSize());
+    SaveKeyToFile(name, path, pwd);
+    pwd.assign(pwd.size(), 0);
+    return true;
 }
 void SecurityManager::DelKey(const std::string &name, const std::string &path)
 {
@@ -65,7 +68,7 @@ std::vector<uint8_t> SecurityManager::Random(int32_t len)
     return key;
 }
 
-std::vector<uint8_t> SecurityManager::LoadKeyFormFile(const std::string &name, const std::string &path)
+std::vector<uint8_t> SecurityManager::LoadKeyFromFile(const std::string &name, const std::string &path)
 {
     auto keyPath = path + "/key/" + name + ".key";
     if (!FileExists(keyPath)) {

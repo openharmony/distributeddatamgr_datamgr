@@ -87,14 +87,9 @@ std::shared_ptr<SingleKvStore>& JsKVStore::GetNative()
     return kvStore_;
 }
 
-void JsKVStore::SetContextParam(std::shared_ptr<ContextParam>& param)
+void JsKVStore::SetContextParam(std::shared_ptr<ContextParam> param)
 {
     param_ = param;
-}
-
-std::shared_ptr<ContextParam>& JsKVStore::GetContextParam()
-{
-    return param_;
 }
 
 bool JsKVStore::IsInstanceOf(napi_env env, napi_value obj, const std::string& storeId, napi_value constructor)
@@ -471,7 +466,7 @@ napi_value JsKVStore::Backup(napi_env env, napi_callback_info info)
 
     auto execute = [ctxt]() {
         auto jsKvStore = reinterpret_cast<JsKVStore*>(ctxt->native);
-        Status status = jsKvStore->kvStore_->Backup(ctxt->file, jsKvStore->GetContextParam()->baseDir);
+        Status status = jsKvStore->kvStore_->Backup(ctxt->file, jsKvStore->param_->baseDir);
         ZLOGD("kvStore->Backup return %{public}d", status);
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
         CHECK_STATUS_RETURN_VOID(ctxt, "kvStore->Backup() failed!");
@@ -502,7 +497,7 @@ napi_value JsKVStore::Restore(napi_env env, napi_callback_info info)
 
     auto execute = [ctxt]() {
         auto jsKvStore = reinterpret_cast<JsKVStore*>(ctxt->native);
-        Status status = jsKvStore->kvStore_->Restore(ctxt->file, jsKvStore->GetContextParam()->baseDir);
+        Status status = jsKvStore->kvStore_->Restore(ctxt->file, jsKvStore->param_->baseDir);
         ZLOGD("kvStore->Restore return %{public}d", status);
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
         CHECK_STATUS_RETURN_VOID(ctxt, "kvStore->Restore() failed!");
@@ -535,7 +530,7 @@ napi_value JsKVStore::DeleteBackup(napi_env env, napi_callback_info info)
     auto execute = [ctxt]() {
         auto jsKvStore = reinterpret_cast<JsKVStore*>(ctxt->native);
         Status status = jsKvStore->kvStore_->DeleteBackup(ctxt->files,
-            jsKvStore->GetContextParam()->baseDir, ctxt->results);
+            jsKvStore->param_->baseDir, ctxt->results);
         ZLOGD("kvStore->DeleteBackup return %{public}d", status);
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
         CHECK_STATUS_RETURN_VOID(ctxt, "kvStore->DeleteBackup() failed!");

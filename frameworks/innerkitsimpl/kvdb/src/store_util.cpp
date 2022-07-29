@@ -165,21 +165,22 @@ bool StoreUtil::InitPath(const std::string &path)
 
 bool StoreUtil::CreateFile(const std::string &name)
 {
-    auto fp = fopen(name.c_str(), "a+");
-    if (fp == nullptr) {
+    int fp = open(name.c_str(), (O_WRONLY | O_CREAT), (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP));
+    if (fp < 0) {
         ZLOGE("fopen error:%{public}d, path:%{public}s", errno, name.c_str());
         return false;
     }
-    (void)fclose(fp);
+    close(fp);
     return true;
 }
 
-bool StoreUtil::GetSubPath(const std::string &path, std::vector<std::string> &subPaths)
+std::vector<std::string> StoreUtil::GetSubPath(const std::string &path)
 {
+    std::vector<std::string> subPaths;
     DIR *dirp = opendir(path.c_str());
     if (dirp == nullptr) {
         ZLOGE("opendir error:%{public}d, path:%{public}s", errno, path.c_str());
-        return false;
+        return subPaths;
     }
     struct dirent *dp;
     while ((dp = readdir(dirp)) != nullptr) {
@@ -188,33 +189,33 @@ bool StoreUtil::GetSubPath(const std::string &path, std::vector<std::string> &su
         }
     }
     (void)closedir(dirp);
-    return true;
+    return subPaths;
 }
 
-bool StoreUtil::GetFiles(const std::string &path, std::vector<struct FileInfo> &fileList)
+std::vector<StoreUtil::FileInfo> StoreUtil::GetFiles(const std::string &path)
 {
+    std::vector<FileInfo> fileInfos;
     DIR *dirp = opendir(path.c_str());
     if (dirp == nullptr) {
         ZLOGE("opendir error:%{public}d, path:%{public}s", errno, path.c_str());
-        return false;
+        return fileInfos;
     }
     struct dirent *dp;
-    FileInfo fileInfo;
     while ((dp = readdir(dirp)) != nullptr) {
         if (dp->d_type == DT_REG) {
             struct stat fileStat;
             auto fullName = path + "/" + dp->d_name;
             stat(fullName.c_str(), &fileStat);
-
+            FileInfo fileInfo;
             memset_s(&fileInfo, sizeof(FileInfo), 0, sizeof(FileInfo));
             fileInfo.name = dp->d_name;
             fileInfo.modifyTime = fileStat.st_mtim.tv_sec;
             fileInfo.size = fileStat.st_size;
-            fileList.push_back(fileInfo);
+            fileInfos.push_back(fileInfo);
         }
     }
     closedir(dirp);
-    return true;
+    return fileInfos;
 }
 
 bool StoreUtil::Rename(const std::string &oldName, const std::string &newName)
@@ -226,7 +227,7 @@ bool StoreUtil::Rename(const std::string &oldName, const std::string &newName)
         return false;
     }
     if (rename(oldName.c_str(), newName.c_str()) != 0) {
-        ZLOGE("rename error:%{public}d, old name:%{public}s", errno, oldName.c_str());
+        ZLOGE("rename error:%{public}d, file:%{public}s->%{public}s", errno, oldName.c_str(), newName.c_str());
         return false;
     }
     return true;

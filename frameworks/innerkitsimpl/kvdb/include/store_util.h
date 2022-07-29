@@ -39,8 +39,8 @@ public:
     static Status ConvertStatus(DBStatus status);
     static bool InitPath(const std::string &path);
     static bool CreateFile(const std::string &name);
-    static bool GetSubPath(const std::string &path, std::vector<std::string> &subPaths);
-    static bool GetFiles(const std::string &path, std::vector<struct FileInfo> &fileList);
+    static std::vector<std::string> GetSubPath(const std::string &path);
+    static std::vector<FileInfo> GetFiles(const std::string &path);
     static bool Rename(const std::string &oldName, const std::string &newName);
     static bool IsFileExist(const std::string &name);
     static bool Remove(const std::string &path);

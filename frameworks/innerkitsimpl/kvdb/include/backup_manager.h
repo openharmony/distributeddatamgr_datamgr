@@ -27,38 +27,44 @@ class BackupManager {
 public:
     using DBStore = DistributedDB::KvStoreNbDelegate;
     struct ResidueInfo {
-        size_t tmpBackupFileSize;
-        size_t tmpKeyFileSize;
-        bool haveRawBackupFile;
-        bool haveTmpBackupFile;
-        bool haveRawKeyFile;
-        bool haveTmpKeyFile;
+        size_t tmpBackupSize;
+        size_t tmpKeySize;
+        bool hasRawBackup;
+        bool hasTmpBackup;
+        bool hasRawKey;
+        bool hasTmpKey;
     };
-    static constexpr int MAX_BACKUP_NUM = 5;
     static BackupManager &GetInstance();
-    void Init(const std::string &baseDir);
-    void Prepare(std::string path, std::string &storeId, bool isAutoBackup = false);
-    Status Backup(std::string &name, std::string &baseDir, std::string &storeId, std::shared_ptr<DBStore> &dbStore);
-    Status Restore(std::string &name, std::string &baseDir, std::string &storeId, std::shared_ptr<DBStore> &dbStore);
-    Status DeleteBackup(std::vector<std::string> &files, std::string &baseDir, std::string &storeId,
-        std::map<std::string, Status> &status);
+    void Init(std::string baseDir);
+    void Prepare(std::string path, std::string storeId);
+    Status Backup(const std::string &name, const std::string &baseDir,
+        const std::string &storeId, std::shared_ptr<DBStore> dbStore);
+    Status Restore(const std::string &name, const std::string &baseDir,
+        const std::string &storeId, std::shared_ptr<DBStore> dbStore);
+    Status DeleteBackup(std::map<std::string, Status> &deleteList,
+        const std::string &baseDir, const std::string &storeId);
 private:
     BackupManager();
     ~BackupManager();
-    bool MatchedInFiles(std::string &file, std::vector<StoreUtil::FileInfo> &fileInfos);
-    bool PrepareBackupFile(std::string &name, std::string &backupPath, bool &isCreated);
-    void GetLatestFile(std::string &name, std::vector<StoreUtil::FileInfo> &fileInfos);
-    bool HaveResidueFile(std::vector<StoreUtil::FileInfo> fileList);
-    bool HaveResidueKey(std::vector<StoreUtil::FileInfo> fileList, std::string &storeId);
-    void BuildResidueInfo(std::vector<StoreUtil::FileInfo> &fileList,
-        std::vector<StoreUtil::FileInfo> &keyList, std::string &storeId);
-    bool NeedRollBack(BackupManager::ResidueInfo residueInfo);
-    void ClearResidueFile(const std::string &baseDir, std::string &storeId);
+
+    void KeepData(std::string name, bool isCreate);
+    void RollBackData(std::string name, bool isCreate);
+    void CleanTmpData(std::string name);
+    StoreUtil::FileInfo GetBackupFileInfo(std::string name, std::string baseDir, std::string storeId);
+    bool HaveResidueFile(const std::vector<StoreUtil::FileInfo> &fileList);
+    bool HaveResidueKey(const std::vector<StoreUtil::FileInfo> &fileList, std::string storeId);
+    std::string GetBackupName(std::string fileName);
+    void SetResidueInfo(ResidueInfo &residueInfo, const std::vector<StoreUtil::FileInfo> &fileList,
+        std::string name, std::string postFix);
+    std::map<std::string, ResidueInfo> BuildResidueInfo(const std::vector<StoreUtil::FileInfo> &fileList,
+        const std::vector<StoreUtil::FileInfo> &keyList, std::string storeId);
+    bool NeedRollBack(const ResidueInfo residueInfo);
+    void ClearResidueFile(std::map<std::string, ResidueInfo> residueInfo, std::string baseDir, std::string storeId);
     bool IsEndWith(const std::string &fullString, const std::string &end);
     bool IsBeginWith(const std::string &fullString, const std::string &begin);
 
+    static constexpr int MAX_BACKUP_NUM = 5;
     static constexpr int POOL_SIZE = 1;
-    std::map<std::string, ResidueInfo> backupResidueInfo_;
     std::shared_ptr<DistributedKv::KvStoreThreadPool> pool_;
 };
 } // namespace OHOS::DistributedKv

@@ -31,7 +31,8 @@ bool IsStoreTypeSupported(Options options)
 }
 
 JsKVManager::JsKVManager(const std::string &bundleName, napi_env env, ContextParam param)
-    : bundleName_(bundleName), uvQueue_(std::make_shared<UvQueue>(env)), param_(std::make_shared<ContextParam>(param))
+    : bundleName_(bundleName), uvQueue_(std::make_shared<UvQueue>(env)),
+        param_(std::make_shared<ContextParam>(std::move(param)))
 {
 }
 

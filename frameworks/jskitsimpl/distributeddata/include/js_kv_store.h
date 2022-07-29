@@ -42,9 +42,7 @@ public:
     void SetNative(std::shared_ptr<DistributedKv::SingleKvStore>& kvStore);
     void SetUvQueue(std::shared_ptr<UvQueue> uvQueue);
     std::shared_ptr<DistributedKv::SingleKvStore>& GetNative();
-    void SetContextParam(std::shared_ptr<ContextParam>& param);
-    std::shared_ptr<ContextParam>& GetContextParam();
-
+    void SetContextParam(std::shared_ptr<ContextParam> param);
     static bool IsInstanceOf(napi_env env, napi_value obj, const std::string& storeId, napi_value constructor);
 
     /* public static members */

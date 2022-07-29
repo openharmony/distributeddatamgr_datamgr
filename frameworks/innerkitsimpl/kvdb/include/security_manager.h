@@ -21,8 +21,8 @@ class SecurityManager {
 public:
     using DBPassword = DistributedDB::CipherPassword;
     static SecurityManager &GetInstance();
-    DBPassword GetKey(const std::string &name, const std::string &path, bool createIfNotExit = false);
-    bool SaveKey(const std::string &name, const std::string &path, const std::vector<uint8_t> &key);
+    DBPassword GetKey(const std::string &name, const std::string &path, bool needCreate = false);
+    bool SaveKey(const std::string &name, const std::string &path, const DBPassword &key);
     void DelKey(const std::string &name, const std::string &path);
 
 private:
@@ -35,7 +35,7 @@ private:
     static constexpr int KEY_SIZE = 32;
 
     std::vector<uint8_t> Random(int32_t len);
-    std::vector<uint8_t> LoadKeyFormFile(const std::string &name, const std::string &path);
+    std::vector<uint8_t> LoadKeyFromFile(const std::string &name, const std::string &path);
     bool SaveKeyToFile(const std::string &name, const std::string &path, const std::vector<uint8_t> &key);
 };
 } // namespace OHOS::DistributedKv
