@@ -51,7 +51,7 @@ BackupManager::~BackupManager()
     }
 }
 
-void BackupManager::Init(std::string baseDir)
+void BackupManager::Init(const std::string &baseDir)
 {
     if (pool_ == nullptr) {
         ZLOGE("Backup Init, pool is null");
@@ -77,7 +77,7 @@ void BackupManager::Init(std::string baseDir)
     pool_->AddTask(std::move(task));
 }
 
-void BackupManager::Prepare(std::string path, std::string storeId)
+void BackupManager::Prepare(const std::string &path, const std::string &storeId)
 {
     std::string topPath = path + BACKUP_TOP_PATH;
     std::string storePath = topPath + "/" + storeId;
@@ -87,20 +87,20 @@ void BackupManager::Prepare(std::string path, std::string storeId)
     (void)StoreUtil::CreateFile(autoBackupName);
 }
 
-void BackupManager::KeepData(std::string name, bool isCreate)
+void BackupManager::KeepData(const std::string &name, bool isCreated)
 {
     auto tmpName = name + BACKUP_TMP_POSTFIX;
-    if (isCreate) {
+    if (isCreated) {
         StoreUtil::CreateFile(tmpName);
     } else {
         StoreUtil::Rename(name, tmpName);
     }
 }
 
-void BackupManager::RollBackData(std::string name, bool isCreate)
+void BackupManager::RollBackData(const std::string &name, bool isCreated)
 {
     auto tmpName = name + BACKUP_TMP_POSTFIX;
-    if (isCreate) {
+    if (isCreated) {
         StoreUtil::Remove(tmpName);
     } else {
         StoreUtil::Remove(name);
@@ -108,7 +108,7 @@ void BackupManager::RollBackData(std::string name, bool isCreate)
     }
 }
 
-void BackupManager::CleanTmpData(std::string name)
+void BackupManager::CleanTmpData(const std::string &name)
 {
     auto tmpName = name + BACKUP_TMP_POSTFIX;
     StoreUtil::Remove(tmpName);
@@ -133,7 +133,7 @@ Status BackupManager::Backup(const std::string &name, const std::string &baseDir
     (void)StoreUtil::InitPath(topPath);
     (void)StoreUtil::InitPath(storePath);
     KeepData(backupFullName, isCreate);
-    auto password = SecurityManager::GetInstance().GetKey(storeId, baseDir);
+    auto password = SecurityManager::GetInstance().GetDBPassword(storeId, baseDir);
     if (password.GetSize() != 0) {
         KeepData(keyFullName, isCreate);
     }
@@ -142,7 +142,7 @@ Status BackupManager::Backup(const std::string &name, const std::string &baseDir
     auto status = StoreUtil::ConvertStatus(dbStatus);
     if (status == SUCCESS) {
         if (password.GetSize() != 0) {
-            SecurityManager::GetInstance().SaveKey(keyName, baseDir, password);
+            SecurityManager::GetInstance().SaveDBPassword(keyName, baseDir, password);
             CleanTmpData(keyFullName);
         }
         CleanTmpData(backupFullName);
@@ -156,7 +156,7 @@ Status BackupManager::Backup(const std::string &name, const std::string &baseDir
 }
 
 StoreUtil::FileInfo BackupManager::GetBackupFileInfo(
-    std::string name, std::string baseDir, std::string storeId)
+    const std::string &name, const std::string &baseDir, const std::string &storeId)
 {
     StoreUtil::FileInfo backupFile;
     std::string path = baseDir + BACKUP_TOP_PATH + "/" + storeId;
@@ -189,7 +189,7 @@ Status BackupManager::Restore(const std::string &name, const std::string &baseDi
     }
     std::string keyName = BACKUP_KEY_PREFIX + storeId + "_" + name;
     std::string fullName = baseDir + BACKUP_TOP_PATH + "/" + storeId + "/" + backupFile.name;
-    auto password = SecurityManager::GetInstance().GetKey(keyName, baseDir);
+    auto password = SecurityManager::GetInstance().GetDBPassword(keyName, baseDir);
     auto dbStatus = dbStore->Import(fullName, password);
     auto status = StoreUtil::ConvertStatus(dbStatus);
     return status;
@@ -214,15 +214,15 @@ Status BackupManager::DeleteBackup(std::map<std::string, Status> &deleteList, co
             continue;
         }
         std::string keyName = BACKUP_KEY_PREFIX + storeId + "_" + info.name;
-        SecurityManager::GetInstance().DelKey(keyName, baseDir);
+        SecurityManager::GetInstance().DelDBPassword(keyName, baseDir);
         it->second = (StoreUtil::Remove(path + "/" + info.name)) ?  SUCCESS : ERROR;
     }
     return SUCCESS;
 }
 
-bool BackupManager::HaveResidueFile(const std::vector<StoreUtil::FileInfo> &fileList)
+bool BackupManager::HaveResidueFile(const std::vector<StoreUtil::FileInfo> &files)
 {
-    for (auto &file : fileList) {
+    for (auto &file : files) {
         if (IsEndWith(file.name, BACKUP_TMP_POSTFIX)) {
             return true;
         }
@@ -230,9 +230,9 @@ bool BackupManager::HaveResidueFile(const std::vector<StoreUtil::FileInfo> &file
     return false;
 }
 
-bool BackupManager::HaveResidueKey(const std::vector<StoreUtil::FileInfo> &fileList, std::string storeId)
+bool BackupManager::HaveResidueKey(const std::vector<StoreUtil::FileInfo> &files, std::string storeId)
 {
-    for (auto &file : fileList) {
+    for (auto &file : files) {
         auto prefix = BACKUP_KEY_PREFIX + storeId;
         if (IsBeginWith(file.name, prefix) && IsEndWith(file.name, BACKUP_TMP_POSTFIX)) {
             return true;
@@ -241,7 +241,7 @@ bool BackupManager::HaveResidueKey(const std::vector<StoreUtil::FileInfo> &fileL
     return false;
 }
 
-std::string BackupManager::GetBackupName(std::string fileName)
+std::string BackupManager::GetBackupName(const std::string &fileName)
 {
     int postFixLen = IsEndWith(fileName, BACKUP_TMP_POSTFIX) ?
         BACKUP_POSTFIX_SIZE + BACKUP_TMP_POSTFIX_SIZE : BACKUP_POSTFIX_SIZE;
@@ -249,9 +249,9 @@ std::string BackupManager::GetBackupName(std::string fileName)
 }
 
 void BackupManager::SetResidueInfo(BackupManager::ResidueInfo &residueInfo,
-    const std::vector<StoreUtil::FileInfo> &fileList, std::string name, std::string postFix)
+    const std::vector<StoreUtil::FileInfo> &files, const std::string &name, const std::string &postFix)
 {
-    for (auto &file : fileList) {
+    for (auto &file : files) {
         if (IsBeginWith(file.name, name)) {
             if (IsEndWith(file.name, postFix + BACKUP_TMP_POSTFIX) && (postFix == BACKUP_POSTFIX)) {
                 residueInfo.hasTmpBackup = true;
@@ -272,18 +272,18 @@ void BackupManager::SetResidueInfo(BackupManager::ResidueInfo &residueInfo,
 }
 
 std::map<std::string, BackupManager::ResidueInfo> BackupManager::BuildResidueInfo(
-    const std::vector<StoreUtil::FileInfo> &fileList,
-    const std::vector<StoreUtil::FileInfo> &keyList, std::string storeId)
+    const std::vector<StoreUtil::FileInfo> &files,
+    const std::vector<StoreUtil::FileInfo> &keys, const std::string &storeId)
 {
     std::map<std::string, ResidueInfo> residueInfoList;
-    for (auto &file : fileList) {
+    for (auto &file : files) {
         auto backupName = GetBackupName(file.name);
         auto it = residueInfoList.find(backupName);
         if (it == residueInfoList.end()) {
             ResidueInfo residueInfo;
             memset_s(&residueInfo, sizeof(ResidueInfo), 0, sizeof(ResidueInfo));
-            SetResidueInfo(residueInfo, fileList, backupName, BACKUP_POSTFIX);
-            SetResidueInfo(residueInfo, keyList, BACKUP_KEY_PREFIX + storeId + "_" + backupName, BACKUP_KEY_POSTFIX);
+            SetResidueInfo(residueInfo, files, backupName, BACKUP_POSTFIX);
+            SetResidueInfo(residueInfo, keys, BACKUP_KEY_PREFIX + storeId + "_" + backupName, BACKUP_KEY_POSTFIX);
             residueInfoList.emplace(backupName, residueInfo);
         }
     }
@@ -295,8 +295,8 @@ std::map<std::string, BackupManager::ResidueInfo> BackupManager::BuildResidueInf
  *  learning by watching blow table,
  *  we can konw when the num of tmp file greater than or equal raw, interrupt happend druing backup
  *
- *  backup step             file status                         option          file num
- *  1, backup old data      -               storeId.key         rollback        raw = 1
+ *  backup step (encrypt)   file status                         option          file num
+ *  1, backup old data      -               storeId.key         rollback data   raw = 1
  *                          storeId.bak.bk  -                                   tmp = 1
  *
  *  2, backup old key       -               -                   rollback        raw = 0
@@ -308,13 +308,25 @@ std::map<std::string, BackupManager::ResidueInfo> BackupManager::BuildResidueInf
  *  4, store key            storeId.bak     storeId.key         rollback        raw = 2
  *                          storeId.bak.bk, storeId.key.bk                      tmp = 2
  *
- *  5, delet tmp key        storeId.bak     storeId.key         clean data      raw = 1
- *                          storeId.bak.bk  -                                   tmp = 2
+ *  5, delet tmp key        storeId.bak     storeId.key         clean data      raw = 2
+ *                          storeId.bak.bk  -                                   tmp = 1
  *
- *  6, delet tmp data       storeId.bak     storeId.key         do nothing      raw = 0
- *                          -               -                                   tmp = 2
+ *  6, delet tmp data       storeId.bak     storeId.key         do nothing      raw = 2
+ *                          -               -                                   tmp = 0
+ *
+ *
+ *  backup step (unencrypt) file status                         option          file num
+ *  1, backup old data      -                                   rollback data   raw = 0
+ *                          storeId.bak.bk  -                                   tmp = 1
+ *
+ *  2, do backup            storeId.bak     -                   rollback data   raw = 1
+ *                          storeId.bak.bk, -                                   tmp = 1
+ *
+ *  6, delet tmp data       storeId.bak     -                   do nothing      raw = 1
+ *                          -               -                                   tmp = 0
+ *
  * */
-bool BackupManager::NeedRollBack(BackupManager::ResidueInfo residueInfo)
+BackupManager::ClearType BackupManager::GetClearType(const BackupManager::ResidueInfo &residueInfo)
 {
     int rawFile = 0;
     int tmpFile = 0;
@@ -330,34 +342,37 @@ bool BackupManager::NeedRollBack(BackupManager::ResidueInfo residueInfo)
     if (residueInfo.hasTmpKey) {
         tmpFile++;
     }
-    return (tmpFile >= rawFile) ? true : false;
+    if (tmpFile == 0) {
+        return DO_NOTHING;
+    }
+    if ((tmpFile >= rawFile) && (tmpFile ==1)) {
+        return ROLLBACK_DATA;
+    }
+    return (tmpFile >= rawFile) ? ROLLBACK : CLEAN_TMP;
 }
 
 void BackupManager::ClearResidueFile(std::map<std::string, ResidueInfo> residueInfo,
-    std::string baseDir, std::string storeId)
+    const std::string &baseDir, const std::string &storeId)
 {
     for (auto &info : residueInfo) {
         auto backupFullName = baseDir + BACKUP_TOP_PATH + "/" + storeId + "/" + info.first + BACKUP_POSTFIX;
-        auto keyFullName =
-            baseDir + KEY_PATH + "/" + BACKUP_KEY_PREFIX + storeId + "_" + info.first + BACKUP_KEY_POSTFIX;
-        if (NeedRollBack(info.second)) {
-            ZLOGE("store : %{public}s, %{public}d, %{public}d, %{public}d, %{public}d, need rollback",
-                info.first.c_str(), info.second.hasRawBackup, info.second.hasTmpBackup,
-                info.second.hasRawKey, info.second.hasTmpKey);
-
-            if (info.second.hasTmpBackup) {
-                RollBackData(backupFullName, (info.second.tmpBackupSize == 0));
-            }
-            if (info.second.hasTmpKey) {
-                RollBackData(keyFullName, (info.second.tmpKeySize == 0));
-            }
-        } else {
-            if (info.second.hasTmpBackup) {
-                CleanTmpData(backupFullName);
-            }
-            if (info.second.hasTmpKey) {
-                CleanTmpData(keyFullName);
-            }
+        auto keyFullName = baseDir + KEY_PATH + "/" + BACKUP_KEY_PREFIX + storeId + "_" + info.first + BACKUP_KEY_POSTFIX;
+        switch (GetClearType(info.second))
+        {
+        case ROLLBACK_DATA:
+            RollBackData(backupFullName, (info.second.tmpBackupSize == 0));
+            break;
+        case ROLLBACK:
+            RollBackData(backupFullName, (info.second.tmpBackupSize == 0));
+            RollBackData(keyFullName, (info.second.tmpKeySize == 0));
+            break;
+        case CLEAN_TMP:
+            CleanTmpData(backupFullName);
+            CleanTmpData(keyFullName);
+            break;
+        case DO_NOTHING:
+        default:
+            break;
         }
     }
 }

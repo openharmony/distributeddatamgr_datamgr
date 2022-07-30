@@ -165,6 +165,7 @@ bool StoreUtil::InitPath(const std::string &path)
 
 bool StoreUtil::CreateFile(const std::string &name)
 {
+    umask(DEFAULT_UMASK);
     int fp = open(name.c_str(), (O_WRONLY | O_CREAT), (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP));
     if (fp < 0) {
         ZLOGE("fopen error:%{public}d, path:%{public}s", errno, name.c_str());

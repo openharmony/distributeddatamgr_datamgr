@@ -21,9 +21,9 @@ class SecurityManager {
 public:
     using DBPassword = DistributedDB::CipherPassword;
     static SecurityManager &GetInstance();
-    DBPassword GetKey(const std::string &name, const std::string &path, bool needCreate = false);
-    bool SaveKey(const std::string &name, const std::string &path, const DBPassword &key);
-    void DelKey(const std::string &name, const std::string &path);
+    DBPassword GetDBPassword(const std::string &name, const std::string &path, bool needCreate = false);
+    bool SaveDBPassword(const std::string &name, const std::string &path, const DBPassword &key);
+    void DelDBPassword(const std::string &name, const std::string &path);
 
 private:
     static constexpr const char *ROOT_KEY_ALIAS = "distributed_db_root_key";

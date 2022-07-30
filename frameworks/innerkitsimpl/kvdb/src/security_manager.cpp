@@ -26,7 +26,7 @@ SecurityManager &SecurityManager::GetInstance()
     return instance;
 }
 
-SecurityManager::DBPassword SecurityManager::GetKey(const std::string &name,
+SecurityManager::DBPassword SecurityManager::GetDBPassword(const std::string &name,
     const std::string &path, bool needCreate)
 {
     auto secKey = LoadKeyFromFile(name, path);
@@ -44,14 +44,15 @@ SecurityManager::DBPassword SecurityManager::GetKey(const std::string &name,
     return password;
 }
 
-bool SecurityManager::SaveKey(const std::string &name, const std::string &path, const SecurityManager::DBPassword &key)
+bool SecurityManager::SaveDBPassword(const std::string &name, const std::string &path, const SecurityManager::DBPassword &key)
 {
     std::vector<uint8_t> pwd(key.GetData(), key.GetData() + key.GetSize());
     SaveKeyToFile(name, path, pwd);
     pwd.assign(pwd.size(), 0);
     return true;
 }
-void SecurityManager::DelKey(const std::string &name, const std::string &path)
+
+void SecurityManager::DelDBPassword(const std::string &name, const std::string &path)
 {
     auto keyPath = path + "/key/" + name + ".key";
     StoreUtil::Remove(keyPath);
