@@ -44,7 +44,8 @@ SecurityManager::DBPassword SecurityManager::GetDBPassword(const std::string &na
     return password;
 }
 
-bool SecurityManager::SaveDBPassword(const std::string &name, const std::string &path, const SecurityManager::DBPassword &key)
+bool SecurityManager::SaveDBPassword
+    (const std::string &name, const std::string &path, const SecurityManager::DBPassword &key)
 {
     std::vector<uint8_t> pwd(key.GetData(), key.GetData() + key.GetSize());
     SaveKeyToFile(name, path, pwd);

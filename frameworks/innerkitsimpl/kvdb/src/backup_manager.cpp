@@ -356,23 +356,23 @@ void BackupManager::ClearResidueFile(std::map<std::string, ResidueInfo> residueI
 {
     for (auto &info : residueInfo) {
         auto backupFullName = baseDir + BACKUP_TOP_PATH + "/" + storeId + "/" + info.first + BACKUP_POSTFIX;
-        auto keyFullName = baseDir + KEY_PATH + "/" + BACKUP_KEY_PREFIX + storeId + "_" + info.first + BACKUP_KEY_POSTFIX;
-        switch (GetClearType(info.second))
-        {
-        case ROLLBACK_DATA:
-            RollBackData(backupFullName, (info.second.tmpBackupSize == 0));
-            break;
-        case ROLLBACK:
-            RollBackData(backupFullName, (info.second.tmpBackupSize == 0));
-            RollBackData(keyFullName, (info.second.tmpKeySize == 0));
-            break;
-        case CLEAN_TMP:
-            CleanTmpData(backupFullName);
-            CleanTmpData(keyFullName);
-            break;
-        case DO_NOTHING:
-        default:
-            break;
+        auto keyFullName =
+            baseDir + KEY_PATH + "/" + BACKUP_KEY_PREFIX + storeId + "_" + info.first + BACKUP_KEY_POSTFIX;
+        switch (GetClearType(info.second)) {
+            case ROLLBACK_DATA:
+                RollBackData(backupFullName, (info.second.tmpBackupSize == 0));
+                break;
+            case ROLLBACK:
+                RollBackData(backupFullName, (info.second.tmpBackupSize == 0));
+                RollBackData(keyFullName, (info.second.tmpKeySize == 0));
+                break;
+            case CLEAN_TMP:
+                CleanTmpData(backupFullName);
+                CleanTmpData(keyFullName);
+                break;
+            case DO_NOTHING:
+            default:
+                break;
         }
     }
 }

@@ -34,7 +34,7 @@ public:
         bool hasRawKey;
         bool hasTmpKey;
     };
-    enum ClearType{
+    enum ClearType {
         DO_NOTHING = 0,
         ROLLBACK_DATA,
         ROLLBACK,
@@ -56,7 +56,8 @@ private:
     void KeepData(const std::string &name, bool isCreated);
     void RollBackData(const std::string &name, bool isCreated);
     void CleanTmpData(const std::string &name);
-    StoreUtil::FileInfo GetBackupFileInfo(const std::string &name, const std::string &baseDir, const std::string &storeId);
+    StoreUtil::FileInfo GetBackupFileInfo(const std::string &name,
+        const std::string &baseDir, const std::string &storeId);
     bool HaveResidueFile(const std::vector<StoreUtil::FileInfo> &files);
     bool HaveResidueKey(const std::vector<StoreUtil::FileInfo> &files, std::string storeId);
     std::string GetBackupName(const std::string &fileName);
@@ -65,7 +66,8 @@ private:
     std::map<std::string, ResidueInfo> BuildResidueInfo(const std::vector<StoreUtil::FileInfo> &files,
         const std::vector<StoreUtil::FileInfo> &keys, const std::string &storeId);
     ClearType GetClearType(const ResidueInfo &residueInfo);
-    void ClearResidueFile(std::map<std::string, ResidueInfo> residueInfo, const std::string &baseDir, const std::string &storeId);
+    void ClearResidueFile(std::map<std::string, ResidueInfo> residueInfo,
+        const std::string &baseDir, const std::string &storeId);
     bool IsEndWith(const std::string &fullString, const std::string &end);
     bool IsBeginWith(const std::string &fullString, const std::string &begin);
 
