@@ -588,10 +588,6 @@ int32_t SingleStoreImpl::Close(bool isForce)
 Status SingleStoreImpl::Backup(const std::string &file, const std::string &baseDir)
 {
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
-    if (dbStore_ == nullptr) {
-        ZLOGE("db:%{public}s already closed!", storeId_.c_str());
-        return ALREADY_CLOSED;
-    }
     auto status = BackupManager::GetInstance().Backup(file, baseDir, storeId_, dbStore_);
     if (status != SUCCESS) {
         ZLOGE("status:0x%{public}x storeId:%{public}s, backup name:%{public}s ",
@@ -603,10 +599,6 @@ Status SingleStoreImpl::Backup(const std::string &file, const std::string &baseD
 Status SingleStoreImpl::Restore(const std::string &file, const std::string &baseDir)
 {
     DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
-    if (dbStore_ == nullptr) {
-        ZLOGE("db:%{public}s already closed!", storeId_.c_str());
-        return ALREADY_CLOSED;
-    }
     auto status = BackupManager::GetInstance().Restore(file, baseDir, storeId_, dbStore_);
     if (status != SUCCESS) {
         ZLOGE("status:0x%{public}x storeId:%{public}s, backup name:%{public}s ",

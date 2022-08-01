@@ -116,6 +116,9 @@ void BackupManager::CleanTmpData(const std::string &name)
 Status BackupManager::Backup(const std::string &name, const std::string &baseDir, const std::string &storeId,
     std::shared_ptr<DBStore> dbStore)
 {
+    if (dbStore == nullptr) {
+        return ALREADY_CLOSED;
+    }
     if (name.size() == 0 || baseDir.size() == 0 || storeId.size() == 0 || name == AUTO_BACKUP_NAME) {
         return INVALID_ARGUMENT;
     }
@@ -179,6 +182,9 @@ StoreUtil::FileInfo BackupManager::GetBackupFileInfo(
 Status BackupManager::Restore(const std::string &name, const std::string &baseDir, const std::string &storeId,
     std::shared_ptr<DBStore> dbStore)
 {
+    if (dbStore == nullptr) {
+        return ALREADY_CLOSED;
+    }
     if (storeId.size() == 0 || baseDir.size() == 0) {
         return INVALID_ARGUMENT;
     }
