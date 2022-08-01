@@ -91,19 +91,17 @@ void DevManager::RegisterDevCallback()
         ZLOGE("register device failed, try again");
     }
     std::thread th = std::thread([this]() {
-        int32_t errNo = Init();
-        if (errNo != DM_OK) {
-            constexpr int RETRY_TIMES = 300;
-            int i = 0;
-            while (i++ < RETRY_TIMES) {
-                errNo = Init();
-                if (errNo == DM_OK) {
-                    break;
-                }
-                std::this_thread::sleep_for(std::chrono::seconds(1));
+        constexpr int RETRY_TIMES = 300;
+        int i = 0;
+        int32_t errNo = -1;
+        while (i++ < RETRY_TIMES) {
+            errNo = Init();
+            if (errNo == DM_OK) {
+                break;
             }
-            ZLOGE("reg device exit now: %{public}d times, errNo: %{public}d", i, errNo);
+            std::this_thread::sleep_for(std::chrono::seconds(1));
         }
+        ZLOGE("reg device exit now: %{public}d times, errNo: %{public}d", i, errNo);
     });
     th.detach();
 }
