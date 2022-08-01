@@ -57,9 +57,18 @@ void UninstallEventSubscriber::OnReceiveEvent(const CommonEventData &event)
 
 UninstallerImpl::~UninstallerImpl()
 {
-    auto code = CommonEventManager::UnSubscribeCommonEvent(subscriber_);
-    if (!code) {
-        ZLOGW("unsubscribe failed code=%d", code);
+    ZLOGD("destruct");
+    auto res = CommonEventManager::UnSubscribeCommonEvent(subscriber_);
+    if (!res) {
+        ZLOGW("unsubscribe fail res:%d", res);
+    }
+}
+
+void UninstallerImpl::UnsubscribeEvent()
+{
+    auto res = CommonEventManager::UnSubscribeCommonEvent(subscriber_);
+    if (!res) {
+        ZLOGW("unsubscribe fail res:%d", res);
     }
 }
 

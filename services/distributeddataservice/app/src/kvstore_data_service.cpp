@@ -816,7 +816,30 @@ void KvStoreDataService::OnStart()
             return;
         }
     }
+    AddSystemAbilityListener(COMMON_EVENT_SERVICE_ID);
     StartService();
+}
+
+void KvStoreDataService::OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
+{
+    ZLOGI("add system abilityid:%d", systemAbilityId);
+    (void)deviceId;
+    if (systemAbilityId != COMMON_EVENT_SERVICE_ID) {
+        return;
+    }
+    AccountDelegate::GetInstance()->SubscribeAccountEvent();
+    Uninstaller::GetInstance().Init(this);
+}
+
+void KvStoreDataService::OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
+{
+    ZLOGI("remove system abilityid:%d", systemAbilityId);
+    (void)deviceId;
+    if (systemAbilityId != COMMON_EVENT_SERVICE_ID) {
+        return;
+    }
+    AccountDelegate::GetInstance()->UnsubscribeAccountEvent();
+    Uninstaller::GetInstance().UnsubscribeEvent();
 }
 
 void KvStoreDataService::StartService()
