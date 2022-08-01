@@ -75,13 +75,9 @@ int32_t DevManager::Init()
     auto deviceCallback = std::make_shared<KvDeviceStateCallback>();
     int32_t errNo = deviceManager.InitDeviceManager(PKG_NAME, deviceInitCallback);
     if (errNo != DM_OK) {
-        ZLOGE("register dm death recipient failed: %{public}d", errNo);
         return errNo;
     }
     errNo = deviceManager.RegisterDevStateCallback(PKG_NAME, "", deviceCallback);
-    if (errNo != DM_OK) {
-        ZLOGE("register device state callback fail: %{public}d", errNo);
-    }
     return errNo;
 }
 
