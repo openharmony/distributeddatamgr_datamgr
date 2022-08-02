@@ -88,7 +88,7 @@ ohos_shared_library("distributeddatasvc") {
     "hiviewdfx_hilog_native:libhilog",
     "huks:libhukssdk",
     "ipc:ipc_core",
-    "relational_store:native_rdb"
+    "relational_store:native_rdb",
   ]
   subsystem_name = "distributeddatamgr"
 }
