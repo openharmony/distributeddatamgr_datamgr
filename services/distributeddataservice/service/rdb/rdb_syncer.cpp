@@ -391,7 +391,7 @@ int32_t RdbSyncer::RemoteQuery(const std::string& device, const std::string& sql
     ZLOGI("delegate remote query");
     std::shared_ptr<DistributedDB::ResultSet> dbResultSet;
     DistributedDB::DBStatus status = delegate->RemoteQuery(device, {sql, selectionArgs},
-                                                       REMOTE_QUERY_TIME_OUT, dbResultSet);
+                                                           REMOTE_QUERY_TIME_OUT, dbResultSet);
     if (status != DistributedDB::DBStatus::OK) {
         ZLOGE("DistributedDB remote query failed, status is  %{public}d.", status);
         return RDB_ERROR;
