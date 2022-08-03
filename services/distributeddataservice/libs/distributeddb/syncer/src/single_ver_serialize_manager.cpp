@@ -218,16 +218,6 @@ int SingleVerSerializeManager::DataPacketSyncerPartSerialization(Parcel &parcel,
         }
     }
     parcel.EightByteAlign();
-    std::map<std::string, std::string> extraConditions = packet->GetExtraConditions();
-    parcel.WriteUInt32(static_cast<uint32_t>(extraConditions.size()));
-    for (const auto &entry : extraConditions) {
-        parcel.WriteString(entry.first);
-        parcel.WriteString(entry.second);
-    }
-    if (parcel.IsError()) {
-        return -E_PARSE_FAIL;
-    }
-    parcel.EightByteAlign();
     return E_OK;
 }
 
@@ -275,7 +265,7 @@ int SingleVerSerializeManager::DataPacketSerialization(uint8_t *buffer, uint32_t
         }
     }
 
-    return E_OK;
+    return DataPacketExtraConditionsSerialization(parcel, packet);
 }
 
 int SingleVerSerializeManager::DataPacketQuerySyncSerialization(Parcel &parcel, const DataRequestPacket *packet)
@@ -856,6 +846,21 @@ int SingleVerSerializeManager::BuildISyncPacket(Message *inMsg, ISyncPacket *&pa
     }
     if (packet == nullptr) {
         return -E_OUT_OF_MEMORY;
+    }
+    return E_OK;
+}
+
+int SingleVerSerializeManager::DataPacketExtraConditionsSerialization(Parcel &parcel, const DataRequestPacket *packet)
+{
+    std::map<std::string, std::string> extraConditions = packet->GetExtraConditions();
+    parcel.WriteUInt32(static_cast<uint32_t>(extraConditions.size()));
+    for (const auto &entry : extraConditions) {
+        parcel.WriteString(entry.first);
+        parcel.WriteString(entry.second);
+    }
+    parcel.EightByteAlign();
+    if (parcel.IsError()) {
+        return -E_PARSE_FAIL;
     }
     return E_OK;
 }

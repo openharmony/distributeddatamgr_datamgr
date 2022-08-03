@@ -52,6 +52,7 @@ private:
     static int DataPacketSerialization(uint8_t *buffer, uint32_t length, const Message *inMsg);
     static int DataPacketSyncerPartSerialization(Parcel &parcel, const DataRequestPacket *packet);
     static int DataPacketQuerySyncSerialization(Parcel &parcel, const DataRequestPacket *packet);
+    static int DataPacketExtraConditionsSerialization(Parcel &parcel, const DataRequestPacket *packet);
     static int DataPacketCalculateLen(const Message *inMsg, uint32_t &len);
 
     static int DataPacketQuerySyncDeSerialization(Parcel &parcel, DataRequestPacket *packet);
