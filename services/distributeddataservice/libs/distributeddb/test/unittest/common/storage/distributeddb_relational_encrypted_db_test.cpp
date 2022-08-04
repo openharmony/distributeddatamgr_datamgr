@@ -223,7 +223,7 @@ HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithPasswdInSp
      * @tc.expected: Succeed, return OK.
      */
     RelationalStoreDelegate::Option option {
-        nullptr, true, CipherType::DEFAULT, g_correctPasswd, DEFAULT_ITER };
+        nullptr, false, true, CipherType::DEFAULT, g_correctPasswd, DEFAULT_ITER };
     EXPECT_EQ(g_mgr.OpenStore(g_storePath, g_storeID, option, g_delegate), DBStatus::OK);
     ASSERT_NE(g_delegate, nullptr);
     ASSERT_EQ(g_delegate->CreateDistributedTable(g_tableName), DBStatus::OK);
@@ -279,7 +279,7 @@ HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithInvalidPar
      * @tc.expected: Failed, return INVALID_ARGS.
      */
     RelationalStoreDelegate::Option option1 {
-        nullptr, true, CipherType::DEFAULT, CipherPassword {}, DEFAULT_ITER };
+        nullptr, false, true, CipherType::DEFAULT, CipherPassword {}, DEFAULT_ITER };
     EXPECT_EQ(g_mgr.OpenStore(g_storePath, g_storeID, option1, g_delegate), DBStatus::INVALID_ARGS);
     ASSERT_EQ(g_delegate, nullptr);
 
@@ -288,7 +288,7 @@ HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithInvalidPar
      * @tc.expected: Failed, return INVALID_ARGS.
      */
     RelationalStoreDelegate::Option option2 {
-        nullptr, true, CipherType::DEFAULT, g_correctPasswd, 0u };
+        nullptr, false, true, CipherType::DEFAULT, g_correctPasswd, 0u };
     EXPECT_EQ(g_mgr.OpenStore(g_storePath, g_storeID, option2, g_delegate), DBStatus::INVALID_ARGS);
     ASSERT_EQ(g_delegate, nullptr);
     sqlite3_close(db);
@@ -321,7 +321,7 @@ HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithCustomized
      * @tc.expected: Succeed, return OK.
      */
     RelationalStoreDelegate::Option option1 {
-        nullptr, true, CipherType::DEFAULT, g_correctPasswd, CUSTOMIZED_ITER };
+        nullptr, false, true, CipherType::DEFAULT, g_correctPasswd, CUSTOMIZED_ITER };
     EXPECT_EQ(g_mgr.OpenStore(g_storePath, g_storeID, option1, g_delegate), DBStatus::OK);
     ASSERT_NE(g_delegate, nullptr);
     ASSERT_EQ(g_delegate->CreateDistributedTable(g_tableName), DBStatus::OK);
@@ -377,7 +377,7 @@ HWTEST_F(DistributedDBRelationalEncryptedDataTest, RekeyAfterOpenStore, TestSize
      * @tc.expected: Succeed, return OK.
      */
     RelationalStoreDelegate::Option option1 {
-        nullptr, true, CipherType::DEFAULT, g_correctPasswd, CUSTOMIZED_ITER };
+        nullptr, false, true, CipherType::DEFAULT, g_correctPasswd, CUSTOMIZED_ITER };
     EXPECT_EQ(g_mgr.OpenStore(g_storePath, g_storeID, option1, g_delegate), DBStatus::OK);
     ASSERT_NE(g_delegate, nullptr);
     ASSERT_EQ(g_delegate->CreateDistributedTable(g_tableName), DBStatus::OK);
@@ -422,5 +422,65 @@ HWTEST_F(DistributedDBRelationalEncryptedDataTest, RekeyAfterOpenStore, TestSize
 
     sqlite3_close(db);
     RefObject::DecObjRef(g_store);
+}
+
+/**
+ * @tc.name: OpenEncryptedDBWithDifferentPasswd
+ * @tc.desc: Open encrypted db with different password in split mode.
+ * @tc.type: FUNC
+ * @tc.require: AR000H68LL
+ * @tc.author: lidongwei
+ */
+HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithDifferentPasswd, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. Create an encrypted db.
+     * @tc.expected: Succeed.
+     */
+    sqlite3 *db = nullptr;
+    ASSERT_EQ(sqlite3_open(g_storePath.c_str(), &db), SQLITE_OK);
+    string sql =
+        "PRAGMA key='" + CORRECT_KEY + "';"
+        "PRAGMA codec_kdf_iter=" + std::to_string(DEFAULT_ITER) + ";"
+        "PRAGMA journal_mode=WAL;"
+        "CREATE TABLE " + g_tableName + "(key INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, value INTEGER);";
+    ExecSqlAndAssertOK(db, sql);
+
+    /**
+     * @tc.steps: step2. Open store.
+     * @tc.expected: Succeed, return OK.
+     */
+    RelationalStoreDelegate::Option option {
+        nullptr, false, true, CipherType::DEFAULT, g_correctPasswd, DEFAULT_ITER };
+    EXPECT_EQ(g_mgr.OpenStore(g_storePath, g_storeID, option, g_delegate), DBStatus::OK);
+    ASSERT_NE(g_delegate, nullptr);
+
+    /**
+     * @tc.steps: step3. Open store with different key or iter times.
+     * @tc.expected: Failed, return INVALID_PASSWD_OR_CORRUPTED_DB.
+     */
+    RelationalStoreDelegate *delegate = nullptr;
+    option = { nullptr, false, true, CipherType::DEFAULT, g_incorrectPasswd, DEFAULT_ITER };
+    EXPECT_EQ(g_mgr.OpenStore(g_storePath, g_storeID, option, delegate), DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB);
+    EXPECT_EQ(delegate, nullptr);
+
+    option = { nullptr, false, true, CipherType::DEFAULT, g_incorrectPasswd, CUSTOMIZED_ITER };
+    EXPECT_EQ(g_mgr.OpenStore(g_storePath, g_storeID, option, delegate), DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB);
+    EXPECT_EQ(delegate, nullptr);
+
+    option = { nullptr, false, false, CipherType::DEFAULT, g_correctPasswd, DEFAULT_ITER };
+    EXPECT_EQ(g_mgr.OpenStore(g_storePath, g_storeID, option, delegate), DBStatus::INVALID_PASSWD_OR_CORRUPTED_DB);
+    EXPECT_EQ(delegate, nullptr);
+
+    /**
+     * @tc.steps: step4. Open store with different cipher.
+     * @tc.expected: Succeed, return OK.
+     */
+    option = { nullptr, false, true, CipherType::AES_256_GCM, g_correctPasswd, DEFAULT_ITER };
+    EXPECT_EQ(g_mgr.OpenStore(g_storePath, g_storeID, option, delegate), DBStatus::OK);
+    EXPECT_NE(delegate, nullptr);
+
+    EXPECT_EQ(g_mgr.CloseStore(delegate), DBStatus::OK);
+    sqlite3_close(db);
 }
 #endif
