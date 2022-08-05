@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef OMIT_ENCRYPT
 #ifdef RELATIONAL_STORE
 #include <gtest/gtest.h>
 
@@ -133,13 +134,13 @@ void DistributedDBRelationalEncryptedDataTest::TearDown(void)
 }
 
 /**
- * @tc.name: OpenEncryptedDBWithoutPasswd
+ * @tc.name: OpenEncryptedDBWithoutPasswd_001
  * @tc.desc: Open encrypted db without password in collaboration mode.
  * @tc.type: FUNC
  * @tc.require: AR000H68LL
  * @tc.author: lidongwei
  */
-HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithoutPasswdInCollMode, TestSize.Level1)
+HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithoutPasswdInCollMode_001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Create an encrypted db.
@@ -165,13 +166,13 @@ HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithoutPasswdI
 }
 
 /**
- * @tc.name: OpenEncryptedDBWithoutPasswdInSplitMode
+ * @tc.name: OpenEncryptedDBWithoutPasswdInSplitMode_001
  * @tc.desc: Open encrypted db without password in split mode.
  * @tc.type: FUNC
  * @tc.require: AR000H68LL
  * @tc.author: lidongwei
  */
-HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithoutPasswdInSplitMode, TestSize.Level1)
+HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithoutPasswdInSplitMode_001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Create an encrypted db.
@@ -197,13 +198,13 @@ HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithoutPasswdI
 }
 
 /**
- * @tc.name: OpenEncryptedDBWithPasswdInSplitMode
+ * @tc.name: OpenEncryptedDBWithPasswdInSplitMode_001
  * @tc.desc: Open encrypted db with password in split mode.
  * @tc.type: FUNC
  * @tc.require: AR000H68LL
  * @tc.author: lidongwei
  */
-HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithPasswdInSplitMode, TestSize.Level1)
+HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithPasswdInSplitMode_001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Create an encrypted db.
@@ -253,13 +254,13 @@ HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithPasswdInSp
 }
 
 /**
- * @tc.name: OpenEncryptedDBWithInvalidParameters
+ * @tc.name: OpenEncryptedDBWithInvalidParameters_001
  * @tc.desc: Open encrypted db with invalid parameters in split mode.
  * @tc.type: FUNC
  * @tc.require: AR000H68LL
  * @tc.author: lidongwei
  */
-HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithInvalidParameters, TestSize.Level1)
+HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithInvalidParameters_001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Create an encrypted db.
@@ -295,13 +296,13 @@ HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithInvalidPar
 }
 
 /**
- * @tc.name: OpenEncryptedDBWithCustomizedIterTimes
+ * @tc.name: OpenEncryptedDBWithCustomizedIterTimes_001
  * @tc.desc: Open encrypted db with customized iterate times.
  * @tc.type: FUNC
  * @tc.require: AR000H68LL
  * @tc.author: lidongwei
  */
-HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithCustomizedIterTimes, TestSize.Level1)
+HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithCustomizedIterTimes_001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Create an encrypted db.
@@ -351,13 +352,13 @@ HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithCustomized
 }
 
 /**
- * @tc.name: RekeyAfterOpenStore
+ * @tc.name: RekeyAfterOpenStore_001
  * @tc.desc: Rekey after open store.
  * @tc.type: FUNC
  * @tc.require: AR000H68LL
  * @tc.author: lidongwei
  */
-HWTEST_F(DistributedDBRelationalEncryptedDataTest, RekeyAfterOpenStore, TestSize.Level1)
+HWTEST_F(DistributedDBRelationalEncryptedDataTest, RekeyAfterOpenStore_001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Create an encrypted db.
@@ -425,13 +426,13 @@ HWTEST_F(DistributedDBRelationalEncryptedDataTest, RekeyAfterOpenStore, TestSize
 }
 
 /**
- * @tc.name: OpenEncryptedDBWithDifferentPasswd
+ * @tc.name: OpenEncryptedDBWithDifferentPasswd_001
  * @tc.desc: Open encrypted db with different password in split mode.
  * @tc.type: FUNC
  * @tc.require: AR000H68LL
  * @tc.author: lidongwei
  */
-HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithDifferentPasswd, TestSize.Level1)
+HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithDifferentPasswd_001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Create an encrypted db.
@@ -483,4 +484,5 @@ HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithDifferentP
     EXPECT_EQ(g_mgr.CloseStore(delegate), DBStatus::OK);
     sqlite3_close(db);
 }
-#endif
+#endif  // RELATIONAL_STORE
+#endif  // OMIT_ENCRYPT

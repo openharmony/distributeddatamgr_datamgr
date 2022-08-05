@@ -31,7 +31,6 @@
 using namespace testing::ext;
 using namespace DistributedDB;
 using namespace DistributedDBUnitTest;
-#define ENCRYPTED_DB
 
 namespace {
     const std::string DEVICE_A = "real_device";
@@ -39,7 +38,7 @@ namespace {
     const std::string DEVICE_C = "deviceC";
     const std::string g_tableName = "TEST_TABLE";
 
-#ifdef ENCRYPTED_DB
+#ifndef OMIT_ENCRYPT
     bool g_isAfterRekey = false;
     const string CORRECT_KEY = "a correct key";
     CipherPassword g_correctPasswd;
@@ -84,7 +83,7 @@ namespace {
         }
         RelationalStoreDelegate::Option option;
         option.observer = g_observer;
-#ifdef ENCRYPTED_DB
+#ifndef OMIT_ENCRYPT
         option.isEncryptedDb = true;
         option.iterateTimes = DEFAULT_ITER;
         option.passwd = g_isAfterRekey ? g_rekeyPasswd : g_correctPasswd;
@@ -102,7 +101,7 @@ namespace {
         if (rc != SQLITE_OK) {
             return rc;
         }
-#ifdef ENCRYPTED_DB
+#ifndef OMIT_ENCRYPT
         string sql =
             "PRAGMA key='" + (g_isAfterRekey ? REKEY_KEY : CORRECT_KEY) + "';"
             "PRAGMA codec_kdf_iter=" + std::to_string(DEFAULT_ITER) + ";";
@@ -656,7 +655,7 @@ void DistributedDBRelationalVerP2PSyncTest::SetUpTestCase()
 
     g_id = g_mgr.GetRelationalStoreIdentifier(USER_ID, APP_ID, STORE_ID_1);
 
-#ifdef ENCRYPTED_DB
+#ifndef OMIT_ENCRYPT
     g_correctPasswd.SetValue((const uint8_t *)(CORRECT_KEY.data()), CORRECT_KEY.size());
     g_rekeyPasswd.SetValue((const uint8_t *)(REKEY_KEY.data()), REKEY_KEY.size());
     g_incorrectPasswd.SetValue((const uint8_t *)(INCORRECT_KEY.data()), INCORRECT_KEY.size());
@@ -931,7 +930,7 @@ HWTEST_F(DistributedDBRelationalVerP2PSyncTest, AutoLaunchSync001, TestSize.Leve
         param.userId  = USER_ID;
         param.storeId = STORE_ID_1;
         param.notifier = notifier;
-#ifdef ENCRYPTED_DB
+#ifndef OMIT_ENCRYPT
         param.option.isEncryptedDb = true;
         param.option.cipher = CipherType::DEFAULT;
         param.option.passwd = g_correctPasswd;
@@ -969,14 +968,14 @@ HWTEST_F(DistributedDBRelationalVerP2PSyncTest, AutoLaunchSync001, TestSize.Leve
 }
 
 /**
-* @tc.name: AutoLaunchSync 001
-* @tc.desc: Test rdb autoLaunch success when callback return true.
+* @tc.name: AutoLaunchSyncAfterRekey_001
+* @tc.desc: Test auto launch sync ok after rekey.
 * @tc.type: FUNC
-* @tc.require: AR000GK58N
-* @tc.author: zhangqiquan
+* @tc.require: AR000H68LL
+* @tc.author: lidongwei
 */
-#ifdef ENCRYPTED_DB
-HWTEST_F(DistributedDBRelationalVerP2PSyncTest, AutoLaunchSyncAfterRekey, TestSize.Level3)
+#ifndef OMIT_ENCRYPT
+HWTEST_F(DistributedDBRelationalVerP2PSyncTest, AutoLaunchSyncAfterRekey_001, TestSize.Level3)
 {
     /**
      * @tc.steps: step1. open rdb store, create distribute table and insert data
@@ -1408,7 +1407,7 @@ HWTEST_F(DistributedDBRelationalVerP2PSyncTest, observer002, TestSize.Level3)
         param.userId  = USER_ID;
         param.storeId = STORE_ID_1;
         param.option.storeObserver = observer;
-#ifdef ENCRYPTED_DB
+#ifndef OMIT_ENCRYPT
         param.option.isEncryptedDb = true;
         param.option.cipher = CipherType::DEFAULT;
         param.option.passwd = g_correctPasswd;
