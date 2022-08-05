@@ -68,6 +68,10 @@ int VirtualCommunicator::SendMessage(const std::string &dstTarget, const Message
     }
     Message *message = nullptr;
     int errCode = TranslateMsg(inMsg, message);
+    if (errCode == -E_NOT_REGISTER) {
+        communicatorAggregator_->DispatchMessage(deviceId_, dstTarget, message, onEnd);
+        return E_OK;
+    }
     if (errCode != E_OK) {
         return errCode;
     }

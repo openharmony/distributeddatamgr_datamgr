@@ -183,6 +183,7 @@ private:
 
     std::atomic<uint32_t> currentSessionId_;
 
+    // Get map from this callback, use for run permission check in remote device
     mutable std::shared_mutex permissionConditionLock_;
     PermissionConditionCallback permissionConditionCallback_;
 };
