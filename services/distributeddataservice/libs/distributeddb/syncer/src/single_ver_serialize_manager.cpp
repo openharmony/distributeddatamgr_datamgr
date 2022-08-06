@@ -265,6 +265,9 @@ int SingleVerSerializeManager::DataPacketSerialization(uint8_t *buffer, uint32_t
         }
     }
 
+    if (packet->GetVersion() < SOFTWARE_VERSION_RELEASE_6_0) {
+        return E_OK;
+    }
     return DataPacketExtraConditionsSerialization(parcel, packet);
 }
 
@@ -397,7 +400,9 @@ int SingleVerSerializeManager::DataPacketDeSerialization(const uint8_t *buffer, 
             goto ERROR;
         }
     }
-    errCode = DataPacketExtraConditionsDeserialization(parcel, packet);
+    if (version >= SOFTWARE_VERSION_RELEASE_6_0) {
+        errCode = DataPacketExtraConditionsDeserialization(parcel, packet);
+    }
     if (errCode != E_OK) {
         goto ERROR;
     }

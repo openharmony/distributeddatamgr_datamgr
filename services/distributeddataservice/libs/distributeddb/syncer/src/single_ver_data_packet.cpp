@@ -179,10 +179,13 @@ uint32_t DataRequestPacket::CalculateLen(uint32_t messageId) const
     if (IsCompressData()) {
         totalLen += GenericSingleVerKvEntry::CalculateCompressedLens(compressData_); // add forcompressData_
     }
-    totalLen += Parcel::GetUInt32Len(); // extraCondition size
-    for (const auto &entry : extraConditions_) {
-        totalLen += Parcel::GetStringLen(entry.first);
-        totalLen += Parcel::GetStringLen(entry.second);
+
+    if (version_ >= SOFTWARE_VERSION_RELEASE_6_0) {
+        totalLen += Parcel::GetUInt32Len(); // extraCondition size
+        for (const auto &entry : extraConditions_) {
+            totalLen += Parcel::GetStringLen(entry.first);
+            totalLen += Parcel::GetStringLen(entry.second);
+        }
     }
     totalLen = Parcel::GetEightByteAlign(totalLen); // 8-byte align
     if (totalLen > INT32_MAX) {
