@@ -98,7 +98,7 @@ void BackupManager::BackSchedule()
     std::chrono::duration<int> delay(schedularDelay_);
     std::chrono::duration<int> internal(schedularInternal_);
     ZLOGI("BackupHandler Schedule start.");
-    scheduler_.Every(delay, internal, [this](){
+    scheduler_.Every(delay, internal, [this]() {
         if (!CanBackup()) {
             return;
         }
