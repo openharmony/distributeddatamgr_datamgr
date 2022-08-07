@@ -34,7 +34,8 @@ namespace OHOS::DistributedData {
 using namespace OHOS::Security::AccessToken;
 using namespace AppDistributedKv;
 namespace {
-constexpr const int  COPY_SIZE = 1024;
+constexpr const int COPY_SIZE = 1024;
+constexpr const int MICROSEC_TO_SEC = 1000;
 constexpr const char *AUTO_BACKUP_NAME = "autoBackup.bak";
 constexpr const char *BACKUP_BK_POSTFIX = ".bk";
 constexpr const char *BACKUP_TMP_POSTFIX = ".tmp";
@@ -43,7 +44,6 @@ constexpr const char *BACKUP_KEY_POSTFIX = "_KeyForAutoBackup";
 
 BackupManager::BackupManager()
 {
-    Init();
 }
 
 BackupManager::~BackupManager()
@@ -58,20 +58,20 @@ BackupManager &BackupManager::GetInstance()
 
 void BackupManager::Init()
 {
-    auto metas = GetMetas();
+    std::vector<StoreMetaData> metas;
+    MetaDataManager::GetInstance().LoadMeta(StoreMetaData::GetPrefix({}), metas);
     for (auto &meta : metas) {
         if (!meta.isBackup || meta.isDirty) {
                 continue;
         }
         auto backupPath =
             DirectoryManager::GetInstance().GetStoreBackupPath(meta) + "/" + meta.storeId + "/" + AUTO_BACKUP_NAME;
-        auto key = meta.GetSecretKey();
-        switch (GetClearType(backupPath)) {
+        switch (GetClearType(meta)) {
             case ROLLBACK:
-                RollBackData(backupPath, key);
+                RollBackData(backupPath);
                 break;
             case CLEAN_DATA:
-                CleanData(backupPath, key);
+                CleanData(backupPath);
                 break;
             case DO_NOTHING:
             default:
@@ -98,22 +98,27 @@ void BackupManager::BackSchedule()
     std::chrono::duration<int> delay(schedularDelay_);
     std::chrono::duration<int> internal(schedularInternal_);
     ZLOGI("BackupHandler Schedule start.");
-    scheduler_.Every(delay, internal, [&]() {
+    scheduler_.Every(delay, internal, [this](){
         if (!CanBackup()) {
             return;
         }
-        auto metas = GetMetas();
-        completeNum_ = 0;
+        std::vector<StoreMetaData> metas;
+        MetaDataManager::GetInstance().LoadMeta(StoreMetaData::GetPrefix({}), metas);
+        auto loopCount = 0;
         for (auto &meta : metas) {
-            if (!meta.isBackup || meta.isDirty) {
+            if (!meta.isBackup || meta.isDirty || (loopCount < startNum_)) {
+                loopCount++;
                 continue;
             }
             DoBackup(meta);
-            if (completeNum_ - startNum_ >= backupNumber_) {
+            loopCount++;
+            if (loopCount - startNum_ >= backupNumber_) {
                 startNum_ += backupNumber_;
                 break;
             }
-            startNum_ = 0;
+            if (loopCount == static_cast<int64_t>(metas.size())) {
+                startNum_ = 0;
+            }
         }
         backupSuccessTime_ = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
     });
@@ -121,43 +126,27 @@ void BackupManager::BackSchedule()
 
 void BackupManager::DoBackup(const StoreMetaData &meta)
 {
-    if (startNum_ > completeNum_) {
-        completeNum_++;
-        return;
-    }
-    DistributedKv::Status status;
-    std::vector<uint8_t> decryptKey;
+    DistributedKv::Status status = Status::NOT_FOUND;
     std::string key = meta.GetSecretKey();
+    std::vector<uint8_t> decryptKey;
     SecretKeyMetaData secretKey;
-    MetaDataManager::GetInstance().LoadMeta(key, secretKey, true);
-    CryptoManager::GetInstance().Decrypt(secretKey.sKey, decryptKey);
+    if (MetaDataManager::GetInstance().LoadMeta(key, secretKey, true)) {
+        CryptoManager::GetInstance().Decrypt(secretKey.sKey, decryptKey);
+    }
     auto backupPath = DirectoryManager::GetInstance().GetStoreBackupPath(meta);
-    std::string backupFullPath = backupPath + "/" + meta.storeId + "/" + AUTO_BACKUP_NAME;
+    std::string backupFullPath = backupPath + "/" + AUTO_BACKUP_NAME;
 
-    KeepData(backupFullPath, key, secretKey);
-    exporters_[meta.storeType](meta, decryptKey, backupFullPath + BACKUP_TMP_POSTFIX, status);
+    KeepData(backupFullPath);
+    if (exporters_[meta.storeType] == nullptr) {
+        exporters_[meta.storeType](meta, decryptKey, backupFullPath + BACKUP_TMP_POSTFIX, status);
+    }
     if (status == DistributedKv::Status::SUCCESS) {
         SaveData(backupFullPath, key, secretKey);
     } else {
-        CleanData(backupFullPath, key);
+        ZLOGE("DoBackup failed, storeId %{public}s, status %{publiuc}d.", meta.storeId.c_str(), status);
+        CleanData(backupFullPath);
     }
-    std::fill(decryptKey.begin(), decryptKey.end(), 0);
-    completeNum_++;
-}
-
-std::vector<StoreMetaData> BackupManager::GetMetas()
-{
-    std::vector<StoreMetaData> results;
-    auto device = CommunicationProvider::GetInstance().GetLocalDevice();
-    if (device.uuid.empty()) {
-        ZLOGE("local uuid is empty!");
-    }
-    ZLOGI("BackupHandler Schedule Every start.");
-    auto prefix = StoreMetaData::GetPrefix({ device.uuid });
-    if (!MetaDataManager::GetInstance().LoadMeta(prefix, results)) {
-        ZLOGE("GetFullMetaData failed.");
-    }
-    return results;
+    decryptKey.assign(decryptKey.size(), 0);
 }
 
 bool BackupManager::CanBackup()
@@ -166,20 +155,17 @@ bool BackupManager::CanBackup()
         return false;
     }
     int64_t currentTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-    if (currentTime - backupSuccessTime_ < backupInternal_ && backupSuccessTime_ > 0) {
+    if (currentTime - backupSuccessTime_ < backupInternal_ * MICROSEC_TO_SEC && backupSuccessTime_ > 0) {
         ZLOGE("no more than backup internal time since the last backup success.");
         return false;
     }
     return true;
 }
 
-void BackupManager::KeepData(
-    const std::string &path, const std::string &key, const SecretKeyMetaData &secretKey)
+void BackupManager::KeepData(const std::string &path)
 {
     auto backupPath = path + BACKUP_BK_POSTFIX;
-    auto backupKey = key + BACKUP_KEY_POSTFIX + BACKUP_BK_POSTFIX;
     CopyFile(path, backupPath, true);
-    MetaDataManager::GetInstance().SaveMeta(backupKey, secretKey, true);
 }
 
 void BackupManager::SaveData(
@@ -188,108 +174,103 @@ void BackupManager::SaveData(
     auto tmpPath = path + BACKUP_TMP_POSTFIX;
     auto backupPath = path + BACKUP_BK_POSTFIX;
     auto saveKey = key + BACKUP_KEY_POSTFIX;
-    auto backupKey = saveKey + BACKUP_BK_POSTFIX;
     CopyFile(tmpPath, path);
-    MetaDataManager::GetInstance().SaveMeta(saveKey, secretKey, true);
     RemoveFile(tmpPath.c_str());
-    MetaDataManager::GetInstance().DelMeta(backupKey, true);
+    if (secretKey.sKey.size() != 0) {
+        MetaDataManager::GetInstance().SaveMeta(saveKey, secretKey, true);
+    }
     RemoveFile(backupPath.c_str());
 }
 
-void BackupManager::RollBackData(const std::string &path, const std::string &key)
+void BackupManager::RollBackData(const std::string &path)
 {
     auto tmpPath = path + BACKUP_TMP_POSTFIX;
     auto backupPath = path + BACKUP_BK_POSTFIX;
     CopyFile(backupPath, path);
     RemoveFile(tmpPath.c_str());
     RemoveFile(backupPath.c_str());
-    auto saveKey = key + BACKUP_KEY_POSTFIX;
-    auto backupKey = saveKey + BACKUP_BK_POSTFIX;
-    SecretKeyMetaData secretKey;
-    if (MetaDataManager::GetInstance().LoadMeta(backupKey, secretKey, true)) {
-        MetaDataManager::GetInstance().SaveMeta(saveKey, secretKey, true);
-        MetaDataManager::GetInstance().DelMeta(backupKey, true);
-    };
 }
 
-void BackupManager::CleanData(const std::string &path, const std::string &key)
+void BackupManager::CleanData(const std::string &path)
 {
     auto backupPath = path + BACKUP_BK_POSTFIX;
     auto tmpPath = path + BACKUP_TMP_POSTFIX;
-    auto backupKey = path + BACKUP_KEY_POSTFIX + BACKUP_BK_POSTFIX;
     RemoveFile(tmpPath.c_str());
     RemoveFile(backupPath.c_str());
-    MetaDataManager::GetInstance().DelMeta(backupKey, true);
 }
 
 /**
  *  learning by watching blow table, we can konw :
- *  when tmp file exist, interrupt happend druing backup or copy data to client's file
- *  when tmp file not exist but bk file exist, interrupt happend before backup or copy data completed
+ *  as encrypt db, when backup's password same as db's password, need clean data,
+ *  others if .bk file or .tmp file exist, rollback data
+ *  as unencrypt db, tmp file exist, rollback, tmp file not exist, but .bk file exist, clean data
  *
  *  backup step (encrypt)   file status             key in meat         option          file num
- *  1, backup old data      autoBachup.bak          autoBachup.key      clean data      raw = 2
- *                          autoBachup.bak.bk       -                                   .bk = 1
- *                                                                                      .tmp = 0
+ *  1, backup old data      autoBachup.bak          autoBachup.key      rollback        .bk = 1
+ *                          autoBachup.bak.bk                                           .tmp = 0
  *
- *  2, backup old key       autoBachup.bak          autoBachup.key      clean data      raw = 2
- *                          autoBachup.bak.bk       autoBachup.key.bk                   .bk = 2
- *                                                                                      .tmp = 0
+ *  2, do backup            autoBachup.bak          autoBachup.key      rollback        .bk = 1
+ *                          autoBachup.bak.bk                                           .tmp = 1
+ *                          autoBachup.bak.tmp
  *
- *  3, do backup            autoBachup.bak          autoBachup.key      rollback        raw = 2
- *                          autoBachup.bak.bk       autoBachup.key.bk                   .bk = 2
- *                          autoBachup.bak.tmp                                          .tmp = 1
+ *  3, copy data            autoBachup.bak(new)     autoBachup.key      rollback        .bk = 1
+ *                          autoBachup.bak.bk                                           .tmp = 1
+ *                          autoBachup.bak.tmp
  *
- *  4, copy data            autoBachup.bak(new)     autoBachup.key      rollback        raw = 2
- *                          autoBachup.bak.bk       autoBachup.key.bk                   .bk = 2
- *                          autoBachup.bak.tmp                                          .tmp = 1
+ *  4, delet tmp data       autoBachup.bak(new)     autoBachup.key      rollback        .bk = 1
+ *                          autoBachup.bak.bk                                           .tmp = 0
  *
- *  5, save key             autoBachup.bak(new)     autoBachup.key(new) rollback        raw = 2
- *                          autoBachup.bak.bk       autoBachup.key.bk                   .bk = 2
- *                          autoBachup.bak.tmp                                          .tmp = 1
+ *  5, save key             autoBachup.bak(new)     autoBachup.key(new) clean data      .bk = 1
+ *                          autoBachup.bak.bk                                           .tmp = 0
  *
- *  6, delet tmp data       autoBachup.bak(new)     autoBachup.key(new) clean data       raw = 2
- *                          autoBachup.bak.bk       autoBachup.key.bk                   .bk = 1
- *                          -                                                           .tmp = 0
- *
- *  7, delet backup key     autoBachup.bak(new)     autoBachup.key(new) clean data      raw = 2
- *                          autoBachup.bak.bk                                           .bk = 1
- *                          -                                                           .tmp = 0
- *
- *  8, delet backup data    autoBachup.bak          autoBachup.key         do nothing   raw = 2
- *                          -                       -                                   .bk = 0
- *                          -                                                           .tmp = 0
+ *  6, delet backup data    autoBachup.bak          autoBachup.key      do nothing      .bk = 0
+ *                          -                       -                                   .tmp = 0
  *
  *  backup step (unencrypt) file status                     option                      file num
- *  1, backup old data      autoBachup.bak                  clean data                  raw = 1
- *                          autoBachup.bak.bk                                           .bk = 1
- *                                                                                      .tmp = 0
+ *  1, backup old data      autoBachup.bak                  clean data                  .bk = 1
+ *                          autoBachup.bak.bk                                           .tmp = 0
  *
- *  2, do backup            autoBachup.bak                  rollback data               raw = 1
- *                          autoBachup.bak.bk,                                          .bk = 1
- *                          autoBachup.bak.tmp                                          .tmp = 1
+ *  2, do backup            autoBachup.bak                  rollback data               .bk = 1
+ *                          autoBachup.bak.bk,                                          .tmp = 1
+ *                          autoBachup.bak.tmp
  *
- *  3, copy data            autoBachup.bak(new)             rollback data               raw = 1
- *                          autoBachup.bak.bk,                                          .bk = 1
- *                          autoBachup.bak.tmp                                          .tmp = 1
+ *  3, copy data            autoBachup.bak(new)             rollback data               .bk = 1
+ *                          autoBachup.bak.bk,                                          .tmp = 1
+ *                          autoBachup.bak.tmp
  *
- *  4, delet tmp data       autoBachup.bak                  clean data                  raw = 1
- *                          autoBachup.bak.bk                                           .bk = 1
- *                                                                                      .tmp =0
+ *  4, delet tmp data       autoBachup.bak                  clean data                  .bk = 1
+ *                          autoBachup.bak.bk                                           .tmp = 0
  *
- *  5, delet backup data    autoBachup.bak                  do nothing                  raw = 1
- *                                                                                      .bk = 0
+ *
+ *  5, delet backup data    autoBachup.bak                  do nothing                  .bk = 0
  *                                                                                      .tmp =0
  * */
-BackupManager::ClearType BackupManager::GetClearType(const std::string &path)
+BackupManager::ClearType BackupManager::GetClearType(const StoreMetaData &meta)
 {
-    std::string tmpFile = path + BACKUP_TMP_POSTFIX;
-    std::string bkFile = path + BACKUP_BK_POSTFIX;
-    if (IsFileExist(tmpFile)) {
-        return ROLLBACK;
-    }
-    if (!IsFileExist(tmpFile) && IsFileExist(bkFile)) {
-        return CLEAN_DATA;
+    auto backupFile =
+        DirectoryManager::GetInstance().GetStoreBackupPath(meta) + "/" + meta.storeId + "/" + AUTO_BACKUP_NAME;
+    auto dbKey = meta.GetSecretKey();
+    auto backupKey = dbKey + BACKUP_KEY_POSTFIX;
+    auto bkFile = backupFile + BACKUP_BK_POSTFIX;
+
+    SecretKeyMetaData dbPassword;
+    if (MetaDataManager::GetInstance().LoadMeta(dbKey, dbPassword, true)) {
+        SecretKeyMetaData backupPassword;
+        MetaDataManager::GetInstance().LoadMeta(backupKey, backupPassword, true);
+        if (dbPassword.sKey != backupPassword.sKey && IsFileExist(bkFile)) {
+            return ROLLBACK;
+        }
+        if (dbPassword.sKey == backupPassword.sKey && IsFileExist(bkFile)) {
+            return CLEAN_DATA;
+        }
+    } else {
+        auto tmpFile = backupFile + BACKUP_TMP_POSTFIX;
+        if (IsFileExist(tmpFile)) {
+            return ROLLBACK;
+        }
+        if (!IsFileExist(tmpFile) && IsFileExist(bkFile)) {
+            return CLEAN_DATA;
+        }
     }
     return DO_NOTHING;
 }
@@ -297,6 +278,9 @@ BackupManager::ClearType BackupManager::GetClearType(const std::string &path)
 void BackupManager::CopyFile(const std::string &oldPath, const std::string &newPath, bool isCreate)
 {
     std::fstream fin, fout;
+    if (!IsFileExist(oldPath)) {
+        return;
+    }
     fin.open(oldPath, std::ios_base::in);
     if (isCreate) {
         fout.open(newPath, std::ios_base::out | std::ios_base::ate);
@@ -313,7 +297,7 @@ void BackupManager::CopyFile(const std::string &oldPath, const std::string &newP
 }
 
 bool BackupManager::GetPassWord(
-    const DistributedKv::AppId &appId, const DistributedKv::StoreId &storeId, std::vector<uint8_t> password)
+    const DistributedKv::AppId &appId, const DistributedKv::StoreId &storeId, std::vector<uint8_t> &password)
 {
     auto meta = GetStoreMetaData(appId, storeId);
     std::string key = meta.GetSecretKey();

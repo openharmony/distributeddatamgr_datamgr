@@ -21,10 +21,10 @@ namespace DistributedData {
 class BackupConfig  final : public Serializable {
 public:
     std::vector<std::string> rules;
-    int schedularDelay;
-    int schedularInternal;
-    int backupInternal;
-    int backupNumber;
+    int32_t schedularDelay;
+    int32_t schedularInternal;
+    int32_t backupInternal;
+    int32_t backupNumber;
     bool Marshal(json &node) const override;
     bool Unmarshal(const json &node) override;
 };

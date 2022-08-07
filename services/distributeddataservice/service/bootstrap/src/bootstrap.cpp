@@ -90,6 +90,7 @@ void Bootstrap::LoadBackup()
     BackupManager::BackupParam backupParam = { backupRules->schedularDelay,
         backupRules->schedularInternal, backupRules->backupInternal, backupRules->backupNumber};
     BackupManager::GetInstance().SetBackupParam(backupParam);
+    BackupManager::GetInstance().Init();
     BackupManager::GetInstance().BackSchedule();
 }
 

@@ -37,27 +37,26 @@ public:
         CLEAN_DATA,
     };
     static BackupManager &GetInstance();
+    void Init();
     void BackSchedule();
     void SetBackupParam(const BackupParam &backupParam);
     void RegisterExporter(int type, Exporter exporter);
     bool GetPassWord(const DistributedKv::AppId &appId,
-        const DistributedKv::StoreId &storeId, std::vector<uint8_t> password);
+        const DistributedKv::StoreId &storeId, std::vector<uint8_t> &password);
 
 private:
     BackupManager();
     ~BackupManager();
-    void Init();
-    ClearType GetClearType(const std::string &path);
-    std::vector<StoreMetaData> GetMetas();
+    ClearType GetClearType(const StoreMetaData &meta);
     bool CanBackup();
     void DoBackup(const StoreMetaData &meta);
     void CopyFile(const std::string &oldPath, const std::string &newPath, bool isCreate = false);
     StoreMetaData GetStoreMetaData(const DistributedKv::AppId &appId, const DistributedKv::StoreId &storeId);
     int32_t GetInstIndex(uint32_t tokenId, const DistributedKv::AppId &appId);
-    void KeepData(const std::string &path, const std::string &key, const SecretKeyMetaData &secretKey);
+    void KeepData(const std::string &path);
     void SaveData(const std::string &path, const std::string &key, const SecretKeyMetaData &secretKey);
-    void CleanData(const std::string &path, const std::string &key);
-    void RollBackData(const std::string &path, const std::string &key);
+    void CleanData(const std::string &path);
+    void RollBackData(const std::string &path);
     bool IsFileExist(const std::string &path);
     bool RemoveFile(const std::string &path);
 
@@ -66,10 +65,8 @@ private:
     int64_t schedularInternal_;
     int64_t backupInternal_;
     int64_t backupSuccessTime_ = 0;
-
-    int64_t backupNumber_;
-    int64_t startNum_;
-    int64_t completeNum_;
+    int64_t backupNumber_ = 0;
+    int64_t startNum_ = 0;
     DistributedKv::KvScheduler scheduler_ {};
 };
 } // namespace OHOS::DistributedData

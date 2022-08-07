@@ -22,8 +22,6 @@ namespace OHOS {
 namespace DistributedData {
 class BackupRuleManager {
 public:
-    static constexpr pid_t ROOT_UID = 0;
-
     class BackupRule {
     public:
         virtual bool CanBackup() = 0;
@@ -32,7 +30,7 @@ public:
     };
     API_EXPORT static BackupRuleManager &GetInstance();
     API_EXPORT void RegisterPlugin(const std::string &backupRule, std::function<BackupRule *()> getter);
-    API_EXPORT void LoadBackupRules(std::vector<std::string> &backupRules);
+    API_EXPORT void LoadBackupRules(const std::vector<std::string> &backupRules);
     API_EXPORT bool CanBackup();
 private:
     std::vector<BackupRule *> backupRules_;

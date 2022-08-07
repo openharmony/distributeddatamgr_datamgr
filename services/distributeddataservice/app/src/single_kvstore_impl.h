@@ -85,7 +85,7 @@ protected:
         DistributedDB::KvStoreResultSet *resultSet, const DistributedDB::Key &prix);
 
 private:
-    void ReportDbCorrupted(DistributedDB::DBStatus dbStatus, const char* funName);
+    Status CheckDbIsCorrupted(DistributedDB::DBStatus dbStatus, const char* funName);
     Status ConvertDbStatus(DistributedDB::DBStatus dbStatus);
     uint32_t GetSyncDelayTime(uint32_t allowedDelayMs) const;
     Status AddSync(const std::vector<std::string> &deviceIds, SyncMode mode, uint32_t delayMs,

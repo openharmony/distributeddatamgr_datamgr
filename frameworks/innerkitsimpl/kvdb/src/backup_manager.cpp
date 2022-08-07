@@ -186,10 +186,6 @@ Status BackupManager::Restore(const std::string &name, const std::string &baseDi
     if (dbStore == nullptr) {
         return ALREADY_CLOSED;
     }
-    auto service = KVDBServiceClient::GetInstance();
-    if (service == nullptr) {
-        return SERVER_UNAVAILABLE;
-    }
     if (storeId.size() == 0 || baseDir.size() == 0) {
         return INVALID_ARGUMENT;
     }
@@ -203,6 +199,10 @@ Status BackupManager::Restore(const std::string &name, const std::string &baseDi
     if (backupFile.name != AUTO_BACKUP_NAME) {
         password = SecurityManager::GetInstance().GetDBPassword(keyName, baseDir);
     } else {
+        auto service = KVDBServiceClient::GetInstance();
+        if (service == nullptr) {
+            return SERVER_UNAVAILABLE;
+        }
         std::vector<uint8_t> pwd;
         service->GetBackupPassword({ appId }, { storeId }, pwd);
         password.SetValue(pwd.data(), pwd.size());
@@ -296,6 +296,9 @@ std::map<std::string, BackupManager::ResidueInfo> BackupManager::BuildResidueInf
     std::map<std::string, ResidueInfo> residueInfoList;
     for (auto &file : files) {
         auto backupName = GetBackupName(file.name);
+        if (backupName == AUTO_BACKUP_NAME) {
+            continue;
+        }
         auto it = residueInfoList.find(backupName);
         if (it == residueInfoList.end()) {
             ResidueInfo residueInfo = { 0, 0, false, false, false, false };

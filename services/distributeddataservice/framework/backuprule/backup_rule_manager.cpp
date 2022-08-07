@@ -20,7 +20,7 @@ BackupRuleManager &BackupRuleManager::GetInstance()
     return instance;
 }
 
-void BackupRuleManager::LoadBackupRules(std::vector<std::string> &backupRules)
+void BackupRuleManager::LoadBackupRules(const std::vector<std::string> &backupRules)
 {
     for (const auto &backupRule : backupRules) {
         auto it = getters_.Find(backupRule);
@@ -47,7 +47,10 @@ void BackupRuleManager::RegisterPlugin(const std::string &backupRule, std::funct
 bool BackupRuleManager::CanBackup()
 {
     for (auto rule : backupRules_) {
-        if (rule->CanBackup() == false) {
+        if (rule == nullptr) {
+            continue;
+        }
+        if (!rule->CanBackup()) {
             return false;
         }
     }
