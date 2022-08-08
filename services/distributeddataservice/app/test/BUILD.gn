@@ -61,7 +61,6 @@ config("module_private_config") {
 ohos_unittest("KvStoreImplLogicalIsolationTest") {
   module_out_path = module_output_path
   sources = [
-    "../src/backup_handler.cpp",
     "../src/device_change_listener_impl.cpp",
     "../src/device_kvstore_impl.cpp",
     "../src/device_kvstore_observer_impl.cpp",
@@ -127,7 +126,6 @@ ohos_unittest("KvStoreImplLogicalIsolationTest") {
 ohos_unittest("KvStoreImplPhysicalIsolationTest") {
   module_out_path = module_output_path
   sources = [
-    "../src/backup_handler.cpp",
     "../src/device_change_listener_impl.cpp",
     "../src/device_kvstore_impl.cpp",
     "../src/device_kvstore_observer_impl.cpp",
@@ -193,7 +191,6 @@ ohos_unittest("KvStoreImplPhysicalIsolationTest") {
 ohos_unittest("KvStoreDataServiceTest") {
   module_out_path = module_output_path
   sources = [
-    "../src/backup_handler.cpp",
     "../src/device_change_listener_impl.cpp",
     "../src/device_kvstore_impl.cpp",
     "../src/device_kvstore_observer_impl.cpp",
@@ -258,7 +255,6 @@ ohos_unittest("KvStoreBackupTest") {
   module_out_path = module_output_path
 
   sources = [
-    "../src/backup_handler.cpp",
     "../src/device_change_listener_impl.cpp",
     "../src/device_kvstore_impl.cpp",
     "../src/device_kvstore_observer_impl.cpp",
@@ -358,7 +354,6 @@ ohos_unittest("KvStoreFlowCtrlManagerTest") {
 ohos_unittest("KvStoreSyncManagerTest") {
   module_out_path = module_output_path
   sources = [
-    "../src/backup_handler.cpp",
     "../src/device_change_listener_impl.cpp",
     "../src/device_kvstore_impl.cpp",
     "../src/device_kvstore_observer_impl.cpp",
@@ -420,7 +415,6 @@ ohos_unittest("KvStoreSyncManagerTest") {
 ohos_unittest("KvStoreUninstallerTest") {
   module_out_path = module_output_path
   sources = [
-    "../src/backup_handler.cpp",
     "../src/device_change_listener_impl.cpp",
     "../src/device_kvstore_impl.cpp",
     "../src/device_kvstore_observer_impl.cpp",
