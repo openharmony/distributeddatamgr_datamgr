@@ -128,7 +128,6 @@ void BackupManager::BackSchedule()
 
 void BackupManager::DoBackup(const StoreMetaData &meta)
 {
-    DistributedKv::Status status = Status::NOT_FOUND;
     bool result = false;
     auto key = meta.GetSecretKey();
     auto backupKey = meta.GetBackupSecretKey();
