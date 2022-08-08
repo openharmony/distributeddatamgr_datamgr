@@ -104,7 +104,7 @@ ohos_shared_library("distributeddataservice") {
   if (distributeddatamgr_power) {
     variable_sources = [
       "src/backup_rule/src/charging.cpp",
-      "src/backup_rule/src/screenoff.cpp",
+      "src/backup_rule/src/screen_off.cpp",
     ]
     sources += variable_sources
   }

@@ -14,7 +14,7 @@
 */
 #define LOG_TAG "ScreenOff"
 
-#include "screenoff.h"
+#include "screen_off.h"
 #include "log_print.h"
 #include "power_mgr_client.h"
 
