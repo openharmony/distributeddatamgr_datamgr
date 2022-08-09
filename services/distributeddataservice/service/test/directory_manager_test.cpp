@@ -184,8 +184,9 @@ HWTEST_F(DirectoryManagerTest, GetRDBBackupPath, TestSize.Level0)
     HapTokenInfo tokenInfo;
     AccessTokenKit::GetHapTokenInfo(metaData.tokenId, tokenInfo);
     metaData.appId = tokenInfo.appID;
+    metaData.storeId = "testStpre";
     auto path = DirectoryManager::GetInstance().GetStoreBackupPath(metaData);
-    EXPECT_EQ(path, metaData.dataDir + "/rdb/backup");
+    EXPECT_EQ(path, metaData.dataDir + "/rdb/backup/testStpre");
 }
 /**
 * @tc.name: GetKVDBBackupPath
@@ -207,8 +208,9 @@ HWTEST_F(DirectoryManagerTest, GetKVDBBackupPath, TestSize.Level0)
     HapTokenInfo tokenInfo;
     AccessTokenKit::GetHapTokenInfo(metaData.tokenId, tokenInfo);
     metaData.appId = tokenInfo.appID;
+    metaData.storeId = "testStpre";
     auto path = DirectoryManager::GetInstance().GetStoreBackupPath(metaData);
-    EXPECT_EQ(path, metaData.dataDir + "/backup");
+    EXPECT_EQ(path, metaData.dataDir + "/backup/testStpre");
 }
 
 /**
