@@ -705,7 +705,7 @@ distributeddb_unittest("DistributedDBRelationalResultSetTest") {
       [ "unittest/common/storage/distributeddb_relational_result_set_test.cpp" ]
 }
 
-distributeddb_unittest("DistributedDBRelationalEncryptedDataTest") {
+distributeddb_unittest("DistributedDBRelationalEncryptedDbTest") {
   sources = [
     "unittest/common/storage/distributeddb_relational_encrypted_db_test.cpp",
   ]
@@ -761,7 +761,7 @@ group("unittest") {
     ":DistributedDBMultiVerVacuumTest",
     ":DistributedDBNotificationChainTest",
     ":DistributedDBParcelTest",
-    ":DistributedDBRelationalEncryptedDataTest",
+    ":DistributedDBRelationalEncryptedDbTest",
     ":DistributedDBRelationalGetDataTest",
     ":DistributedDBRelationalRemoteQueryTest",
     ":DistributedDBRelationalResultSetTest",

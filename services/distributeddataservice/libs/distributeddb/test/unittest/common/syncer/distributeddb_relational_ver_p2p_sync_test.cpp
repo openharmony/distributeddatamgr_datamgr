@@ -986,11 +986,7 @@ HWTEST_F(DistributedDBRelationalVerP2PSyncTest, AutoLaunchSyncAfterRekey_001, Te
     /**
      * @tc.steps: step2. set auto launch callBack
      */
-    AutoLaunchParam encryptedParam;
-    encryptedParam.path    = g_dbDir;
-    encryptedParam.appId   = APP_ID;
-    encryptedParam.userId  = USER_ID;
-    encryptedParam.storeId = STORE_ID_1;
+    AutoLaunchParam encryptedParam { USER_ID, APP_ID, STORE_ID_1, AutoLaunchOption {}, nullptr, g_dbDir };
     encryptedParam.option.isEncryptedDb = true;
     encryptedParam.option.cipher = CipherType::DEFAULT;
     encryptedParam.option.passwd = g_correctPasswd;

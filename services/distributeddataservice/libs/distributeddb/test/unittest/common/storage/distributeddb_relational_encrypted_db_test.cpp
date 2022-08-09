@@ -88,7 +88,7 @@ void ExecSqlAndAssertOK(sqlite3 *db, const std::string &sql)
 }
 }
 
-class DistributedDBRelationalEncryptedDataTest : public testing::Test {
+class DistributedDBRelationalEncryptedDbTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
@@ -96,7 +96,7 @@ public:
     void TearDown();
 };
 
-void DistributedDBRelationalEncryptedDataTest::SetUpTestCase(void)
+void DistributedDBRelationalEncryptedDbTest::SetUpTestCase(void)
 {
     DistributedDBToolsUnitTest::TestDirInit(g_testDir);
     g_storePath = g_testDir + "/getDataTest.db";
@@ -111,17 +111,17 @@ void DistributedDBRelationalEncryptedDataTest::SetUpTestCase(void)
     g_incorrectPasswd.SetValue((const uint8_t *)(INCORRECT_KEY.data()), INCORRECT_KEY.size());
 }
 
-void DistributedDBRelationalEncryptedDataTest::TearDownTestCase(void)
+void DistributedDBRelationalEncryptedDbTest::TearDownTestCase(void)
 {
     RuntimeContext::GetInstance()->SetCommunicatorAggregator(nullptr);
 }
 
-void DistributedDBRelationalEncryptedDataTest::SetUp(void)
+void DistributedDBRelationalEncryptedDbTest::SetUp(void)
 {
     DistributedDBToolsUnitTest::PrintTestCaseInfo();
 }
 
-void DistributedDBRelationalEncryptedDataTest::TearDown(void)
+void DistributedDBRelationalEncryptedDbTest::TearDown(void)
 {
     if (g_delegate != nullptr) {
         EXPECT_EQ(g_mgr.CloseStore(g_delegate), DBStatus::OK);
@@ -140,7 +140,7 @@ void DistributedDBRelationalEncryptedDataTest::TearDown(void)
  * @tc.require: AR000H68LL
  * @tc.author: lidongwei
  */
-HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithoutPasswdInCollMode_001, TestSize.Level1)
+HWTEST_F(DistributedDBRelationalEncryptedDbTest, OpenEncryptedDBWithoutPasswdInCollMode_001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Create an encrypted db.
@@ -172,7 +172,7 @@ HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithoutPasswdI
  * @tc.require: AR000H68LL
  * @tc.author: lidongwei
  */
-HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithoutPasswdInSplitMode_001, TestSize.Level1)
+HWTEST_F(DistributedDBRelationalEncryptedDbTest, OpenEncryptedDBWithoutPasswdInSplitMode_001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Create an encrypted db.
@@ -204,7 +204,7 @@ HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithoutPasswdI
  * @tc.require: AR000H68LL
  * @tc.author: lidongwei
  */
-HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithPasswdInSplitMode_001, TestSize.Level1)
+HWTEST_F(DistributedDBRelationalEncryptedDbTest, OpenEncryptedDBWithPasswdInSplitMode_001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Create an encrypted db.
@@ -260,7 +260,7 @@ HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithPasswdInSp
  * @tc.require: AR000H68LL
  * @tc.author: lidongwei
  */
-HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithInvalidParameters_001, TestSize.Level1)
+HWTEST_F(DistributedDBRelationalEncryptedDbTest, OpenEncryptedDBWithInvalidParameters_001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Create an encrypted db.
@@ -302,7 +302,7 @@ HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithInvalidPar
  * @tc.require: AR000H68LL
  * @tc.author: lidongwei
  */
-HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithCustomizedIterTimes_001, TestSize.Level1)
+HWTEST_F(DistributedDBRelationalEncryptedDbTest, OpenEncryptedDBWithCustomizedIterTimes_001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Create an encrypted db.
@@ -358,7 +358,7 @@ HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithCustomized
  * @tc.require: AR000H68LL
  * @tc.author: lidongwei
  */
-HWTEST_F(DistributedDBRelationalEncryptedDataTest, RekeyAfterOpenStore_001, TestSize.Level1)
+HWTEST_F(DistributedDBRelationalEncryptedDbTest, RekeyAfterOpenStore_001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Create an encrypted db.
@@ -432,7 +432,7 @@ HWTEST_F(DistributedDBRelationalEncryptedDataTest, RekeyAfterOpenStore_001, Test
  * @tc.require: AR000H68LL
  * @tc.author: lidongwei
  */
-HWTEST_F(DistributedDBRelationalEncryptedDataTest, OpenEncryptedDBWithDifferentPasswd_001, TestSize.Level1)
+HWTEST_F(DistributedDBRelationalEncryptedDbTest, OpenEncryptedDBWithDifferentPasswd_001, TestSize.Level1)
 {
     /**
      * @tc.steps: step1. Create an encrypted db.
