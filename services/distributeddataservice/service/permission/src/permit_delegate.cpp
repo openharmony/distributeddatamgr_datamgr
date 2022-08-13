@@ -83,64 +83,45 @@ bool PermitDelegate::VerifyPermission(const CheckParam &param, uint8_t flag)
 
     auto devId = Commu::GetInstance().GetLocalDevice().uuid;
     StoreMetaData data;
+    AppIDMetaData appIDMeta;
     data.user = param.userId;
-    data.bundleName = param.appId;
     data.storeId = param.storeId;
-    data.deviceId = param.deviceId;
+    data.deviceId = devId;
     data.instanceId = param.instanceId;
-    auto key = data.GetKey();
-    bool result = false;
-    permitMap_.Compute(key, [&](const auto &, PermitState &value) {
-        if (value.SyncPermit()) {
-            result = true;
+    appId2BundleNameMap_.Compute(param.appId, [&](const auto &, std::string &value) {
+        if (!value.empty()) {
+            data.bundleName = value;
             return true;
         }
-        if (flag == DBFlag::CHECK_FLAG_RECEIVE && !value.extraConditionAllow) {
-            value.extraConditionAllow = VerifyExtraCondition(param.extraConditions);
+        MetaDataManager::GetInstance().LoadMeta(param.appId, appIDMeta, true);
+        if (appIDMeta.appId == param.appId) {
+            data.bundleName = appIDMeta.bundleName;
+            value = appIDMeta.bundleName;
         }
-        StoreMetaData loadMeta;
-        auto prefix = StoreMetaData::GetPrefix({ devId, param.userId, "default" });
-        if (LoadStoreMeta(prefix, param, loadMeta) != Status::SUCCESS) {
-            result = false;
-            return true;
-        }
-        if (loadMeta.appType.compare("default") == 0) {
-            value.defaultAllow = true;
-            result = true;
-            return true;
-        }
-        if (!value.strategyAllow) {
-            auto status = VerifyStrategy(loadMeta, param.deviceId);
-            if (status != Status::SUCCESS) {
-                ZLOGW("verify strategy fail, status:%d.", status);
-                result = false;
-                return true;
-            }
-            value.strategyAllow = true;
-        }
-        if (!value.privilegeAllow) {
-            value.privilegeAllow = PermissionValidator::GetInstance().CheckSyncPermission(loadMeta.tokenId);
-        }
-        result = value.SyncPermit();
         return true;
     });
-    return result;
-}
-
-Status PermitDelegate::LoadStoreMeta(const std::string &prefix, const CheckParam &param, StoreMetaData &data) const
-{
-    std::vector<StoreMetaData> metaData;
-    if (!MetaDataManager::GetInstance().LoadMeta(prefix, metaData)) {
-        ZLOGE("load data failed.");
-        return Status::NOT_FOUND;
-    }
-    for (const auto &item : metaData) {
-        if (item.appId == param.appId && item.storeId == param.storeId && item.instanceId == param.instanceId) {
-            data = item;
-            return Status::SUCCESS;
+    auto key = data.GetKey();
+    metaDataMap_.Compute(key, [&](const auto &, StoreMetaData &value) {
+        if (key == value.GetKey()) {
+            data = value;
+            return true;
         }
+        MetaDataManager::GetInstance().LoadMeta(key, value);
+        if (key == vaule.GetKey()) {
+            data = value;
+        }
+        return true;
+    });
+    if (data.appType.compare("default") == 0) {
+        ZLOGD("default, sync permission success.");
+        return true;
     }
-    return Status::NOT_FOUND;
+    auto status = VerifyStrategy(data, param.deviceId);
+    if (status != Status::SUCCESS) {
+        ZLOGE("verify strategy fail, status:%d.", status);
+        return false;
+    }
+    return PermissionValidator::GetInstance().CheckSyncPermission(data.tokenId);
 }
 
 bool PermitDelegate::VerifyExtraCondition(const std::map<std::string, std::string> &cond) const

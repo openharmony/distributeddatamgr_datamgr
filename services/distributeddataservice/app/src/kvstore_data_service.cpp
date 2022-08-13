@@ -46,6 +46,7 @@
 #include "kvstore_meta_manager.h"
 #include "kvstore_utils.h"
 #include "log_print.h"
+#include "metadata/appid_meta_data.h"
 #include "metadata/meta_data_manager.h"
 #include "metadata/secret_key_meta_data.h"
 #include "metadata/strategy_meta_data.h"
@@ -330,6 +331,10 @@ Status KvStoreDataService::UpdateMetaData(const Options &options, const StoreMet
     saveMeta.securityLevel = options.securityLevel;
     saveMeta.dataDir = KvStoreAppManager::GetDbDir(metaData);
     auto saved = MetaDataManager::GetInstance().SaveMeta(saveMeta.GetKey(), saveMeta);
+    AppIDMetaData appIdMeta;
+    appIdMeta.bundleName = saveMeta.bundleName;
+    appIdMeta.appId = saveMeta.appId;
+    saved = MetaDataManager::GetInstance().SaveMeta(appIdMeta.GetKey(), appIdMeta, true);
     return !saved ? Status::DB_ERROR : Status::SUCCESS;
 }
 

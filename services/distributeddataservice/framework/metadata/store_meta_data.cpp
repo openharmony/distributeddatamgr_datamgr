@@ -54,6 +54,7 @@ bool StoreMetaData::Marshal(json &node) const
     SetValue(node[GET_NAME(UID)], uid);
     return true;
 }
+
 bool StoreMetaData::Unmarshal(const json &node)
 {
     GetValue(node, GET_NAME(version), version);

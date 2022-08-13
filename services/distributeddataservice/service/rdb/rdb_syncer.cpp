@@ -21,6 +21,7 @@
 #include "directory_manager.h"
 #include "kvstore_utils.h"
 #include "log_print.h"
+#include "metadata/appid_meta_data.h"
 #include "metadata/meta_data_manager.h"
 #include "metadata/store_meta_data.h"
 #include "rdb_result_set_impl.h"
@@ -141,6 +142,10 @@ int32_t RdbSyncer::CreateMetaData(StoreMetaData &meta)
     }
 
     auto saved = MetaDataManager::GetInstance().SaveMeta(meta.GetKey(), meta);
+    AppIDMetaData appIdMeta;
+    appIdMeta.bundleName = meta.bundleName;
+    appIdMeta.appId = meta.appId;
+    saved = MetaDataManager::GetInstance().SaveMeta(appIdMeta.GetKey(), appIdMeta, true);
     return saved ? RDB_OK : RDB_ERROR;
 }
 
