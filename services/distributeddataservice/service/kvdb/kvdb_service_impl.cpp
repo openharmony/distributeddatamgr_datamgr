@@ -27,6 +27,7 @@
 #include "directory_manager.h"
 #include "ipc_skeleton.h"
 #include "log_print.h"
+#include "metadata/appid_meta_data.h"
 #include "metadata/meta_data_manager.h"
 #include "query_helper.h"
 #include "upgrade.h"
@@ -321,6 +322,10 @@ Status KVDBServiceImpl::AfterCreate(const AppId &appId, const StoreId &storeId, 
     }
 
     MetaDataManager::GetInstance().SaveMeta(metaData.GetKey(), metaData);
+    AppIDMetaData appIdMeta;
+    appIdMeta.bundleName = metaData.bundleName;
+    appIdMeta.appId = metaData.appId;
+    MetaDataManager::GetInstance().SaveMeta(appIdMeta.GetKey(), appIdMeta, true);
     Upgrade::GetInstance().UpdatePassword(metaData, password);
     ZLOGI("appId:%{public}s storeId:%{public}s instanceId:%{public}d type:%{public}d dir:%{public}s",
         appId.appId.c_str(), storeId.storeId.c_str(), metaData.instanceId, metaData.storeType,

@@ -18,6 +18,7 @@
 #include <map>
 #include <string>
 #include "concurrent_map.h"
+#include "lru_bucket.h"
 #include "metadata/store_meta_data.h"
 #include "store_errno.h"
 #include "types_export.h"
@@ -36,17 +37,6 @@ public:
     API_EXPORT bool SyncActivate(const ActiveParam &param);
     API_EXPORT bool VerifyPermission(const CheckParam &param, uint8_t flag);
 
-    struct PermitState {
-        bool SyncPermit() const
-        {
-            return defaultAllow || (strategyAllow && privilegeAllow && extraConditionAllow);
-        }
-        bool strategyAllow = false;
-        bool privilegeAllow = false;
-        bool extraConditionAllow = true;
-        bool defaultAllow = false;
-    };
-
 private:
     PermitDelegate();
     ~PermitDelegate();
@@ -55,7 +45,8 @@ private:
     Status LoadStoreMeta(const std::string &prefix, const CheckParam &param, StoreMetaData &data) const;
     std::map<std::string, std::string> GetExtraCondition(const CondParam &param);
 
-    ConcurrentMap<std::string, PermitState> permitMap_;
+    ConcurrentMap<std::string, std::string> appId2BundleNameMap_;
+    LRUBucket<std::string, StoreMetaData> metaDataBucket_ {32};
 };
 } // namespace OHOS::DistributedData
 #endif // OHOS_DISTRIBUTED_DATA_SERVICES_SERVICE_PERMISSION_PERMIT_DELEGATE_H

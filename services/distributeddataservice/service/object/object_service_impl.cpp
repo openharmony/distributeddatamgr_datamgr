@@ -26,6 +26,7 @@
 #include "communication_provider.h"
 #include "bootstrap.h"
 #include "directory_manager.h"
+#include "metadata/appid_meta_data.h"
 #include "metadata/store_meta_data.h"
 #include "metadata/meta_data_manager.h"
 
@@ -89,6 +90,10 @@ void ObjectServiceImpl::Initialize()
     saveMeta.storeType = KvStoreType::SINGLE_VERSION;
     ObjectStoreManager::GetInstance()->SetData(saveMeta.dataDir, userId);
     auto saved = DistributedData::MetaDataManager::GetInstance().SaveMeta(saveMeta.GetKey(), saveMeta);
+    DistributedData::AppIDMetaData appIdMeta;
+    appIdMeta.bundleName = saveMeta.bundleName;
+    appIdMeta.appId = saveMeta.appId;
+    saved = DistributedData::MetaDataManager::GetInstance().SaveMeta(appIdMeta.GetKey(), appIdMeta, true);
     if (!saved) {
         ZLOGE("SaveMeta failed");
     }
