@@ -88,7 +88,7 @@ bool PermitDelegate::VerifyPermission(const CheckParam &param, uint8_t flag)
     data.storeId = param.storeId;
     data.deviceId = devId;
     data.instanceId = param.instanceId;
-    appId2BundleNameMap_.Compute(param.appId, [&data](const auto &key, std::string &value) {
+    appId2BundleNameMap_.Compute(param.appId, [&data, &param](const auto &key, std::string &value) {
         if (!value.empty()) {
             data.bundleName = value;
             return true;
