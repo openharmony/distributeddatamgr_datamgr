@@ -39,9 +39,8 @@
 namespace DistributedDB {
 namespace {
     constexpr int WAIT_DELEGATE_CALLBACK_TIME = 100;
-
+    constexpr int DEVICE_ID_LEN = 32;
     const std::string CREATE_DB_TIME = "createDBTime";
-    const std::string DUMMY_DEVICE_ID = "                                ";
 
     // Called when get multiple dev data.
     // deviceID is the device which currently being getting. When getting one dev data, deviceID is "".
@@ -1403,9 +1402,11 @@ int SQLiteSingleVerNaturalStore::Export(const std::string &filePath, const Ciphe
     // Exclusively write resources
     std::string localDev;
     int errCode = GetLocalIdentity(localDev);
-    if (errCode != E_OK) {
-        LOGD("Get local dev id err:%d, use dummy devId!", errCode);
-        localDev = DUMMY_DEVICE_ID;
+    if (errCode == -E_NOT_INIT) {
+        localDev.resize(DEVICE_ID_LEN);
+    } else if (errCode != E_OK) {
+        LOGE("Get local dev id err:%d!", errCode);
+        localDev.resize(0);
     }
     // The write handle is applied to prevent writing data during the export process.
     SQLiteSingleVerStorageExecutor *handle = GetHandle(true, errCode, OperatePerm::NORMAL_PERM);
@@ -1440,9 +1441,11 @@ int SQLiteSingleVerNaturalStore::Import(const std::string &filePath, const Ciphe
 
     std::string localDev;
     int errCode = GetLocalIdentity(localDev);
-    if (errCode != E_OK) {
-        localDev = DUMMY_DEVICE_ID;
-        LOGD("Failed to GetLocalIdentity, use dummy devId!");
+    if (errCode == -E_NOT_INIT) {
+        localDev.resize(DEVICE_ID_LEN);
+    } else if (errCode != E_OK) {
+        localDev.resize(0);
+        LOGE("Failed to GetLocalIdentity!");
     }
     // stop the syncer
     errCode = storageEngine_->TryToDisable(false, OperatePerm::IMPORT_MONOPOLIZE_PERM);
