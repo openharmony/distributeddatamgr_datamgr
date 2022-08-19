@@ -106,24 +106,18 @@ Status UninstallerImpl::Init(KvStoreDataService *kvStoreDataService)
     std::thread th = std::thread([this] {
         int tryTimes = 0;
         constexpr int MAX_RETRY_TIME = 300;
-        constexpr int RETRY_WAIT_TIME_S = 1;
 
         // we use this method to make sure regist success
         while (tryTimes < MAX_RETRY_TIME) {
             auto result = CommonEventManager::SubscribeCommonEvent(subscriber_);
             if (result) {
-                ZLOGI("EventManager: Success");
+                ZLOGI("subscribe uninstall event success");
                 break;
-            } else {
-                ZLOGE("EventManager: Fail to Register Subscriber, error:%d", result);
-                sleep(RETRY_WAIT_TIME_S);
             }
+            ZLOGE("subscribe uninstall event fail, try times:%d", tryTimes);
             tryTimes++;
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
-        if (MAX_RETRY_TIME == tryTimes) {
-            ZLOGE("EventManager: Fail to Register Subscriber!!!");
-        }
-        ZLOGI("Register listener End!!");
     });
     th.detach();
     return Status::SUCCESS;
