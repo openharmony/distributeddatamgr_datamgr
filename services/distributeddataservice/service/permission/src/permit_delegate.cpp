@@ -16,6 +16,7 @@
 #define LOG_TAG "PermitDelegate"
 #include "permit_delegate.h"
 #include "communication_provider.h"
+#include "constant.h"
 #include "metadata/appid_meta_data.h"
 #include "metadata/meta_data_manager.h"
 #include "metadata/strategy_meta_data.h"
@@ -32,6 +33,7 @@ using DBConfig = DistributedDB::RuntimeConfig;
 using DBFlag = DistributedDB::PermissionCheckFlag;
 using Commu = OHOS::AppDistributedKv::CommunicationProvider;
 using PermissionValidator = OHOS::DistributedKv::PermissionValidator;
+using namespace OHOS::DistributedKv;
 
 PermitDelegate::PermitDelegate()
 {}
@@ -84,7 +86,8 @@ bool PermitDelegate::VerifyPermission(const CheckParam &param, uint8_t flag)
 
     auto devId = Commu::GetInstance().GetLocalDevice().uuid;
     StoreMetaData data;
-    data.user = param.userId;
+    data.user = param.userId == Constant::GetDefaultHarmonyAccountName() ?
+                Constant::GetDefaultDeviceAccountId() : param.userId;
     data.storeId = param.storeId;
     data.deviceId = devId;
     data.instanceId = param.instanceId;
