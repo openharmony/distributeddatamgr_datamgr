@@ -22,9 +22,10 @@
 #include "common_event_support.h"
 #include "communication_provider.h"
 #include "device_kvstore_impl.h"
+#include "log_print.h"
 #include "metadata/meta_data_manager.h"
 #include "metadata/store_meta_data.h"
-#include "log_print.h"
+#include "utils/block_integer.h"
 
 namespace OHOS::DistributedKv {
 using namespace OHOS::AppDistributedKv;
@@ -104,19 +105,14 @@ Status UninstallerImpl::Init(KvStoreDataService *kvStoreDataService)
     };
     subscriber_ = std::make_shared<UninstallEventSubscriber>(info, callback);
     std::thread th = std::thread([this] {
-        int tryTimes = 0;
-        constexpr int MAX_RETRY_TIME = 300;
-
-        // we use this method to make sure regist success
-        while (tryTimes < MAX_RETRY_TIME) {
-            auto result = CommonEventManager::SubscribeCommonEvent(subscriber_);
-            if (result) {
+        constexpr int32_t RETRY_TIME = 300;
+        constexpr int32_t RETRY_INTERVAL = 100 * 1000;
+        for (BlockInteger retry(RETRY_INTERVAL); retry < RETRY_TIME; ++retry) {
+            if (CommonEventManager::SubscribeCommonEvent(subscriber_);) {
                 ZLOGI("subscribe uninstall event success");
                 break;
             }
-            ZLOGE("subscribe uninstall event fail, try times:%d", tryTimes);
-            tryTimes++;
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            ZLOGE("subscribe uninstall event fail, try times:%d", static_cast<int>(retry));
         }
     });
     th.detach();
