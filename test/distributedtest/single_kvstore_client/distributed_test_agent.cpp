@@ -65,11 +65,11 @@ public:
     virtual int OnProcessMsg(const std::string &msg, int len, std::string &ret, int retLen);
     virtual int OnProcessCmd(const std::string &command, int len, const std::string &args,
         int argsLen, const std::string &expectValue, int expectValueLen);
-    int Get(const std::string &msg, std::string &ret);
-    int Put(const std::string &args);
-    int Delete(const std::string &args);
-    int Sync(const std::string &args);
-    int RemoveDeviceData(const std::string &args);
+    int Get(const std::string &msg, std::string &ret) const;
+    int Put(const std::string &args) const;
+    int Delete(const std::string &args) const;
+    int Sync(const std::string &args) const;
+    int RemoveDeviceData(const std::string &args) const;
     int ProcessMsg(const std::string &msg, std::string &ret);
     int ProcessCmd(const std::string &command, const std::string &args);
     static std::shared_ptr<SingleKvStore> singleKvStore_; // declare kvstore instance
@@ -79,9 +79,9 @@ public:
 private:
     DistributedKvDataManager manager_;
     std::vector<DeviceInfo> deviceInfos_;
-    using CmdFunc = int (DistributedTestAgent::*)(const std::string &);
+    using CmdFunc = int (DistributedTestAgent::*)(const std::string &) const;
     std::map<std::string, CmdFunc> cmdFunMap_;
-    using MsgFunc = int (DistributedTestAgent::*)(const std::string &, std::string &);
+    using MsgFunc = int (DistributedTestAgent::*)(const std::string &, std::string &) const;
     std::map<std::string, MsgFunc> msgFunMap_;
 };
 
