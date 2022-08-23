@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
+#include "kvstore_fuzzer.h"
 #include <sys/stat.h>
 #include <string>
 #include <vector>
 #include "distributed_kv_data_manager.h"
-#include "kvstore_fuzzer.h"
 #include "single_kvstore_client.h"
 #include "store_errno.h"
 
