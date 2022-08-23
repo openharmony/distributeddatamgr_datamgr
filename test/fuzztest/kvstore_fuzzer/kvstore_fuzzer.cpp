@@ -16,9 +16,10 @@
 #include <sys/stat.h>
 #include <string>
 #include <vector>
-#include "single_kvstore_client.h"
 #include "distributed_kv_data_manager.h"
 #include "kvstore_fuzzer.h"
+#include "single_kvstore_client.h"
+#include "store_errno.h"
 
 using namespace OHOS;
 using namespace OHOS::DistributedKv;
@@ -136,8 +137,8 @@ void GetResultSetFuzz1(const uint8_t *data, size_t size)
     for (size_t i = 0; i < sum; i++) {
         singleKvStore_->Put(prefix + keys + std::to_string(i), keys + std::to_string(i));
     }
-    auto res = singleKvStore_->GetResultSet(prefix, resultSet);
-    if (res != 0) {
+    auto status = singleKvStore_->GetResultSet(prefix, resultSet);
+    if (status != Status::SUCCESS) {
         return;
     }
     resultSet->Move(position);
