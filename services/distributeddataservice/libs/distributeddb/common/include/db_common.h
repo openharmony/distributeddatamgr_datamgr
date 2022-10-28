@@ -60,6 +60,8 @@ public:
     static std::string GetDistributedTableName(const std::string &device, const std::string &tableName);
 
     static void GetDeviceFromName(const std::string &deviceTableName, std::string &deviceHash, std::string &tableName);
+
+    static bool CheckIsAlnumAndUnderscore(const std::string &text);
 };
 
 // Define short macro substitute for original long expression for convenience of using
