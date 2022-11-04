@@ -333,4 +333,12 @@ void DBCommon::GetDeviceFromName(const std::string &deviceTableName, std::string
             found - DBConstant::RELATIONAL_PREFIX.length());
     }
 }
+
+bool DBCommon::CheckIsAlnumAndUnderscore(const std::string &text)
+{
+    auto iter = std::find_if_not(text.begin(), text.end(), [](char c) {
+            return (std::isalnum(c) || c == '_');
+        });
+    return iter == text.end();
+}
 } // namespace DistributedDB
