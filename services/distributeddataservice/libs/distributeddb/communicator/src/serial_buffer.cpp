@@ -43,7 +43,7 @@ int SerialBuffer::AllocBufferByPayloadLength(uint32_t inPayloadLen, uint32_t inH
     if (totalLen_ == 0 || totalLen_ > MAX_TOTAL_LEN) {
         return -E_INVALID_ARGS;
     }
-    bytes_ = new (std::nothrow) uint8_t[totalLen_];
+    bytes_ = new (std::nothrow) uint8_t[totalLen_]();
     if (bytes_ == nullptr) {
         return -E_OUT_OF_MEMORY;
     }
@@ -64,7 +64,7 @@ int SerialBuffer::AllocBufferByTotalLength(uint32_t inTotalLen, uint32_t inHeade
     headerLen_ = inHeaderLen;
     payloadLen_ = totalLen_ - headerLen_;
     paddingLen_ = 0;
-    bytes_ = new (std::nothrow) uint8_t[inTotalLen];
+    bytes_ = new (std::nothrow) uint8_t[inTotalLen]();
     if (bytes_ == nullptr) {
         return -E_OUT_OF_MEMORY;
     }
