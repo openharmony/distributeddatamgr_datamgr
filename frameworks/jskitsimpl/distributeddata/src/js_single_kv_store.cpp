@@ -87,9 +87,10 @@ napi_value JsSingleKVStore::Get(napi_env env, napi_callback_info info)
         OHOS::DistributedKv::Key key(ctxt->key);
         OHOS::DistributedKv::Value value;
         auto& kvStore = reinterpret_cast<JsSingleKVStore*>(ctxt->native)->GetNative();
+        bool isSchemaStore = reinterpret_cast<JsSingleKVStore*>(ctxt->native)->IsSchemaStore();
         Status status = kvStore->Get(key, value);
         ZLOGD("kvStore->Get return %{public}d", status);
-        ctxt->value = JSUtil::Blob2VariantValue(value);
+        ctxt->value = isSchemaStore ? value.ToString() : JSUtil::Blob2VariantValue(value);
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
         CHECK_STATUS(ctxt, "kvStore->Get() failed!");
     };
@@ -172,7 +173,8 @@ napi_value JsSingleKVStore::GetEntries(napi_env env, napi_callback_info info)
         CHECK_STATUS(ctxt, "kvStore->GetEntries() failed");
     };
     auto output = [env, ctxt](napi_value& result) {
-        ctxt->status = JSUtil::SetValue(env, ctxt->entries, result);
+        auto isSchemaStore = reinterpret_cast<JsSingleKVStore*>(ctxt->native)->IsSchemaStore();
+        ctxt->status = JSUtil::SetValue(env, ctxt->entries, result, isSchemaStore);
         CHECK_STATUS(ctxt, "output failed!");
     };
     return NapiQueue::AsyncWork(env, ctxt, std::string(__FUNCTION__), execute, output);
