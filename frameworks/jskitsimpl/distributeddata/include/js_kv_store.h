@@ -59,7 +59,7 @@ public:
     static napi_value SetSyncRange(napi_env env, napi_callback_info info);
 
 protected:
-    bool IsSchemaStore() const
+    bool IsSchemaStore() const;
 
 private:
     class DataObserver : public DistributedKv::KvStoreObserver, public JSObserver {
