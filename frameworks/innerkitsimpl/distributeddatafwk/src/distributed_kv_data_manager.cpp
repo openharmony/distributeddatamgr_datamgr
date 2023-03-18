@@ -38,7 +38,7 @@ DistributedKvDataManager::~DistributedKvDataManager()
 Status DistributedKvDataManager::GetKvStore(const Options &options, const AppId &appId, const StoreId &storeId,
                                             std::shared_ptr<KvStore> &kvStore)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
 
     kvStore = nullptr;
     std::string storeIdTmp = Constant::TrimCopy<std::string>(storeId.storeId);
@@ -81,7 +81,7 @@ Status DistributedKvDataManager::GetKvStore(const Options &options, const AppId 
 Status DistributedKvDataManager::GetSingleKvStore(const Options &options, const AppId &appId, const StoreId &storeId,
                                                   std::shared_ptr<SingleKvStore> &singleKvStore)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
 
     singleKvStore = nullptr;
     std::string storeIdTmp = Constant::TrimCopy<std::string>(storeId.storeId);

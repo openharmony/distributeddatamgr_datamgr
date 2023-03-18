@@ -44,7 +44,7 @@ StoreId KvStoreClient::GetStoreId() const
 Status KvStoreClient::GetKvStoreSnapshot(std::shared_ptr<KvStoreObserver> observer,
                                          std::shared_ptr<KvStoreSnapshot> &snapshot) const
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
 
     snapshot = nullptr;
     if (kvStoreProxy_ == nullptr) {
@@ -102,7 +102,7 @@ Status KvStoreClient::ReleaseKvStoreSnapshot(std::shared_ptr<KvStoreSnapshot> &s
 Status KvStoreClient::Put(const Key &key, const Value &value)
 {
     ZLOGD("key: %zu value: %zu.", key.Size(), value.Size());
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
 
     std::vector<uint8_t> keyData = Constant::TrimCopy<std::vector<uint8_t>>(key.Data());
     if (keyData.size() == 0 || keyData.size() > Constant::MAX_KEY_LENGTH ||
@@ -121,7 +121,7 @@ Status KvStoreClient::Put(const Key &key, const Value &value)
 Status KvStoreClient::PutBatch(const std::vector<Entry> &entries)
 {
     ZLOGI("entry size: %zu", entries.size());
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
 
     if (entries.size() > Constant::MAX_BATCH_SIZE) {
         ZLOGE("batch size must less than 128.");
@@ -136,7 +136,7 @@ Status KvStoreClient::PutBatch(const std::vector<Entry> &entries)
 
 Status KvStoreClient::Delete(const Key &key)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
 
     std::vector<uint8_t> keyData = Constant::TrimCopy<std::vector<uint8_t>>(key.Data());
     if (keyData.size() == 0 || keyData.size() > Constant::MAX_KEY_LENGTH) {
@@ -153,7 +153,7 @@ Status KvStoreClient::Delete(const Key &key)
 
 Status KvStoreClient::DeleteBatch(const std::vector<Key> &keys)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
 
     if (keys.size() > Constant::MAX_BATCH_SIZE) {
         ZLOGE("batch size must less than 128.");
@@ -191,7 +191,7 @@ Status KvStoreClient::StartTransaction()
 
 Status KvStoreClient::Commit()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
 
     if (kvStoreProxy_ != nullptr) {
         return kvStoreProxy_->Commit();
@@ -202,7 +202,7 @@ Status KvStoreClient::Commit()
 
 Status KvStoreClient::Rollback()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
 
     if (kvStoreProxy_ != nullptr) {
         return kvStoreProxy_->Rollback();

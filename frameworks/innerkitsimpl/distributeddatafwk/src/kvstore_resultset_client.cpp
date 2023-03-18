@@ -25,7 +25,7 @@ KvStoreResultSetClient::KvStoreResultSetClient(sptr<IKvStoreResultSet> kvStorePr
 
 int KvStoreResultSetClient::GetCount() const
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
 
     return kvStoreResultSetProxy_->GetCount();
 }
@@ -101,7 +101,7 @@ bool KvStoreResultSetClient::IsAfterLast() const
 
 Status KvStoreResultSetClient::GetEntry(Entry &entry) const
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
 
     return kvStoreResultSetProxy_->GetEntry(entry);
 }

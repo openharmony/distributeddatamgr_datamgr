@@ -45,7 +45,7 @@ StoreId SingleKvStoreClient::GetStoreId() const
 
 Status SingleKvStoreClient::GetEntries(const Key &prefixKey, std::vector<Entry> &entries) const
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
 
     if (kvStoreProxy_ == nullptr) {
         ZLOGE("kvstore proxy is nullptr.");
@@ -57,7 +57,7 @@ Status SingleKvStoreClient::GetEntries(const Key &prefixKey, std::vector<Entry> 
 
 Status SingleKvStoreClient::GetEntriesWithQuery(const std::string &query, std::vector<Entry> &entries) const
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
 
     if (kvStoreProxy_ == nullptr) {
         ZLOGE("kvstore proxy is nullptr.");
@@ -74,7 +74,7 @@ Status SingleKvStoreClient::GetEntriesWithQuery(const DataQuery &query, std::vec
 
 Status SingleKvStoreClient::GetResultSet(const Key &prefixKey, std::shared_ptr<KvStoreResultSet> &resultSet) const
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     resultSet = nullptr;
     Status statusTmp = Status::SERVER_UNAVAILABLE;
     if (kvStoreProxy_ == nullptr) {
@@ -103,7 +103,7 @@ Status SingleKvStoreClient::GetResultSet(const Key &prefixKey, std::shared_ptr<K
 Status SingleKvStoreClient::GetResultSetWithQuery(const std::string &query,
                                                   std::shared_ptr<KvStoreResultSet> &resultSet) const
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
 
     resultSet = nullptr;
     Status statusTmp = Status::SERVER_UNAVAILABLE;
@@ -157,7 +157,7 @@ Status SingleKvStoreClient::CloseResultSet(std::shared_ptr<KvStoreResultSet> &re
 
 Status SingleKvStoreClient::GetCountWithQuery(const std::string &query, int &result) const
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
 
     if (kvStoreProxy_ == nullptr) {
         ZLOGE("kvstore proxy is nullptr.");
@@ -174,7 +174,7 @@ Status SingleKvStoreClient::GetCountWithQuery(const DataQuery &query, int &resul
 
 Status SingleKvStoreClient::Sync(const std::vector<std::string> &deviceIds, SyncMode mode, uint32_t allowedDelayMs)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
     if (kvStoreProxy_ == nullptr) {
         ZLOGE("kvstore proxy is nullptr.");
         return Status::SERVER_UNAVAILABLE;
@@ -224,7 +224,7 @@ Status SingleKvStoreClient::Delete(const Key &key)
 
 Status SingleKvStoreClient::Put(const Key &key, const Value &value)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
 
     ZLOGI("key: %zu value: %zu.", key.Size(), value.Size());
     std::vector<uint8_t> keyData = Constant::TrimCopy<std::vector<uint8_t>>(key.Data());
@@ -242,7 +242,7 @@ Status SingleKvStoreClient::Put(const Key &key, const Value &value)
 
 Status SingleKvStoreClient::Get(const Key &key, Value &value)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
 
     if (kvStoreProxy_ == nullptr) {
         ZLOGE("kvstore proxy is nullptr.");
@@ -346,7 +346,7 @@ Status SingleKvStoreClient::UnRegisterSyncCallback()
 
 Status SingleKvStoreClient::PutBatch(const std::vector<Entry> &entries)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
 
     ZLOGI("entry size: %zu", entries.size());
     if (entries.size() > Constant::MAX_BATCH_SIZE) {
@@ -378,7 +378,7 @@ Status SingleKvStoreClient::DeleteBatch(const std::vector<Key> &keys)
 
 Status SingleKvStoreClient::StartTransaction()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
 
     if (kvStoreProxy_ != nullptr) {
         return kvStoreProxy_->StartTransaction();
@@ -389,7 +389,7 @@ Status SingleKvStoreClient::StartTransaction()
 
 Status SingleKvStoreClient::Commit()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
 
     if (kvStoreProxy_ != nullptr) {
         return kvStoreProxy_->Commit();
@@ -400,7 +400,7 @@ Status SingleKvStoreClient::Commit()
 
 Status SingleKvStoreClient::Rollback()
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
 
     if (kvStoreProxy_ != nullptr) {
         return kvStoreProxy_->Rollback();

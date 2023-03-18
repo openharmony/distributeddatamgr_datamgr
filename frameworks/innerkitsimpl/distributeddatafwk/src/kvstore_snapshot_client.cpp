@@ -38,7 +38,7 @@ KvStoreSnapshotClient::~KvStoreSnapshotClient()
 
 Status KvStoreSnapshotClient::GetEntries(const Key &prefixKey, Key &nextKey, std::vector<Entry> &entries)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
 
     std::vector<uint8_t> keyData = Constant::TrimCopy<std::vector<uint8_t>>(prefixKey.Data());
     if (keyData.size() > Constant::MAX_KEY_LENGTH) {
@@ -66,7 +66,7 @@ Status KvStoreSnapshotClient::GetEntries(const Key &prefixKey, Key &nextKey, std
 
 Status KvStoreSnapshotClient::GetEntries(const Key &prefixKey, std::vector<Entry> &entries)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
 
     std::vector<uint8_t> keyData = Constant::TrimCopy<std::vector<uint8_t>>(prefixKey.Data());
     if (keyData.size() > Constant::MAX_KEY_LENGTH) {
@@ -159,7 +159,7 @@ Status KvStoreSnapshotClient::GetKeys(const Key &prefixKey, std::vector<Key> &en
 
 Status KvStoreSnapshotClient::Get(const Key &key, Value &value)
 {
-    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__), true);
+    DdsTrace trace(std::string(LOG_TAG "::") + std::string(__FUNCTION__));
 
     std::vector<uint8_t> keyData = Constant::TrimCopy<std::vector<uint8_t>>(key.Data());
     if (keyData.size() == 0 || keyData.size() > Constant::MAX_KEY_LENGTH) {
