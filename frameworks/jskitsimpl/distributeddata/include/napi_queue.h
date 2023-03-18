@@ -1,4 +1,4 @@
-/*
+	/*
  * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,6 +95,15 @@ private:
         if (!(condition)) {                                  \
             ZLOGE("test (" #condition ") failed: " message); \
             return;                                          \
+        }                                                    \
+    } while (0)
+
+#define ASSERT_CALL(env, theCall, object)                    \
+    do {                                                     \
+        if ((theCall) != napi_ok) {                          \
+            delete (object);                                 \
+            GET_AND_THROW_LAST_ERROR((env));                 \
+            return nullptr;                                  \
         }                                                    \
     } while (0)
 

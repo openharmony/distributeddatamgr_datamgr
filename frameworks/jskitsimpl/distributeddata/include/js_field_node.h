@@ -23,7 +23,7 @@ namespace OHOS::DistributedData {
 class JsFieldNode {
 public:
     using json = nlohmann::json;
-    JsFieldNode(const std::string& fName);
+    explicit JsFieldNode(const std::string& fName);
     ~JsFieldNode() = default;
 
     std::string GetFieldName();
