@@ -21,7 +21,7 @@
 namespace OHOS::DistributedData {
 class JsSingleKVStore : public JsKVStore {
 public:
-    JsSingleKVStore(const std::string& storeId);
+    explicit JsSingleKVStore(const std::string& storeId);
     ~JsSingleKVStore() = default;
 
     static napi_value Constructor(napi_env env);
