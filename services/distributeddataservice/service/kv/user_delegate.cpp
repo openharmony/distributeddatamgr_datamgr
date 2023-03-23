@@ -55,9 +55,12 @@ std::vector<UserStatus> UserDelegate::GetUsers(const std::string &deviceId)
     if (!deviceUserMap_.Contains(deviceId)) {
         LoadFromMeta(deviceId);
     }
-    for (const auto &entry : deviceUserMap_[deviceId]) {
-        userStatus.emplace_back(entry.first, entry.second);
-    }
+    deviceUserMap_.Compute(deviceId, [&userStatus](const auto &key, auto &userMap) {
+        for (const auto [key, value] : userMap) {
+            userStatus.emplace_back(key, value);
+        }
+        return !userMap.empty();
+    });
     ZLOGI("device:%{public}.10s, users:%{public}s", deviceId.c_str(), Serializable::Marshall(userStatus).c_str());
     return userStatus;
 }
@@ -69,16 +72,17 @@ void UserDelegate::DeleteUsers(const std::string &deviceId)
 
 void UserDelegate::UpdateUsers(const std::string &deviceId, const std::vector<UserStatus> &userStatus)
 {
-    ZLOGI("begin, device:%{public}.10s, users:%{public}u", deviceId.c_str(), userStatus.size());
-    deviceUserMap_.ComputeIfPresent(deviceId, [](const auto &key, std::map<int, bool> &userMap) {
+    ZLOGI("begin, device:%{public}.10s, users:%{public}zu", deviceId.c_str(), userStatus.size());
+    deviceUserMap_.Compute(deviceId, [&userStatus](const auto &key, auto &userMap) {
         for (auto &user : userMap) {
             user.second = false;
         }
+        for (const auto &user : userStatus) {
+            userMap.insert_or_assign(user.id, user.isActive);
+        }
+        ZLOGI("end, device:%{public}.10s, users:%{public}zu", key.c_str(), userMap.size());
+        return true;
     });
-    for (auto &user : userStatus) {
-        deviceUserMap_[deviceId][user.id] = user.isActive;
-    }
-    ZLOGI("end, device:%{public}.10s, users:%{public}u", deviceId.c_str(), deviceUserMap_[deviceId].size());
 }
 
 bool UserDelegate::InitLocalUserMeta()
@@ -96,9 +100,12 @@ bool UserDelegate::InitLocalUserMeta()
     UserMetaData userMetaData;
     userMetaData.deviceId = DeviceKvStoreImpl::GetLocalDeviceId();
     UpdateUsers(userMetaData.deviceId, userStatus);
-    for (auto &pair : deviceUserMap_[userMetaData.deviceId]) {
-        userMetaData.users.emplace_back(pair.first, pair.second);
-    }
+    deviceUserMap_.ComputeIfPresent(userMetaData.deviceId, [&userMetaData](const auto &, auto &userMap) {
+        for (const auto &[key, value] : userMap) {
+            userMetaData.users.emplace_back(key, value);
+        }
+        return true;
+    });
 
     auto &metaDelegate = KvStoreMetaManager::GetInstance().GetMetaKvStore();
     if (metaDelegate == nullptr) {
@@ -134,7 +141,10 @@ void UserDelegate::LoadFromMeta(const std::string &deviceId)
     for (const auto &user : userMetaData.users) {
         userMap[user.id] = user.isActive;
     }
-    deviceUserMap_[deviceId] = userMap;
+    deviceUserMap_.Compute(deviceId, [&userMap](const auto &, auto &value) {
+        value = userMap;
+        return true;
+    });
 }
 
 UserDelegate &UserDelegate::GetInstance()
