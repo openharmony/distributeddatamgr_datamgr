@@ -106,7 +106,7 @@ napi_value JsKVStore::Put(napi_env env, napi_callback_info info)
     ZLOGD("KVStore::Put()");
     struct PutContext : public ContextBase {
         std::string key;
-        std::vector<uint8_t> value;
+        JSUtil::KvStoreVariant value;
     };
 
     auto ctxt = std::make_shared<PutContext>();
@@ -116,17 +116,16 @@ napi_value JsKVStore::Put(napi_env env, napi_callback_info info)
         CHECK_ARGS(ctxt, argc == 2, "invalid arguments!");
         ctxt->status = JSUtil::GetValue(env, argv[0], ctxt->key);
         CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid key!");
-        JSUtil::KvStoreVariant vv;
-        ctxt->status = JSUtil::GetValue(env, argv[1], vv);
+        ctxt->status = JSUtil::GetValue(env, argv[1], ctxt->value);
         CHECK_STATUS(ctxt, "invalid arg[1], i.e. invalid value!");
-        DistributedKv::Blob blob = JSUtil::VariantValue2Blob(vv);
-        ctxt->value = blob.Data();
     });
 
     auto execute = [ctxt]() {
         OHOS::DistributedKv::Key key(ctxt->key);
-        OHOS::DistributedKv::Value value(ctxt->value);
+        bool isSchemaStore = reinterpret_cast<JsKVStore *>(ctxt->native)->IsSchemaStore();
         auto& kvStore = reinterpret_cast<JsKVStore*>(ctxt->native)->kvStore_;
+        OHOS::DistributedKv::Value value = isSchemaStore ? DistributedKv::Blob(std::get<std::string>(ctxt->value))
+                                                         : JSUtil::VariantValue2Blob(ctxt->value);
         Status status = kvStore->Put(key, value);
         ZLOGD("kvStore->Put return %{public}d", status);
         ctxt->status = (status == Status::SUCCESS) ? napi_ok : napi_generic_failure;
@@ -236,7 +235,8 @@ napi_value JsKVStore::PutBatch(napi_env env, napi_callback_info info)
     ctxt->GetCbInfo(env, info, [env, ctxt](size_t argc, napi_value* argv) {
         // required 1 arguments :: <entries>
         CHECK_ARGS(ctxt, argc == 1, "invalid arguments!");
-        ctxt->status = JSUtil::GetValue(env, argv[0], ctxt->entries);
+        auto isSchemaStore = reinterpret_cast<JsKVStore*>(ctxt->native)->IsSchemaStore();
+        ctxt->status = JSUtil::GetValue(env, argv[0], ctxt->entries, isSchemaStore);
         CHECK_STATUS(ctxt, "invalid arg[0], i.e. invalid entries!");
     });
 
@@ -447,7 +447,7 @@ void JsKVStore::OnDataChange(napi_env env, size_t argc, napi_value* argv, std::s
         }
     }
 
-    ctxt->status = proxy->Subscribe(type, std::make_shared<DataObserver>(proxy->uvQueue_, argv[1]));
+    ctxt->status = proxy->Subscribe(type, std::make_shared<DataObserver>(proxy->uvQueue_, argv[1], proxy->IsSchemaStore()));
     CHECK_STATUS(ctxt, "Subscribe failed!");
 }
 
@@ -612,6 +612,16 @@ void JsKVStore::SetUvQueue(std::shared_ptr<UvQueue> uvQueue)
     uvQueue_ = uvQueue;
 }
 
+bool JsKVStore::IsSchemaStore() const
+{
+    return isSchemaStore_;
+}
+
+void JsKVStore::SetSchemaInfo(bool isSchemaStore)
+{
+    isSchemaStore_ = isSchemaStore;
+}
+
 void JsKVStore::DataObserver::OnChange(const ChangeNotification &notification,
                                        std::shared_ptr<KvStoreSnapshot> snapshot)
 {
@@ -627,10 +637,10 @@ void JsKVStore::DataObserver::OnChange(const ChangeNotification& notification)
         notification.GetDeleteEntries().size());
     KvStoreObserver::OnChange(notification);
 
-    auto args = [notification](napi_env env, int& argc, napi_value* argv) {
+    auto args = [notification, isSchema = isSchema_](napi_env env, int& argc, napi_value* argv) {
         // generate 1 arguments for callback function.
         argc = 1;
-        JSUtil::SetValue(env, notification, argv[0]);
+        JSUtil::SetValue(env, notification, argv[0], isSchema);
     };
     AsyncCall(args);
 }
