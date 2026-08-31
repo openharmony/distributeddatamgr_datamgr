@@ -16,6 +16,8 @@
 
 #include "upgrade_manager.h"
 
+#include <charconv>
+
 #include "account_delegate.h"
 #include "device_kvstore_impl.h"
 #include "executor_factory.h"
@@ -87,8 +89,13 @@ void UpgradeManager::SetCompatibleIdentifyByType(DistributedDB::KvStoreNbDelegat
         return;
     }
     auto localDevice = DeviceKvStoreImpl::GetLocalDeviceId();
-    auto devices =
-        AuthDelegate::GetInstance()->GetTrustedDevicesByType(groupType, std::stoi(tuple.userId), tuple.appId);
+    int32_t userId = 0;
+    auto parseResult = std::from_chars(tuple.userId.data(), tuple.userId.data() + tuple.userId.size(), userId);
+    if (parseResult.ec != std::errc{} || parseResult.ptr != tuple.userId.data() + tuple.userId.size()) {
+        ZLOGW("invalid user id");
+        return;
+    }
+    auto devices = AuthDelegate::GetInstance()->GetTrustedDevicesByType(groupType, userId, tuple.appId);
     auto result = std::remove_if(devices.begin(), devices.end(), [&localDevice](const std::string &device) {
         if (localDevice == device) {
             return true;
